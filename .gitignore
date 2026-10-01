@@ -43,3 +43,11 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local admin configuration, runtimes, sessions and test output
+.tools/
+admin/.env
+admin/var/*
+!admin/var/.gitkeep
+admin/tests/output/
+supabase/.temp/

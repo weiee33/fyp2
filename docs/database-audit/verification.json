@@ -1,0 +1,44 @@
+{
+  "verified_on": "2026-10-01",
+  "timezone": "Asia/Kuala_Lumpur",
+  "project_ref": "znxhiymvmluxmdaxzxkt",
+  "applied_migrations": [
+    "20261001025040_admin_foundation",
+    "20261001031048_admin_policy_indexes",
+    "20261001031124_admin_analytics_filters"
+  ],
+  "database_regression": {
+    "passed": 136,
+    "failed": 0,
+    "execution": "All three SQL test files against the applied schema in one BEGIN/ROLLBACK transaction",
+    "suites": { "admin": 104, "policy_indexes": 6, "analytics": 26 },
+    "synthetic_auth_accounts_after_rollback": 0,
+    "synthetic_application_profiles_after_rollback": 0
+  },
+  "php_http_regression": {
+    "passed": 45,
+    "failed": 0,
+    "warnings_or_fatal_errors": 0,
+    "environment": "PHP 8.4.26; isolated copied website and local Supabase Auth/RPC/Storage fixtures"
+  },
+  "browser_checks": [
+    "Real project login page served locally",
+    "Synthetic administrator password login and MFA prompt",
+    "Analytics filters retain selected category, region and provider",
+    "Desktop dashboard, analytics and printable booking report rendered",
+    "393px viewport content bounds and navigation opening/closing checked",
+    "Printable report includes all 21 fixture bookings across pagination"
+  ],
+  "advisors": {
+    "security_warnings": ["Leaked password protection disabled; Auth dashboard setting"],
+    "security_info": ["Two private tables intentionally have RLS without client policies"],
+    "performance_warnings": [],
+    "performance_info": ["25 indexes not yet used by the observed workload"]
+  },
+  "limits": [
+    "Real administrator password/MFA and email delivery require user setup and have not been exercised by the agent",
+    "Payment gateway refunds/payouts and transactional email worker are not implemented",
+    "Separate-session concurrency tests and production deployment have not been performed",
+    "Latest Flutter provider code is preserved and needs the documented mobile integration changes"
+  ]
+}
