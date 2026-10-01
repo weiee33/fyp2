@@ -21,7 +21,7 @@ class BookingService {
         .select('''
           *,
           customer_profiles!inner(users!inner(full_name, phone)),
-          services!inner(service_name)
+          services!bookings_service_id_fkey!inner(service_name)
         ''')
         .eq('provider_id', pid);
     if (status != null) q = q.eq('booking_status', status);
@@ -35,7 +35,7 @@ class BookingService {
         .select('''
           *,
           customer_profiles!inner(users!inner(full_name, phone)),
-          services!inner(service_name)
+          services!bookings_service_id_fkey!inner(service_name)
         ''')
         .eq('booking_id', bookingId)
         .maybeSingle();

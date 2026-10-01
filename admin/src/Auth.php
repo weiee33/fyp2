@@ -16,6 +16,12 @@ final class Auth
             $_SESSION['admin'] = $this->api->rpc('admin_identity');
         } catch (ApiException $exception) {
             unset($_SESSION['auth'], $_SESSION['admin']);
+            if ($exception->apiCode === 'email_not_confirmed') {
+                $this->api->rpc('admin_registration_check', ['invited_email' => $email]);
+                $_SESSION['pending_email'] = strtolower(trim($email));
+                $_SESSION['pending_email_started'] = time();
+                throw new ApiException(403, 'Confirm your email using the code from your signup email, or request a new code.', 'EMAIL_CONFIRMATION_REQUIRED');
+            }
             throw new ApiException($exception->status === 429 ? 429 : 401, $exception->status === 429 ? $exception->getMessage() : 'Unable to sign in. Use a verified, invited administrator account.');
         }
         unset($_SESSION['enrollment'], $_SESSION['password_recovery'], $_SESSION['pkce_verifier'], $_SESSION['pkce_started'], $_SESSION['pkce_flow']);
@@ -67,6 +73,7 @@ final class Auth
     public function verify(string $factor, string $code): void
     {
         $this->requireSession(false);
+        Security::throttle($this->config, 'mfa:' . ($_SESSION['admin']['user_id'] ?? '') . ':' . ($_SERVER['REMOTE_ADDR'] ?? 'local'));
         Security::uuid($factor);
         if (!preg_match('/^\d{6}$/', $code)) { throw new ApiException(400, 'Enter the six-digit authenticator code.'); }
         $allowed = array_column($this->factors(), 'id');
@@ -99,18 +106,52 @@ final class Auth
             throw new ApiException(400,'Enter a valid email and matching passwords of 12–128 characters.');
         }
         $this->logout();
+        $this->api->rpc('admin_registration_check', ['invited_email' => $email]);
         $verifier = rtrim(strtr(base64_encode(random_bytes(48)), '+/', '-_'), '=');
         $_SESSION['pkce_verifier']=$verifier; $_SESSION['pkce_started']=time(); $_SESSION['pkce_flow']='signup';
         $challenge=rtrim(strtr(base64_encode(hash('sha256',$verifier,true)),'+/','-_'),'=');
         // No role is accepted from client metadata. The database invitation authorizes activation after email verification.
         $tokens=$this->api->request('POST','/auth/v1/signup?redirect_to='.rawurlencode($this->config->appUrl.'/?page=callback'),
             ['email'=>$email,'password'=>$password,'code_challenge'=>$challenge,'code_challenge_method'=>'s256']);
+        $_SESSION['pending_email'] = strtolower(trim($email));
+        $_SESSION['pending_email_started'] = time();
+        $_SESSION['email_sent_at'] = time();
         if (!empty($tokens['access_token'])) {
             $this->saveTokens($tokens); $_SESSION['signed_in_at']=$_SESSION['last_activity']=time();
             try { $this->requireSession(false); }
             catch (ApiException $exception) { unset($_SESSION['auth'], $_SESSION['admin'], $_SESSION['enrollment'], $_SESSION['password_recovery']); throw $exception; }
             session_regenerate_id(true);
         }
+    }
+
+    public function resendEmailCode(string $email): void
+    {
+        $email = strtolower(trim($email));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) { throw new ApiException(400, 'Enter your invited email address.'); }
+        Security::throttle($this->config, 'email-resend:' . ($_SERVER['REMOTE_ADDR'] ?? 'local'));
+        if (time() - ($_SESSION['email_sent_at'] ?? 0) < 60) { throw new ApiException(429, 'Wait one minute before requesting another code.'); }
+        $this->api->rpc('admin_registration_check', ['invited_email' => $email]);
+        $this->api->request('POST', '/auth/v1/resend', ['type' => 'signup', 'email' => $email,
+            'email_redirect_to' => $this->config->appUrl . '/?page=callback']);
+        $_SESSION['pending_email'] = $email;
+        $_SESSION['pending_email_started'] = $_SESSION['email_sent_at'] = time();
+    }
+
+    public function verifyEmailCode(string $code): void
+    {
+        if (empty($_SESSION['pending_email']) || time() - ($_SESSION['pending_email_started'] ?? 0) > 3600) {
+            throw new ApiException(400, 'Request a new code for your invited email to continue.');
+        }
+        if (!preg_match('/^[0-9]{6,10}$/', $code)) { throw new ApiException(400, 'Enter the complete numeric code from your email.'); }
+        Security::throttle($this->config, 'email-verify:' . ($_SERVER['REMOTE_ADDR'] ?? 'local') . ':' . $_SESSION['pending_email']);
+        $tokens = $this->api->request('POST', '/auth/v1/verify', ['type' => 'email', 'email' => $_SESSION['pending_email'], 'token' => $code]);
+        $this->saveTokens($tokens);
+        $_SESSION['signed_in_at'] = $_SESSION['last_activity'] = time();
+        try { $this->requireSession(false); }
+        catch (ApiException $exception) { unset($_SESSION['auth'], $_SESSION['admin'], $_SESSION['enrollment'], $_SESSION['password_recovery']); throw $exception; }
+        unset($_SESSION['pending_email'], $_SESSION['pending_email_started'], $_SESSION['email_sent_at'], $_SESSION['pkce_verifier'], $_SESSION['pkce_started'], $_SESSION['pkce_flow'], $_SESSION['password_recovery']);
+        session_regenerate_id(true);
+        $_SESSION['csrf'] = bin2hex(random_bytes(32));
     }
 
     public function callback(string $code): void

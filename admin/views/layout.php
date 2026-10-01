@@ -40,7 +40,7 @@ function viewSafeLink(mixed $value, string $label = 'Open document'): void {
     elseif ($link !== '') { ?><span class="muted">Document stored privately</span><?php }
     else { ?><span class="muted">No document supplied</span><?php }
 }
-$authPage = in_array($page, ['login','signup','forgot','reset','callback','mfa'], true);
+$authPage = in_array($page, ['login','signup','verify-email','forgot','reset','callback','mfa'], true);
 $navigation = ['dashboard'=>['Overview','grid'],'users'=>['Users','users'],'providers'=>['Providers','shield'],'categories'=>['Service categories','layers'],'bookings'=>['Bookings & orders','calendar'],'reviews'=>['Reviews','star'],'disputes'=>['Disputes','alert'],'refunds'=>['Refund requests','wallet'],'analytics'=>['Analytics & reports','chart'],'audit'=>['Audit trail','history']];
 if (($admin['role_level'] ?? '') !== 'super_admin') { unset($navigation['audit']); }
 $descriptions = ['dashboard'=>'A clear view of your service community.','users'=>'Manage customer and provider access with an accountable record of every decision.','providers'=>'Review provider credentials and help customers book with confidence.','categories'=>'Keep your service catalogue organised and easy to discover.','bookings'=>'Follow each service from request to completion.','reviews'=>'Protect useful, fair feedback across your community.','disputes'=>'Review service issues and document clear resolutions.','refunds'=>'Track refund requests and their payment processing status.','analytics'=>'Understand demand, performance and collected payments.','audit'=>'Review the actions taken by your administrative team.'];

@@ -34,6 +34,7 @@ if (($headers['apikey'] ?? '') !== 'sb_publishable_test_contract') { respond(['m
 if ($path === '/auth/v1/token' && $method === 'POST') {
     switch ($_GET['grant_type'] ?? '') {
         case 'password':
+            if (!empty($fixtureState['email_unconfirmed'])) { respond(['code'=>400,'error_code'=>'email_not_confirmed','msg'=>'Email not confirmed'],400); }
             if (($body['password'] ?? '') !== 'test-password-only') { respond(['error_code'=>'invalid_credentials','msg'=>'Invalid login credentials'],400); }
             if (($body['email'] ?? '')==='customer@example.test') { respond(array_replace(tokens(),['access_token'=>'fixture-customer-token'])); }
             respond(tokens());
@@ -49,6 +50,15 @@ if ($path === '/auth/v1/signup' && $method === 'POST') {
     respond(['id'=>'40000000-0000-4000-8000-000000000001','email'=>$body['email']],200);
 }
 if ($path === '/auth/v1/recover' && $method === 'POST') { respond([]); }
+if ($path === '/auth/v1/resend' && $method === 'POST') { respond([]); }
+if ($path === '/auth/v1/verify' && $method === 'POST') {
+    if (($body['type'] ?? '')!=='email' || ($body['token'] ?? '')!=='123456') { respond(['error_code'=>'otp_expired','msg'=>'Invalid or expired code'],403); }
+    respond(array_replace(tokens(),['access_token'=>!empty($fixtureState['deny_activation'])?'fixture-customer-token':'fixture-access-aal1']));
+}
+if ($path === '/rest/v1/rpc/admin_registration_check') {
+    if (!empty($fixtureState['deny_registration'])) { respond(['code'=>'42501','message'=>'Use an unused invited admin email. Existing accounts should sign in.'],403); }
+    respond(['eligible'=>true]);
+}
 if ($path === '/auth/v1/logout' && $method === 'POST') { respond([]); }
 if ($path === '/auth/v1/user' && $method === 'GET') {
     respond(['id'=>'40000000-0000-4000-8000-000000000001','email'=>'admin@example.test','factors'=>!empty($fixtureState['factor_unverified'])?[]:[['id'=>$factor,'factor_type'=>'totp','status'=>'verified','friendly_name'=>'Test authenticator']]]);

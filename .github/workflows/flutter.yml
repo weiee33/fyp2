@@ -1,0 +1,20 @@
+name: Flutter contracts
+on:
+  push:
+    paths: ['lib/**', 'test/**', 'pubspec.*', '.github/workflows/flutter.yml']
+  pull_request:
+    paths: ['lib/**', 'test/**', 'pubspec.*', '.github/workflows/flutter.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.38.8'
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter test --no-pub

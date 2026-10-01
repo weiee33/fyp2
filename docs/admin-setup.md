@@ -26,21 +26,26 @@ The public key identifies the project; access uses the administrator's Auth toke
 
 The server binds localhost and serves only `admin/public`. Stop with Ctrl+C. If changing the port, update `APP_URL`, start with `-Port`, and update the Auth callback URL. Use the same host throughout email confirmation/recovery: the PKCE verifier is kept in that browser's server session.
 
-## First Super Admin
+## First Super Admin (updated 1 October 2026)
 
-The database reserves **weiee0303@gmail.com**. At final inspection this email had a verified Supabase Auth account with no linked app profile. No password was created, read or changed during implementation.
+The reserved admin email is **angethan765@gmail.com**. **weiee0303@gmail.com remains a customer** and its obsolete admin invitation is revoked. The selected admin already has an unconfirmed Supabase Auth account; do not delete it or create another customer profile for it. No password or email-confirmation flag was changed by this repair.
 
-1. Open `http://127.0.0.1:8088/?page=login` and use the account's existing password. The database accepts the invitation after validating its verified Auth identity.
-2. If prompted, set up your authenticator using the QR code and enter its six-digit code. Supabase AAL2 is required again by the database for admin reads and changes.
-3. Subsequent logins use the existing authenticator. Keep its secret and codes private.
+1. Start the website, then open `http://127.0.0.1:8088/?page=verify-email`. Enter the invited email under **Send a new code** and request its signup confirmation email. For a genuinely new invited account, start at **Activate your admin account** and create a password instead.
+2. Enter the numeric **email verification code** on this page. The server validates it with Supabase Auth, accepts the reserved invitation and creates the admin profile. Wrong/expired codes cannot open the dashboard.
+3. On **Protect your account**, choose **Set up authenticator**. Scan the QR code with an authenticator app (or use the displayed setup key), then enter its current **six-digit authenticator code**.
+4. Subsequent logins use email/password followed by the authenticator code. Email confirmation is a one-time activation step; it does not replace MFA. Database admin operations require AAL2.
 
-For an invited email without an Auth account, use **Activate your admin account**, choose your password and confirm the email in the same browser. Ordinary signups cannot become administrators. An existing app profile with matching email and no Auth linkage requires trusted explicit linking; it is never silently taken over.
+A login attempt for an unconfirmed admin account routes to the email verification page. A fresh signup is checked against the invitation list before calling Auth. Neither metadata nor a mobile customer/provider profile can grant admin rights. The project owner must reserve any additional admin email in `private.admin_invitations`; the public website cannot grant invitations.
 
-If the existing password is unavailable, configure the callback below and use **Forgot password?**. Password recovery requires the administrator's authenticator before setting a new password. Lost-authenticator recovery needs a trusted project-owner process; the portal provides no MFA bypass.
+If the password is unavailable, configure the callback below and use **Forgot password?** after email activation. Recovery requires the administrator's authenticator before choosing a new password. Lost-authenticator recovery needs a trusted project-owner process; the portal provides no MFA bypass. Keep passwords, QR setup keys and codes private.
 
 ## Auth settings
 
 SQL cannot configure Auth URL settings. In [project Auth URL Configuration](https://supabase.com/dashboard/project/znxhiymvmluxmdaxzxkt/auth/url-configuration), add `http://127.0.0.1:8088/?page=callback` to the redirect allowlist. Use `http://127.0.0.1:8088` as Site URL for an admin-only development environment. Preserve the primary Site URL if another app depends on it; this website explicitly requests its admin callback. Keep existing needed allowlist entries.
+
+In **Authentication → Emails → Confirm signup**, ensure the template includes `{{ .Token }}`. A ready-to-copy template is saved in `supabase/templates/confirm-signup.html`. The email code can be entered by both the customer app and the admin website; do not disable global email confirmation to work around registration errors. Keep TOTP enrollment/verification enabled under **Multi-Factor**. Email code entry does not require an Auth callback redirect, but email-link confirmation and password recovery do.
+
+The dashboard browser was signed out during this repair, so the current template, SMTP and redirect allowlist could not be verified or changed. Connector SQL access does not provide these Auth settings. Check the template if an email contains only a link; use **Send a new code** after saving changes. This is configuration still requiring verification, not a claimed completed live email test.
 
 Configure production URLs separately. Email confirmation/recovery uses Supabase Auth email configuration. Configure SMTP for reliable delivery and check Auth email/rate limits. Real email delivery/redirects are not established by stub tests.
 

@@ -33,13 +33,15 @@ final class SupabaseClient
         curl_close($curl);
         $data = $raw === '' ? [] : json_decode($raw, true);
         if ($status < 200 || $status >= 300) {
-            $code = (string)($data['code'] ?? $data['error_code'] ?? '');
+            $code = (string)($data['error_code'] ?? $data['code'] ?? '');
             $message = (string)($data['message'] ?? $data['msg'] ?? $data['error_description'] ?? 'The request could not be completed.');
             if (!in_array($code, ['P0001','P0002','40001','42501'], true) || str_starts_with($path, '/auth/')) {
                 $message = $status === 429 ? 'Too many attempts. Please wait before trying again.' : 'The request could not be completed. Check your details and try again.';
             }
             if ($code === '23503') { $message = 'This record is still referenced. Deactivate it instead.'; }
             if ($code === '23505') { $message = 'A matching record or pending request already exists.'; }
+            if (in_array($code, ['otp_expired','otp_disabled'], true)) { $message = 'This code is invalid or expired. Request a new email code and try again.'; }
+            if ($code === 'mfa_verification_failed') { $message = 'The authenticator code is incorrect or expired. Enter the current code from your app.'; }
             throw new ApiException($status, $message, $code);
         }
         if (!is_array($data)) { throw new ApiException(502, 'Unexpected response from the service.'); }

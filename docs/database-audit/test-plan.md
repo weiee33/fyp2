@@ -1,6 +1,6 @@
 # Admin database verification
 
-The suite in `supabase/tests/admin_regression.sql` tests behavior against the existing database schema upgraded by the admin foundation migration. `policy_indexes_regression.sql` verifies the follow-up policy consolidation and private FK indexes; `analytics_regression.sql` verifies filtered analytics. These suites are fail-fast: an unexpected permission, rejected legitimate action, accepted forbidden action, or incorrect stored result raises an exception.
+The suite in `supabase/tests/admin_regression.sql` tests behavior against the existing database schema upgraded by all five installed migrations. `policy_indexes_regression.sql` verifies the follow-up policy consolidation and private FK indexes; `analytics_regression.sql` verifies filtered analytics. These suites are fail-fast: an unexpected permission, rejected legitimate action, accepted forbidden action, or incorrect stored result raises an exception.
 
 ## Execution safety
 
@@ -13,6 +13,7 @@ BEGIN;
 -- Include supabase/tests/admin_regression.sql.
 -- Include supabase/tests/policy_indexes_regression.sql.
 -- Include supabase/tests/analytics_regression.sql.
+-- Include supabase/tests/auth_customer_regression.sql.
 ROLLBACK;
 ```
 
@@ -21,8 +22,10 @@ The installed migrations are:
 1. `supabase/migrations/20261001025040_admin_foundation.sql`
 2. `supabase/migrations/20261001031048_admin_policy_indexes.sql`
 3. `supabase/migrations/20261001031124_admin_analytics_filters.sql`
+4. `supabase/migrations/20261001082841_auth_customer_integrity_repair.sql`
+5. `supabase/migrations/20261001123803_customer_rpc_boundaries.sql`
 
-When testing the already-upgraded remote database, include **only** `BEGIN`, the three test files in the order shown above, and `ROLLBACK`; do not replay installed migrations. For a pre-installation trial, include the missing candidate migration files before the tests. The foundation is an additive migration against the existing FYP schema, rather than a complete empty-database bootstrap.
+When testing the already-upgraded remote database, include **only** `BEGIN`, the four test files in the order shown above, and `ROLLBACK`; do not replay installed migrations. For a pre-installation trial, include the missing candidate migration files before the tests. The foundation is an additive migration against the existing FYP schema, rather than a complete empty-database bootstrap.
 
 The migration and tests must be submitted in the same database session, or as one SQL batch when using the Supabase connector. A failed batch aborts its transaction; roll back the failed transaction before retrying in the same session. Never replace `ROLLBACK` with `COMMIT`. The fixture email addresses use the reserved `example.invalid` domain. The fixture Auth rows, profiles, credentials, payments, refunds, reviews, notifications, audit records and test helpers exist only inside the transaction. The suite never calls the Auth email API, a payment gateway, or a Storage HTTP endpoint.
 
@@ -32,7 +35,7 @@ The SQL impersonates client database roles and JWT claims. This verifies databas
 
 - Anonymous clients cannot invoke the admin API. Customers and providers cannot invoke privileged public or private admin functions.
 - The Auth signup trigger ignores an injected administrator role in user-editable metadata while permitting ordinary provider registration.
-- A verified reserved invitation promotes a normal signup profile to Super Admin exactly once. AAL2 remains required before administrative data access.
+- A verified reserved invitation creates an administrator profile exactly once, without converting existing mobile accounts. AAL2 remains required before administrative data access.
 - Staff without AAL2 cannot read or mutate admin resources. Staff with AAL2 can perform permitted operations but cannot view the audit log or request refunds.
 - Application user IDs differing from Auth IDs retain correct customer/provider ownership. Other users' data and suspended users' actions remain protected.
 - Provider suspension, rejection and category deactivation remove services from actual marketplace reads. Verified active providers and services remain discoverable by anonymous visitors and ordinary customers.

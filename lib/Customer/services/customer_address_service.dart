@@ -3,38 +3,21 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CustomerAddressService {
-  final SupabaseClient _client = Supabase.instance.client;
+  final SupabaseClient _client;
+
+  CustomerAddressService({SupabaseClient? client})
+    : _client = client ?? Supabase.instance.client;
 
   User? get currentUser => _client.auth.currentUser;
 
-  Future<String?> _getCustomerId() async {
-    final uid = currentUser?.id;
-    if (uid == null) return null;
-    final row = await _client
-        .from('customer_profiles')
-        .select('customer_id')
-        .eq('user_id', uid)
-        .maybeSingle();
-    return row?['customer_id'] as String?;
-  }
-
-  /// Get all saved addresses for current customer
+  /// RLS resolves the active customer through the explicit Auth identity mapping.
   Future<List<Map<String, dynamic>>> getSavedAddresses() async {
-    final cid = await _getCustomerId();
-    if (cid == null) return [];
-
-    try {
-      final res = await _client
-          .from('saved_addresses')
-          .select()
-          .eq('customer_id', cid)
-          .order('is_default', ascending: false)
-          .order('created_at', ascending: false);
-
-      return List<Map<String, dynamic>>.from(res);
-    } catch (_) {
-      return [];
-    }
+    final rows = await _client
+        .from('saved_addresses')
+        .select()
+        .order('is_default', ascending: false)
+        .order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(rows);
   }
 
   /// Add new address and optionally set as default
@@ -48,62 +31,28 @@ class CustomerAddressService {
     required double longitude,
     bool isDefault = false,
   }) async {
-    final cid = await _getCustomerId();
-    if (cid == null) return null;
-
-    final coords = '$latitude,$longitude';
-
-    if (isDefault) {
-      await _client
-          .from('saved_addresses')
-          .update({'is_default': false})
-          .eq('customer_id', cid);
-    }
-
-    final res = await _client
-        .from('saved_addresses')
-        .insert({
-      'customer_id': cid,
-      'label': label,
-      'address_line': addressLine,
-      'city': city,
-      'state': state,
-      'postcode': postcode,
-      'coordinates': coords,
-      'is_default': isDefault,
-    })
-        .select()
-        .single();
-
-    if (isDefault) {
-      await setDefaultAddress(res['address_id'], '$addressLine, $city');
-    }
-
-    return res;
+    final result = await _client.rpc(
+      'customer_save_address',
+      params: {
+        'address_label': label,
+        'address_text': addressLine,
+        'address_city': city,
+        'address_state': state,
+        'address_postcode': postcode,
+        'latitude': latitude,
+        'longitude': longitude,
+        'make_default': isDefault,
+      },
+    );
+    return Map<String, dynamic>.from(result as Map);
   }
 
-  /// Set selected address as active default
+  /// The server checks ownership and atomically updates the default and header.
   Future<void> setDefaultAddress(String addressId, String fullAddress) async {
-    final cid = await _getCustomerId();
-    if (cid == null) return;
-
-    // Reset other defaults
-    await _client
-        .from('saved_addresses')
-        .update({'is_default': false})
-        .eq('customer_id', cid);
-
-    // Set selected to default
-    await _client
-        .from('saved_addresses')
-        .update({'is_default': true})
-        .eq('address_id', addressId);
-
-    // Update customer profile header address
-    await _client
-        .from('customer_profiles')
-        .update({'default_address': fullAddress})
-        .eq('customer_id', cid);
+    await _client.rpc(
+      'customer_set_default_address',
+      params: {'selected_address': addressId},
+    );
   }
 
   /// Reverse geocode coordinates using OpenStreetMap Nominatim
@@ -112,7 +61,9 @@ class CustomerAddressService {
       final url = Uri.parse(
         'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&zoom=18&addressdetails=1',
       );
-      final res = await http.get(url, headers: {'User-Agent': 'LocalLifeApp/1.0'});
+      final res = await http
+          .get(url, headers: {'User-Agent': 'LocalLifeApp/1.0'})
+          .timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 200) {
         final data = jsonDecode(res.body);
@@ -120,10 +71,12 @@ class CustomerAddressService {
 
         final road = addr['road'] ?? addr['suburb'] ?? '';
         final building = addr['building'] ?? addr['house_number'] ?? '';
-        final addressLine = building.isNotEmpty ? '$building, $road' : (road.isNotEmpty ? road : (data['display_name'] ?? ''));
-        final city = addr['city'] ?? addr['town'] ?? addr['municipality'] ?? 'Kuala Lumpur';
-        final state = addr['state'] ?? 'Wilayah Persekutuan Kuala Lumpur';
-        final postcode = addr['postcode'] ?? '50450';
+        final addressLine = building.isNotEmpty
+            ? '$building, $road'
+            : (road.isNotEmpty ? road : (data['display_name'] ?? ''));
+        final city = addr['city'] ?? addr['town'] ?? addr['municipality'] ?? '';
+        final state = addr['state'] ?? '';
+        final postcode = addr['postcode'] ?? '';
 
         return {
           'addressLine': addressLine.toString().trim(),
@@ -134,12 +87,7 @@ class CustomerAddressService {
       }
     } catch (_) {}
 
-    return {
-      'addressLine': 'Jalan Ampang',
-      'city': 'Kuala Lumpur',
-      'state': 'Selangor',
-      'postcode': '50450',
-    };
+    return {'addressLine': '', 'city': '', 'state': '', 'postcode': ''};
   }
 
   /// Forward geocode query to Lat/Lng
@@ -148,7 +96,9 @@ class CustomerAddressService {
       final url = Uri.parse(
         'https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(query)}&countrycodes=my&limit=1',
       );
-      final res = await http.get(url, headers: {'User-Agent': 'LocalLifeApp/1.0'});
+      final res = await http
+          .get(url, headers: {'User-Agent': 'LocalLifeApp/1.0'})
+          .timeout(const Duration(seconds: 10));
 
       if (res.statusCode == 200) {
         final List list = jsonDecode(res.body);

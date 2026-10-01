@@ -1,5 +1,7 @@
 # Database audit and corrections
 
+**Latest:** see [1 October re-audit](reaudit.md) for SQL Editor drift, the customer/Auth linkage repair, corrected administrator email, and remaining mobile workflow gaps. The earlier results below describe the first implementation, before those later SQL edits.
+
 Reviewed connected Supabase **FYP Project**, ref `znxhiymvmluxmdaxzxkt`, against both FYP 1 Chapter 4 designs. The original 28 tables cover users, providers, categories/services, bookings, payment/earnings, reviews, notifications, AI, chatbot, analytics and audit. GitHub originally contained a Flutter starter with empty provider files and no SQL/PHP portal.
 
 `before.json` stores original schema/function/policy/grant metadata; `preflight.json` captures additional live policies and the Auth trigger discovered before upgrading. These are schema evidence, not private business-data backups. Migrations preserve existing application rows.

@@ -172,6 +172,12 @@ try {
         expectStatus(request('POST',['page'=>'mfa'],['csrf'=>$csrf,'action'=>'verify','factor_id'=>$factor,'code'=>'12345']),400);
         assertThat(count(logs('/auth/v1/factors/'.$factor.'/challenge'))===$before,'Invalid factor/code created a challenge.');
     });
+    test('wrong authenticator code preserves the code-entry form',function() use (&$csrf,$factor): void {
+        $response=request('POST',['page'=>'mfa'],['csrf'=>$csrf,'action'=>'verify','factor_id'=>$factor,'code'=>'000000']);
+        expectStatus($response,422);
+        assertThat(str_contains($response['body'],'Verification code') && !str_contains($response['body'],'Set up authenticator'),'Invalid code lost the verified factor entry form.');
+        expectRedirect(request('GET',['page'=>'dashboard']),'mfa');
+    });
     test('valid OTP upgrades tokens and opens dashboard',function() use (&$csrf,$factor): void {
         expectRedirect(request('POST',['page'=>'mfa'],['csrf'=>$csrf,'action'=>'verify','factor_id'=>$factor,'code'=>'123456']),'dashboard');
         $response=request('GET',['page'=>'dashboard']); expectStatus($response,200); $csrf=csrfToken($response);
@@ -421,7 +427,7 @@ try {
         expectRedirect(request('POST',['page'=>'mfa'],['csrf'=>$csrf,'action'=>'verify','factor_id'=>$factor,'code'=>'123456']),'dashboard');
         $csrf=csrfToken(request('GET',['page'=>'signup']));
         expectStatus(request('POST',['page'=>'signup'],['csrf'=>$csrf,'action'=>'signup','email'=>'admin@example.test','password'=>'short','confirm'=>'short']),400);
-        expectRedirect(request('POST',['page'=>'signup'],['csrf'=>$csrf,'action'=>'signup','email'=>'admin@example.test','password'=>'activation-test-password','confirm'=>'activation-test-password','role'=>'super_admin']),'signup');
+        expectRedirect(request('POST',['page'=>'signup'],['csrf'=>$csrf,'action'=>'signup','email'=>'admin@example.test','password'=>'activation-test-password','confirm'=>'activation-test-password','role'=>'super_admin']),'verify-email');
         $entries=logs('/auth/v1/signup'); $activation=end($entries);
         assertThat(!isset($activation['body']['role']) && !isset($activation['body']['data']),'Client metadata attempted to grant an admin role.');
         assertThat($activation['body']['code_challenge_method']==='s256','Activation did not use PKCE.');
@@ -462,12 +468,51 @@ try {
         file_put_contents($runtime.'/fixture-state.json',json_encode(['deny_activation'=>true]));
         try {
             $csrf=csrfToken(request('GET',['page'=>'signup']));
-            expectRedirect(request('POST',['page'=>'signup'],['csrf'=>$csrf,'action'=>'signup','email'=>'customer@example.test','password'=>'activation-test-password','confirm'=>'activation-test-password']),'signup');
+            expectRedirect(request('POST',['page'=>'signup'],['csrf'=>$csrf,'action'=>'signup','email'=>'customer@example.test','password'=>'activation-test-password','confirm'=>'activation-test-password']),'verify-email');
             expectStatus(request('GET',['page'=>'callback','code'=>'fixture-confirmation-code']),403);
             $session=file_get_contents(sessionFile());
             foreach(['auth','admin','enrollment','password_recovery'] as $key) { assertThat(!str_contains($session,$key.'|'),'Unauthorized callback retained '.$key.'.'); }
             expectRedirect(request('GET',['page'=>'dashboard']),'login');
         } finally { file_put_contents($runtime.'/fixture-state.json','{}'); }
+    });
+
+    test('unconfirmed admin login routes to the email OTP page',function() use (&$csrf,$runtime): void {
+        file_put_contents($runtime.'/fixture-state.json',json_encode(['email_unconfirmed'=>true]));
+        try {
+            $csrf=csrfToken(request('GET',['page'=>'login']));
+            expectRedirect(request('POST',['page'=>'login'],['csrf'=>$csrf,'action'=>'login','email'=>'admin@example.test','password'=>'test-password-only']),'verify-email');
+            $response=request('GET',['page'=>'verify-email']); expectStatus($response,200);
+            assertThat(str_contains($response['body'],'Email verification code'),'Email OTP input missing.');
+            $csrf=csrfToken($response);
+            expectStatus(request('POST',['page'=>'verify-email'],['csrf'=>$csrf,'action'=>'verify_email','code'=>'abc']),400);
+            expectStatus(request('POST',['page'=>'verify-email'],['csrf'=>$csrf,'action'=>'verify_email','code'=>'000000']),403);
+            expectRedirect(request('GET',['page'=>'dashboard']),'login');
+            expectRedirect(request('POST',['page'=>'verify-email'],['csrf'=>$csrf,'action'=>'verify_email','code'=>'123456']),'mfa');
+            expectRedirect(request('GET',['page'=>'dashboard']),'mfa');
+            assertThat(!str_contains(file_get_contents(sessionFile()),'password_recovery|'),'Email verification enabled password recovery.');
+            $csrf=csrfToken(request('GET',['page'=>'mfa']));
+            expectRedirect(request('POST',['page'=>'mfa'],['csrf'=>$csrf,'action'=>'logout']),'login');
+        } finally { file_put_contents($runtime.'/fixture-state.json','{}'); }
+    });
+    test('resend binds email and prevents immediate repeated sends',function() use (&$csrf): void {
+        $csrf=csrfToken(request('GET',['page'=>'verify-email']));
+        expectRedirect(request('POST',['page'=>'verify-email'],['csrf'=>$csrf,'action'=>'resend_email','email'=>'admin@example.test']),'verify-email');
+        $entries=logs('/auth/v1/resend'); $last=end($entries);
+        assertThat($last['body']['type']==='signup' && $last['body']['email']==='admin@example.test','Incorrect resend request.');
+        expectStatus(request('POST',['page'=>'verify-email'],['csrf'=>$csrf,'action'=>'resend_email','email'=>'admin@example.test']),429);
+    });
+    test('uninvited signup is rejected before the Auth signup endpoint',function() use (&$csrf,$runtime): void {
+        file_put_contents($runtime.'/fixture-state.json',json_encode(['deny_registration'=>true]));
+        try {
+            $before=count(logs('/auth/v1/signup'));
+            $csrf=csrfToken(request('GET',['page'=>'signup']));
+            expectStatus(request('POST',['page'=>'signup'],['csrf'=>$csrf,'action'=>'signup','email'=>'uninvited@example.test','password'=>'activation-test-password','confirm'=>'activation-test-password']),403);
+            assertThat(count(logs('/auth/v1/signup'))===$before,'Uninvited signup reached Auth.');
+        } finally { file_put_contents($runtime.'/fixture-state.json','{}'); }
+    });
+    test('OTP cannot be submitted without a pending email',function() use (&$csrf): void {
+        $csrf=csrfToken(request('GET',['page'=>'verify-email']));
+        expectStatus(request('POST',['page'=>'verify-email'],['csrf'=>$csrf,'action'=>'verify_email','code'=>'123456']),400);
     });
 
     test('configuration rejects service credentials and unsafe deployment URLs',function() use ($runtime): void {
