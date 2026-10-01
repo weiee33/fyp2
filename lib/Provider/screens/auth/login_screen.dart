@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../services/auth_service.dart';
 import 'register_screen.dart';
 import '../profile/my_profile_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -46,36 +47,34 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _login() async {
     FocusScope.of(context).unfocus();
     if (_formKey.currentState?.validate() != true) return;
-
     setState(() => _loading = true);
-
     try {
       await _auth.login(
         email: _email.text.trim(),
         password: _password.text,
       );
-
       if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (_) => const MyProfileScreen()),
       );
-    } catch (e) {
+    } on AuthException catch (e) {
       if (!mounted) return;
-
-      String errorMessage = e.toString();
-      if (errorMessage.contains('Invalid login credentials')) {
-        errorMessage = 'Incorrect email or password.';
-      } else if (errorMessage.contains('Email not confirmed')) {
-        errorMessage = 'Please confirm your email first.';
-      } else if (errorMessage.contains('SocketException') ||
-          errorMessage.contains('network')) {
-        errorMessage = 'Network error. Please check your connection.';
-      }
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessage),
+          content: Text(e.message),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Login Error: $e'),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(

@@ -1,6 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class AuthService {
+class CustomerAuthService {
   final SupabaseClient _client = Supabase.instance.client;
 
   User? get currentUser => _client.auth.currentUser;
@@ -17,12 +17,12 @@ class AuthService {
       data: {
         'full_name': fullName.trim(),
         'phone': phone.trim(),
-        'role': 'provider',
+        'role': 'customer',
       },
     );
   }
 
-  /// Verifies password AND validates that role == 'provider'
+  /// Verifies password AND validates that role == 'customer'
   Future<AuthResponse> login({
     required String email,
     required String password,
@@ -34,7 +34,7 @@ class AuthService {
 
     final user = response.user;
     if (user == null) {
-      throw const AuthException('Provider credentials not found.');
+      throw const AuthException('User credentials not found.');
     }
 
     // 1. Check cached user metadata
@@ -50,25 +50,16 @@ class AuthService {
       role = userRow?['role']?.toString().toLowerCase();
     }
 
-    // 3. Strict Provider Role Enforcement
-    if (role != 'provider') {
+    // 3. Strict Customer Role Enforcement
+    if (role != 'customer') {
       // Invalidate the session immediately
       await _client.auth.signOut();
       throw AuthException(
-        'Access Denied: This account is registered as a ${role?.toUpperCase() ?? 'non-provider'}. Please use the Consumer Portal.',
+        'Access Denied: This account is registered as a ${role?.toUpperCase() ?? 'non-customer'}. Please use the Provider Portal.',
       );
     }
 
     return response;
-  }
-
-  Future<void> logout() async => await _client.auth.signOut();
-
-  Future<void> sendOtp(String email) async {
-    await _client.auth.resend(
-      email: email.trim(),
-      type: OtpType.signup,
-    );
   }
 
   Future<AuthResponse> verifyOtp({
@@ -80,5 +71,16 @@ class AuthService {
       token: token.trim(),
       type: OtpType.signup,
     );
+  }
+
+  Future<void> resendOtp(String email) async {
+    await _client.auth.resend(
+      email: email.trim(),
+      type: OtpType.signup,
+    );
+  }
+
+  Future<void> logout() async {
+    await _client.auth.signOut();
   }
 }
