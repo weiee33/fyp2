@@ -494,6 +494,32 @@ try {
             expectRedirect(request('POST',['page'=>'mfa'],['csrf'=>$csrf,'action'=>'logout']),'login');
         } finally { file_put_contents($runtime.'/fixture-state.json','{}'); }
     });
+    test('successful email OTP followed by denied activation returns to sign-in without reusable OTP state',function() use (&$csrf,$runtime): void {
+        file_put_contents($runtime.'/fixture-state.json',json_encode(['deny_activation'=>true]));
+        try {
+            $csrf=csrfToken(request('GET',['page'=>'signup']));
+            expectRedirect(request('POST',['page'=>'signup'],['csrf'=>$csrf,'action'=>'signup','email'=>'admin@example.test','password'=>'activation-test-password','confirm'=>'activation-test-password']),'verify-email');
+            $csrf=csrfToken(request('GET',['page'=>'verify-email']));
+            expectRedirect(request('POST',['page'=>'verify-email'],['csrf'=>$csrf,'action'=>'verify_email','code'=>'123456']),'login');
+            $session=file_get_contents(sessionFile());
+            foreach(['auth','admin','pending_email','pending_email_started','email_sent_at','pkce_verifier','pkce_started','pkce_flow','enrollment','password_recovery','signed_in_at','last_activity'] as $key) {
+                assertThat(!str_contains($session,$key.'|'),'Failed activation retained '.$key.'.');
+            }
+            $response=request('GET',['page'=>'login']); expectStatus($response,200); $csrf=csrfToken($response);
+            assertThat(str_contains($response['body'],'Your email is verified') && str_contains($response['body'],'existing password'),'Email success was confused with activation failure.');
+            $before=count(logs('/auth/v1/verify'));
+            expectStatus(request('POST',['page'=>'verify-email'],['csrf'=>$csrf,'action'=>'verify_email','code'=>'123456']),400);
+            assertThat(count(logs('/auth/v1/verify'))===$before,'Consumed OTP was submitted again.');
+            expectRedirect(request('GET',['page'=>'dashboard']),'login');
+        } finally { file_put_contents($runtime.'/fixture-state.json','{}'); }
+        // Once the invitation/backend is repaired, the confirmed account can
+        // sign in normally and must still complete authenticator verification.
+        $csrf=csrfToken(request('GET',['page'=>'login']));
+        expectRedirect(request('POST',['page'=>'login'],['csrf'=>$csrf,'action'=>'login','email'=>'admin@example.test','password'=>'test-password-only']),'mfa');
+        expectRedirect(request('GET',['page'=>'dashboard']),'mfa');
+        $csrf=csrfToken(request('GET',['page'=>'mfa']));
+        expectRedirect(request('POST',['page'=>'mfa'],['csrf'=>$csrf,'action'=>'logout']),'login');
+    });
     test('resend binds email and prevents immediate repeated sends',function() use (&$csrf): void {
         $csrf=csrfToken(request('GET',['page'=>'verify-email']));
         expectRedirect(request('POST',['page'=>'verify-email'],['csrf'=>$csrf,'action'=>'resend_email','email'=>'admin@example.test']),'verify-email');

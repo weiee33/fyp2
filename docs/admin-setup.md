@@ -26,16 +26,18 @@ The public key identifies the project; access uses the administrator's Auth toke
 
 The server binds localhost and serves only `admin/public`. Stop with Ctrl+C. If changing the port, update `APP_URL`, start with `-Port`, and update the Auth callback URL. Use the same host throughout email confirmation/recovery: the PKCE verifier is kept in that browser's server session.
 
-## First Super Admin (updated 1 October 2026)
+## First Super Admin (updated 2 October 2026)
 
-The reserved admin email is **angethan765@gmail.com**. **weiee0303@gmail.com remains a customer** and its obsolete admin invitation is revoked. The selected admin already has an unconfirmed Supabase Auth account; do not delete it or create another customer profile for it. No password or email-confirmation flag was changed by this repair.
+The reserved admin email is **angethan765@gmail.com**. **weiee0303@gmail.com remains a customer** and its obsolete admin invitation is revoked. The selected admin has now confirmed its email and has an active, linked Super Admin profile. Start at **Sign in** with the existing password, then complete authenticator setup. Do not register again, delete the Auth account, or reuse the consumed email code. No password or email-confirmation flag was changed by the repair.
 
-1. Start the website, then open `http://127.0.0.1:8088/?page=verify-email`. Enter the invited email under **Send a new code** and request its signup confirmation email. For a genuinely new invited account, start at **Activate your admin account** and create a password instead.
+1. For the existing confirmed account, open `http://127.0.0.1:8088/?page=login` and sign in, then continue at step 3. For a genuinely new invited account, start at **Activate your admin account** and create a password. Only an unconfirmed account should use **Send a new code** on the email-verification page.
 2. Enter the numeric **email verification code** on this page. The server validates it with Supabase Auth, accepts the reserved invitation and creates the admin profile. Wrong/expired codes cannot open the dashboard.
 3. On **Protect your account**, choose **Set up authenticator**. Scan the QR code with an authenticator app (or use the displayed setup key), then enter its current **six-digit authenticator code**.
 4. Subsequent logins use email/password followed by the authenticator code. Email confirmation is a one-time activation step; it does not replace MFA. Database admin operations require AAL2.
 
 A login attempt for an unconfirmed admin account routes to the email verification page. A fresh signup is checked against the invitation list before calling Auth. Neither metadata nor a mobile customer/provider profile can grant admin rights. The project owner must reserve any additional admin email in `private.admin_invitations`; the public website cannot grant invitations.
+
+If email verification succeeds but profile activation subsequently fails, the website returns to sign-in with a message explaining that the email is already verified. After the invitation/backend issue is repaired, password sign-in retries activation. Auth users exist before confirmation; an Auth row alone does not grant administrator access. See the [activation incident and verification report](database-audit/admin-activation-fix.md).
 
 If the password is unavailable, configure the callback below and use **Forgot password?** after email activation. Recovery requires the administrator's authenticator before choosing a new password. Lost-authenticator recovery needs a trusted project-owner process; the portal provides no MFA bypass. Keep passwords, QR setup keys and codes private.
 

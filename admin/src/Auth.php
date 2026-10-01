@@ -145,11 +145,17 @@ final class Auth
         if (!preg_match('/^[0-9]{6,10}$/', $code)) { throw new ApiException(400, 'Enter the complete numeric code from your email.'); }
         Security::throttle($this->config, 'email-verify:' . ($_SERVER['REMOTE_ADDR'] ?? 'local') . ':' . $_SESSION['pending_email']);
         $tokens = $this->api->request('POST', '/auth/v1/verify', ['type' => 'email', 'email' => $_SESSION['pending_email'], 'token' => $code]);
-        $this->saveTokens($tokens);
-        $_SESSION['signed_in_at'] = $_SESSION['last_activity'] = time();
-        try { $this->requireSession(false); }
-        catch (ApiException $exception) { unset($_SESSION['auth'], $_SESSION['admin'], $_SESSION['enrollment'], $_SESSION['password_recovery']); throw $exception; }
+        // Auth has consumed the email code. A later profile-activation failure
+        // must be retried through password sign-in, not by reusing this code.
         unset($_SESSION['pending_email'], $_SESSION['pending_email_started'], $_SESSION['email_sent_at'], $_SESSION['pkce_verifier'], $_SESSION['pkce_started'], $_SESSION['pkce_flow'], $_SESSION['password_recovery'], $_SESSION['enrollment']);
+        try {
+            $this->saveTokens($tokens);
+            $_SESSION['signed_in_at'] = $_SESSION['last_activity'] = time();
+            $this->requireSession(false);
+        } catch (ApiException $exception) {
+            unset($_SESSION['auth'], $_SESSION['admin'], $_SESSION['signed_in_at'], $_SESSION['last_activity']);
+            throw new ApiException($exception->status, 'Your email is verified, but administrator activation could not complete. Sign in with your existing password to retry. If access is still denied, ask the project owner to check your invitation.', 'ADMIN_ACTIVATION_PENDING');
+        }
         session_regenerate_id(true);
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
     }
