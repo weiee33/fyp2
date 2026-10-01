@@ -1,0 +1,569 @@
+{
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "qual": "(bucket_id = 'profiles'::text)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "Profiles - public read 1ige2ga_0",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(bucket_id = 'profiles'::text)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "Profiles 1ige2ga_0",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "Profiles 1ige2ga_1",
+      "schemaname": "storage",
+      "with_check": "(bucket_id = 'profiles'::text)"
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "(bucket_id = 'profiles'::text)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "Profiles 1ige2ga_2",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "qual": "(bucket_id = 'profiles'::text)",
+      "roles": [
+        "authenticated"
+      ],
+      "tablename": "objects",
+      "permissive": "PERMISSIVE",
+      "policyname": "Profiles 1ige2ga_3",
+      "schemaname": "storage",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "users",
+      "permissive": "PERMISSIVE",
+      "policyname": "Allow users to insert own user record",
+      "schemaname": "public",
+      "with_check": "true"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "users",
+      "permissive": "PERMISSIVE",
+      "policyname": "Allow users to select own user record",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "users",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users can manage own record",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "users",
+      "permissive": "PERMISSIVE",
+      "policyname": "users_self_select",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "users",
+      "permissive": "PERMISSIVE",
+      "policyname": "users_self_update",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "customer_profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "Allow customers to insert own profile",
+      "schemaname": "public",
+      "with_check": "true"
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "customer_profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "Customers can manage own profile",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "customer_profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "customer_profile_owner",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "provider_profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "Verified providers are viewable by all",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(verification_status = 'Verified'::provider_verification_status)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "provider_profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "provider_public_read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "provider_profiles",
+      "permissive": "PERMISSIVE",
+      "policyname": "provider_self",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(is_active = true)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "services",
+      "permissive": "PERMISSIVE",
+      "policyname": "Active services are viewable by all",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(provider_id IN ( SELECT provider_profiles.provider_id\n   FROM provider_profiles\n  WHERE (provider_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "services",
+      "permissive": "PERMISSIVE",
+      "policyname": "services_provider_write",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((is_active = true) AND (availability_status = true))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "services",
+      "permissive": "PERMISSIVE",
+      "policyname": "services_public_read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "saved_addresses",
+      "permissive": "PERMISSIVE",
+      "policyname": "saved_addresses_owner",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(provider_id IN ( SELECT provider_profiles.provider_id\n   FROM provider_profiles\n  WHERE (provider_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "provider_certifications",
+      "permissive": "PERMISSIVE",
+      "policyname": "provider_cert_owner",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(provider_id IN ( SELECT provider_profiles.provider_id\n   FROM provider_profiles\n  WHERE (provider_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "provider_working_hours",
+      "permissive": "PERMISSIVE",
+      "policyname": "provider_hours_owner",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(provider_id IN ( SELECT provider_profiles.provider_id\n   FROM provider_profiles\n  WHERE (provider_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "provider_earnings",
+      "permissive": "PERMISSIVE",
+      "policyname": "earnings_provider",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(provider_id IN ( SELECT provider_profiles.provider_id\n   FROM provider_profiles\n  WHERE (provider_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "ai_job_matches",
+      "permissive": "PERMISSIVE",
+      "policyname": "ai_matches_provider",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(provider_id IN ( SELECT provider_profiles.provider_id\n   FROM provider_profiles\n  WHERE (provider_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "ai_schedules",
+      "permissive": "PERMISSIVE",
+      "policyname": "ai_schedules_provider",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(EXISTS ( SELECT 1\n   FROM users\n  WHERE ((users.user_id = auth.uid()) AND (users.role = 'admin'::user_role))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "audit_logs",
+      "permissive": "PERMISSIVE",
+      "policyname": "audit_admin_only",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "service_categories",
+      "permissive": "PERMISSIVE",
+      "policyname": "Public categories are viewable by all",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "bookings",
+      "permissive": "PERMISSIVE",
+      "policyname": "Customers can manage own bookings",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "((customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid()))) OR (provider_id IN ( SELECT provider_profiles.provider_id\n   FROM provider_profiles\n  WHERE (provider_profiles.user_id = auth.uid()))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "bookings",
+      "permissive": "PERMISSIVE",
+      "policyname": "bookings_party_read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "payments",
+      "permissive": "PERMISSIVE",
+      "policyname": "Customers can manage own payments",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "payments",
+      "permissive": "PERMISSIVE",
+      "policyname": "payments_customer",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "reviews",
+      "permissive": "PERMISSIVE",
+      "policyname": "Customers can create reviews",
+      "schemaname": "public",
+      "with_check": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "true",
+      "roles": [
+        "public"
+      ],
+      "tablename": "reviews",
+      "permissive": "PERMISSIVE",
+      "policyname": "Reviews viewable by all",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "qual": null,
+      "roles": [
+        "public"
+      ],
+      "tablename": "reviews",
+      "permissive": "PERMISSIVE",
+      "policyname": "reviews_customer_write",
+      "schemaname": "public",
+      "with_check": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))"
+    },
+    {
+      "cmd": "SELECT",
+      "qual": "(is_flagged = false)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "reviews",
+      "permissive": "PERMISSIVE",
+      "policyname": "reviews_public_read",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(user_id = auth.uid())",
+      "roles": [
+        "public"
+      ],
+      "tablename": "notifications",
+      "permissive": "PERMISSIVE",
+      "policyname": "Users can view own notifications",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(auth.uid() = user_id)",
+      "roles": [
+        "public"
+      ],
+      "tablename": "notifications",
+      "permissive": "PERMISSIVE",
+      "policyname": "notifications_own",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "chatbot_sessions",
+      "permissive": "PERMISSIVE",
+      "policyname": "Customers can access own chatbot sessions",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "chatbot_sessions",
+      "permissive": "PERMISSIVE",
+      "policyname": "chatbot_sessions_own",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(session_id IN ( SELECT chatbot_sessions.session_id\n   FROM chatbot_sessions\n  WHERE (chatbot_sessions.customer_id IN ( SELECT customer_profiles.customer_id\n           FROM customer_profiles\n          WHERE (customer_profiles.user_id = auth.uid())))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "chatbot_messages",
+      "permissive": "PERMISSIVE",
+      "policyname": "Customers can access own chatbot messages",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(session_id IN ( SELECT chatbot_sessions.session_id\n   FROM chatbot_sessions\n  WHERE (chatbot_sessions.customer_id IN ( SELECT customer_profiles.customer_id\n           FROM customer_profiles\n          WHERE (customer_profiles.user_id = auth.uid())))))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "chatbot_messages",
+      "permissive": "PERMISSIVE",
+      "policyname": "chatbot_messages_own",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "ai_recommendations",
+      "permissive": "PERMISSIVE",
+      "policyname": "Customers can view recommendations",
+      "schemaname": "public",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "qual": "(customer_id IN ( SELECT customer_profiles.customer_id\n   FROM customer_profiles\n  WHERE (customer_profiles.user_id = auth.uid())))",
+      "roles": [
+        "public"
+      ],
+      "tablename": "ai_recommendations",
+      "permissive": "PERMISSIVE",
+      "policyname": "ai_rec_own",
+      "schemaname": "public",
+      "with_check": null
+    }
+  ],
+  "functions": [
+    {
+      "acl": [
+        "=X/postgres",
+        "postgres=X/postgres",
+        "anon=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "name": "set_updated_at",
+      "definition": "CREATE OR REPLACE FUNCTION public.set_updated_at()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    NEW.updated_at = NOW();\r\n    RETURN NEW;\r\nEND;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "=X/postgres",
+        "postgres=X/postgres",
+        "anon=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "name": "refresh_provider_rating",
+      "definition": "CREATE OR REPLACE FUNCTION public.refresh_provider_rating()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    UPDATE provider_profiles\r\n    SET overall_rating = (\r\n            SELECT ROUND(AVG(rating_score)::numeric, 2)\r\n            FROM reviews\r\n            WHERE provider_id = NEW.provider_id\r\n              AND is_flagged = FALSE\r\n        ),\r\n        total_reviews = (\r\n            SELECT COUNT(*) FROM reviews\r\n            WHERE provider_id = NEW.provider_id AND is_flagged = FALSE\r\n        )\r\n    WHERE provider_id = NEW.provider_id;\r\n    RETURN NEW;\r\nEND;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "=X/postgres",
+        "postgres=X/postgres",
+        "anon=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "name": "log_booking_status_change",
+      "definition": "CREATE OR REPLACE FUNCTION public.log_booking_status_change()\n RETURNS trigger\n LANGUAGE plpgsql\nAS $function$\r\nBEGIN\r\n    IF OLD.booking_status IS DISTINCT FROM NEW.booking_status THEN\r\n        INSERT INTO booking_status_history (booking_id, previous_status, new_status)\r\n        VALUES (NEW.booking_id, OLD.booking_status, NEW.booking_status);\r\n    END IF;\r\n    RETURN NEW;\r\nEND;\r\n$function$\n"
+    },
+    {
+      "acl": [
+        "=X/postgres",
+        "postgres=X/postgres",
+        "anon=X/postgres",
+        "authenticated=X/postgres",
+        "service_role=X/postgres"
+      ],
+      "name": "handle_new_user",
+      "definition": "CREATE OR REPLACE FUNCTION public.handle_new_user()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\nAS $function$\r\nDECLARE\r\n  assigned_role public.user_role;\r\n  user_full_name text;\r\n  user_phone text;\r\nBEGIN\r\n  -- Safely extract metadata passed from Flutter\r\n  user_full_name := COALESCE(new.raw_user_meta_data->>'full_name', split_part(new.email, '@', 1));\r\n  user_phone := new.raw_user_meta_data->>'phone';\r\n  \r\n  -- Safe role casting with fallback to 'customer'\r\n  BEGIN\r\n    assigned_role := (new.raw_user_meta_data->>'role')::public.user_role;\r\n  EXCEPTION WHEN OTHERS THEN\r\n    assigned_role := 'customer'::public.user_role;\r\n  END;\r\n  \r\n  IF assigned_role IS NULL THEN\r\n    assigned_role := 'customer'::public.user_role;\r\n  END IF;\r\n\r\n  -- Insert or update public.users\r\n  INSERT INTO public.users (\r\n    user_id,\r\n    email,\r\n    phone,\r\n    full_name,\r\n    role,\r\n    is_active\r\n  )\r\n  VALUES (\r\n    new.id,\r\n    new.email,\r\n    user_phone,\r\n    user_full_name,\r\n    assigned_role,\r\n    true\r\n  )\r\n  ON CONFLICT (user_id) DO UPDATE\r\n  SET\r\n    full_name = EXCLUDED.full_name,\r\n    phone = EXCLUDED.phone,\r\n    email = EXCLUDED.email;\r\n\r\n  -- Create corresponding profile depending on role\r\n  IF assigned_role = 'customer' THEN\r\n    INSERT INTO public.customer_profiles (user_id, service_preferences)\r\n    VALUES (new.id, '{}')\r\n    ON CONFLICT (user_id) DO NOTHING;\r\n  ELSIF assigned_role = 'provider' THEN\r\n    INSERT INTO public.provider_profiles (user_id, business_name, verification_status)\r\n    VALUES (new.id, user_full_name, 'Pending')\r\n    ON CONFLICT (user_id) DO NOTHING;\r\n  END IF;\r\n\r\n  RETURN new;\r\nEXCEPTION WHEN OTHERS THEN\r\n  -- Prevent trigger failure from aborting Auth user creation\r\n  RAISE WARNING 'handle_new_user error: %', SQLERRM;\r\n  RETURN new;\r\nEND;\r\n$function$\n"
+    }
+  ],
+  "auth_triggers": [
+    "CREATE TRIGGER on_auth_user_created AFTER INSERT ON auth.users FOR EACH ROW EXECUTE FUNCTION handle_new_user()"
+  ]
+}
