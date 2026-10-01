@@ -149,7 +149,7 @@ final class Auth
         $_SESSION['signed_in_at'] = $_SESSION['last_activity'] = time();
         try { $this->requireSession(false); }
         catch (ApiException $exception) { unset($_SESSION['auth'], $_SESSION['admin'], $_SESSION['enrollment'], $_SESSION['password_recovery']); throw $exception; }
-        unset($_SESSION['pending_email'], $_SESSION['pending_email_started'], $_SESSION['email_sent_at'], $_SESSION['pkce_verifier'], $_SESSION['pkce_started'], $_SESSION['pkce_flow'], $_SESSION['password_recovery']);
+        unset($_SESSION['pending_email'], $_SESSION['pending_email_started'], $_SESSION['email_sent_at'], $_SESSION['pkce_verifier'], $_SESSION['pkce_started'], $_SESSION['pkce_flow'], $_SESSION['password_recovery'], $_SESSION['enrollment']);
         session_regenerate_id(true);
         $_SESSION['csrf'] = bin2hex(random_bytes(32));
     }

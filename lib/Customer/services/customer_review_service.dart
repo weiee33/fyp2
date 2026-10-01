@@ -21,7 +21,7 @@ class CustomerReviewService {
     // Check if booking belongs to customer, is completed, and has no existing review[cite: 452]
     final booking = await _client
         .from('bookings')
-        .select('booking_status, reviews(review_id)')
+        .select('booking_status, reviews!reviews_booking_id_fkey(review_id)')
         .eq('booking_id', bookingId)
         .eq('customer_id', cid)
         .maybeSingle();
