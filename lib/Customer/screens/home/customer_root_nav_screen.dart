@@ -1,23 +1,37 @@
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
 import 'customer_home_screen.dart';
+import '../profile/customer_profile_screen.dart';
 
 class CustomerRootNavScreen extends StatefulWidget {
-  const CustomerRootNavScreen({super.key});
+  final int initialTab;
+
+  const CustomerRootNavScreen({
+    super.key,
+    this.initialTab = 0, // Defaults to 0 (Explore/Home Tab)
+  });
 
   @override
   State<CustomerRootNavScreen> createState() => _CustomerRootNavScreenState();
 }
 
 class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the starting tab based on the parameter passed
+    _currentIndex = widget.initialTab;
+  }
 
   @override
   Widget build(BuildContext context) {
+    // Define the 3 main screens for the bottom navigation
     final screens = [
       const CustomerHomeScreen(),
-      _buildPlaceholderTab('Activity & Bookings', Icons.receipt_long_rounded),
-      _buildPlaceholderTab('Customer Profile', Icons.person_rounded),
+      _buildPlaceholderTab('Activity & Bookings', Icons.receipt_long_rounded), // To be replaced with actual Bookings module later
+      const CustomerProfileScreen(),
     ];
 
     return Scaffold(
@@ -33,7 +47,10 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                 color: CustomerTheme.primary,
               );
             }
-            return const TextStyle(fontSize: 12, color: CustomerTheme.textSecondary);
+            return const TextStyle(
+              fontSize: 12,
+              color: CustomerTheme.textSecondary,
+            );
           }),
         ),
         child: NavigationBar(
@@ -41,7 +58,11 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
           elevation: 8,
           backgroundColor: Colors.white,
           selectedIndex: _currentIndex,
-          onDestinationSelected: (index) => setState(() => _currentIndex = index),
+          onDestinationSelected: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
           destinations: const [
             NavigationDestination(
               icon: Icon(Icons.explore_outlined),
@@ -64,16 +85,40 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
     );
   }
 
+  /// Placeholder widget for modules still under construction
   Widget _buildPlaceholderTab(String title, IconData icon) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      backgroundColor: CustomerTheme.background,
+      appBar: AppBar(
+        title: Text(title),
+        elevation: 0,
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 64, color: CustomerTheme.primaryLight),
-            const SizedBox(height: 16),
-            Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: CustomerTheme.primarySurface,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: 64, color: CustomerTheme.primaryLight),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: CustomerTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'Module integration pending',
+              style: TextStyle(color: CustomerTheme.textSecondary),
+            ),
           ],
         ),
       ),

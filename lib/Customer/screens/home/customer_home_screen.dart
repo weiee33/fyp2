@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/cupertino.dart';
 import '../../core/customer_theme.dart';
 import '../../services/customer_home_service.dart';
 import '../../services/customer_address_service.dart';
 import 'add_address_map_screen.dart';
 import '../ai/customer_chatbot_screen.dart';
+import '../browsing/customer_service_list_screen.dart';
+import '../notifications/customer_notification_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   const CustomerHomeScreen({super.key});
@@ -19,6 +22,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   final CustomerAddressService _addressService = CustomerAddressService();
 
   String _currentAddressLabel = 'Choose a service address';
+  String _customerName = 'Customer';
   List<Map<String, dynamic>> _savedAddresses = [];
   List<Map<String, dynamic>> _categories = [];
   List<Map<String, dynamic>> _recommendedProviders = [];
@@ -48,6 +52,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       final addresses = await _addressService.getSavedAddresses();
       if (!mounted) return;
       setState(() {
+        _customerName = header['name'] ?? 'Customer';
         _currentAddressLabel = header['address'];
         _categories = categories;
         _recommendedProviders = providers;
@@ -326,43 +331,56 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Good day,', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                      const Text('Good day,', style: TextStyle(color: Colors.white70, fontSize: 13)),
                       Text(
-                        'weiee',
-                        style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                        _customerName,
+                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
-                  InkWell(
-                    onTap: _showAddressPickerModal,
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      constraints: const BoxConstraints(maxWidth: 190),
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.18),
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.notifications_none_rounded, color: Colors.white),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            CupertinoPageRoute(builder: (_) => const CustomerNotificationScreen()),
+                          );
+                        },
+                      ),
+                      InkWell(
+                        onTap: _showAddressPickerModal,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.white30),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.location_on, color: Colors.white, size: 14),
-                          const SizedBox(width: 4),
-                          Flexible(
-                            child: Text(
-                              _currentAddressLabel,
-                              overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-                            ),
+                        child: Container(
+                          constraints: const BoxConstraints(maxWidth: 190),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.18),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: Colors.white30),
                           ),
-                          const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 16),
-                        ],
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.location_on, color: Colors.white, size: 14),
+                              const SizedBox(width: 4),
+                              Flexible(
+                                child: Text(
+                                  _currentAddressLabel,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 16),
+                            ],
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
                 ],
               ),
@@ -439,8 +457,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
         return InkWell(
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Viewing $name specialists...'), duration: const Duration(seconds: 1)),
+            Navigator.push(
+              context,
+              CupertinoPageRoute(
+                builder: (_) => CustomerServiceListScreen(initialCategory: name),
+              ),
             );
           },
           borderRadius: BorderRadius.circular(16),
