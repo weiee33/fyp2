@@ -21,13 +21,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   final CustomerHomeService _homeService = CustomerHomeService();
   final CustomerAddressService _addressService = CustomerAddressService();
 
-  String _currentAddressLabel = 'KL City Center, Kuala Lumpur';
-  String _customerName = 'weiee';
+  String _currentAddressLabel = 'Choose a service address';
+  String _customerName = 'Customer';
   List<Map<String, dynamic>> _savedAddresses = [];
   List<Map<String, dynamic>> _categories = [];
   List<Map<String, dynamic>> _recommendedProviders = [];
 
   bool _isLoading = true;
+  String? _loadError;
   String _activeFilter = 'Location';
   final List<String> _filters = ['Location', 'Upfront Price', 'Rating', '⚡ Emergency'];
 
@@ -44,20 +45,25 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   Future<void> _loadDashboardData() async {
     setState(() => _isLoading = true);
-    final header = await _homeService.getCustomerHeaderData();
-    final categories = await _homeService.getCategories();
-    final providers = await _homeService.getRecommendedProviders();
-    final addresses = await _addressService.getSavedAddresses();
-
-    if (mounted) {
+    try {
+      final header = await _homeService.getCustomerHeaderData();
+      final categories = await _homeService.getCategories();
+      final providers = await _homeService.getRecommendedProviders();
+      final addresses = await _addressService.getSavedAddresses();
+      if (!mounted) return;
       setState(() {
-        _customerName = header['name'] ?? 'weiee';
-        _currentAddressLabel = header['address'] ?? 'KL City Center, Kuala Lumpur';
+        _customerName = header['name'] ?? 'Customer';
+        _currentAddressLabel = header['address'];
         _categories = categories;
         _recommendedProviders = providers;
         _savedAddresses = addresses;
-        _isLoading = false;
+        _loadError = null;
       });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loadError = 'Unable to load your services. Check your connection and retry.');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
@@ -166,9 +172,17 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                             ? const Icon(Icons.check_circle, color: CustomerTheme.primary)
                             : null,
                         onTap: () async {
-                          await _addressService.setDefaultAddress(id, line);
-                          setState(() => _currentAddressLabel = line);
-                          Navigator.pop(ctx);
+                          try {
+                            await _addressService.setDefaultAddress(id, line);
+                            if (!ctx.mounted) return;
+                            Navigator.pop(ctx);
+                            if (mounted) await _loadDashboardData();
+                          } catch (_) {
+                            if (!ctx.mounted) return;
+                            ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
+                              content: Text('Unable to change your address. Please retry.'),
+                            ));
+                          }
                         },
                       );
                     }),
@@ -214,6 +228,16 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
                 slivers: [
                   _buildHeaderSliver(),
+                  if (_isLoading)
+                    const SliverToBoxAdapter(child: LinearProgressIndicator()),
+                  if (_loadError != null)
+                    SliverToBoxAdapter(child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(children: [
+                        Text(_loadError!),
+                        TextButton(onPressed: _loadDashboardData, child: const Text('Retry')),
+                      ]),
+                    )),
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -227,11 +251,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                           const SizedBox(height: 14),
                           _buildCategoryGrid(),
                           const SizedBox(height: 28),
-                          _buildSectionTitle('AI Recommended', 'Explainability Active'),
+                          _buildSectionTitle('Verified providers', 'Ordered by rating'),
                           const SizedBox(height: 14),
                           _buildRecommendedCarousel(),
                           const SizedBox(height: 28),
-                          _buildSectionTitle('Top Verified Nearby', 'Klang Valley'),
+                          _buildSectionTitle('Available services', ''),
                           const SizedBox(height: 14),
                           _buildNearbyList(),
                           const SizedBox(height: 30),
@@ -464,6 +488,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
 
   // AI Recommended Carousel
   Widget _buildRecommendedCarousel() {
+    if (_recommendedProviders.isEmpty) {
+      return const Text('No verified providers with available services yet.');
+    }
     return SizedBox(
       height: 245,
       child: ListView.separated(
@@ -474,9 +501,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         itemBuilder: (context, index) {
           final p = _recommendedProviders[index];
           final String title = p['business_name'] ?? 'Verified Specialist';
-          final double rating = (p['overall_rating'] as num?)?.toDouble() ?? 5.0;
-          final double price = (p['base_price'] as num?)?.toDouble() ?? 80.00;
-          final String tag = p['match_tag'] ?? '⚡ AI Top Match';
+          final double rating = (p['overall_rating'] as num?)?.toDouble() ?? 0.0;
+          final double price = (p['base_price'] as num?)?.toDouble() ?? 0.0;
+          final String tag = p['match_tag'] ?? 'Verified provider';
 
           return Container(
             width: 250,
@@ -568,7 +595,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       itemBuilder: (context, index) {
         final p = _recommendedProviders[index];
         final String name = p['business_name'] ?? 'Technician';
-        final double price = (p['base_price'] as num?)?.toDouble() ?? 80.00;
+        final double price = (p['base_price'] as num?)?.toDouble() ?? 0.0;
 
         return Card(
           elevation: 1,
@@ -584,7 +611,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               child: const Icon(Icons.handyman_rounded, color: CustomerTheme.primary),
             ),
             title: Text(name, style: const TextStyle(fontWeight: FontWeight.bold)),
-            subtitle: Text('Starting from RM${price.toStringAsFixed(0)} • ⭐ 4.9'),
+            subtitle: Text('Starting from RM${price.toStringAsFixed(0)} • ⭐ ${p['overall_rating'] ?? 0}'),
             trailing: const Icon(Icons.chevron_right, color: Colors.grey),
           ),
         );

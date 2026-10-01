@@ -6,10 +6,11 @@ use LocalLife\{ApiException, Auth, Config, Security, SupabaseClient};
 
 $error = null; $admin = null; $data = []; $detail = null; $factors = [];
 $page = is_string($_GET['page'] ?? null) ? $_GET['page'] : 'dashboard';
-$publicPages = ['login','signup','forgot','callback'];
+$publicPages = ['login','signup','verify-email','forgot','callback'];
 $resources = ['users','providers','categories','bookings','reviews','disputes','refunds','audit'];
 $titles = ['dashboard'=>'Overview','users'=>'User management','providers'=>'Provider verification','categories'=>'Service categories','bookings'=>'Bookings & orders','reviews'=>'Review moderation','disputes'=>'Disputes','refunds'=>'Refund requests','analytics'=>'Analytics & reports','audit'=>'Audit trail','login'=>'Welcome back','signup'=>'Activate admin account','mfa'=>'Verify your identity','forgot'=>'Reset your password','reset'=>'Choose a new password','callback'=>'Account verification','document'=>'Credential document'];
 $redirect = static function(string $destination): never { header('Location: ' . $destination, true, 303); exit; };
+$titles['verify-email'] = 'Verify your email';
 try {
     $config = new Config(dirname(__DIR__));
     Security::start($config);
@@ -23,9 +24,11 @@ try {
         if ($action === 'signup') {
             $auth->signup(trim((string)($_POST['email'] ?? '')),(string)($_POST['password'] ?? ''),(string)($_POST['confirm'] ?? ''));
             if(!empty($_SESSION['auth'])) { $redirect(url('mfa')); }
-            $_SESSION['flash']='Check your email to confirm this account. Open the confirmation link in this browser, then set up your authenticator. Only invited administrators can access the dashboard.';
-            $redirect(url('signup'));
+            $_SESSION['flash']='Check your email and enter its verification code. You will then set up your authenticator for admin sign-in.';
+            $redirect(url('verify-email'));
         }
+        if ($action === 'verify_email') { $auth->verifyEmailCode(trim((string)($_POST['code'] ?? ''))); $redirect(url('mfa')); }
+        if ($action === 'resend_email') { $auth->resendEmailCode((string)($_POST['email'] ?? '')); $_SESSION['flash']='If confirmation is pending, a new email is on its way. Use its newest code.'; $redirect(url('verify-email')); }
         if ($action === 'logout') { $auth->logout(); $redirect(url('login')); }
         if ($action === 'recover') { $auth->recover(trim((string)($_POST['email'] ?? ''))); $_SESSION['flash']='If this account is registered, a reset link will arrive by email. Open it in this browser.'; $redirect(url('forgot')); }
         if ($action === 'enroll') { $auth->enroll(); $redirect(url('mfa')); }
@@ -130,10 +133,15 @@ try {
         }
     }
 } catch (ApiException $exception) {
+    if ($exception->apiCode==='EMAIL_CONFIRMATION_REQUIRED') { $_SESSION['flash']=$exception->getMessage(); $redirect(url('verify-email')); }
     if ($exception->apiCode==='MFA_REQUIRED') { $redirect(url('mfa')); }
     if ($exception->status===401 && !in_array($page,$publicPages,true)) { $_SESSION['flash']=$exception->getMessage(); $redirect(url('login')); }
     http_response_code($exception->status >= 400 && $exception->status < 600 ? $exception->status : 400);
     $error=$exception->getMessage();
+    if ($page==='mfa' && !empty($_SESSION['auth'])) {
+        try { $admin=$auth->requireSession(false); $factors=$auth->factors(); }
+        catch (ApiException) { unset($_SESSION['auth'],$_SESSION['admin'],$_SESSION['enrollment']); $redirect(url('login')); }
+    }
 } catch (Throwable $exception) {
     http_response_code(500);
     $reference=bin2hex(random_bytes(4));

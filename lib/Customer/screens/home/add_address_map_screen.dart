@@ -71,6 +71,11 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       _postcodeController.text = data['postcode'] ?? '';
       _isFetchingLocation = false;
     });
+    if ((data['addressLine'] ?? '').isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Address lookup is unavailable. Enter the address details manually.'),
+      ));
+    }
   }
 
   Future<void> _searchAndAnimateMap() async {

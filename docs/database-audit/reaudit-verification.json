@@ -1,0 +1,23 @@
+{
+  "date": "2026-10-01",
+  "project_ref": "znxhiymvmluxmdaxzxkt",
+  "table_inventory": {"public": 30, "private": 2},
+  "migrations_applied": [
+    "20261001082841_auth_customer_integrity_repair",
+    "20261001123803_customer_rpc_boundaries"
+  ],
+  "sql_regression_assertions_passed": 162,
+  "flutter_tests_passed": 12,
+  "php_http_tests_passed": 50,
+  "php_files_syntax_checked": 16,
+  "flutter_analysis": {"errors": 0, "warnings": 0, "informational_findings_reported": 69},
+  "latest_customer_commit_integrated": "d77f289",
+  "live_customer": {"role": "customer", "active": true, "auth_linked": true, "visible_own_profiles": 1},
+  "live_admin": {"invitation_role": "super_admin", "invitation_accepted": false, "email_confirmed": false, "postgrest_registration_check": true},
+  "obsolete_customer_admin_invitation_revoked": true,
+  "unlinked_existing_auth_profiles": 0,
+  "unvalidated_constraints": 0,
+  "fixture_auth_accounts_remaining": 0,
+  "real_email_and_authenticator_login_tested": false,
+  "auth_template_smtp_redirect_settings_verified": false
+}

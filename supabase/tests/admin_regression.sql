@@ -437,7 +437,7 @@ select pg_temp.test_assert('user audit excludes password hash values',
 select pg_temp.test_error('resolved dispute constraint rejects null resolution',
  'insert into public.booking_disputes(booking_id,opened_by,subject,description,status,resolved_by,resolved_at) values(pg_temp.fixture_id(''booking_paid''),pg_temp.fixture_id(''super_user''),''Regression invalid closure'',''Regression invalid closure detail'',''Resolved'',pg_temp.fixture_id(''super_profile''),now())','23514');
 
--- Verify the first-admin bootstrap from a normal signup profile, without an email API call.
+-- Reserved signup has no mobile profile; verified activation creates its admin profile.
 insert into private.admin_invitations(email,role_level)
 values('__admin_bootstrap_regression@example.invalid','super_admin');
 insert into auth.users(id,instance_id,aud,role,email,encrypted_password,email_confirmed_at,
@@ -445,11 +445,11 @@ insert into auth.users(id,instance_id,aud,role,email,encrypted_password,email_co
 values(pg_temp.fixture_id('invitation_identity'),'00000000-0000-0000-0000-000000000000',
  'authenticated','authenticated','__admin_bootstrap_regression@example.invalid','',now(),
  '{"provider":"email","providers":["email"]}','{"role":"admin"}',now(),now());
-select pg_temp.test_assert('invited signup starts as ordinary customer',
- (select role='customer' from public.users where auth_user_id=pg_temp.fixture_id('invitation_identity')));
+select pg_temp.test_assert('invited signup does not create a customer profile',
+ not exists(select 1 from public.users where auth_user_id=pg_temp.fixture_id('invitation_identity')));
 set local role authenticated;
 select pg_temp.login_as('invitation_identity','aal1');
-select pg_temp.test_assert('verified invitation promotes signup profile to Super Admin',
+select pg_temp.test_assert('verified invitation creates Super Admin profile',
  public.admin_identity()->>'role_level'='super_admin');
 select pg_temp.test_assert('repeated invitation acceptance remains idempotent',
  public.admin_identity()->>'role_level'='super_admin');

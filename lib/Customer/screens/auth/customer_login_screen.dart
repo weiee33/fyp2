@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
 import '../../services/customer_auth_service.dart';
-import '../home/customer_home_screen.dart';
 import 'customer_register_screen.dart';
 import '../home/customer_root_nav_screen.dart';
 

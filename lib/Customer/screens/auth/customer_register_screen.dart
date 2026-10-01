@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/customer_theme.dart';
 import '../../services/customer_auth_service.dart';
 import 'customer_otp_screen.dart';
+import '../home/customer_root_nav_screen.dart';
 
 class CustomerRegisterScreen extends StatefulWidget {
   const CustomerRegisterScreen({super.key});
@@ -50,7 +51,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
       if (res.user != null && (res.user!.identities?.isEmpty ?? false)) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('This email is already registered. Please login or delete it in Supabase users.'),
+            content: Text('This email is already registered. Please sign in or reset your password.'),
             backgroundColor: CustomerTheme.danger,
           ),
         );
@@ -60,7 +61,9 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => CustomerOtpScreen(email: _emailController.text.trim()),
+          builder: (_) => res.session != null
+              ? const CustomerRootNavScreen()
+              : CustomerOtpScreen(email: _emailController.text.trim()),
         ),
       );
     } on AuthException catch (e) {
