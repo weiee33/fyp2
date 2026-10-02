@@ -1,6 +1,6 @@
 # Admin database verification
 
-The suite in `supabase/tests/admin_regression.sql` tests behavior against the existing database schema upgraded by all five installed migrations. `policy_indexes_regression.sql` verifies the follow-up policy consolidation and private FK indexes; `analytics_regression.sql` verifies filtered analytics. These suites are fail-fast: an unexpected permission, rejected legitimate action, accepted forbidden action, or incorrect stored result raises an exception.
+The suite in `supabase/tests/admin_regression.sql` tests behavior against the existing database schema upgraded by all six installed migrations. `policy_indexes_regression.sql` verifies the follow-up policy consolidation and private FK indexes; `analytics_regression.sql` verifies filtered analytics. These suites are fail-fast: an unexpected permission, rejected legitimate action, accepted forbidden action, or incorrect stored result raises an exception.
 
 ## Execution safety
 
@@ -24,6 +24,9 @@ The installed migrations are:
 3. `supabase/migrations/20261001031124_admin_analytics_filters.sql`
 4. `supabase/migrations/20261001082841_auth_customer_integrity_repair.sql`
 5. `supabase/migrations/20261001123803_customer_rpc_boundaries.sql`
+6. `supabase/migrations/20261001151919_admin_activation_snapshot_fix.sql`
+
+Also run `supabase/tests/admin_first_activation_regression.sql` **alone in a fresh database connection**, enclosed in `BEGIN; ... ROLLBACK;`. It must run before any other admin RPC in that connection. This reproduces first-use activation without the warmed function plans in the broader suite. It failed against the previous implementation and passes after migration six. The independent checks cover activation, repeated activation, MFA enforcement, profile linkage, and absence of mobile profiles.
 
 When testing the already-upgraded remote database, include **only** `BEGIN`, the four test files in the order shown above, and `ROLLBACK`; do not replay installed migrations. For a pre-installation trial, include the missing candidate migration files before the tests. The foundation is an additive migration against the existing FYP schema, rather than a complete empty-database bootstrap.
 

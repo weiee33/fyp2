@@ -133,6 +133,7 @@ try {
         }
     }
 } catch (ApiException $exception) {
+    if ($exception->apiCode==='ADMIN_ACTIVATION_PENDING') { $_SESSION['flash']=$exception->getMessage(); $redirect(url('login')); }
     if ($exception->apiCode==='EMAIL_CONFIRMATION_REQUIRED') { $_SESSION['flash']=$exception->getMessage(); $redirect(url('verify-email')); }
     if ($exception->apiCode==='MFA_REQUIRED') { $redirect(url('mfa')); }
     if ($exception->status===401 && !in_array($page,$publicPages,true)) { $_SESSION['flash']=$exception->getMessage(); $redirect(url('login')); }
