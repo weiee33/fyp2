@@ -30,11 +30,15 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   bool _isFetchingLocation = false;
   bool _isSaving = false;
   Timer? _debounceTimer;
+  int _lookupVersion = 0;
 
   @override
   void initState() {
     super.initState();
-    _triggerReverseGeocode(_initialPosition.latitude, _initialPosition.longitude);
+    _triggerReverseGeocode(
+      _initialPosition.latitude,
+      _initialPosition.longitude,
+    );
   }
 
   @override
@@ -49,58 +53,89 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   }
 
   void _onCameraMove(CameraPosition position) {
+    ++_lookupVersion;
     _currentPosition = position.target;
   }
 
   void _onCameraIdle() {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 700), () {
-      _triggerReverseGeocode(_currentPosition.latitude, _currentPosition.longitude);
+    _debounceTimer = Timer(const Duration(milliseconds: 1100), () {
+      _triggerReverseGeocode(
+        _currentPosition.latitude,
+        _currentPosition.longitude,
+      );
     });
   }
 
   Future<void> _triggerReverseGeocode(double lat, double lng) async {
+    final version = ++_lookupVersion;
+    final previous = [
+      _addressLineController.text,
+      _cityController.text,
+      _stateController.text,
+      _postcodeController.text,
+    ];
     setState(() => _isFetchingLocation = true);
     final data = await _addressService.reverseGeocode(lat, lng);
-    if (!mounted) return;
+    if (!mounted || version != _lookupVersion) return;
 
     setState(() {
-      _addressLineController.text = data['addressLine'] ?? '';
-      _cityController.text = data['city'] ?? '';
-      _stateController.text = data['state'] ?? '';
-      _postcodeController.text = data['postcode'] ?? '';
+      final controllers = [
+        _addressLineController,
+        _cityController,
+        _stateController,
+        _postcodeController,
+      ];
+      final keys = ['addressLine', 'city', 'state', 'postcode'];
+      for (var i = 0; i < controllers.length; i++) {
+        final value = data[keys[i]] ?? '';
+        // Preserve manual edits made while the lookup was in flight.
+        if (value.isNotEmpty && controllers[i].text == previous[i])
+          controllers[i].text = value;
+      }
       _isFetchingLocation = false;
     });
     if ((data['addressLine'] ?? '').isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Address lookup is unavailable. Enter the address details manually.'),
-      ));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Address lookup is unavailable. Enter the address details manually.',
+          ),
+        ),
+      );
     }
   }
 
   Future<void> _searchAndAnimateMap() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) return;
+    final version = ++_lookupVersion;
 
     FocusScope.of(context).unfocus();
     setState(() => _isFetchingLocation = true);
 
     final result = await _addressService.searchLocation(query);
-    if (!mounted) return;
+    if (!mounted || version != _lookupVersion) return;
 
     if (result != null) {
       final lat = result['lat'] as double;
       final lng = result['lng'] as double;
       final target = LatLng(lat, lng);
+      _currentPosition = target;
 
       final GoogleMapController controller = await _controller.future;
+      if (!mounted || version != _lookupVersion) return;
       controller.animateCamera(CameraUpdate.newLatLngZoom(target, 17));
 
       _triggerReverseGeocode(lat, lng);
     } else {
       setState(() => _isFetchingLocation = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Address not found in Malaysia. Please adjust pin manually.')),
+        const SnackBar(
+          content: Text(
+            'Address not found in Malaysia. Please adjust pin manually.',
+          ),
+        ),
       );
     }
   }
@@ -131,7 +166,10 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to save address: $e'), backgroundColor: CustomerTheme.danger),
+        SnackBar(
+          content: Text('Failed to save address: $e'),
+          backgroundColor: CustomerTheme.danger,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -164,7 +202,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
               },
               onCameraMove: _onCameraMove,
               onCameraIdle: _onCameraIdle,
-              myLocationEnabled: true,
+              myLocationEnabled: false,
               myLocationButtonEnabled: false,
               zoomControlsEnabled: false,
             ),
@@ -177,17 +215,29 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black87,
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        _isFetchingLocation ? 'Locating...' : 'Set service location',
-                        style: const TextStyle(color: Colors.white, fontSize: 11),
+                        _isFetchingLocation
+                            ? 'Locating...'
+                            : 'Set service location',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                        ),
                       ),
                     ),
-                    const Icon(Icons.location_pin, size: 48, color: CustomerTheme.primary),
+                    const Icon(
+                      Icons.location_pin,
+                      size: 48,
+                      color: CustomerTheme.primary,
+                    ),
                   ],
                 ),
               ),
@@ -203,7 +253,11 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.12), blurRadius: 10, offset: const Offset(0, 4)),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.12),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
                   ],
                 ),
                 child: TextField(
@@ -212,9 +266,15 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                   onSubmitted: (_) => _searchAndAnimateMap(),
                   decoration: InputDecoration(
                     hintText: 'Search area or building (e.g. Astrum Ampang)...',
-                    prefixIcon: const Icon(Icons.search, color: CustomerTheme.primary),
+                    prefixIcon: const Icon(
+                      Icons.search,
+                      color: CustomerTheme.primary,
+                    ),
                     suffixIcon: IconButton(
-                      icon: const Icon(Icons.arrow_forward_rounded, color: CustomerTheme.primary),
+                      icon: const Icon(
+                        Icons.arrow_forward_rounded,
+                        color: CustomerTheme.primary,
+                      ),
                       onPressed: _searchAndAnimateMap,
                     ),
                     border: InputBorder.none,
@@ -233,9 +293,15 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                 return Container(
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
                     boxShadow: [
-                      BoxShadow(color: Colors.black12, blurRadius: 16, offset: Offset(0, -4)),
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 16,
+                        offset: Offset(0, -4),
+                      ),
                     ],
                   ),
                   child: ListView(
@@ -255,13 +321,22 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                       const SizedBox(height: 14),
                       Row(
                         children: [
-                          const Text('Address Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                          const Text(
+                            'Address Details',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                           const Spacer(),
                           if (_isFetchingLocation)
                             const SizedBox(
                               width: 16,
                               height: 16,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: CustomerTheme.primary),
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: CustomerTheme.primary,
+                              ),
                             ),
                         ],
                       ),
@@ -277,13 +352,20 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                               selected: isSelected,
                               selectedColor: CustomerTheme.primarySurface,
                               labelStyle: TextStyle(
-                                color: isSelected ? CustomerTheme.primary : CustomerTheme.textPrimary,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected
+                                    ? CustomerTheme.primary
+                                    : CustomerTheme.textPrimary,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
                               ),
                               side: BorderSide(
-                                color: isSelected ? CustomerTheme.primary : CustomerTheme.borderColor,
+                                color: isSelected
+                                    ? CustomerTheme.primary
+                                    : CustomerTheme.borderColor,
                               ),
-                              onSelected: (_) => setState(() => _selectedLabel = label),
+                              onSelected: (_) =>
+                                  setState(() => _selectedLabel = label),
                             ),
                           );
                         }).toList(),
@@ -291,7 +373,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                       const SizedBox(height: 14),
                       TextField(
                         controller: _addressLineController,
-                        decoration: const InputDecoration(labelText: 'Address Line / Unit No.'),
+                        decoration: const InputDecoration(
+                          labelText: 'Address Line / Unit No.',
+                        ),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -299,7 +383,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                           Expanded(
                             child: TextField(
                               controller: _cityController,
-                              decoration: const InputDecoration(labelText: 'City'),
+                              decoration: const InputDecoration(
+                                labelText: 'City',
+                              ),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -307,7 +393,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                             child: TextField(
                               controller: _postcodeController,
                               keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(labelText: 'Postcode'),
+                              decoration: const InputDecoration(
+                                labelText: 'Postcode',
+                              ),
                             ),
                           ),
                         ],
@@ -321,19 +409,27 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                       SwitchListTile(
                         contentPadding: EdgeInsets.zero,
                         activeColor: CustomerTheme.primary,
-                        title: const Text('Set as default service address', style: TextStyle(fontSize: 14)),
+                        title: const Text(
+                          'Set as default service address',
+                          style: TextStyle(fontSize: 14),
+                        ),
                         value: _isDefault,
                         onChanged: (val) => setState(() => _isDefault = val),
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _isSaving ? null : _saveAddress,
+                        onPressed: _isSaving || _isFetchingLocation
+                            ? null
+                            : _saveAddress,
                         child: _isSaving
                             ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                        )
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2,
+                                ),
+                              )
                             : const Text('Save & Select Address'),
                       ),
                     ],

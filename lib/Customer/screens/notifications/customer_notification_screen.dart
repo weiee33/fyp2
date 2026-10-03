@@ -1,37 +1,60 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timeago/timeago.dart' as timeago;
 import '../../core/customer_theme.dart';
 import '../../services/customer_notification_service.dart';
-// Import your booking detail screen here when ready
-// import '../booking/customer_booking_detail_screen.dart';
+import '../../services/customer_live_updates.dart';
+import '../booking/customer_booking_detail_screen.dart';
 
 class CustomerNotificationScreen extends StatefulWidget {
-  const CustomerNotificationScreen({super.key});
+  final CustomerNotificationService? service;
+  const CustomerNotificationScreen({super.key, this.service});
 
   @override
-  State<CustomerNotificationScreen> createState() => _CustomerNotificationScreenState();
+  State<CustomerNotificationScreen> createState() =>
+      _CustomerNotificationScreenState();
 }
 
-class _CustomerNotificationScreenState extends State<CustomerNotificationScreen> {
-  final CustomerNotificationService _notificationService = CustomerNotificationService();
+class _CustomerNotificationScreenState
+    extends State<CustomerNotificationScreen> {
+  late final CustomerNotificationService _notificationService;
 
   List<Map<String, dynamic>> _allNotifications = [];
   bool _isLoading = true;
+  bool _isMarkingAll = false;
+  String? _loadError;
+  CustomerLiveUpdates? _updates;
 
   // Filter types matching FYP 1 specification[cite: 455]
-  final List<String> _filters = ['All', 'Booking', 'Payment', 'System', 'Promotion'];
+  final List<String> _filters = [
+    'All',
+    'Booking',
+    'Payment',
+    'System',
+    'Message',
+  ];
   String _activeFilter = 'All';
 
   @override
   void initState() {
     super.initState();
+    _notificationService = widget.service ?? CustomerNotificationService();
     _fetchNotifications();
+    if (widget.service == null)
+      _updates = CustomerLiveUpdates(_fetchNotifications);
+  }
+
+  @override
+  void dispose() {
+    _updates?.dispose();
+    super.dispose();
   }
 
   Future<void> _fetchNotifications() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
     try {
       final data = await _notificationService.getNotifications();
       if (mounted) {
@@ -41,14 +64,37 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted)
+        setState(() {
+          _isLoading = false;
+          _loadError = 'Could not load notifications. Pull down to retry.';
+        });
     }
   }
 
   Future<void> _handleMarkAllRead() async {
-    HapticFeedback.mediumImpact();
-    await _notificationService.markAllAsRead();
-    _fetchNotifications();
+    if (_isMarkingAll) return;
+    setState(() => _isMarkingAll = true);
+    try {
+      await _notificationService.markAllAsRead();
+      if (!mounted) return;
+      setState(() {
+        for (final item in _allNotifications) {
+          item['is_read'] = true;
+        }
+      });
+    } catch (_) {
+      _showError('Could not mark notifications as read. Please retry.');
+    } finally {
+      if (mounted) setState(() => _isMarkingAll = false);
+    }
+  }
+
+  void _showError(String message) {
+    if (mounted)
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   Future<void> _handleNotificationTap(Map<String, dynamic> notification) async {
@@ -57,28 +103,40 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
     final String? bookingId = notification['booking_id'];
 
     if (!isRead) {
-      // Optimistic UI update
-      setState(() {
-        notification['is_read'] = true;
-      });
-      await _notificationService.markAsRead(id);
+      try {
+        await _notificationService.markAsRead(id);
+        if (!mounted) return;
+        setState(() => notification['is_read'] = true);
+      } catch (_) {
+        _showError('Could not mark this notification as read.');
+      }
     }
 
     if (!mounted) return;
 
     // Deep-link navigation based on context[cite: 454, 455]
     if (bookingId != null && bookingId.isNotEmpty) {
-      // Navigate to booking detail using native iOS swipe route
-      /*
-      Navigator.push(
+      await Navigator.push(
         context,
-        CupertinoPageRoute(
+        MaterialPageRoute(
           builder: (_) => CustomerBookingDetailScreen(bookingId: bookingId),
         ),
       );
-      */
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Navigating to Booking #$bookingId...')),
+    } else {
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(notification['title']?.toString() ?? 'Notification'),
+          content: SingleChildScrollView(
+            child: Text(notification['message']?.toString() ?? ''),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Close'),
+            ),
+          ],
+        ),
       );
     }
   }
@@ -88,7 +146,17 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
     // Apply client-side filtering[cite: 455]
     final filteredNotifications = _activeFilter == 'All'
         ? _allNotifications
-        : _allNotifications.where((n) => n['notification_type'] == _activeFilter).toList();
+        : _allNotifications
+              .where(
+                (n) => _activeFilter == 'Booking'
+                    ? [
+                        'New Booking',
+                        'Booking Update',
+                        'Cancellation',
+                      ].contains(n['notification_type'])
+                    : n['notification_type'] == _activeFilter,
+              )
+              .toList();
 
     return Theme(
       data: CustomerTheme.lightTheme,
@@ -98,7 +166,9 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
           color: CustomerTheme.primary,
           onRefresh: _fetchNotifications,
           child: CustomScrollView(
-            physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             slivers: [
               // Mobile-native Elastic AppBar
               SliverAppBar(
@@ -106,12 +176,22 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
                 pinned: true,
                 backgroundColor: Colors.white,
                 elevation: 2,
-                title: const Text('Notifications', style: TextStyle(color: CustomerTheme.textPrimary)),
+                title: const Text(
+                  'Notifications',
+                  style: TextStyle(color: CustomerTheme.textPrimary),
+                ),
                 actions: [
                   IconButton(
-                    icon: const Icon(Icons.done_all_rounded, color: CustomerTheme.primary),
+                    icon: const Icon(
+                      Icons.done_all_rounded,
+                      color: CustomerTheme.primary,
+                    ),
                     tooltip: 'Mark all as read',
-                    onPressed: _allNotifications.any((n) => !(n['is_read'] ?? false))
+                    onPressed:
+                        !_isMarkingAll &&
+                            _allNotifications.any(
+                              (n) => !(n['is_read'] ?? false),
+                            )
                         ? _handleMarkAllRead
                         : null,
                   ),
@@ -130,35 +210,63 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
               // Notification List
               if (_isLoading)
                 const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator(color: CustomerTheme.primary)),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      color: CustomerTheme.primary,
+                    ),
+                  ),
                 )
-              else if (filteredNotifications.isEmpty)
+              else if (_loadError != null)
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        Text(_loadError!),
+                        TextButton(
+                          onPressed: _fetchNotifications,
+                          child: const Text('Retry'),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              if (!_isLoading &&
+                  _loadError == null &&
+                  filteredNotifications.isEmpty)
                 SliverFillRemaining(
                   child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.notifications_off_rounded, size: 64, color: Colors.grey.shade300),
+                        Icon(
+                          Icons.notifications_off_rounded,
+                          size: 64,
+                          color: Colors.grey.shade300,
+                        ),
                         const SizedBox(height: 16),
                         Text(
-                          'No ${_activeFilter == 'All' ? '' : _activeFilter } notifications yet.',
-                          style: const TextStyle(color: Colors.grey, fontSize: 16),
+                          'No ${_activeFilter == 'All' ? '' : _activeFilter} notifications yet.',
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 16,
+                          ),
                         ),
                       ],
                     ),
                   ),
                 )
-              else
+              else if (!_isLoading && filteredNotifications.isNotEmpty)
                 SliverPadding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                        final notification = filteredNotifications[index];
-                        return _buildNotificationCard(notification);
-                      },
-                      childCount: filteredNotifications.length,
-                    ),
+                    delegate: SliverChildBuilderDelegate((context, index) {
+                      final notification = filteredNotifications[index];
+                      return _buildNotificationCard(notification);
+                    }, childCount: filteredNotifications.length),
                   ),
                 ),
             ],
@@ -198,7 +306,11 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
-              side: BorderSide(color: isSelected ? CustomerTheme.primary : CustomerTheme.borderColor),
+              side: BorderSide(
+                color: isSelected
+                    ? CustomerTheme.primary
+                    : CustomerTheme.borderColor,
+              ),
             ),
           );
         },
@@ -213,7 +325,9 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
     final String title = notification['title'] ?? 'Alert';
     final String message = notification['message'] ?? '';
     final String type = notification['notification_type'] ?? 'System';
-    final DateTime createdAt = DateTime.tryParse(notification['created_at']) ?? DateTime.now();
+    final DateTime? createdAt = DateTime.tryParse(
+      notification['created_at']?.toString() ?? '',
+    );
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -227,11 +341,25 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
           ),
           alignment: Alignment.centerRight,
           padding: const EdgeInsets.only(right: 24),
-          child: const Icon(Icons.delete_outline_rounded, color: Colors.white, size: 28),
+          child: const Icon(
+            Icons.delete_outline_rounded,
+            color: Colors.white,
+            size: 28,
+          ),
         ),
+        confirmDismiss: (_) async {
+          try {
+            await _notificationService.deleteNotification(id);
+            return mounted;
+          } catch (_) {
+            _showError(
+              'Could not dismiss this notification. It has been kept.',
+            );
+            return false;
+          }
+        },
         onDismissed: (direction) {
           HapticFeedback.lightImpact();
-          _notificationService.deleteNotification(id);
           setState(() {
             _allNotifications.removeWhere((n) => n['notification_id'] == id);
           });
@@ -246,10 +374,14 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
             duration: const Duration(milliseconds: 300),
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: isRead ? Colors.white : CustomerTheme.primarySurface.withOpacity(0.5),
+              color: isRead
+                  ? Colors.white
+                  : CustomerTheme.primarySurface.withOpacity(0.5),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: isRead ? CustomerTheme.borderColor : CustomerTheme.primaryLight.withOpacity(0.3),
+                color: isRead
+                    ? CustomerTheme.borderColor
+                    : CustomerTheme.primaryLight.withOpacity(0.3),
               ),
               boxShadow: [
                 BoxShadow(
@@ -266,7 +398,11 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
                 CircleAvatar(
                   radius: 24,
                   backgroundColor: _getIconColor(type).withOpacity(0.15),
-                  child: Icon(_getIcon(type), color: _getIconColor(type), size: 22),
+                  child: Icon(
+                    _getIcon(type),
+                    color: _getIconColor(type),
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 16),
 
@@ -283,7 +419,9 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
                               title,
                               style: TextStyle(
                                 fontSize: 15,
-                                fontWeight: isRead ? FontWeight.w600 : FontWeight.bold,
+                                fontWeight: isRead
+                                    ? FontWeight.w600
+                                    : FontWeight.bold,
                                 color: CustomerTheme.textPrimary,
                               ),
                               maxLines: 1,
@@ -291,11 +429,17 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
                             ),
                           ),
                           Text(
-                            timeago.format(createdAt, locale: 'en_short'),
+                            createdAt == null
+                                ? ''
+                                : timeago.format(createdAt, locale: 'en_short'),
                             style: TextStyle(
                               fontSize: 12,
-                              color: isRead ? CustomerTheme.textSecondary : CustomerTheme.primary,
-                              fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                              color: isRead
+                                  ? CustomerTheme.textSecondary
+                                  : CustomerTheme.primary,
+                              fontWeight: isRead
+                                  ? FontWeight.normal
+                                  : FontWeight.bold,
                             ),
                           ),
                         ],
@@ -305,7 +449,9 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
                         message,
                         style: TextStyle(
                           fontSize: 13,
-                          color: isRead ? CustomerTheme.textSecondary : Colors.black87,
+                          color: isRead
+                              ? CustomerTheme.textSecondary
+                              : Colors.black87,
                           height: 1.4,
                         ),
                         maxLines: 2,
@@ -327,7 +473,7 @@ class _CustomerNotificationScreenState extends State<CustomerNotificationScreen>
                       shape: BoxShape.circle,
                     ),
                   ),
-                ]
+                ],
               ],
             ),
           ),

@@ -16,7 +16,13 @@ Copy-Item admin/.env.example admin/.env
 
 Open **http://127.0.0.1:8088** in your browser. PHP runs independently of the Flutter emulator; Android Studio is the editor. The script installs a checksum-verified repository-local PHP runtime.
 
-First administrator: **weiee0303@gmail.com**. Its verified Auth account is already present in the connected project. Sign in using your existing password; the reserved database invitation links its admin profile on successful login. Complete authenticator verification before accessing records. For password recovery, configure the callback as described in [setup](docs/admin-setup.md). No password is supplied by this repository.
+Administrator: **angethan765@gmail.com**. Sign in with your existing password and the code from your enrolled authenticator. **weiee0303@gmail.com is a customer account.** No password is set or supplied by this repository. See [admin setup](docs/admin-setup.md) for recovery.
+
+## Customer modules and FPX testing
+
+Customer modules 5–10 now use guarded database APIs for discovery, profile/address management, provider-approved bookings, payment receipts, reviews and persisted notifications. The flow is **request a slot → provider accepts → customer pays → provider performs service → customer reviews**.
+
+Read [customer integration and verification](docs/customer-modules.md) and [Stripe FPX test setup](docs/fpx-test-setup.md). Test checkout requires your own Stripe test account and server-side secrets. Payment cannot be marked successful by the app. Background push/email delivery and AI remain outside this completed integration pass.
 
 ## Admin modules
 

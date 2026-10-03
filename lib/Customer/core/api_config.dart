@@ -1,10 +1,6 @@
 class ApiConfig {
-  // Google Maps API Key
-  static const String googleMapsApiKey = 'AIzaSyDAKYuFdW1Itea57BXhLJE3_caqODxm38E';
-
-  // Google Gemini API Key
-  static const String geminiApiKey = 'AQ.Ab8RN6IBadcYBcRgehYhVE0taewqpZXHgYHz4-asRRo8sXi9Lg';
-
-  // Active Gemini Model Endpoint
+  static const String googleMapsApiKey = String.fromEnvironment('GOOGLE_MAPS_API_KEY');
+  // AI is deferred. No private AI credential belongs in the app bundle.
+  static const String geminiApiKey = '';
   static const String geminiModel = 'gemini-1.5-flash';
 }

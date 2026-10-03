@@ -1,336 +1,439 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
+import '../../models/service_item.dart';
 import '../../services/customer_browsing_service.dart';
 import 'customer_provider_detail_screen.dart';
 
 class CustomerServiceListScreen extends StatefulWidget {
   final String? initialCategory;
-  const CustomerServiceListScreen({super.key, this.initialCategory});
+  final String? initialCategoryId;
+  final String? initialKeyword;
+  final CustomerBrowsingService? browsingService;
+
+  const CustomerServiceListScreen({
+    super.key,
+    this.initialCategory,
+    this.initialCategoryId,
+    this.initialKeyword,
+    this.browsingService,
+  });
 
   @override
-  State<CustomerServiceListScreen> createState() => _CustomerServiceListScreenState();
+  State<CustomerServiceListScreen> createState() =>
+      _CustomerServiceListScreenState();
 }
 
 class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
-  final CustomerBrowsingService _browsingService = CustomerBrowsingService();
-  final TextEditingController _searchController = TextEditingController();
-
-  List<Map<String, dynamic>> _services = [];
-  bool _isLoading = true;
-
-  // Filter States
-  double _maxPrice = 500.0;
-  double _minRating = 0.0;
-  String? _activeCategory;
+  static const _pageSize = 20;
+  late final CustomerBrowsingService _service;
+  late final TextEditingController _search;
+  List<ServiceItem> _services = [];
+  String? _category;
+  String? _categoryId;
+  String? _city;
+  double? _maxPrice;
+  double? _minRating;
+  String? _error;
+  bool _loading = true;
+  bool _hasMore = false;
+  int _requestVersion = 0;
+  String _submittedKeyword = '';
 
   @override
   void initState() {
     super.initState();
-    _activeCategory = widget.initialCategory;
-    _fetchServices();
+    _service = widget.browsingService ?? CustomerBrowsingService();
+    _search = TextEditingController(text: widget.initialKeyword);
+    _category = widget.initialCategory;
+    _categoryId = widget.initialCategoryId;
+    _fetch();
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
+    _search.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchServices() async {
-    setState(() => _isLoading = true);
+  Future<void> _fetch({bool more = false}) async {
+    if (more && (_loading || !_hasMore)) return;
+    final request = ++_requestVersion;
+    final offset = more ? _services.length : 0;
+    if (!more) _submittedKeyword = _search.text.trim();
+    setState(() {
+      _loading = true;
+      _error = null;
+      if (!more) _services = [];
+    });
     try {
-      final results = await _browsingService.searchServices(
-        categoryName: _activeCategory,
-        keyword: _searchController.text,
-        maxPrice: _maxPrice < 500.0 ? _maxPrice : null,
-        minRating: _minRating > 0 ? _minRating : null,
+      final rows = await _service.searchServices(
+        categoryId: _categoryId,
+        categoryName: _categoryId == null ? _category : null,
+        keyword: _submittedKeyword,
+        city: _city,
+        maxPrice: _maxPrice,
+        minRating: _minRating,
+        limit: _pageSize + 1,
+        offset: offset,
       );
-      if (mounted) {
-        setState(() {
-          _services = results;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      // An older query must not replace a newer search/filter result.
+      if (!mounted || request != _requestVersion) return;
+      setState(() {
+        _services = [if (more) ..._services, ...rows.take(_pageSize)];
+        _hasMore = rows.length > _pageSize;
+      });
+    } catch (_) {
+      if (!mounted || request != _requestVersion) return;
+      setState(
+        () => _error =
+            'Unable to load services. Check your connection and retry.',
+      );
+    } finally {
+      if (mounted && request == _requestVersion)
+        setState(() => _loading = false);
     }
   }
 
-  void _showFilterSheet() {
-    showModalBottomSheet(
+  Future<void> _showFilters() async {
+    final filters = await showModalBottomSheet<_ServiceFilters>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (ctx) => StatefulBuilder(
-        builder: (context, setModalState) {
-          return DraggableScrollableSheet(
-            initialChildSize: 0.6,
-            minChildSize: 0.4,
-            maxChildSize: 0.9,
-            builder: (_, controller) {
-              return Container(
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-                ),
-                padding: const EdgeInsets.all(24),
-                child: ListView(
-                  controller: controller,
-                  physics: const BouncingScrollPhysics(),
-                  children: [
-                    Center(
-                      child: Container(
-                        width: 40,
-                        height: 4,
-                        margin: const EdgeInsets.only(bottom: 24),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade300,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                    ),
-                    const Text('Filter Services', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 24),
-
-                    // Price Filter
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text('Maximum Price', style: TextStyle(fontWeight: FontWeight.w600)),
-                        Text('RM ${_maxPrice.toStringAsFixed(0)}', style: const TextStyle(color: CustomerTheme.primary, fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    Slider(
-                      value: _maxPrice,
-                      min: 50,
-                      max: 500,
-                      divisions: 9,
-                      activeColor: CustomerTheme.primary,
-                      onChanged: (val) => setModalState(() => _maxPrice = val),
-                    ),
-                    const SizedBox(height: 20),
-
-                    // Rating Filter
-                    const Text('Minimum Rating', style: TextStyle(fontWeight: FontWeight.w600)),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: List.generate(5, (index) {
-                        final ratingValue = index + 1.0;
-                        final isSelected = _minRating == ratingValue;
-                        return InkWell(
-                          onTap: () => setModalState(() => _minRating = isSelected ? 0.0 : ratingValue),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: isSelected ? CustomerTheme.primary : CustomerTheme.primarySurface,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                Text('$ratingValue', style: TextStyle(color: isSelected ? Colors.white : CustomerTheme.primaryDark, fontWeight: FontWeight.bold)),
-                                Icon(Icons.star, size: 16, color: isSelected ? Colors.white : Colors.orange),
-                              ],
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                    const SizedBox(height: 40),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(ctx);
-                        _fetchServices();
-                      },
-                      child: const Text('Apply Filters'),
-                    ),
-                    const SizedBox(height: 12),
-                    TextButton(
-                      onPressed: () {
-                        setModalState(() {
-                          _maxPrice = 500.0;
-                          _minRating = 0.0;
-                          _activeCategory = null;
-                        });
-                        Navigator.pop(ctx);
-                        _fetchServices();
-                      },
-                      child: const Text('Reset', style: TextStyle(color: CustomerTheme.textSecondary)),
-                    ),
-                  ],
-                ),
-              );
-            },
-          );
-        },
+      useSafeArea: true,
+      builder: (_) => _FilterSheet(
+        initial: _ServiceFilters(
+          city: _city,
+          maxPrice: _maxPrice,
+          minRating: _minRating,
+        ),
       ),
     );
+    if (!mounted || filters == null) return;
+    setState(() {
+      _city = filters.city;
+      _maxPrice = filters.maxPrice;
+      _minRating = filters.minRating;
+    });
+    await _fetch();
+  }
+
+  void _clearFilters() {
+    _search.clear();
+    _city = _category = _categoryId = null;
+    _maxPrice = _minRating = null;
+    _fetch();
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CustomerTheme.background,
-      appBar: AppBar(
-        title: Text(_activeCategory ?? 'All Services'),
-        elevation: 0,
-        bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: TextField(
-                      controller: _searchController,
-                      textInputAction: TextInputAction.search,
-                      onSubmitted: (_) => _fetchServices(),
-                      decoration: const InputDecoration(
-                        hintText: 'Search services...',
-                        prefixIcon: Icon(Icons.search, color: CustomerTheme.textSecondary),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(vertical: 12),
-                      ),
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: CustomerTheme.background,
+    appBar: AppBar(title: Text(_category ?? 'All services')),
+    body: Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 4, 8, 8),
+          child: Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _search,
+                  maxLength: 120,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _fetch(),
+                  decoration: InputDecoration(
+                    counterText: '',
+                    hintText: 'Search services or providers',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: IconButton(
+                      tooltip: 'Search services',
+                      onPressed: () => _fetch(),
+                      icon: const Icon(Icons.arrow_forward),
                     ),
                   ),
                 ),
-                const SizedBox(width: 12),
-                InkWell(
-                  onTap: _showFilterSheet,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    height: 44,
-                    width: 44,
-                    decoration: BoxDecoration(
-                      color: CustomerTheme.primarySurface,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.tune_rounded, color: CustomerTheme.primary),
+              ),
+              IconButton(
+                tooltip: 'Filter services',
+                onPressed: _showFilters,
+                icon: const Icon(Icons.tune),
+              ),
+            ],
+          ),
+        ),
+        if (_category != null ||
+            _maxPrice != null ||
+            _minRating != null ||
+            _city != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Wrap(
+              spacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                if (_category != null) Chip(label: Text(_category!)),
+                if (_city != null) Chip(label: Text(_city!)),
+                if (_maxPrice != null)
+                  Chip(
+                    label: Text('Up to RM ${_maxPrice!.toStringAsFixed(2)}'),
                   ),
+                if (_minRating != null)
+                  Chip(label: Text('${_minRating!.toStringAsFixed(0)}+ stars')),
+                TextButton(
+                  onPressed: _clearFilters,
+                  child: const Text('Clear filters'),
                 ),
               ],
             ),
           ),
-        ),
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: CustomerTheme.primary))
-          : RefreshIndicator(
-        color: CustomerTheme.primary,
-        onRefresh: _fetchServices,
-        child: _services.isEmpty
-            ? ListView(
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-          children: const [
-            SizedBox(height: 100),
-            Center(child: Icon(Icons.search_off_rounded, size: 64, color: Colors.grey)),
-            SizedBox(height: 16),
-            Center(child: Text('No services match your criteria.', style: TextStyle(color: Colors.grey))),
-          ],
-        )
-            : ListView.separated(
-          padding: const EdgeInsets.all(16),
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-          itemCount: _services.length,
-          separatorBuilder: (_, __) => const SizedBox(height: 16),
-          itemBuilder: (context, index) {
-            final svc = _services[index];
-            final provider = svc['provider_profiles'];
-            final user = provider['users'];
-            final price = (svc['base_price'] as num).toDouble();
-            final rating = (provider['overall_rating'] as num).toDouble();
-            final photoUrl = user['profile_photo_url']?.toString() ?? '';
-            final pId = provider['provider_id'];
-
-            return GestureDetector(
-              onTap: () {
-                // Using CupertinoPageRoute for native iOS edge-swipe back logic on both platforms
-                Navigator.push(
-                  context,
-                  CupertinoPageRoute(
-                    builder: (_) => CustomerProviderDetailScreen(
-                      providerId: pId,
-                      heroTag: 'provider_avatar_$pId',
-                    ),
+        Expanded(
+          child: RefreshIndicator(
+            onRefresh: _fetch,
+            child: ListView(
+              key: const PageStorageKey('service-results'),
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (_loading && _services.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.all(48),
+                    child: Center(child: CircularProgressIndicator()),
                   ),
-                );
-              },
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10, offset: const Offset(0, 4)),
-                  ],
-                ),
-                padding: const EdgeInsets.all(16),
-                child: Row(
+                if (!_loading && _error == null && _services.isEmpty) ...[
+                  const SizedBox(height: 56),
+                  const Icon(
+                    Icons.search_off,
+                    size: 56,
+                    color: CustomerTheme.textSecondary,
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No services match your search.',
+                    textAlign: TextAlign.center,
+                  ),
+                  const Text(
+                    'Try a different keyword, city or price range.',
+                    textAlign: TextAlign.center,
+                  ),
+                  TextButton(
+                    onPressed: _clearFilters,
+                    child: const Text('Show all services'),
+                  ),
+                ],
+                ..._services.map(_serviceCard),
+                if (_error != null) ...[
+                  Text(_error!, textAlign: TextAlign.center),
+                  TextButton(
+                    onPressed: () => _fetch(more: _services.isNotEmpty),
+                    child: const Text('Retry'),
+                  ),
+                ] else if (_hasMore)
+                  OutlinedButton(
+                    onPressed: _loading ? null : () => _fetch(more: true),
+                    child: Text(_loading ? 'Loading…' : 'Load more services'),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _serviceCard(ServiceItem service) {
+    final hero = 'service-avatar-${service.serviceId}';
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CustomerProviderDetailScreen(
+              providerId: service.providerId,
+              heroTag: hero,
+              selectedServiceId: service.serviceId,
+              browsingService: _service,
+            ),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Hero(
+                tag: hero,
+                child: ProviderAvatar(photoUrl: service.photoUrl, size: 52),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Hero(
-                      tag: 'provider_avatar_$pId',
-                      child: CircleAvatar(
-                        radius: 30,
-                        backgroundColor: CustomerTheme.primarySurface,
-                        backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
-                        child: photoUrl.isEmpty ? const Icon(Icons.handyman, color: CustomerTheme.primary) : null,
+                    Text(
+                      service.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            svc['service_name'] ?? 'Service',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            provider['business_name'] ?? 'Provider',
-                            style: const TextStyle(fontSize: 13, color: CustomerTheme.textSecondary),
-                          ),
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              const Icon(Icons.star_rounded, color: Colors.orange, size: 16),
-                              const SizedBox(width: 4),
-                              Text(
-                                '$rating (${provider['total_reviews']})',
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
-                              ),
-                              const Spacer(),
-                              Text(
-                                'RM ${price.toStringAsFixed(0)}',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: CustomerTheme.primaryDark,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
+                    Text(
+                      service.businessName,
+                      style: const TextStyle(
+                        color: CustomerTheme.textSecondary,
                       ),
                     ),
+                    if (service.city?.isNotEmpty == true)
+                      Text(service.city!, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(height: 8),
+                    Text(
+                      service.ratingLabel,
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      service.priceLabel,
+                      style: const TextStyle(
+                        color: CustomerTheme.primaryDark,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    if (service.durationMinutes != null)
+                      Text(
+                        '${service.durationMinutes} minutes',
+                        style: const TextStyle(fontSize: 12),
+                      ),
                   ],
                 ),
               ),
-            );
-          },
+              const Icon(
+                Icons.chevron_right,
+                color: CustomerTheme.textSecondary,
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+class _ServiceFilters {
+  final String? city;
+  final double? maxPrice;
+  final double? minRating;
+  const _ServiceFilters({this.city, this.maxPrice, this.minRating});
+}
+
+class _FilterSheet extends StatefulWidget {
+  final _ServiceFilters initial;
+  const _FilterSheet({required this.initial});
+  @override
+  State<_FilterSheet> createState() => _FilterSheetState();
+}
+
+class _FilterSheetState extends State<_FilterSheet> {
+  final _form = GlobalKey<FormState>();
+  late final TextEditingController _city;
+  late final TextEditingController _price;
+  late double? _rating;
+  @override
+  void initState() {
+    super.initState();
+    _city = TextEditingController(text: widget.initial.city);
+    _price = TextEditingController(
+      text: widget.initial.maxPrice?.toStringAsFixed(2),
+    );
+    _rating = widget.initial.minRating;
+  }
+
+  @override
+  void dispose() {
+    _city.dispose();
+    _price.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => SingleChildScrollView(
+    padding: EdgeInsets.fromLTRB(
+      20,
+      20,
+      20,
+      MediaQuery.viewInsetsOf(context).bottom + 24,
+    ),
+    child: Form(
+      key: _form,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Text(
+            'Filter services',
+            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 20),
+          TextFormField(
+            controller: _city,
+            maxLength: 80,
+            decoration: const InputDecoration(
+              labelText: 'Provider city',
+              hintText: 'Any city',
+            ),
+          ),
+          TextFormField(
+            controller: _price,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Maximum listed price (RM)',
+              helperText: 'Hourly services show their hourly rate.',
+            ),
+            validator: (value) {
+              if (value == null || value.trim().isEmpty) return null;
+              final number = double.tryParse(value.trim());
+              return number == null || !number.isFinite || number < 0
+                  ? 'Enter a valid price of zero or more.'
+                  : null;
+            },
+          ),
+          const SizedBox(height: 20),
+          const Text('Minimum rating'),
+          Wrap(
+            spacing: 8,
+            children: [
+              ChoiceChip(
+                label: const Text('Any'),
+                selected: _rating == null,
+                onSelected: (_) => setState(() => _rating = null),
+              ),
+              for (final rating in [1.0, 2.0, 3.0, 4.0, 5.0])
+                ChoiceChip(
+                  label: Text('${rating.toInt()}+ ★'),
+                  selected: _rating == rating,
+                  onSelected: (_) => setState(() => _rating = rating),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton(
+            onPressed: () {
+              if (!_form.currentState!.validate()) return;
+              Navigator.pop(
+                context,
+                _ServiceFilters(
+                  city: _city.text.trim().isEmpty ? null : _city.text.trim(),
+                  maxPrice: double.tryParse(_price.text.trim()),
+                  minRating: _rating,
+                ),
+              );
+            },
+            child: const Text('Apply filters'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, const _ServiceFilters()),
+            child: const Text('Reset filters'),
+          ),
+        ],
+      ),
+    ),
+  );
 }

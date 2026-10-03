@@ -4,7 +4,9 @@ import '../../services/customer_auth_service.dart';
 import '../../services/customer_profile_service.dart';
 import '../../../shared/portal_entry_screen.dart';
 import 'customer_edit_profile_screen.dart';
-import '../home/add_address_map_screen.dart'; // From previous implementation
+import 'customer_saved_addresses_screen.dart';
+import '../booking/customer_bookings_screen.dart';
+import '../review/customer_my_reviews_screen.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
   const CustomerProfileScreen({super.key});
@@ -19,6 +21,7 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
 
   Map<String, dynamic>? _profileData;
   bool _isLoading = true;
+  String? _loadError;
 
   @override
   void initState() {
@@ -27,7 +30,10 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   }
 
   Future<void> _loadProfile() async {
-    setState(() => _isLoading = true);
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
     try {
       final data = await _profileService.getProfileData();
       if (mounted) {
@@ -37,7 +43,11 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted)
+        setState(() {
+          _isLoading = false;
+          _loadError = 'Could not load your profile. Please retry.';
+        });
     }
   }
 
@@ -47,7 +57,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Log Out'),
-        content: const Text('Are you sure you want to log out of your account?'),
+        content: const Text(
+          'Are you sure you want to log out of your account?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -55,7 +67,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(backgroundColor: CustomerTheme.danger),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: CustomerTheme.danger,
+            ),
             child: const Text('Log Out'),
           ),
         ],
@@ -63,12 +77,20 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
     );
 
     if (confirm == true) {
-      await _authService.logout();
+      try {
+        await _authService.logout();
+      } catch (_) {
+        if (mounted)
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Sign out failed. Please retry.')),
+          );
+        return;
+      }
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const PortalEntryScreen()),
-            (_) => false,
+        (_) => false,
       );
     }
   }
@@ -77,7 +99,22 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: CustomerTheme.primary)),
+        body: Center(
+          child: CircularProgressIndicator(color: CustomerTheme.primary),
+        ),
+      );
+    }
+    if (_loadError != null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(_loadError!),
+              TextButton(onPressed: _loadProfile, child: const Text('Retry')),
+            ],
+          ),
+        ),
       );
     }
 
@@ -92,7 +129,9 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         color: CustomerTheme.primary,
         onRefresh: _loadProfile,
         child: CustomScrollView(
-          physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           slivers: [
             // Animated Collapsing Header
             SliverAppBar(
@@ -105,7 +144,10 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                 background: Container(
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(
-                      colors: [CustomerTheme.primaryDark, CustomerTheme.primaryLight],
+                      colors: [
+                        CustomerTheme.primaryDark,
+                        CustomerTheme.primaryLight,
+                      ],
                       begin: Alignment.topRight,
                       end: Alignment.bottomLeft,
                     ),
@@ -119,23 +161,40 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                         child: CircleAvatar(
                           radius: 50,
                           backgroundColor: Colors.white,
-                          backgroundImage: photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                          backgroundImage: photoUrl.isNotEmpty
+                              ? NetworkImage(photoUrl)
+                              : null,
                           child: photoUrl.isEmpty
                               ? Text(
-                            initial,
-                            style: const TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: CustomerTheme.primary),
-                          )
+                                  initial,
+                                  style: const TextStyle(
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold,
+                                    color: CustomerTheme.primary,
+                                  ),
+                                )
                               : null,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         name,
-                        style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                       Text(
                         email,
-                        style: const TextStyle(fontSize: 14, color: Colors.white70),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
@@ -160,9 +219,13 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       onTap: () async {
                         final updated = await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => CustomerEditProfileScreen(profileData: _profileData)),
+                          MaterialPageRoute(
+                            builder: (_) => CustomerEditProfileScreen(
+                              profileData: _profileData,
+                            ),
+                          ),
                         );
-                        if (updated == true) _loadProfile();
+                        if (updated == true && mounted) _loadProfile();
                       },
                     ),
                     _buildMenuCard(
@@ -170,12 +233,14 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       subtitle: 'Manage your service locations',
                       icon: Icons.location_on_outlined,
                       onTap: () async {
-                        // Reusing the map screen built earlier
                         await Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => const AddAddressMapScreen()),
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const CustomerSavedAddressesScreen(),
+                          ),
                         );
-                        _loadProfile();
+                        if (mounted) _loadProfile();
                       },
                     ),
                     const SizedBox(height: 24),
@@ -186,7 +251,12 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       subtitle: 'View past and cancelled services',
                       icon: Icons.history_rounded,
                       onTap: () {
-                        // TODO: Navigate to Booking History (FR-05)
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CustomerBookingsScreen(),
+                          ),
+                        );
                       },
                     ),
                     _buildMenuCard(
@@ -194,7 +264,12 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                       subtitle: 'View ratings you left for providers',
                       icon: Icons.star_border_rounded,
                       onTap: () {
-                        // TODO: Navigate to Reviews (FR-05)
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const CustomerMyReviewsScreen(),
+                          ),
+                        );
                       },
                     ),
                     const SizedBox(height: 32),
@@ -222,7 +297,11 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: CustomerTheme.textSecondary),
+      style: const TextStyle(
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
+        color: CustomerTheme.textSecondary,
+      ),
     );
   }
 
@@ -238,7 +317,11 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 10, offset: const Offset(0, 4)),
+          BoxShadow(
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
         ],
       ),
       child: Material(
@@ -263,13 +346,29 @@ class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                      Text(
+                        title,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(subtitle, style: const TextStyle(color: CustomerTheme.textSecondary, fontSize: 12)),
+                      Text(
+                        subtitle,
+                        style: const TextStyle(
+                          color: CustomerTheme.textSecondary,
+                          fontSize: 12,
+                        ),
+                      ),
                     ],
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
+                const Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: Colors.grey,
+                ),
               ],
             ),
           ),

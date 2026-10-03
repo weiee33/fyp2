@@ -26,7 +26,9 @@ The public key identifies the project; access uses the administrator's Auth toke
 
 The server binds localhost and serves only `admin/public`. Stop with Ctrl+C. If changing the port, update `APP_URL`, start with `-Port`, and update the Auth callback URL. Use the same host throughout email confirmation/recovery: the PKCE verifier is kept in that browser's server session.
 
-## First Super Admin (updated 2 October 2026)
+## First Super Admin (updated 3 October 2026)
+
+Current check: `angethan765@gmail.com` is an active, confirmed Super Admin with one verified authenticator. Use Sign in and the existing authenticator code. The password supplied by the owner was successfully tested during the investigation; this work did not set or reset it. The old reference `a4104ca7` was not present in the available local logs, so its original cause could not be established. PHP now logs a sanitized source location alongside future error references.
 
 The reserved admin email is **angethan765@gmail.com**. **weiee0303@gmail.com remains a customer** and its obsolete admin invitation is revoked. The selected admin has now confirmed its email and has an active, linked Super Admin profile. Start at **Sign in** with the existing password, then complete authenticator setup. Do not register again, delete the Auth account, or reuse the consumed email code. No password or email-confirmation flag was changed by the repair.
 

@@ -1,148 +1,115 @@
 import 'package:flutter/material.dart';
-import '../../core/customer_theme.dart';
-import '../home/customer_root_nav_screen.dart';
+import '../../models/booking_model.dart';
+import '../../services/customer_transaction_service.dart';
 
 class CustomerReceiptScreen extends StatefulWidget {
-  final Map<String, dynamic> paymentData;
-  final Map<String, dynamic> bookingData;
-
+  final String bookingId;
+  final CustomerTransactionService? transactions;
   const CustomerReceiptScreen({
     super.key,
-    required this.paymentData,
-    required this.bookingData,
+    required this.bookingId,
+    this.transactions,
   });
-
   @override
   State<CustomerReceiptScreen> createState() => _CustomerReceiptScreenState();
 }
 
-class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> with SingleTickerProviderStateMixin {
-  late AnimationController _animController;
-  late Animation<double> _scaleAnimation;
-
+class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
+  late final CustomerTransactionService _transactions =
+      widget.transactions ?? CustomerTransactionService();
+  Map<String, dynamic>? _receipt;
+  String? _error;
   @override
   void initState() {
     super.initState();
-    _animController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _scaleAnimation = CurvedAnimation(parent: _animController, curve: Curves.elasticOut);
-    _animController.forward();
+    _load();
   }
 
-  @override
-  void dispose() {
-    _animController.dispose();
-    super.dispose();
+  Future<void> _load() async {
+    setState(() => _error = null);
+    try {
+      final receipt = await _transactions.getReceipt(widget.bookingId);
+      if (mounted) setState(() => _receipt = receipt);
+    } catch (error) {
+      if (mounted) setState(() => _error = bookingError(error));
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final bookingId = widget.bookingData['booking_id'].toString();
-    final shortId = '#${bookingId.substring(0, 8).toUpperCase()}';
-    final amount = (widget.paymentData['payment_amount'] as num).toDouble();
-
+    final receipt = _receipt;
+    final booking = receipt == null
+        ? null
+        : CustomerBooking.fromJson(
+            Map<String, dynamic>.from(receipt['booking'] as Map),
+          );
+    final payment = receipt == null
+        ? null
+        : Map<String, dynamic>.from(receipt['payment'] as Map);
     return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            const Spacer(),
-            // Animated Checkmark[cite: 518]
-            ScaleTransition(
-              scale: _scaleAnimation,
-              child: Container(
-                width: 100,
-                height: 100,
-                decoration: const BoxDecoration(
-                  color: CustomerTheme.success,
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.check_rounded, color: Colors.white, size: 60),
-              ),
+      appBar: AppBar(title: const Text('Payment receipt')),
+      body: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          if (_error != null) ...[
+            Text(_error!),
+            TextButton(onPressed: _load, child: const Text('Try again')),
+          ] else if (booking == null)
+            const Center(child: CircularProgressIndicator())
+          else ...[
+            const Icon(Icons.receipt_long_outlined, size: 64),
+            const SizedBox(height: 20),
+            Text(
+              booking.serviceName,
+              style: Theme.of(context).textTheme.headlineSmall,
             ),
-            const SizedBox(height: 32),
-            const Text(
-              'Payment Secured',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: CustomerTheme.textPrimary),
+            Text(booking.providerName),
+            const Divider(height: 32),
+            _row('Booking reference', booking.shortId),
+            _row(
+              'Payment reference',
+              payment?['fpx_transaction_ref']?.toString() ??
+                  payment?['payment_id']?.toString() ??
+                  '',
             ),
-            const SizedBox(height: 12),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                'Your booking is confirmed. Funds are held securely until the job is complete.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: CustomerTheme.textSecondary, fontSize: 14, height: 1.5),
-              ),
+            _row(
+              'Amount',
+              'RM ${(double.tryParse(payment?['payment_amount'].toString() ?? '') ?? 0).toStringAsFixed(2)}',
             ),
-            const SizedBox(height: 48),
-
-            // Receipt Details
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 32),
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: CustomerTheme.background,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: CustomerTheme.borderColor),
-              ),
-              child: Column(
-                children: [
-                  _receiptRow('Booking ID', shortId),
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1)),
-                  _receiptRow('Amount Held', 'RM ${amount.toStringAsFixed(2)}'),
-                  const Padding(padding: EdgeInsets.symmetric(vertical: 12), child: Divider(height: 1)),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text('Status', style: TextStyle(color: CustomerTheme.textSecondary, fontSize: 14)),
-                      Row(
-                        children: [
-                          const Icon(Icons.receipt_long_rounded, size: 16, color: CustomerTheme.textSecondary),
-                          const SizedBox(width: 4),
-                          Text('Paid via FPX', style: TextStyle(color: Colors.grey.shade700, fontWeight: FontWeight.w600)),
-                        ],
-                      )
-                    ],
-                  ),
-                ],
-              ),
+            _row(
+              'Payment status',
+              payment?['payment_status']?.toString() ?? '',
             ),
-            const Spacer(),
-
-            // Track Booking Button
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Route back to the root navigation shell and switch to Bookings tab (index 1)
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (_) => const CustomerRootNavScreen(initialTab: 1)),
-                        (_) => false,
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(56),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: const Text('Track Booking', style: TextStyle(fontSize: 16)),
-              ),
+            _row(
+              'Payment method',
+              payment?['payment_method']?.toString() ?? '',
+            ),
+            _row(
+              'Appointment',
+              '${booking.date} · ${booking.time} (Malaysia time)',
+            ),
+            _row('Booking status', booking.status),
+            if (booking.status == 'Pending')
+              const Text('The provider has not yet accepted this booking.'),
+            const SizedBox(height: 24),
+            OutlinedButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Back'),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
 
-  Widget _receiptRow(String label, String value) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _row(String label, String value) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 10),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: CustomerTheme.textSecondary, fontSize: 14)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: CustomerTheme.textPrimary)),
+        Text(label, style: const TextStyle(color: Colors.grey)),
+        SelectableText(value),
       ],
-    );
-  }
+    ),
+  );
 }

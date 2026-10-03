@@ -3,63 +3,46 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class BookingService {
   final _client = Supabase.instance.client;
 
-  Future<String?> _providerId() async {
-    final uid = _client.auth.currentUser!.id;
-    final row = await _client
-        .from('provider_profiles')
-        .select('provider_id')
-        .eq('user_id', uid)
-        .maybeSingle();
-    return row?['provider_id'] as String?;
-  }
-
   Future<List<Map<String, dynamic>>> getMyBookings({String? status}) async {
-    final pid = await _providerId();
-    if (pid == null) return [];
-    var q = _client
-        .from('bookings')
-        .select('''
-          *,
-          customer_profiles!inner(users!inner(full_name, phone)),
-          services!bookings_service_id_fkey!inner(service_name)
-        ''')
-        .eq('provider_id', pid);
-    if (status != null) q = q.eq('booking_status', status);
-    final res = await q.order('scheduled_datetime', ascending: true);
+    final res = await _client.rpc(
+      'provider_booking_list',
+      params: {'p_status': status},
+    );
     return List<Map<String, dynamic>>.from(res);
   }
 
   Future<Map<String, dynamic>?> getBookingDetail(String bookingId) async {
-    final res = await _client
-        .from('bookings')
-        .select('''
-          *,
-          customer_profiles!inner(users!inner(full_name, phone)),
-          services!bookings_service_id_fkey!inner(service_name)
-        ''')
-        .eq('booking_id', bookingId)
-        .maybeSingle();
-    return res;
+    final res = await _client.rpc(
+      'provider_booking_list',
+      params: {'p_booking_id': bookingId},
+    );
+    final rows = List<Map<String, dynamic>>.from(res as List);
+    return rows.isEmpty ? null : rows.single;
   }
 
   Future<void> updateStatus(String bookingId, String status) async {
-    final patch = <String, dynamic>{'booking_status': status};
     if (status == 'Confirmed') {
-      patch['accepted_at'] = DateTime.now().toIso8601String();
-    } else if (status == 'In-Progress') {
-      patch['started_at'] = DateTime.now().toIso8601String();
-    } else if (status == 'Completed') {
-      patch['completed_at'] = DateTime.now().toIso8601String();
+      await _client.rpc(
+        'provider_booking_reply',
+        params: {'p_booking_id': bookingId, 'p_accept': true},
+      );
+    } else {
+      await _client.rpc(
+        'provider_booking_progress',
+        params: {'p_booking_id': bookingId, 'p_status': status},
+      );
     }
-    await _client.from('bookings').update(patch).eq('booking_id', bookingId);
   }
 
   Future<void> cancel(String bookingId, String reason) async {
-    await _client.from('bookings').update({
-      'booking_status': 'Cancelled',
-      'cancellation_reason': reason,
-      'cancelled_at': DateTime.now().toIso8601String(),
-    }).eq('booking_id', bookingId);
+    await _client.rpc(
+      'provider_booking_reply',
+      params: {
+        'p_booking_id': bookingId,
+        'p_accept': false,
+        'p_reason': reason,
+      },
+    );
   }
 
   Future<List<Map<String, dynamic>>> getChatMessages(String bookingId) async {

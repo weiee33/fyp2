@@ -1,242 +1,323 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../../core/customer_theme.dart';
+import '../../models/booking_model.dart';
+import '../../services/customer_address_service.dart';
 import '../../services/customer_transaction_service.dart';
-import '../payment/customer_checkout_screen.dart';
+import '../home/add_address_map_screen.dart';
+import 'customer_booking_detail_screen.dart';
 
 class CustomerBookingFormScreen extends StatefulWidget {
   final Map<String, dynamic> serviceData;
   final Map<String, dynamic> providerData;
-
+  final CustomerTransactionService? transactions;
+  final CustomerAddressService? addresses;
   const CustomerBookingFormScreen({
     super.key,
     required this.serviceData,
     required this.providerData,
+    this.transactions,
+    this.addresses,
   });
-
   @override
-  State<CustomerBookingFormScreen> createState() => _CustomerBookingFormScreenState();
+  State<CustomerBookingFormScreen> createState() =>
+      _CustomerBookingFormScreenState();
 }
 
 class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
-  final CustomerTransactionService _txService = CustomerTransactionService();
-  final TextEditingController _instructionsController = TextEditingController();
+  late final CustomerTransactionService _transactions =
+      widget.transactions ?? CustomerTransactionService();
+  late final CustomerAddressService _addressService =
+      widget.addresses ?? CustomerAddressService();
+  final _instructions = TextEditingController();
+  DateTime _date = DateTime.now().toUtc().add(
+    const Duration(hours: 8, days: 1),
+  );
+  List<BookingSlot> _slots = [];
+  List<Map<String, dynamic>> _addresses = [];
+  String? _addressId;
+  String? _time;
+  String? _slotsError;
+  String? _addressError;
+  bool _loadingSlots = true;
+  bool _loadingAddresses = true;
+  bool _saving = false;
+  int _slotRequest = 0;
+  String _requestId = CustomerTransactionService.newRequestId();
+  @override
+  void initState() {
+    super.initState();
+    _loadSlots();
+    _loadAddresses();
+  }
 
-  DateTime _selectedDate = DateTime.now().add(const Duration(days: 1));
-  String? _selectedTime;
-  String _urgency = 'Medium';
-  bool _isProcessing = false;
+  @override
+  void dispose() {
+    _instructions.dispose();
+    super.dispose();
+  }
 
-  final List<DateTime> _availableDates = List.generate(14, (i) => DateTime.now().add(Duration(days: i + 1)));
-
-  void _proceedToCheckout() async {
-    if (_selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a time slot'), backgroundColor: CustomerTheme.danger),
-      );
-      return;
-    }
-
-    setState(() => _isProcessing = true);
-    HapticFeedback.mediumImpact();
-
+  Future<void> _loadSlots() async {
+    final request = ++_slotRequest;
+    setState(() {
+      _loadingSlots = true;
+      _slotsError = null;
+      _time = null;
+    });
     try {
-      // Create pending booking in database[cite: 447]
-      final booking = await _txService.createPendingBooking(
-        providerId: widget.providerData['provider_id'],
-        serviceId: widget.serviceData['service_id'],
-        date: _selectedDate,
-        timeString: _selectedTime!,
-        totalAmount: (widget.serviceData['base_price'] as num).toDouble(),
-        specialInstructions: _instructionsController.text.trim(),
-        urgency: _urgency,
+      final slots = await _transactions.getAvailableTimeSlots(
+        serviceId: widget.serviceData['service_id'] as String,
+        date: _date,
       );
+      if (mounted && request == _slotRequest) setState(() => _slots = slots);
+    } catch (error) {
+      if (mounted && request == _slotRequest)
+        setState(() => _slotsError = bookingError(error));
+    } finally {
+      if (mounted && request == _slotRequest)
+        setState(() => _loadingSlots = false);
+    }
+  }
 
+  Future<void> _loadAddresses() async {
+    setState(() {
+      _loadingAddresses = true;
+      _addressError = null;
+    });
+    try {
+      final addresses = await _addressService.getSavedAddresses();
       if (!mounted) return;
+      setState(() {
+        _addresses = addresses;
+        if (!addresses.any((row) => row['address_id'] == _addressId)) {
+          _addressId = addresses.isEmpty
+              ? null
+              : addresses.first['address_id'] as String;
+        }
+      });
+    } catch (error) {
+      if (mounted) setState(() => _addressError = bookingError(error));
+    } finally {
+      if (mounted) setState(() => _loadingAddresses = false);
+    }
+  }
 
-      // Navigate to Checkout via native swipe route[cite: 447]
-      Navigator.pushReplacement(
-        context,
-        CupertinoPageRoute(
-          builder: (_) => CustomerCheckoutScreen(
-            bookingData: booking,
-            providerData: widget.providerData,
-            serviceData: widget.serviceData,
+  Future<void> _chooseDate() async {
+    final malaysia = DateTime.now().toUtc().add(const Duration(hours: 8));
+    final today = DateTime(malaysia.year, malaysia.month, malaysia.day);
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: today,
+      lastDate: today.add(const Duration(days: 90)),
+    );
+    if (date == null || !mounted) return;
+    setState(() {
+      _date = date;
+      _requestId = CustomerTransactionService.newRequestId();
+    });
+    await _loadSlots();
+  }
+
+  Future<void> _book() async {
+    if (_saving || _time == null || _addressId == null) return;
+    setState(() => _saving = true);
+    try {
+      final booking = await _transactions.createPendingBooking(
+        serviceId: widget.serviceData['service_id'] as String,
+        addressId: _addressId!,
+        date: _date,
+        scheduledTime: _time!,
+        requestId: _requestId,
+        specialInstructions: _instructions.text.trim(),
+      );
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => CustomerBookingDetailScreen(
+            bookingId: booking.id,
+            transactions: _transactions,
           ),
         ),
       );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to initialize booking: $e'), backgroundColor: CustomerTheme.danger),
-      );
+    } catch (error) {
+      if (mounted)
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(bookingError(error))));
+      // Keep the request token: a lost response must not create a second booking.
     } finally {
-      if (mounted) setState(() => _isProcessing = false);
+      if (mounted) setState(() => _saving = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final timeSlots = _txService.getAvailableTimeSlots(_selectedDate);
-    final price = (widget.serviceData['base_price'] as num).toDouble();
-
+    final price =
+        double.tryParse((widget.serviceData['quoted_amount'] ?? widget.serviceData['base_price']).toString()) ?? 0;
     return Scaffold(
-      backgroundColor: CustomerTheme.background,
-      appBar: AppBar(title: const Text('Book Service'), elevation: 0),
-      body: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.all(20),
-              children: [
-                // Service Summary Card
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: CustomerTheme.borderColor),
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: CustomerTheme.primarySurface,
-                        child: const Icon(Icons.handyman_rounded, color: CustomerTheme.primary),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(widget.serviceData['service_name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                            Text(widget.providerData['business_name'], style: const TextStyle(color: CustomerTheme.textSecondary, fontSize: 13)),
-                          ],
-                        ),
-                      ),
-                      Text('RM ${price.toStringAsFixed(0)}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: CustomerTheme.primary)),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Horizontal Date Selector
-                const Text('Select Date', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 85,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: _availableDates.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
-                    itemBuilder: (context, i) {
-                      final date = _availableDates[i];
-                      final isSelected = _selectedDate.day == date.day && _selectedDate.month == date.month;
-                      return GestureDetector(
-                        onTap: () {
-                          HapticFeedback.selectionClick();
-                          setState(() {
-                            _selectedDate = date;
-                            _selectedTime = null; // reset time on new date
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 65,
-                          decoration: BoxDecoration(
-                            color: isSelected ? CustomerTheme.primary : Colors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: isSelected ? CustomerTheme.primary : CustomerTheme.borderColor),
-                            boxShadow: isSelected ? [BoxShadow(color: CustomerTheme.primary.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(DateFormat('MMM').format(date).toUpperCase(), style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: isSelected ? Colors.white70 : CustomerTheme.textSecondary)),
-                              const SizedBox(height: 4),
-                              Text(DateFormat('dd').format(date), style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: isSelected ? Colors.white : CustomerTheme.textPrimary)),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // Time Slots Grid
-                const Text('Available Time', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: timeSlots.map((time) {
-                    final isSelected = _selectedTime == time;
-                    return GestureDetector(
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() => _selectedTime = time);
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                        decoration: BoxDecoration(
-                          color: isSelected ? CustomerTheme.primarySurface : Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: isSelected ? CustomerTheme.primary : CustomerTheme.borderColor, width: isSelected ? 2 : 1),
-                        ),
-                        child: Text(
-                          time,
-                          style: TextStyle(fontWeight: isSelected ? FontWeight.bold : FontWeight.w500, color: isSelected ? CustomerTheme.primary : CustomerTheme.textPrimary),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 32),
-
-                // Special Instructions
-                const Text('Special Instructions (Optional)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _instructionsController,
-                  maxLines: 3,
-                  decoration: InputDecoration(
-                    hintText: 'e.g. Please bring extra long ladder...',
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: CustomerTheme.borderColor)),
-                    enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: CustomerTheme.borderColor)),
-                  ),
-                ),
-              ],
+      appBar: AppBar(title: const Text('Book service')),
+      body: AbsorbPointer(
+        absorbing: _saving,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            Text(
+              widget.serviceData['service_name']?.toString() ?? 'Service',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
-          ),
-
-          // Sticky Bottom Bar
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
-            ),
-            child: SafeArea(
-              child: ElevatedButton(
-                onPressed: _isProcessing ? null : _proceedToCheckout,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size.fromHeight(54),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: _isProcessing
-                    ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Text('Proceed to Checkout', style: TextStyle(fontSize: 16)),
+            Text(widget.providerData['business_name']?.toString() ?? ''),
+            const SizedBox(height: 12),
+            Text(
+              'RM ${price.toStringAsFixed(2)}',
+              style: const TextStyle(
+                fontSize: 22,
+                color: CustomerTheme.primary,
+                fontWeight: FontWeight.bold,
               ),
             ),
+            const Text(
+              'The current price and appointment will be checked when you book.',
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Service address',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            if (_loadingAddresses)
+              const LinearProgressIndicator()
+            else if (_addressError != null) ...[
+              Text(_addressError!),
+              TextButton(
+                onPressed: _loadAddresses,
+                child: const Text('Retry addresses'),
+              ),
+            ] else if (_addresses.isEmpty)
+              const Text('Add a saved address before booking.')
+            else
+              DropdownButtonFormField<String>(
+                initialValue: _addressId,
+                isExpanded: true,
+                items: _addresses
+                    .map(
+                      (address) => DropdownMenuItem(
+                        value: address['address_id'] as String,
+                        child: Text(
+                          '${address['label'] ?? 'Address'}: ${address['address_line']}, ${address['city']}',
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    )
+                    .toList(),
+                onChanged: (value) => setState(() {
+                  _addressId = value;
+                  _requestId = CustomerTransactionService.newRequestId();
+                }),
+              ),
+            TextButton.icon(
+              onPressed: () async {
+                await Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const AddAddressMapScreen(),
+                  ),
+                );
+                if (mounted) await _loadAddresses();
+              },
+              icon: const Icon(Icons.add_location_alt_outlined),
+              label: const Text('Add address'),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: const Text('Appointment date'),
+              subtitle: Text(
+                '${DateFormat('EEE, d MMM yyyy').format(_date)} · Malaysia time',
+              ),
+              trailing: const Icon(Icons.calendar_month),
+              onTap: _chooseDate,
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Available times',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            if (_loadingSlots)
+              const LinearProgressIndicator()
+            else if (_slotsError != null) ...[
+              Text(_slotsError!),
+              TextButton(
+                onPressed: _loadSlots,
+                child: const Text('Retry availability'),
+              ),
+            ] else if (_slots.isEmpty)
+              const Text(
+                'No appointments available on this date. Choose another date.',
+              )
+            else
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _slots
+                    .map(
+                      (slot) => ChoiceChip(
+                        label: Text(slot.label),
+                        selected: _time == slot.time,
+                        onSelected: (_) => setState(() {
+                          _time = slot.time;
+                          _requestId =
+                              CustomerTransactionService.newRequestId();
+                        }),
+                      ),
+                    )
+                    .toList(),
+              ),
+            const SizedBox(height: 24),
+            TextField(
+              controller: _instructions,
+              maxLines: 3,
+              maxLength: 1000,
+              decoration: const InputDecoration(
+                labelText: 'Instructions (optional)',
+                border: OutlineInputBorder(),
+              ),
+              onChanged: (_) =>
+                  _requestId = CustomerTransactionService.newRequestId(),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'You can track your booking and payment status in My bookings.',
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: FilledButton(
+            onPressed:
+                _saving ||
+                    _loadingSlots ||
+                    _loadingAddresses ||
+                    _time == null ||
+                    _addressId == null ||
+                    _slotsError != null ||
+                    _addressError != null
+                ? null
+                : _book,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: _saving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Create booking'),
+            ),
           ),
-        ],
+        ),
       ),
     );
   }

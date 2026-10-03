@@ -1,10 +1,10 @@
 import 'dart:typed_data';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/customer_theme.dart';
 import '../../services/customer_review_service.dart';
+import '../../services/customer_image_service.dart';
 
 class CustomerSubmitReviewScreen extends StatefulWidget {
   final String bookingId;
@@ -21,10 +21,12 @@ class CustomerSubmitReviewScreen extends StatefulWidget {
   });
 
   @override
-  State<CustomerSubmitReviewScreen> createState() => _CustomerSubmitReviewScreenState();
+  State<CustomerSubmitReviewScreen> createState() =>
+      _CustomerSubmitReviewScreenState();
 }
 
-class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen> with SingleTickerProviderStateMixin {
+class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
+    with SingleTickerProviderStateMixin {
   final CustomerReviewService _reviewService = CustomerReviewService();
   final TextEditingController _commentController = TextEditingController();
   final ImagePicker _picker = ImagePicker();
@@ -32,10 +34,12 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
   bool _isVerifying = true;
   bool _isEligible = false;
   bool _isSubmitting = false;
+  String? _eligibilityError;
 
   int _selectedRating = 0;
   Uint8List? _pickedImageBytes;
   String? _pickedImageExt;
+  String? _uploadedImagePath;
 
   late AnimationController _starAnimController;
 
@@ -57,9 +61,15 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
   }
 
   Future<void> _verifyEligibility() async {
+    setState(() {
+      _isVerifying = true;
+      _eligibilityError = null;
+    });
     try {
       // Validates closed-loop restriction rule[cite: 452]
-      final eligible = await _reviewService.verifyBookingEligibility(widget.bookingId);
+      final eligible = await _reviewService.verifyBookingEligibility(
+        widget.bookingId,
+      );
       if (mounted) {
         setState(() {
           _isEligible = eligible;
@@ -68,37 +78,56 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
       }
     } catch (e) {
       if (mounted) {
-        setState(() => _isVerifying = false);
+        setState(() {
+          _isVerifying = false;
+          _eligibilityError =
+              'Could not check review eligibility. Please retry.';
+        });
       }
     }
   }
 
   Future<void> _pickImage(ImageSource source) async {
     try {
-      final picked = await _picker.pickImage(source: source, imageQuality: 80);
+      final picked = await _picker.pickImage(
+        source: source,
+        imageQuality: 80,
+        maxWidth: 1600,
+        maxHeight: 1600,
+      );
       if (picked == null) return;
 
       final bytes = await picked.readAsBytes();
       final ext = picked.name.split('.').last.toLowerCase();
-
+      CustomerImageService.validate(bytes, ext);
+      if (!mounted) return;
       setState(() {
         _pickedImageBytes = bytes;
         _pickedImageExt = ext;
+        _uploadedImagePath = null;
       });
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
     }
   }
 
   void _showImageSourceSheet() {
     showModalBottomSheet(
       context: context,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       builder: (ctx) => SafeArea(
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library_rounded, color: CustomerTheme.primary),
+              leading: const Icon(
+                Icons.photo_library_rounded,
+                color: CustomerTheme.primary,
+              ),
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(ctx);
@@ -106,7 +135,10 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt_rounded, color: CustomerTheme.primary),
+              leading: const Icon(
+                Icons.camera_alt_rounded,
+                color: CustomerTheme.primary,
+              ),
               title: const Text('Take a Photo'),
               onTap: () {
                 Navigator.pop(ctx);
@@ -120,9 +152,13 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
   }
 
   Future<void> _submitReview() async {
+    if (_isSubmitting) return;
     if (_selectedRating == 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a star rating.'), backgroundColor: CustomerTheme.danger),
+        const SnackBar(
+          content: Text('Please select a star rating.'),
+          backgroundColor: CustomerTheme.danger,
+        ),
       );
       return;
     }
@@ -131,46 +167,68 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
     setState(() => _isSubmitting = true);
 
     try {
-      String? imageUrl;
       // Upload Review Image if provided[cite: 452]
-      if (_pickedImageBytes != null && _pickedImageExt != null) {
-        imageUrl = await _reviewService.uploadReviewImage(_pickedImageBytes!, _pickedImageExt!, widget.bookingId);
+      if (_pickedImageBytes != null &&
+          _pickedImageExt != null &&
+          _uploadedImagePath == null) {
+        _uploadedImagePath = await _reviewService.uploadReviewImage(
+          _pickedImageBytes!,
+          _pickedImageExt!,
+          widget.bookingId,
+        );
       }
 
       // Save Rating and Comment to database[cite: 452]
       await _reviewService.submitReview(
         bookingId: widget.bookingId,
-        providerId: widget.providerId,
         ratingScore: _selectedRating,
-        comment: _commentController.text.trim().isNotEmpty ? _commentController.text.trim() : null,
-        imageUrl: imageUrl,
+        comment: _commentController.text.trim().isNotEmpty
+            ? _commentController.text.trim()
+            : null,
+        imageUrl: _uploadedImagePath,
       );
 
       if (!mounted) return;
       HapticFeedback.heavyImpact();
 
       // Show Success Modal
-      showDialog(
+      await showDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.check_circle_rounded, color: CustomerTheme.success, size: 64),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: CustomerTheme.success,
+                size: 64,
+              ),
               const SizedBox(height: 16),
-              const Text('Review Submitted!', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const Text(
+                'Review Submitted!',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
               const SizedBox(height: 8),
-              const Text('Thank you for sharing your experience.', textAlign: TextAlign.center, style: TextStyle(color: CustomerTheme.textSecondary)),
+              const Text(
+                'Thank you for sharing your experience.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: CustomerTheme.textSecondary),
+              ),
               const SizedBox(height: 24),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context); // close dialog
-                  Navigator.pop(context, true); // pop screen, return true for refresh
+                  Navigator.pop(
+                    context,
+                    true,
+                  ); // pop screen, return true for refresh
                 },
                 child: const Text('Done'),
-              )
+              ),
             ],
           ),
         ),
@@ -178,7 +236,10 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to submit review: $e'), backgroundColor: CustomerTheme.danger),
+        SnackBar(
+          content: Text('Failed to submit review: $e'),
+          backgroundColor: CustomerTheme.danger,
+        ),
       );
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
@@ -199,7 +260,25 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
           ),
         ),
         body: _isVerifying
-            ? const Center(child: CircularProgressIndicator(color: CustomerTheme.primary))
+            ? const Center(
+                child: CircularProgressIndicator(color: CustomerTheme.primary),
+              )
+            : _eligibilityError != null
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(_eligibilityError!),
+                      TextButton(
+                        onPressed: _verifyEligibility,
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                ),
+              )
             : !_isEligible
             ? _buildIneligibleView()
             : _buildReviewForm(),
@@ -219,19 +298,27 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
             const SizedBox(height: 16),
             const Text(
               'Review Locked',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: CustomerTheme.textPrimary),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: CustomerTheme.textPrimary,
+              ),
             ),
             const SizedBox(height: 8),
             const Text(
-              'Service must be completed and paid before you can leave a review.',
+              'Only your completed, paid bookings can be reviewed. Each booking can have one review.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: CustomerTheme.textSecondary, fontSize: 14, height: 1.5),
+              style: TextStyle(
+                color: CustomerTheme.textSecondary,
+                fontSize: 14,
+                height: 1.5,
+              ),
             ),
             const SizedBox(height: 24),
             OutlinedButton(
               onPressed: () => Navigator.pop(context),
               child: const Text('Go Back'),
-            )
+            ),
           ],
         ),
       ),
@@ -259,14 +346,21 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 Center(
                   child: Text(
                     widget.providerName,
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: CustomerTheme.primaryDark),
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.bold,
+                      color: CustomerTheme.primaryDark,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Center(
                   child: Text(
                     widget.serviceName,
-                    style: const TextStyle(fontSize: 14, color: CustomerTheme.textSecondary),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: CustomerTheme.textSecondary,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -278,11 +372,13 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                     final starValue = index + 1;
                     final isSelected = starValue <= _selectedRating;
                     return GestureDetector(
-                      onTap: () {
-                        HapticFeedback.selectionClick();
-                        setState(() => _selectedRating = starValue);
-                        _starAnimController.forward(from: 0.0);
-                      },
+                      onTap: _isSubmitting
+                          ? null
+                          : () {
+                              HapticFeedback.selectionClick();
+                              setState(() => _selectedRating = starValue);
+                              _starAnimController.forward(from: 0.0);
+                            },
                       child: AnimatedScale(
                         scale: isSelected ? 1.1 : 1.0,
                         duration: const Duration(milliseconds: 200),
@@ -290,9 +386,13 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 4),
                           child: Icon(
-                            isSelected ? Icons.star_rounded : Icons.star_border_rounded,
+                            isSelected
+                                ? Icons.star_rounded
+                                : Icons.star_border_rounded,
                             size: 48,
-                            color: isSelected ? Colors.orange : Colors.grey.shade300,
+                            color: isSelected
+                                ? Colors.orange
+                                : Colors.grey.shade300,
                           ),
                         ),
                       ),
@@ -302,11 +402,15 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 const SizedBox(height: 32),
 
                 // Text Input
-                const Text('Share your experience', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text(
+                  'Share your experience',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 12),
                 TextField(
                   controller: _commentController,
                   maxLines: 4,
+                  maxLength: 2000,
                   enabled: !_isSubmitting,
                   textInputAction: TextInputAction.done,
                   decoration: const InputDecoration(
@@ -316,7 +420,10 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 const SizedBox(height: 24),
 
                 // Optional Image Upload[cite: 451, 452]
-                const Text('Attach Photo (Optional)', style: TextStyle(fontWeight: FontWeight.w600)),
+                const Text(
+                  'Attach Photo (Optional)',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
                 const SizedBox(height: 12),
                 if (_pickedImageBytes == null)
                   InkWell(
@@ -327,14 +434,27 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: CustomerTheme.borderColor, style: BorderStyle.solid),
+                        border: Border.all(
+                          color: CustomerTheme.borderColor,
+                          style: BorderStyle.solid,
+                        ),
                       ),
                       child: const Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.add_a_photo_outlined, color: CustomerTheme.primary, size: 28),
+                          Icon(
+                            Icons.add_a_photo_outlined,
+                            color: CustomerTheme.primary,
+                            size: 28,
+                          ),
                           SizedBox(height: 8),
-                          Text('Add photo', style: TextStyle(color: CustomerTheme.primary, fontWeight: FontWeight.w500)),
+                          Text(
+                            'Add photo',
+                            style: TextStyle(
+                              color: CustomerTheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -357,11 +477,24 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                         top: 8,
                         right: 8,
                         child: GestureDetector(
-                          onTap: _isSubmitting ? null : () => setState(() => _pickedImageBytes = null),
+                          onTap: _isSubmitting
+                              ? null
+                              : () => setState(() {
+                                  _pickedImageBytes = null;
+                                  _pickedImageExt = null;
+                                  _uploadedImagePath = null;
+                                }),
                           child: Container(
                             padding: const EdgeInsets.all(6),
-                            decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                            child: const Icon(Icons.close, color: Colors.white, size: 18),
+                            decoration: const BoxDecoration(
+                              color: Colors.black54,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.close,
+                              color: Colors.white,
+                              size: 18,
+                            ),
                           ),
                         ),
                       ),
@@ -376,12 +509,25 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, -4))],
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, -4),
+                ),
+              ],
             ),
             child: ElevatedButton(
               onPressed: _isSubmitting ? null : _submitReview,
               child: _isSubmitting
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : const Text('Submit Review'),
             ),
           ),
