@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
 import '../../services/auth_service.dart';
 import 'otp_screen.dart';
+import '../profile/my_profile_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -19,6 +22,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   bool _loading = false;
   bool _obscurePassword = true;
+
+  static const _primaryColor = Color(0xFF1E3A8A);
 
   @override
   void dispose() {
@@ -68,7 +73,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     setState(() => _loading = true);
 
     try {
-      await _auth.register(
+      final res = await _auth.register(
         email: _email.text.trim(),
         password: _password.text,
         fullName: _name.text.trim(),
@@ -76,24 +81,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
       if (!mounted) return;
+
+      if (res.user != null && (res.user!.identities?.isEmpty ?? false)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text('This email is already registered.'),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+        return;
+      }
+
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => OtpScreen(email: _email.text.trim()),
+          builder: (_) => res.session != null
+              ? const MyProfileScreen()
+              : OtpScreen(email: _email.text.trim()),
+        ),
+      );
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Auth Error: ${e.message}'),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     } catch (e) {
       if (!mounted) return;
-
       String errorMessage = e.toString();
-      if (errorMessage.contains('already registered') ||
-          errorMessage.contains('User already registered')) {
-        errorMessage = 'This email is already registered.';
-      } else if (errorMessage.contains('SocketException') ||
+      if (errorMessage.contains('SocketException') ||
           errorMessage.contains('network')) {
         errorMessage = 'Network error. Please check your connection.';
       }
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
@@ -116,7 +145,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
         title: const Text('Create Account'),
-        backgroundColor: const Color(0xFF1E3A8A),
+        backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -129,30 +158,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 8),
-                const Center(
-                  child: Text(
-                    'Join Us Today',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1E3A8A),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Center(
-                  child: Text(
-                    'Fill in your details to get started',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                ),
-                const SizedBox(height: 32),
 
                 // ---- Full Name ----
-                const Text(
-                  'Full Name',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
+                const Text('Full Name',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _name,
@@ -167,10 +176,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 20),
 
                 // ---- Email ----
-                const Text(
-                  'Email',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
+                const Text('Email',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _email,
@@ -186,10 +193,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 20),
 
                 // ---- Phone Number ----
-                const Text(
-                  'Phone Number',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
+                const Text('Phone Number',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _phone,
@@ -205,10 +210,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 20),
 
                 // ---- Password ----
-                const Text(
-                  'Password',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
+                const Text('Password',
+                    style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextFormField(
                   controller: _password,
@@ -240,7 +243,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   child: ElevatedButton(
                     onPressed: _loading ? null : _register,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF1E3A8A),
+                      backgroundColor: _primaryColor,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -257,7 +260,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     )
                         : const Text(
-                      'Register',
+                      'Register & Verify',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -271,14 +274,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Already have an account? ',
-                      style: TextStyle(color: Colors.grey),
-                    ),
+                    const Text('Already have an account? ',
+                        style: TextStyle(color: Colors.grey)),
                     TextButton(
-                      onPressed: _loading
-                          ? null
-                          : () => Navigator.pop(context),
+                      onPressed:
+                      _loading ? null : () => Navigator.pop(context),
                       style: TextButton.styleFrom(
                         padding: EdgeInsets.zero,
                         minimumSize: const Size(0, 0),
@@ -288,7 +288,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         'Login',
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1E3A8A),
+                          color: _primaryColor,
                         ),
                       ),
                     ),
@@ -325,7 +325,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(
-          color: Color(0xFF1E3A8A),
+          color: _primaryColor,
           width: 2,
         ),
       ),

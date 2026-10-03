@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/profile_service.dart';
+import 'edit_certification_screen.dart';
 
 class CertificationsScreen extends StatefulWidget {
   const CertificationsScreen({super.key});
@@ -154,6 +155,18 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     }
   }
 
+  Future<void> _openEdit(Map<String, dynamic> item) async {
+    final updated = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => EditCertificationScreen(certification: item),
+      ),
+    );
+    if (updated == true) {
+      await _load();
+    }
+  }
+
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -276,9 +289,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                           color: _primaryColor,
                         ),
                         label: Text(
-                          _file == null
-                              ? 'Choose File'
-                              : _file!.name,
+                          _file == null ? 'Choose File' : _file!.name,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(color: _primaryColor),
                         ),
@@ -377,8 +388,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                     ),
                     title: Text(
                       name,
-                      style:
-                      const TextStyle(fontWeight: FontWeight.w600),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -401,15 +411,19 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                                 color: _primaryColor),
                             tooltip: 'View File',
                             onPressed: () {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(
+                              ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
-                                  content: Text(
-                                      'File URL: $fileUrl'),
-                                ),
+                                    content: Text('File URL: $fileUrl')),
                               );
                             },
                           ),
+                        // ---- Edit button -> go to new page ----
+                        IconButton(
+                          icon: const Icon(Icons.edit_outlined,
+                              color: _primaryColor),
+                          tooltip: 'Edit',
+                          onPressed: () => _openEdit(c),
+                        ),
                         IconButton(
                           icon: const Icon(Icons.delete_outline,
                               color: Colors.red),

@@ -17,7 +17,7 @@ class ProfileService {
     return row?['provider_id'] as String?;
   }
 
-  /// 返回 users + provider_profiles 的合并数据
+  /// Returns merged data from users + provider_profiles
   Future<Map<String, dynamic>?> getMyProfile() async {
     final uid = _client.auth.currentUser?.id;
     if (uid == null) return null;
@@ -42,7 +42,7 @@ class ProfileService {
     };
   }
 
-  /// 分别更新 users 和 provider_profiles 两张表
+  /// Updates users and provider_profiles separately
   Future<void> updateProfile(Map<String, dynamic> data) async {
     final uid = _client.auth.currentUser?.id;
     if (uid == null) return;
@@ -94,7 +94,7 @@ class ProfileService {
 
   // ==================== Storage ====================
 
-  /// 上传头像到 Storage 的 profiles bucket
+  /// Upload avatar to 'profiles' bucket
   Future<String> uploadAvatar(Uint8List bytes, String fileExt) async {
     final uid = _client.auth.currentUser?.id;
     if (uid == null) throw Exception('Not logged in');
@@ -111,7 +111,7 @@ class ProfileService {
     return '$url?t=${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  /// 通用文件上传（用于证书、营业执照等）
+  /// Generic file upload (for certifications, licenses, etc.)
   Future<String> uploadFile(
       String bucket,
       String path,
@@ -145,6 +145,17 @@ class ProfileService {
         .insert({...data, 'provider_id': pid});
   }
 
+  // ✅ New: update an existing certification
+  Future<void> updateCertification(
+      String certificationId,
+      Map<String, dynamic> data,
+      ) async {
+    await _client
+        .from('provider_certifications')
+        .update(data)
+        .eq('certification_id', certificationId);
+  }
+
   Future<void> deleteCertification(String certificationId) async {
     await _client
         .from('provider_certifications')
@@ -159,7 +170,12 @@ class ProfileService {
     if (pid == null) return;
     final withId =
     rows.map((r) => {...r, 'provider_id': pid}).toList(growable: false);
-    await _client.from('provider_working_hours').upsert(withId);
+
+    // ✅ upsert with onConflict to prevent duplicate key errors
+    await _client.from('provider_working_hours').upsert(
+      withId,
+      onConflict: 'provider_id,day_of_week',
+    );
   }
 
   Future<List<Map<String, dynamic>>> getWorkingHours() async {

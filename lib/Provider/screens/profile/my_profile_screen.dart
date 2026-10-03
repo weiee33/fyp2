@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fyp2/Provider/services/profile_service.dart';
 import 'package:fyp2/Provider/services/auth_service.dart';
+import 'package:fyp2/Provider/services/notification_service.dart';
 
 import 'update_profile_screen.dart';
 import 'certifications_screen.dart';
@@ -11,7 +12,10 @@ import 'working_hours_screen.dart';
 import 'package:fyp2/Provider/screens/services/my_services_screen.dart';
 import 'package:fyp2/Provider/screens/bookings/my_bookings_screen.dart';
 import 'package:fyp2/Provider/screens/earnings/earnings_screen.dart';
-import 'package:fyp2/Provider/screens/auth/login_screen.dart';
+import 'package:fyp2/Provider/screens/notifications/notification_screen.dart';
+import 'package:fyp2/Provider/screens/ai/ai_job_matching_screen.dart';
+import 'package:fyp2/Provider/screens/ai/ai_schedule_screen.dart';
+import 'package:fyp2/shared/portal_entry_screen.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
@@ -23,6 +27,8 @@ class MyProfileScreen extends StatefulWidget {
 class _MyProfileScreenState extends State<MyProfileScreen> {
   final _service = ProfileService();
   final _auth = AuthService();
+  final _notificationService = NotificationService();
+
   Map<String, dynamic>? _profile;
   bool _loading = true;
   int _tab = 0;
@@ -83,9 +89,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     if (!mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
-      MaterialPageRoute(builder: (_) => const LoginScreen()),
+      MaterialPageRoute(builder: (_) => const PortalEntryScreen()),
           (_) => false,
     );
+  }
+
+  Future<void> _openNotifications() async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+    );
+    if (!mounted) return;
+    setState(() {});
   }
 
   @override
@@ -99,6 +114,65 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
+      // AppBar only shows on the Profile tab
+      appBar: _tab == 0
+          ? AppBar(
+        backgroundColor: _primaryColor,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: const Text(
+          'Profile',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        actions: [
+          // ---- Notification Bell with Unread Badge ----
+          FutureBuilder<List<Map<String, dynamic>>>(
+            future: _notificationService.getMyNotifications(),
+            builder: (context, snapshot) {
+              final unread = (snapshot.data ?? [])
+                  .where((n) => n['is_read'] != true)
+                  .length;
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    tooltip: 'Notifications',
+                    onPressed: _openNotifications,
+                  ),
+                  if (unread > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 18,
+                          minHeight: 18,
+                        ),
+                        child: Text(
+                          unread > 9 ? '9+' : '$unread',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            },
+          ),
+          const SizedBox(width: 4),
+        ],
+      )
+          : null,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : pages[_tab],
@@ -137,6 +211,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
+            // ---- Profile Header Card ----
             Card(
               elevation: 2,
               shape: RoundedRectangleBorder(
@@ -216,6 +291,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             ),
             const SizedBox(height: 20),
 
+            // ---- Menu Tiles ----
             _tile('Update Personal Info', Icons.edit_outlined, () async {
               await Navigator.push(
                 context,
@@ -245,8 +321,26 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     builder: (_) => const WorkingHoursScreen()),
               );
             }),
+
+            // ---- AI Features ----
+            _tile('AI Job Matching', Icons.auto_awesome, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const AiJobMatchingScreen()),
+              );
+            }),
+            _tile('AI Smart Schedule', Icons.schedule, () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                    builder: (_) => const AiScheduleScreen()),
+              );
+            }),
+
             const SizedBox(height: 20),
 
+            // ---- Submit for Verification ----
             SizedBox(
               height: 50,
               child: ElevatedButton.icon(

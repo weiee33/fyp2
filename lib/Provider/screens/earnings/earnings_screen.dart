@@ -20,6 +20,9 @@ class _EarningsScreenState extends State<EarningsScreen> {
   Map<String, double> _sum = {};
   bool _loading = true;
 
+  // Chart view: 0 = 7 days, 1 = monthly, 2 = yearly
+  int _chartView = 0;
+
   static const _primaryColor = Color(0xFF1E3A8A);
 
   @override
@@ -55,28 +58,102 @@ class _EarningsScreenState extends State<EarningsScreen> {
     }
   }
 
-  // 计算最近 7 天的每日收入
+  // ============ Parsing helpers ============
+  DateTime? _parseDate(Map<String, dynamic> row) {
+    final dateStr = row['earned_at']?.toString() ??
+        row['bookings']?['booking_date']?.toString() ??
+        row['booking_date']?.toString() ??
+        row['date']?.toString() ??
+        row['created_at']?.toString();
+    if (dateStr == null) return null;
+    return DateTime.tryParse(dateStr);
+  }
+
+  double _amount(Map<String, dynamic> row) {
+    return (row['net_earnings'] ?? row['amount'] ?? row['total_amount'] ?? 0)
+        .toDouble();
+  }
+
+  // ============ Chart data builders ============
+
+  /// Last 7 days
   List<double> _getLast7Days() {
     final now = DateTime.now();
     final result = List<double>.filled(7, 0);
-
     for (final row in _rows) {
-      final dateStr = row['earned_at']?.toString() ??
-          row['date']?.toString() ??
-          row['created_at']?.toString();
-      if (dateStr == null) continue;
-
-      final parsed = DateTime.tryParse(dateStr);
+      final parsed = _parseDate(row);
       if (parsed == null) continue;
-
-      final diff = now.difference(DateTime(parsed.year, parsed.month, parsed.day)).inDays;
+      final diff = now
+          .difference(DateTime(parsed.year, parsed.month, parsed.day))
+          .inDays;
       if (diff >= 0 && diff < 7) {
-        final amount = (row['amount'] ?? row['total_amount'] ?? 0).toDouble();
-        result[6 - diff] += amount;
+        result[6 - diff] += _amount(row);
       }
     }
     return result;
   }
+
+  List<String> _getLast7DayLabels() {
+    const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+    final now = DateTime.now();
+    return List.generate(7, (i) {
+      final day = now.subtract(Duration(days: 6 - i));
+      return labels[day.weekday % 7];
+    });
+  }
+
+  /// Monthly: every day of the CURRENT month (1 ~ 28/29/30/31)
+  List<double> _getCurrentMonthDays() {
+    final now = DateTime.now();
+    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    final result = List<double>.filled(daysInMonth, 0);
+
+    for (final row in _rows) {
+      final parsed = _parseDate(row);
+      if (parsed == null) continue;
+      if (parsed.year == now.year && parsed.month == now.month) {
+        final dayIndex = parsed.day - 1;
+        if (dayIndex >= 0 && dayIndex < daysInMonth) {
+          result[dayIndex] += _amount(row);
+        }
+      }
+    }
+    return result;
+  }
+
+  List<String> _getCurrentMonthLabels() {
+    final now = DateTime.now();
+    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
+    return List.generate(daysInMonth, (i) => '${i + 1}');
+  }
+
+  /// Yearly: every month of the CURRENT year (Jan ~ Dec)
+  List<double> _getCurrentYearMonths() {
+    final now = DateTime.now();
+    final result = List<double>.filled(12, 0);
+
+    for (final row in _rows) {
+      final parsed = _parseDate(row);
+      if (parsed == null) continue;
+      if (parsed.year == now.year) {
+        final monthIndex = parsed.month - 1;
+        if (monthIndex >= 0 && monthIndex < 12) {
+          result[monthIndex] += _amount(row);
+        }
+      }
+    }
+    return result;
+  }
+
+  List<String> _getCurrentYearLabels() {
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return months;
+  }
+
+  // ============ Build ============
 
   @override
   Widget build(BuildContext context) {
@@ -90,7 +167,32 @@ class _EarningsScreenState extends State<EarningsScreen> {
     final week = _sum['week'] ?? 0;
     final month = _sum['month'] ?? 0;
     final pending = _sum['pending'] ?? 0;
-    final last7Days = _getLast7Days();
+
+    // Pick data based on view
+    List<double> chartValues;
+    List<String> chartLabels;
+    String chartSubtitle;
+    switch (_chartView) {
+      case 1:
+        chartValues = _getCurrentMonthDays();
+        chartLabels = _getCurrentMonthLabels();
+        chartSubtitle = 'This Month';
+        break;
+      case 2:
+        chartValues = _getCurrentYearMonths();
+        chartLabels = _getCurrentYearLabels();
+        chartSubtitle = 'This Year';
+        break;
+      default:
+        chartValues = _getLast7Days();
+        chartLabels = _getLast7DayLabels();
+        chartSubtitle = 'Last 7 days';
+    }
+
+    final hasData = chartValues.any((v) => v > 0);
+    final maxY = hasData
+        ? chartValues.reduce((a, b) => a > b ? a : b) * 1.2
+        : 10.0;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -99,6 +201,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false, // ✅ 隐藏返回箭头
       ),
       body: SafeArea(
         child: RefreshIndicator(
@@ -155,6 +258,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Header
                       const Row(
                         children: [
                           Icon(Icons.show_chart,
@@ -171,37 +275,41 @@ class _EarningsScreenState extends State<EarningsScreen> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Last 7 days',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      Text(
+                        chartSubtitle,
+                        style: const TextStyle(
+                            fontSize: 12, color: Colors.grey),
                       ),
+                      const SizedBox(height: 12),
+
+                      // Toggle buttons
+                      _buildToggle(),
                       const SizedBox(height: 16),
+
+                      // Chart
                       SizedBox(
-                        height: 180,
-                        child: last7Days.every((v) => v == 0)
-                            ? const Center(
-                          child: Text(
-                            'No earnings data yet',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 13,
-                            ),
-                          ),
-                        )
-                            : BarChart(
+                        height: 220,
+                        child: hasData
+                            ? BarChart(
                           BarChartData(
-                            alignment: BarChartAlignment.spaceAround,
-                            maxY: (last7Days.reduce((a, b) => a > b ? a : b) * 1.2)
-                                .clamp(1, double.infinity),
-                            barGroups: List.generate(7, (i) {
+                            alignment:
+                            BarChartAlignment.spaceAround,
+                            maxY: maxY,
+                            barGroups:
+                            List.generate(chartValues.length, (i) {
                               return BarChartGroupData(
                                 x: i,
                                 barRods: [
                                   BarChartRodData(
-                                    toY: last7Days[i],
+                                    toY: chartValues[i],
                                     color: const Color(0xFF60A5FA),
-                                    width: 18,
-                                    borderRadius: BorderRadius.circular(6),
+                                    width: chartValues.length > 20
+                                        ? 6
+                                        : (chartValues.length > 8
+                                        ? 12
+                                        : 18),
+                                    borderRadius:
+                                    BorderRadius.circular(6),
                                   ),
                                 ],
                               );
@@ -212,20 +320,22 @@ class _EarningsScreenState extends State<EarningsScreen> {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 24,
+                                  interval: chartValues.length > 20
+                                      ? 3
+                                      : 1,
                                   getTitlesWidget: (value, meta) {
-                                    final now = DateTime.now();
-                                    final day = now.subtract(Duration(
-                                        days: 6 - value.toInt()));
-                                    const labels = [
-                                      'M', 'T', 'W', 'T', 'F', 'S', 'S'
-                                    ];
+                                    final idx = value.toInt();
+                                    if (idx < 0 ||
+                                        idx >= chartLabels.length) {
+                                      return const SizedBox();
+                                    }
                                     return Padding(
                                       padding: const EdgeInsets.only(
                                           top: 6),
                                       child: Text(
-                                        labels[day.weekday % 7],
+                                        chartLabels[idx],
                                         style: const TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 10,
                                           color: Colors.grey,
                                         ),
                                       ),
@@ -234,30 +344,40 @@ class _EarningsScreenState extends State<EarningsScreen> {
                                 ),
                               ),
                               leftTitles: const AxisTitles(
-                                sideTitles:
-                                SideTitles(showTitles: false),
+                                sideTitles: SideTitles(
+                                    showTitles: false),
                               ),
                               topTitles: const AxisTitles(
-                                sideTitles:
-                                SideTitles(showTitles: false),
+                                sideTitles: SideTitles(
+                                    showTitles: false),
                               ),
                               rightTitles: const AxisTitles(
-                                sideTitles:
-                                SideTitles(showTitles: false),
+                                sideTitles: SideTitles(
+                                    showTitles: false),
                               ),
                             ),
                             gridData: FlGridData(
                               show: true,
                               drawVerticalLine: false,
                               horizontalInterval:
-                              (last7Days.reduce((a, b) => a > b ? a : b) / 3)
-                                  .clamp(1, double.infinity),
-                              getDrawingHorizontalLine: (value) => FlLine(
-                                color: Colors.grey.shade200,
-                                strokeWidth: 1,
-                              ),
+                              (maxY / 3).clamp(1, double.infinity),
+                              getDrawingHorizontalLine: (value) =>
+                                  FlLine(
+                                    color: Colors.grey.shade200,
+                                    strokeWidth: 1,
+                                  ),
                             ),
-                            borderData: FlBorderData(show: false),
+                            borderData:
+                            FlBorderData(show: false),
+                          ),
+                        )
+                            : const Center(
+                          child: Text(
+                            'No earnings data yet',
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ),
@@ -330,6 +450,51 @@ class _EarningsScreenState extends State<EarningsScreen> {
     );
   }
 
+  // ============ Toggle Buttons ============
+  Widget _buildToggle() {
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFEEF2F8),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      padding: const EdgeInsets.all(4),
+      child: Row(
+        children: [
+          _toggleBtn('7 Days', 0),
+          _toggleBtn('Monthly', 1),
+          _toggleBtn('Yearly', 2),
+        ],
+      ),
+    );
+  }
+
+  Widget _toggleBtn(String label, int value) {
+    final selected = _chartView == value;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () => setState(() => _chartView = value),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: selected ? _primaryColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: selected ? Colors.white : Colors.grey.shade700,
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.bold : FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   // ========== Stat Card ==========
   Widget _statCard({
     required String label,
@@ -353,7 +518,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: color.withOpacity(0.15),
+                    color: color.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(icon, color: color, size: 16),
@@ -405,7 +570,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.15),
+            color: color.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Icon(icon, color: color, size: 22),

@@ -18,7 +18,14 @@ class EarningsService {
     if (pid == null) return [];
     final res = await _client
         .from('provider_earnings')
-        .select('*, bookings!inner(booking_date, services!inner(service_name))')
+    // 👇 两层联表都指定了明确的外键，消除歧义
+        .select(
+      '*, '
+          'bookings!provider_earnings_booking_id_fkey!inner('
+          '  booking_date, '
+          '  services!bookings_service_id_fkey!inner(service_name)'
+          ')',
+    )
         .eq('provider_id', pid)
         .order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(res);
@@ -29,7 +36,7 @@ class EarningsService {
     double today = 0, week = 0, month = 0, pending = 0;
     for (final r in rows) {
       final date = DateTime.tryParse(
-              (r['bookings']?['booking_date'] ?? r['created_at']) as String) ??
+          (r['bookings']?['booking_date'] ?? r['created_at']) as String) ??
           now;
       final net = (r['net_earnings'] as num?)?.toDouble() ?? 0;
       final status = r['payout_status'] as String? ?? 'Pending';

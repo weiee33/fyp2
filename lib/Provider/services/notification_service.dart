@@ -28,4 +28,11 @@ class NotificationService {
         .eq('is_read', false);
     return (res as List).length;
   }
+
+  Future<void> deleteNotification(String notificationId) async {
+    await _client
+        .from('notifications')
+        .delete()
+        .eq('notification_id', notificationId);
+  }
 }

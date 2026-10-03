@@ -51,3 +51,5 @@ admin/var/*
 !admin/var/.gitkeep
 admin/tests/output/
 supabase/.temp/
+# Widget Preview related
+.widget_preview/
