@@ -1,3 +1,5 @@
+import '../../widgets/customer_dialogs.dart';
+import '../../../shared/chat/chat_screen.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
 import '../../services/customer_browsing_service.dart';
@@ -50,6 +52,7 @@ class _CustomerProviderDetailScreenState
     } catch (_) {
       if (!mounted || request != _requestVersion) return;
       setState(() => _error = 'Unable to load this provider. Please retry.');
+      CustomerDialogs.show(context, title: 'Unable to load', message: _error!);
     } finally {
       if (mounted && request == _requestVersion)
         setState(() => _loading = false);
@@ -76,7 +79,24 @@ class _CustomerProviderDetailScreenState
     final reviewCount = (provider?['total_reviews'] as num?)?.toInt() ?? 0;
     return Scaffold(
       backgroundColor: CustomerTheme.background,
-      appBar: AppBar(title: const Text('Provider details')),
+      appBar: AppBar(
+        title: const Text('Provider details'),
+        actions: [
+          IconButton(
+            tooltip: 'Chat with provider',
+            onPressed: _provider == null
+                ? null
+                : () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) =>
+                          ConversationScreen(providerId: widget.providerId),
+                    ),
+                  ),
+            icon: const Icon(Icons.chat_bubble_outline),
+          ),
+        ],
+      ),
       body: RefreshIndicator(
         onRefresh: _fetch,
         child: ListView(

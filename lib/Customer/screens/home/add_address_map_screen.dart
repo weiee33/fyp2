@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -96,12 +97,10 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       _isFetchingLocation = false;
     });
     if ((data['addressLine'] ?? '').isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
+      CustomerDialogs.show(
+        context,
+        message:
             'Address lookup is unavailable. Enter the address details manually.',
-          ),
-        ),
       );
     }
   }
@@ -130,21 +129,16 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       _triggerReverseGeocode(lat, lng);
     } else {
       setState(() => _isFetchingLocation = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Address not found in Malaysia. Please adjust pin manually.',
-          ),
-        ),
+      CustomerDialogs.show(
+        context,
+        message: 'Address not found in Malaysia. Please adjust pin manually.',
       );
     }
   }
 
   Future<void> _saveAddress() async {
     if (_addressLineController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter an address line')),
-      );
+      CustomerDialogs.show(context, message: 'Please enter an address line');
       return;
     }
 
@@ -162,15 +156,12 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       );
 
       if (!mounted) return;
+      await CustomerDialogs.show(context, title: 'Success', message: 'Address saved successfully.');
+      if (!mounted) return;
       Navigator.pop(context, newAddress);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to save address: $e'),
-          backgroundColor: CustomerTheme.danger,
-        ),
-      );
+      CustomerDialogs.error(context, e);
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }

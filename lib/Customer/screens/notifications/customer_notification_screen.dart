@@ -1,3 +1,5 @@
+import '../../../shared/chat/chat_screen.dart';
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -69,6 +71,12 @@ class _CustomerNotificationScreenState
           _isLoading = false;
           _loadError = 'Could not load notifications. Pull down to retry.';
         });
+      if (mounted)
+        CustomerDialogs.show(
+          context,
+          title: 'Unable to load',
+          message: 'Could not load notifications. Please retry.',
+        );
     }
   }
 
@@ -83,6 +91,10 @@ class _CustomerNotificationScreenState
           item['is_read'] = true;
         }
       });
+      CustomerDialogs.show(
+        context,
+        message: 'All notifications marked as read.',
+      );
     } catch (_) {
       _showError('Could not mark notifications as read. Please retry.');
     } finally {
@@ -91,10 +103,7 @@ class _CustomerNotificationScreenState
   }
 
   void _showError(String message) {
-    if (mounted)
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(message)));
+    if (mounted) CustomerDialogs.show(context, message: message);
   }
 
   Future<void> _handleNotificationTap(Map<String, dynamic> notification) async {
@@ -109,13 +118,22 @@ class _CustomerNotificationScreenState
         setState(() => notification['is_read'] = true);
       } catch (_) {
         _showError('Could not mark this notification as read.');
+        return;
       }
     }
 
     if (!mounted) return;
 
     // Deep-link navigation based on context[cite: 454, 455]
-    if (bookingId != null && bookingId.isNotEmpty) {
+    final link = notification['deep_link']?.toString() ?? '';
+    if (RegExp(r'^chat/[0-9a-fA-F-]{36}$').hasMatch(link)) {
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ConversationScreen(conversationId: link.substring(5)),
+        ),
+      );
+    } else if (bookingId != null && bookingId.isNotEmpty) {
       await Navigator.push(
         context,
         MaterialPageRoute(
@@ -133,7 +151,7 @@ class _CustomerNotificationScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Close'),
+              child: const Text('OK'),
             ),
           ],
         ),
@@ -348,6 +366,13 @@ class _CustomerNotificationScreenState
           ),
         ),
         confirmDismiss: (_) async {
+          if (!await CustomerDialogs.confirm(
+            context,
+            title: 'Dismiss notification?',
+            message:
+                'This notification will be removed from your list. Your booking is unchanged.',
+          ))
+            return false;
           try {
             await _notificationService.deleteNotification(id);
             return mounted;
@@ -363,9 +388,7 @@ class _CustomerNotificationScreenState
           setState(() {
             _allNotifications.removeWhere((n) => n['notification_id'] == id);
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Notification dismissed')),
-          );
+          CustomerDialogs.show(context, message: 'Notification dismissed');
         },
         child: InkWell(
           onTap: () => _handleNotificationTap(notification),

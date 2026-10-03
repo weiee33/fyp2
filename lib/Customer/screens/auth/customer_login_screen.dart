@@ -1,3 +1,5 @@
+import 'customer_forgot_password_screen.dart';
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
 import '../../services/customer_auth_service.dart';
@@ -29,7 +31,13 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
   Future<void> _handleLogin() async {
     FocusScope.of(context).unfocus();
-    if (_formKey.currentState?.validate() != true) return;
+    if (_formKey.currentState?.validate() != true) {
+      await CustomerDialogs.show(
+        context,
+        message: 'Please correct the highlighted fields.',
+      );
+      return;
+    }
 
     setState(() => _loading = true);
     try {
@@ -39,10 +47,16 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       );
 
       if (!mounted) return;
+      await CustomerDialogs.show(
+        context,
+        title: 'Success',
+        message: 'You are signed in successfully.',
+      );
+      if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const CustomerRootNavScreen()),
-            (_) => false,
+        (_) => false,
       );
     } catch (e) {
       if (!mounted) return;
@@ -52,13 +66,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       } else if (message.contains('Email not confirmed')) {
         message = 'Please verify your email address before logging in.';
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: CustomerTheme.danger,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      await CustomerDialogs.show(context, message: message);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -107,64 +115,108 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   const Center(
                     child: Text(
                       'Sign in to book household repair & cleaning',
-                      style: TextStyle(color: CustomerTheme.textSecondary, fontSize: 14),
+                      style: TextStyle(
+                        color: CustomerTheme.textSecondary,
+                        fontSize: 14,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 32),
-                  const Text('Email Address', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Email Address',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
                     enabled: !_loading,
-                    validator: (v) => (v == null || !v.contains('@')) ? 'Valid email required' : null,
+                    validator: (v) => (v == null || !v.contains('@'))
+                        ? 'Valid email required'
+                        : null,
                     decoration: const InputDecoration(
                       hintText: 'name@example.com',
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Password', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Password',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
                     enabled: !_loading,
-                    validator: (v) => (v == null || v.length < 6) ? 'Password must be 6+ characters' : null,
+                    validator: (v) => (v == null || v.length < 6)
+                        ? 'Password must be 6+ characters'
+                        : null,
                     decoration: InputDecoration(
                       hintText: '••••••••',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 28),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: _loading
+                          ? null
+                          : () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => CustomerForgotPasswordScreen(
+                                  initialEmail: _emailController.text.trim(),
+                                ),
+                              ),
+                            ),
+                      child: const Text('Forgot password?'),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: _loading ? null : _handleLogin,
                     child: _loading
                         ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Text('Login'),
                   ),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("New here? ", style: TextStyle(color: CustomerTheme.textSecondary)),
+                      const Text(
+                        "New here? ",
+                        style: TextStyle(color: CustomerTheme.textSecondary),
+                      ),
                       TextButton(
                         onPressed: _loading
                             ? null
                             : () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => const CustomerRegisterScreen()),
-                          );
-                        },
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) =>
+                                        const CustomerRegisterScreen(),
+                                  ),
+                                );
+                              },
                         child: const Text(
                           'Create Account',
                           style: TextStyle(

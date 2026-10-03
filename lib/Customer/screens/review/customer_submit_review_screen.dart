@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -83,6 +84,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
           _eligibilityError =
               'Could not check review eligibility. Please retry.';
         });
+        CustomerDialogs.error(context, e);
       }
     }
   }
@@ -108,9 +110,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
+      CustomerDialogs.error(context, e);
     }
   }
 
@@ -154,12 +154,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
   Future<void> _submitReview() async {
     if (_isSubmitting) return;
     if (_selectedRating == 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a star rating.'),
-          backgroundColor: CustomerTheme.danger,
-        ),
-      );
+      CustomerDialogs.show(context, message: 'Please select a star rating.');
       return;
     }
 
@@ -227,7 +222,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                     true,
                   ); // pop screen, return true for refresh
                 },
-                child: const Text('Done'),
+                child: const Text('OK'),
               ),
             ],
           ),
@@ -235,12 +230,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to submit review: $e'),
-          backgroundColor: CustomerTheme.danger,
-        ),
-      );
+      CustomerDialogs.error(context, e);
     } finally {
       if (mounted) setState(() => _isSubmitting = false);
     }

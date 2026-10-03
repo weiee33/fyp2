@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/booking_model.dart';
@@ -59,7 +60,14 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
       final booking = await _transactions.getBooking(widget.bookingId);
       if (mounted) setState(() => _booking = booking);
     } catch (error) {
-      if (mounted) setState(() => _error = bookingError(error));
+      if (mounted) {
+        setState(() => _error = bookingError(error));
+        CustomerDialogs.show(
+          context,
+          title: 'Unable to complete',
+          message: bookingError(error),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -83,7 +91,14 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
               launchUrl(session.url, mode: LaunchMode.externalApplication));
       if (!launched) throw StateError('Could not open gateway');
     } catch (error) {
-      if (mounted) setState(() => _error = bookingError(error));
+      if (mounted) {
+        setState(() => _error = bookingError(error));
+        CustomerDialogs.show(
+          context,
+          title: 'Unable to complete',
+          message: bookingError(error),
+        );
+      }
     } finally {
       if (mounted) {
         setState(() => _processing = false);
@@ -110,7 +125,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
           if (_error != null) ...[
             const SizedBox(height: 16),
             Text(
-              _error!,
+              'Payment could not be completed. Please retry.',
               style: TextStyle(color: Theme.of(context).colorScheme.error),
             ),
             TextButton(

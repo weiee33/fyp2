@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../services/customer_address_service.dart';
 import '../home/add_address_map_screen.dart';
@@ -17,11 +18,20 @@ class _CustomerSavedAddressesScreenState
   @override
   void initState() {
     super.initState();
-    _addresses = _service.getSavedAddresses();
+    _addresses = _fetchRows();
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchRows() async {
+    try {
+      return await _service.getSavedAddresses();
+    } catch (e) {
+      if (mounted) CustomerDialogs.error(context, e);
+      rethrow;
+    }
   }
 
   Future<void> _reload() async {
-    final future = _service.getSavedAddresses();
+    final future = _fetchRows();
     setState(() => _addresses = future);
     try {
       await future;
@@ -36,12 +46,18 @@ class _CustomerSavedAddressesScreenState
     try {
       await operation();
       if (mounted) await _reload();
+      if (mounted) {
+        setState(() => _busy = false);
+        await CustomerDialogs.show(
+          context,
+          message: 'Address updated successfully.',
+        );
+      }
     } catch (_) {
       if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Could not update this address. Please retry.'),
-          ),
+        CustomerDialogs.show(
+          context,
+          message: 'Could not update this address. Please retry.',
         );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -59,11 +75,11 @@ class _CustomerSavedAddressesScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Keep'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete'),
+            child: const Text('OK'),
           ),
         ],
       ),

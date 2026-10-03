@@ -39,6 +39,8 @@ See [Chapter 4 coverage and added features](docs/admin-modules.md), [database au
 
 ## Verification
 
+Customer account, recovery, settings and provider chat setup/acceptance checks are in [Customer account and chat](docs/customer-account-chat.md). The Supabase recovery email template is versioned in `supabase/templates/recovery.html`.
+
 ```powershell
 .\.tools\php\php.exe -d "extension_dir=$PWD/.tools/php/ext" admin/tests/run.php
 ```

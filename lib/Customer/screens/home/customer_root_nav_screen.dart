@@ -1,3 +1,4 @@
+import '../notifications/customer_notification_screen.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
 import 'customer_home_screen.dart';
@@ -6,9 +7,11 @@ import '../booking/customer_bookings_screen.dart';
 
 class CustomerRootNavScreen extends StatefulWidget {
   final int initialTab;
+  final List<Widget>? pages;
 
   const CustomerRootNavScreen({
     super.key,
+    this.pages,
     this.initialTab = 0, // Defaults to 0 (Explore/Home Tab)
   });
 
@@ -23,15 +26,16 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
   void initState() {
     super.initState();
     // Initialize the starting tab based on the parameter passed
-    _currentIndex = widget.initialTab.clamp(0, 2);
+    _currentIndex = widget.initialTab.clamp(0, 3);
   }
 
   @override
   Widget build(BuildContext context) {
-    // Define the 3 main screens for the bottom navigation
-    final screens = [
+    // Define the 4 main screens for the bottom navigation
+    final screens = widget.pages ?? [
       const CustomerHomeScreen(),
       const CustomerBookingsScreen(),
+      const CustomerNotificationScreen(),
       const CustomerProfileScreen(),
     ];
 
@@ -80,6 +84,14 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                 color: CustomerTheme.primary,
               ),
               label: 'Bookings',
+            ),
+            NavigationDestination(
+              icon: Icon(Icons.notifications_none),
+              selectedIcon: Icon(
+                Icons.notifications,
+                color: CustomerTheme.primary,
+              ),
+              label: 'Notifications',
             ),
             NavigationDestination(
               icon: Icon(Icons.person_outline_rounded),

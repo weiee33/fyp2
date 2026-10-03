@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../models/booking_model.dart';
 import '../../services/customer_transaction_service.dart';
@@ -50,7 +51,14 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
           _hasMore = rows.length == 20;
         });
     } catch (error) {
-      if (mounted) setState(() => _error = bookingError(error));
+      if (mounted) {
+        setState(() => _error = bookingError(error));
+        CustomerDialogs.show(
+          context,
+          title: 'Unable to complete',
+          message: bookingError(error),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }

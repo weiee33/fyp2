@@ -1,3 +1,5 @@
+import '../../../shared/chat/chat_screen.dart';
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../models/booking_model.dart';
 import '../../services/customer_transaction_service.dart';
@@ -51,7 +53,14 @@ class _CustomerBookingDetailScreenState
       final booking = await _transactions.getBooking(widget.bookingId);
       if (mounted) setState(() => _booking = booking);
     } catch (error) {
-      if (mounted) setState(() => _error = bookingError(error));
+      if (mounted) {
+        setState(() => _error = bookingError(error));
+        CustomerDialogs.show(
+          context,
+          title: 'Unable to complete',
+          message: bookingError(error),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -72,11 +81,11 @@ class _CustomerBookingDetailScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Keep booking'),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Cancel booking'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -89,12 +98,15 @@ class _CustomerBookingDetailScreenState
     setState(() => _acting = true);
     try {
       final booking = await _transactions.cancelBooking(widget.bookingId, text);
-      if (mounted) setState(() => _booking = booking);
+      if (mounted) {
+        setState(() {
+          _booking = booking;
+          _acting = false;
+        });
+        await CustomerDialogs.show(context, message: 'Booking cancelled.');
+      }
     } catch (error) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(bookingError(error))));
+      if (mounted) CustomerDialogs.show(context, message: bookingError(error));
     } finally {
       if (mounted) setState(() => _acting = false);
     }
@@ -146,13 +158,13 @@ class _CustomerBookingDetailScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Close'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             onPressed: () {
               if (form.currentState!.validate()) Navigator.pop(ctx, true);
             },
-            child: const Text('Send request'),
+            child: const Text('OK'),
           ),
         ],
       ),
@@ -165,12 +177,16 @@ class _CustomerBookingDetailScreenState
     setState(() => _acting = true);
     try {
       await _transactions.requestSupport(widget.bookingId, title, message);
+      if (mounted) {
+        setState(() => _acting = false);
+        await CustomerDialogs.show(
+          context,
+          message: 'Your support request has been submitted.',
+        );
+      }
       if (mounted) await _load();
     } catch (error) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(bookingError(error))));
+      if (mounted) CustomerDialogs.show(context, message: bookingError(error));
     } finally {
       if (mounted) setState(() => _acting = false);
     }
@@ -183,6 +199,17 @@ class _CustomerBookingDetailScreenState
       appBar: AppBar(
         title: const Text('Booking details'),
         actions: [
+          IconButton(
+            tooltip: 'Chat with provider',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ConversationScreen(bookingId: widget.bookingId),
+              ),
+            ),
+            icon: const Icon(Icons.chat_bubble_outline),
+          ),
+
           IconButton(
             onPressed: _loading || _acting ? null : _load,
             icon: const Icon(Icons.refresh),

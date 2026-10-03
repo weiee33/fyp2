@@ -4,9 +4,10 @@ import '../../shared/account_access.dart';
 import 'customer_image_service.dart';
 
 class CustomerProfileService {
-  final SupabaseClient _client;
+  final SupabaseClient? _clientOverride;
+  SupabaseClient get _client => _clientOverride ?? Supabase.instance.client;
   CustomerProfileService({SupabaseClient? client})
-    : _client = client ?? Supabase.instance.client;
+    : _clientOverride = client;
 
   Future<Map<String, dynamic>> getProfileData() async {
     final identity = await AccountAccess.requireRole(_client, 'customer');
@@ -17,7 +18,9 @@ class CustomerProfileService {
         .single();
     final profile = await _client
         .from('customer_profiles')
-        .select('customer_id, service_preferences, default_address')
+        .select(
+          'customer_id, service_preferences, default_address, bio, gender, birthday',
+        )
         .eq('user_id', identity['user_id'])
         .single();
     return {...user, ...profile};
@@ -38,14 +41,20 @@ class CustomerProfileService {
     required String phone,
     String? photoUrl,
     required List<String> preferences,
+    String? bio,
+    String? gender,
+    String? birthday,
   }) async {
     await _client.rpc(
-      'customer_profile_update',
+      'customer_account_update',
       params: {
         'p_full_name': fullName.trim(),
         'p_phone': phone.trim(),
         'p_preferences': preferences.toSet().toList(),
         'p_photo_url': photoUrl,
+        'p_bio': bio,
+        'p_gender': gender,
+        'p_birthday': birthday,
       },
     );
   }

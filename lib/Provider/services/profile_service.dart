@@ -1,3 +1,4 @@
+import '../../shared/account_access.dart';
 import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,8 +8,9 @@ class ProfileService {
   // ==================== Profile ====================
 
   Future<String?> getProviderId() async {
-    final uid = _client.auth.currentUser?.id;
-    if (uid == null) return null;
+    final uid =
+        (await AccountAccess.requireRole(_client, 'provider'))['user_id']
+            as String;
     final row = await _client
         .from('provider_profiles')
         .select('provider_id')
@@ -19,33 +21,34 @@ class ProfileService {
 
   /// Returns merged data from users + provider_profiles
   Future<Map<String, dynamic>?> getMyProfile() async {
-    final uid = _client.auth.currentUser?.id;
-    if (uid == null) return null;
+    final uid =
+        (await AccountAccess.requireRole(_client, 'provider'))['user_id']
+            as String;
 
     final userRow = await _client
         .from('users')
-        .select()
+        .select('user_id,full_name,phone,email,profile_photo_url')
         .eq('user_id', uid)
         .maybeSingle();
 
     final providerRow = await _client
         .from('provider_profiles')
-        .select()
+        .select(
+          'provider_id,user_id,business_name,bio,years_experience,verification_status,overall_rating,total_reviews,service_radius_km,region,city',
+        )
         .eq('user_id', uid)
         .maybeSingle();
 
     if (userRow == null && providerRow == null) return null;
 
-    return {
-      ...?userRow,
-      ...?providerRow,
-    };
+    return {...?userRow, ...?providerRow};
   }
 
   /// Updates users and provider_profiles separately
   Future<void> updateProfile(Map<String, dynamic> data) async {
-    final uid = _client.auth.currentUser?.id;
-    if (uid == null) return;
+    final uid =
+        (await AccountAccess.requireRole(_client, 'provider'))['user_id']
+            as String;
 
     final userFields = <String, dynamic>{};
     final providerFields = <String, dynamic>{};
@@ -58,7 +61,6 @@ class ProfileService {
       'city',
       'region',
       'service_radius_km',
-      'verification_status',
     };
 
     data.forEach((key, value) {
@@ -78,17 +80,14 @@ class ProfileService {
           .maybeSingle();
 
       if (exists == null) {
-        await _client.from('provider_profiles').insert({
-          'user_id': uid,
-          'verification_status': 'Pending',
-          ...providerFields,
-        });
-      } else {
-        await _client
-            .from('provider_profiles')
-            .update(providerFields)
-            .eq('user_id', uid);
+        throw const AuthException(
+          'Your provider profile is not available. Please contact an administrator.',
+        );
       }
+      await _client
+          .from('provider_profiles')
+          .update(providerFields)
+          .eq('user_id', uid);
     }
   }
 
@@ -101,27 +100,27 @@ class ProfileService {
 
     final path = '$uid/avatar.$fileExt';
 
-    await _client.storage.from('profiles').uploadBinary(
-      path,
-      bytes,
-      fileOptions: const FileOptions(upsert: true),
-    );
+    await _client.storage
+        .from('profiles')
+        .uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
 
     final url = _client.storage.from('profiles').getPublicUrl(path);
     return '$url?t=${DateTime.now().millisecondsSinceEpoch}';
   }
 
   /// Generic file upload (for certifications, licenses, etc.)
-  Future<String> uploadFile(
-      String bucket,
-      String path,
-      Uint8List bytes,
-      ) async {
-    await _client.storage.from(bucket).uploadBinary(
-      path,
-      bytes,
-      fileOptions: const FileOptions(upsert: true),
-    );
+  Future<String> uploadFile(String bucket, String path, Uint8List bytes) async {
+    await _client.storage
+        .from(bucket)
+        .uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
     return _client.storage.from(bucket).getPublicUrl(path);
   }
 
@@ -140,16 +139,17 @@ class ProfileService {
   Future<void> addCertification(Map<String, dynamic> data) async {
     final pid = await getProviderId();
     if (pid == null) return;
-    await _client
-        .from('provider_certifications')
-        .insert({...data, 'provider_id': pid});
+    await _client.from('provider_certifications').insert({
+      ...data,
+      'provider_id': pid,
+    });
   }
 
   // ✅ New: update an existing certification
   Future<void> updateCertification(
-      String certificationId,
-      Map<String, dynamic> data,
-      ) async {
+    String certificationId,
+    Map<String, dynamic> data,
+  ) async {
     await _client
         .from('provider_certifications')
         .update(data)
@@ -168,14 +168,14 @@ class ProfileService {
   Future<void> setWorkingHours(List<Map<String, dynamic>> rows) async {
     final pid = await getProviderId();
     if (pid == null) return;
-    final withId =
-    rows.map((r) => {...r, 'provider_id': pid}).toList(growable: false);
+    final withId = rows
+        .map((r) => {...r, 'provider_id': pid})
+        .toList(growable: false);
 
     // ✅ upsert with onConflict to prevent duplicate key errors
-    await _client.from('provider_working_hours').upsert(
-      withId,
-      onConflict: 'provider_id,day_of_week',
-    );
+    await _client
+        .from('provider_working_hours')
+        .upsert(withId, onConflict: 'provider_id,day_of_week');
   }
 
   Future<List<Map<String, dynamic>>> getWorkingHours() async {

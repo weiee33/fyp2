@@ -1,3 +1,4 @@
+import 'Customer/core/customer_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Provider/core/supabase_config.dart';
@@ -18,10 +19,11 @@ class LocalLifeApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
+      theme: CustomerTheme.lightTheme,
       title: 'Local Life Service Assistant',
       debugShowCheckedModeBanner: false,
-      home: PortalEntryScreen(),
+      home: const PortalEntryScreen(),
     );
   }
 }

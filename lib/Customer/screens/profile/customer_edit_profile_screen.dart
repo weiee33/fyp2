@@ -1,3 +1,6 @@
+import '../../widgets/account_widgets.dart';
+import '../../widgets/malaysia_phone_field.dart';
+import '../../widgets/customer_dialogs.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -7,8 +10,9 @@ import '../../services/customer_image_service.dart';
 
 class CustomerEditProfileScreen extends StatefulWidget {
   final Map<String, dynamic>? profileData;
+  final CustomerProfileService? service;
 
-  const CustomerEditProfileScreen({super.key, this.profileData});
+  const CustomerEditProfileScreen({super.key, this.profileData, this.service});
 
   @override
   State<CustomerEditProfileScreen> createState() =>
@@ -16,8 +20,10 @@ class CustomerEditProfileScreen extends StatefulWidget {
 }
 
 class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
-  final _formKey = GlobalKey<FormState>();
-  final _profileService = CustomerProfileService();
+  String _bio = "";
+  String? _gender, _birthday;
+  bool _dirty = false;
+  late final _profileService = widget.service ?? CustomerProfileService();
   final _picker = ImagePicker();
 
   late TextEditingController _nameController;
@@ -42,9 +48,14 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       text: widget.profileData?['full_name'] ?? '',
     );
     _phoneController = TextEditingController(
-      text: widget.profileData?['phone'] ?? '',
+      text: MalaysiaPhone.national(
+        widget.profileData?['phone']?.toString() ?? '',
+      ),
     );
     _existingPhotoUrl = widget.profileData?['profile_photo_url'];
+    _bio = widget.profileData?['bio']?.toString() ?? '';
+    _gender = widget.profileData?['gender'];
+    _birthday = widget.profileData?['birthday'];
 
     // Load existing preferences from DB array
     if (widget.profileData?['service_preferences'] != null) {
@@ -97,15 +108,14 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       CustomerImageService.validate(bytes, ext);
       if (!mounted) return;
       setState(() {
+        _dirty = true;
         _pickedImageBytes = bytes;
         _pickedImageExt = ext;
         _uploadedPhotoUrl = null;
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Error picking image: $e')));
+      await CustomerDialogs.error(context, e);
     }
   }
 
@@ -149,7 +159,15 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
   Future<void> _saveProfile() async {
     if (_isSaving) return;
     FocusScope.of(context).unfocus();
-    if (_formKey.currentState?.validate() != true) return;
+    if (_nameController.text.trim().isEmpty ||
+        MalaysiaPhone.validate(_phoneController.text) != null) {
+      setState(() => _isSaving = false);
+      await CustomerDialogs.show(
+        context,
+        message: 'Please enter your name and a valid Malaysian mobile number.',
+      );
+      return;
+    }
 
     setState(() => _isSaving = true);
 
@@ -166,220 +184,308 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
 
       await _profileService.updateProfile(
         fullName: _nameController.text,
-        phone: _phoneController.text,
+        phone: MalaysiaPhone.international(_phoneController.text),
+        bio: _bio,
+        gender: _gender,
+        birthday: _birthday,
         photoUrl: _uploadedPhotoUrl,
         preferences: _selectedPreferences.toList(),
       );
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile updated successfully'),
-          backgroundColor: CustomerTheme.success,
-        ),
+      setState(() => _isSaving = false);
+      await CustomerDialogs.show(
+        context,
+        message: 'Profile updated successfully',
       );
-      Navigator.pop(context, true); // Return true to trigger reload
+      if (!mounted) return;
+      setState(() => _dirty = false);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pop(context, true);
+      });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update profile: $e'),
-          backgroundColor: CustomerTheme.danger,
-        ),
+      setState(() => _isSaving = false);
+      await CustomerDialogs.show(
+        context,
+        message: 'Failed to update profile: $e',
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
 
+  Future<void> _edit(String field) async {
+    final controller = TextEditingController(
+      text: switch (field) {
+        'Name' => _nameController.text,
+        'Bio' => _bio,
+        _ => _phoneController.text,
+      },
+    );
+    final form = GlobalKey<FormState>();
+    final value = await showDialog<String>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text('Edit $field'),
+        content: Form(
+          key: form,
+          child: field == 'Phone'
+              ? MalaysiaPhoneField(controller: controller)
+              : TextFormField(
+                  controller: controller,
+                  autofocus: true,
+                  maxLength: field == 'Bio' ? 300 : 100,
+                  maxLines: field == 'Bio' ? 4 : 1,
+                  validator: (v) =>
+                      field == 'Name' && (v?.trim().isEmpty ?? true)
+                      ? 'Name is required'
+                      : null,
+                ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              if (form.currentState!.validate())
+                Navigator.pop(ctx, controller.text.trim());
+            },
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
+    // Dialog closing animation may still reference the controller this frame.
+    if (value != null && mounted) {
+      setState(() {
+        _dirty = true;
+        switch (field) {
+          case 'Name':
+            _nameController.text = value;
+          case 'Bio':
+            _bio = value;
+          case 'Phone':
+            _phoneController.text = value;
+        }
+      });
+    }
+    await Future<void>.delayed(const Duration(milliseconds: 250));
+    controller.dispose();
+  }
+
+  Future<void> _pickGender() async {
+    final value = await showDialog<String>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Gender'),
+        children: [
+          for (final label in ['Female', 'Male', 'Prefer not to say'])
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(ctx, label),
+              child: Text(label),
+            ),
+        ],
+      ),
+    );
+    if (mounted && value != null)
+      setState(() {
+        _gender = value;
+        _dirty = true;
+      });
+  }
+
+  Future<void> _pickBirthday() async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate:
+          DateTime.tryParse(_birthday ?? '') ?? DateTime(now.year - 18),
+      firstDate: DateTime(1900),
+      lastDate: now,
+    );
+    if (mounted && date != null)
+      setState(() {
+        _birthday =
+            '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+        _dirty = true;
+      });
+  }
+
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: CustomerTheme.background,
-      appBar: AppBar(title: const Text('Edit Profile')),
+  Widget build(BuildContext context) => PopScope(
+    canPop: !_dirty && !_isSaving,
+    onPopInvokedWithResult: (didPop, result) async {
+      if (didPop || _isSaving) return;
+      if (await CustomerDialogs.confirm(
+            context,
+            title: 'Discard changes?',
+            message: 'Your unsaved profile changes will be lost.',
+          ) &&
+          mounted) {
+        setState(() => _dirty = false);
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) Navigator.pop(context);
+        });
+      }
+    },
+    child: Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+        actions: [
+          TextButton(
+            onPressed: _isSaving ? null : _saveProfile,
+            child: const Text('Save'),
+          ),
+        ],
+      ),
       body: _isSaving
-          ? const Center(
-              child: CircularProgressIndicator(color: CustomerTheme.primary),
-            )
-          : SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              physics: const BouncingScrollPhysics(),
-              child: Form(
-                key: _formKey,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(10),
+              children: [
+                AccountGroup(
                   children: [
-                    // Avatar Section
-                    Center(
-                      child: Stack(
-                        children: [
-                          Hero(
-                            tag: 'avatar_hero',
-                            child: CircleAvatar(
-                              radius: 56,
-                              backgroundColor: CustomerTheme.primarySurface,
-                              backgroundImage: _pickedImageBytes != null
-                                  ? MemoryImage(_pickedImageBytes!)
-                                        as ImageProvider
-                                  : (_existingPhotoUrl != null &&
-                                            _existingPhotoUrl!.isNotEmpty
-                                        ? NetworkImage(_existingPhotoUrl!)
-                                        : null),
-                              child:
-                                  (_pickedImageBytes == null &&
-                                      (_existingPhotoUrl == null ||
-                                          _existingPhotoUrl!.isEmpty))
-                                  ? const Icon(
-                                      Icons.person,
-                                      size: 50,
-                                      color: CustomerTheme.primary,
-                                    )
-                                  : null,
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: GestureDetector(
-                              onTap: _showImageSourceSheet,
-                              child: Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: CustomerTheme.primary,
-                                  shape: BoxShape.circle,
-                                  border: Border.all(
-                                    color: Colors.white,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: const Icon(
-                                  Icons.camera_alt,
-                                  color: Colors.white,
-                                  size: 18,
-                                ),
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Center(
+                        child: InkWell(
+                          onTap: _showImageSourceSheet,
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 38,
+                                backgroundColor: CustomerTheme.primarySurface,
+                                backgroundImage: _pickedImageBytes != null
+                                    ? MemoryImage(_pickedImageBytes!)
+                                    : (_existingPhotoUrl?.isNotEmpty ?? false)
+                                    ? NetworkImage(_existingPhotoUrl!)
+                                    : null,
+                                child:
+                                    _pickedImageBytes == null &&
+                                        (_existingPhotoUrl?.isEmpty ?? true)
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: CustomerTheme.primary,
+                                        size: 44,
+                                      )
+                                    : null,
                               ),
+                              const SizedBox(height: 8),
+                              const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.edit_outlined, size: 18),
+                                  Text(' Edit photo'),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                AccountGroup(
+                  children: [
+                    AccountRow(
+                      label: 'Name',
+                      value: _nameController.text,
+                      onTap: () => _edit('Name'),
+                    ),
+                    AccountRow(
+                      label: 'Bio',
+                      value: _bio.isEmpty ? 'Set now' : _bio,
+                      onTap: () => _edit('Bio'),
+                    ),
+                  ],
+                ),
+                AccountGroup(
+                  children: [
+                    AccountRow(
+                      label: 'Gender',
+                      value: _gender ?? 'Set now',
+                      onTap: _pickGender,
+                    ),
+                    AccountRow(
+                      label: 'Birthday',
+                      value: _birthday ?? 'Set now',
+                      onTap: _pickBirthday,
+                    ),
+                  ],
+                ),
+                AccountGroup(
+                  children: [
+                    AccountRow(
+                      label: 'Phone',
+                      value: maskedPhone('+60${_phoneController.text}'),
+                      onTap: () => _edit('Phone'),
+                    ),
+                    AccountRow(
+                      label: 'Email',
+                      value: maskedEmail(
+                        widget.profileData?['email']?.toString() ?? '',
+                      ),
+                      subtitle: 'Verified sign-in email',
+                    ),
+                  ],
+                ),
+                AccountGroup(
+                  title: 'Service preferences',
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text('Choose services you frequently need.'),
+                          const SizedBox(height: 12),
+                          if (_preferencesError != null) ...[
+                            Text(_preferencesError!),
+                            TextButton(
+                              onPressed: _loadPreferences,
+                              child: const Text('Retry categories'),
                             ),
+                          ],
+                          Wrap(
+                            spacing: 8,
+                            children: _availablePreferences
+                                .map(
+                                  (pref) => FilterChip(
+                                    label: Text(pref),
+                                    selected: _selectedPreferences.contains(
+                                      pref,
+                                    ),
+                                    onSelected: (selected) => setState(() {
+                                      _dirty = true;
+                                      if (selected) {
+                                        _selectedPreferences.add(pref);
+                                      } else {
+                                        _selectedPreferences.remove(pref);
+                                      }
+                                    }),
+                                  ),
+                                )
+                                .toList(),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 32),
-
-                    // Personal Details
-                    const Text(
-                      'Full Name',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _nameController,
-                      maxLength: 100,
-                      validator: (v) => v == null || v.trim().isEmpty
-                          ? 'Name is required'
-                          : null,
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    const Text(
-                      'Phone Number',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      validator: (v) =>
-                          v == null ||
-                              !RegExp(
-                                r'^\+?[0-9][0-9 -]{6,19}$',
-                              ).hasMatch(v.trim())
-                          ? 'Enter a valid phone number'
-                          : null,
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.phone_outlined),
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-
-                    // Preference Tags (Use Case: Manage Preference Tags)
-                    const Text(
-                      'Service Preferences',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Select services you frequently need for quicker bookings.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: CustomerTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (_preferencesError != null) ...[
-                      Text(
-                        _preferencesError!,
-                        style: const TextStyle(color: CustomerTheme.danger),
-                      ),
-                      TextButton(
-                        onPressed: _loadPreferences,
-                        child: const Text('Retry categories'),
-                      ),
-                    ],
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _availablePreferences.map((pref) {
-                        final isSelected = _selectedPreferences.contains(pref);
-                        return FilterChip(
-                          label: Text(pref),
-                          selected: isSelected,
-                          onSelected: (selected) {
-                            setState(() {
-                              if (selected) {
-                                _selectedPreferences.add(pref);
-                              } else {
-                                _selectedPreferences.remove(pref);
-                              }
-                            });
-                          },
-                          selectedColor: CustomerTheme.primary,
-                          checkmarkColor: Colors.white,
-                          labelStyle: TextStyle(
-                            color: isSelected
-                                ? Colors.white
-                                : CustomerTheme.textPrimary,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                          backgroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: isSelected
-                                  ? CustomerTheme.primary
-                                  : CustomerTheme.borderColor,
-                            ),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-
-                    const SizedBox(height: 40),
-                    ElevatedButton(
-                      onPressed: _saveProfile,
-                      child: const Text('Save Changes'),
-                    ),
                   ],
                 ),
-              ),
+                const Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Text(
+                    'Your birthday and gender are optional and are not shown to providers.',
+                    style: TextStyle(color: Colors.black54, fontSize: 12),
+                  ),
+                ),
+              ],
             ),
-    );
-  }
+    ),
+  );
 }

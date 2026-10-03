@@ -1,3 +1,4 @@
+import '../widgets/malaysia_phone_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/account_access.dart';
 
@@ -20,7 +21,7 @@ class CustomerAuthService {
       password: password,
       data: {
         'full_name': fullName.trim(),
-        'phone': phone.trim(),
+        'phone': MalaysiaPhone.international(phone),
         'role': 'customer',
       },
     );
