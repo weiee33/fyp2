@@ -1,10 +1,13 @@
+import '../../shared/account_access.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class ServiceService {
   final _client = Supabase.instance.client;
 
   Future<List<Map<String, dynamic>>> getMyServices() async {
-    final uid = _client.auth.currentUser!.id;
+    final uid =
+        (await AccountAccess.requireRole(_client, 'provider'))['user_id']
+            as String;
     final res = await _client
         .from('services')
         .select('*, provider_profiles!inner(user_id)')
@@ -33,11 +36,14 @@ class ServiceService {
   Future<void> deleteService(String id) async {
     await _client
         .from('services')
-        .update({'is_active': false}).eq('service_id', id);
+        .update({'is_active': false})
+        .eq('service_id', id);
   }
 
   Future<String?> getProviderId() async {
-    final uid = _client.auth.currentUser!.id;
+    final uid =
+        (await AccountAccess.requireRole(_client, 'provider'))['user_id']
+            as String;
     final row = await _client
         .from('provider_profiles')
         .select('provider_id')

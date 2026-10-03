@@ -1,3 +1,4 @@
+import '../../../shared/chat/chat_screen.dart';
 import 'package:flutter/material.dart';
 import '../bookings/booking_detail_screen.dart';
 
@@ -13,6 +14,7 @@ class NotificationDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bookingId = data['booking_id']?.toString();
+    final chatLink = data['deep_link']?.toString() ?? '';
     final type = data['notification_type']?.toString() ?? '';
     final color = _colorForType(type);
     final icon = _iconForType(type);
@@ -31,6 +33,7 @@ class NotificationDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              if (RegExp(r'^chat/[0-9a-fA-F-]{36}$').hasMatch(chatLink)) FilledButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ConversationScreen(conversationId: chatLink.substring(5)))), icon: const Icon(Icons.chat_bubble_outline), label: const Text('Open conversation')),
               // ---- Header Card ----
               Card(
                 elevation: 2,

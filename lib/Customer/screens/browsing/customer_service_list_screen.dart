@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
 import '../../models/service_item.dart';
@@ -88,6 +89,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
         () => _error =
             'Unable to load services. Check your connection and retry.',
       );
+      CustomerDialogs.show(context, title: 'Unable to load', message: _error!);
     } finally {
       if (mounted && request == _requestVersion)
         setState(() => _loading = false);

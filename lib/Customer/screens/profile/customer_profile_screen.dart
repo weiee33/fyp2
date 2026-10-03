@@ -1,377 +1,251 @@
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
-import '../../services/customer_auth_service.dart';
 import '../../services/customer_profile_service.dart';
-import '../../../shared/portal_entry_screen.dart';
+import '../../widgets/account_widgets.dart';
+import '../../widgets/customer_dialogs.dart';
+import '../../../shared/chat/chat_inbox_screen.dart';
 import 'customer_edit_profile_screen.dart';
 import 'customer_saved_addresses_screen.dart';
+import 'customer_settings_screen.dart';
 import '../booking/customer_bookings_screen.dart';
 import '../review/customer_my_reviews_screen.dart';
 
 class CustomerProfileScreen extends StatefulWidget {
-  const CustomerProfileScreen({super.key});
-
+  final CustomerProfileService? service;
+  const CustomerProfileScreen({super.key, this.service});
   @override
-  State<CustomerProfileScreen> createState() => _CustomerProfileScreenState();
+  State<CustomerProfileScreen> createState() => _ProfileState();
 }
 
-class _CustomerProfileScreenState extends State<CustomerProfileScreen> {
-  final _profileService = CustomerProfileService();
-  final _authService = CustomerAuthService();
-
-  Map<String, dynamic>? _profileData;
-  bool _isLoading = true;
-  String? _loadError;
-
+class _ProfileState extends State<CustomerProfileScreen> {
+  late final _service = widget.service ?? CustomerProfileService();
+  Map<String, dynamic>? _profile;
+  String? _error;
   @override
   void initState() {
     super.initState();
-    _loadProfile();
+    _load();
   }
 
-  Future<void> _loadProfile() async {
-    setState(() {
-      _isLoading = true;
-      _loadError = null;
-    });
+  Future<void> _load() async {
     try {
-      final data = await _profileService.getProfileData();
-      if (mounted) {
-        setState(() {
-          _profileData = data;
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
+      final p = await _service.getProfileData();
       if (mounted)
         setState(() {
-          _isLoading = false;
-          _loadError = 'Could not load your profile. Please retry.';
+          _profile = p;
+          _error = null;
         });
-    }
-  }
-
-  Future<void> _handleLogout() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Log Out'),
-        content: const Text(
-          'Are you sure you want to log out of your account?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.grey)),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: CustomerTheme.danger,
-            ),
-            child: const Text('Log Out'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true) {
-      try {
-        await _authService.logout();
-      } catch (_) {
-        if (mounted)
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Sign out failed. Please retry.')),
-          );
-        return;
+    } catch (e) {
+      if (mounted) {
+        setState(() => _error = CustomerDialogs.errorMessage(e));
+        await CustomerDialogs.error(context, e);
       }
-      if (!mounted) return;
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const PortalEntryScreen()),
-        (_) => false,
-      );
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    if (_isLoading) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(color: CustomerTheme.primary),
-        ),
-      );
-    }
-    if (_loadError != null) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(_loadError!),
-              TextButton(onPressed: _loadProfile, child: const Text('Retry')),
-            ],
-          ),
-        ),
-      );
-    }
+  Future<void> _open(Widget screen) async {
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
+    if (mounted) await _load();
+  }
 
-    final name = _profileData?['full_name'] ?? 'Customer';
-    final email = _profileData?['email'] ?? '';
-    final photoUrl = _profileData?['profile_photo_url']?.toString() ?? '';
-    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'C';
-
-    return Scaffold(
-      backgroundColor: CustomerTheme.background,
-      body: RefreshIndicator(
-        color: CustomerTheme.primary,
-        onRefresh: _loadProfile,
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          slivers: [
-            // Animated Collapsing Header
-            SliverAppBar(
-              expandedHeight: 240,
-              pinned: true,
-              stretch: true,
-              backgroundColor: CustomerTheme.primary,
-              flexibleSpace: FlexibleSpaceBar(
-                stretchModes: const [StretchMode.zoomBackground],
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        CustomerTheme.primaryDark,
-                        CustomerTheme.primaryLight,
-                      ],
-                      begin: Alignment.topRight,
-                      end: Alignment.bottomLeft,
-                    ),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const SizedBox(height: 30),
-                      Hero(
-                        tag: 'avatar_hero',
-                        child: CircleAvatar(
-                          radius: 50,
-                          backgroundColor: Colors.white,
-                          backgroundImage: photoUrl.isNotEmpty
-                              ? NetworkImage(photoUrl)
-                              : null,
-                          child: photoUrl.isEmpty
-                              ? Text(
-                                  initial,
-                                  style: const TextStyle(
-                                    fontSize: 40,
-                                    fontWeight: FontWeight.bold,
-                                    color: CustomerTheme.primary,
-                                  ),
-                                )
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Text(
-                        email,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Colors.white70,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-
-            // Menu Items
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 8),
-                    _buildSectionTitle('Account Management'),
-                    const SizedBox(height: 12),
-                    _buildMenuCard(
-                      title: 'Edit Profile & Preferences',
-                      subtitle: 'Update personal details and service tags',
-                      icon: Icons.person_outline_rounded,
-                      onTap: () async {
-                        final updated = await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CustomerEditProfileScreen(
-                              profileData: _profileData,
-                            ),
-                          ),
-                        );
-                        if (updated == true && mounted) _loadProfile();
-                      },
-                    ),
-                    _buildMenuCard(
-                      title: 'Saved Addresses',
-                      subtitle: 'Manage your service locations',
-                      icon: Icons.location_on_outlined,
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) =>
-                                const CustomerSavedAddressesScreen(),
-                          ),
-                        );
-                        if (mounted) _loadProfile();
-                      },
-                    ),
-                    const SizedBox(height: 24),
-                    _buildSectionTitle('Activity'),
-                    const SizedBox(height: 12),
-                    _buildMenuCard(
-                      title: 'Booking History',
-                      subtitle: 'View past and cancelled services',
-                      icon: Icons.history_rounded,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CustomerBookingsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    _buildMenuCard(
-                      title: 'My Reviews',
-                      subtitle: 'View ratings you left for providers',
-                      icon: Icons.star_border_rounded,
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const CustomerMyReviewsScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(height: 32),
-                    ElevatedButton.icon(
-                      onPressed: _handleLogout,
-                      icon: const Icon(Icons.logout_rounded),
-                      label: const Text('Log Out'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: CustomerTheme.primarySurface,
-                        foregroundColor: CustomerTheme.danger,
-                        elevation: 0,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
+  void _edit() => _open(
+    CustomerEditProfileScreen(profileData: _profile, service: _service),
+  );
+  Widget _shortcut(IconData icon, String label, Widget page) => Expanded(
+    child: InkWell(
+      onTap: () => _open(page),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 4),
+        child: Column(
+          children: [
+            Icon(icon, size: 28, color: CustomerTheme.primary),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: const TextStyle(
-        fontSize: 16,
-        fontWeight: FontWeight.bold,
-        color: CustomerTheme.textSecondary,
-      ),
-    );
-  }
-
-  Widget _buildMenuCard({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: CustomerTheme.primarySurface,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(icon, color: CustomerTheme.primary),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
+    ),
+  );
+  @override
+  Widget build(BuildContext context) {
+    final photo = _profile?['profile_photo_url']?.toString() ?? '';
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      body: RefreshIndicator(
+        onRefresh: _load,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: EdgeInsets.zero,
+          children: [
+            Container(
+              color: CustomerTheme.primary,
+              child: SafeArea(
+                bottom: false,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 12, 24),
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            tooltip: 'Account settings',
+                            icon: const Icon(
+                              Icons.settings_outlined,
+                              color: Colors.white,
+                            ),
+                            onPressed: () =>
+                                _open(const CustomerSettingsScreen()),
+                          ),
+                          IconButton(
+                            tooltip: 'Chats',
+                            icon: const Icon(
+                              Icons.chat_bubble_outline,
+                              color: Colors.white,
+                            ),
+                            onPressed: () => _open(const ChatInboxScreen()),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          color: CustomerTheme.textSecondary,
-                          fontSize: 12,
-                        ),
+                      Row(
+                        children: [
+                          InkWell(
+                            onTap: _profile == null ? null : _edit,
+                            child: Semantics(
+                              button: true,
+                              label: 'Edit profile photo and personal details',
+                              child: CircleAvatar(
+                                radius: 34,
+                                backgroundColor: Colors.white,
+                                backgroundImage: photo.isEmpty
+                                    ? null
+                                    : NetworkImage(photo),
+                                child: photo.isEmpty
+                                    ? const Icon(
+                                        Icons.person,
+                                        color: CustomerTheme.primary,
+                                        size: 42,
+                                      )
+                                    : null,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 14),
+                          Expanded(
+                            child: InkWell(
+                              onTap: _profile == null ? null : _edit,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _profile?['full_name']?.toString() ??
+                                        'My account',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  const Text(
+                                    'Edit your profile  ›',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  size: 16,
-                  color: Colors.grey,
-                ),
-              ],
+              ),
             ),
-          ),
+            if (_profile == null && _error == null)
+              const LinearProgressIndicator(),
+            if (_error != null)
+              ListTile(
+                title: Text(_error!),
+                trailing: TextButton(
+                  onPressed: _load,
+                  child: const Text('Retry'),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.all(10),
+              child: Column(
+                children: [
+                  AccountGroup(
+                    children: [
+                      AccountRow(
+                        label: 'My services & bookings',
+                        value: 'View all',
+                        onTap: () => _open(const CustomerBookingsScreen()),
+                      ),
+                      Row(
+                        children: [
+                          _shortcut(
+                            Icons.receipt_long_outlined,
+                            'Bookings',
+                            const CustomerBookingsScreen(),
+                          ),
+                          _shortcut(
+                            Icons.rate_review_outlined,
+                            'My reviews',
+                            const CustomerMyReviewsScreen(),
+                          ),
+                          _shortcut(
+                            Icons.chat_bubble_outline,
+                            'Chats',
+                            const ChatInboxScreen(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  AccountGroup(
+                    title: 'Manage my account',
+                    children: [
+                      AccountRow(
+                        label: 'My Addresses',
+                        subtitle: 'Where your service takes place',
+                        icon: Icons.location_on_outlined,
+                        onTap: () =>
+                            _open(const CustomerSavedAddressesScreen()),
+                      ),
+                      AccountRow(
+                        label: 'Profile & Preferences',
+                        subtitle: 'Personal details and preferred services',
+                        icon: Icons.person_outline,
+                        onTap: _profile == null ? null : _edit,
+                      ),
+                      AccountRow(
+                        label: 'Account & Security',
+                        subtitle: 'Password and sign-in sessions',
+                        icon: Icons.shield_outlined,
+                        onTap: () =>
+                            _open(const CustomerAccountSecurityScreen()),
+                      ),
+                    ],
+                  ),
+                  AccountGroup(
+                    children: [
+                      AccountRow(
+                        label: 'Settings & Help',
+                        icon: Icons.settings_outlined,
+                        onTap: () => _open(const CustomerSettingsScreen()),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

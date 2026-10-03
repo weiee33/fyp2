@@ -1,3 +1,4 @@
+import '../../../shared/chat/chat_inbox_screen.dart';
 import 'package:flutter/material.dart';
 
 import 'package:fyp2/Provider/services/profile_service.dart';
@@ -72,7 +73,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Log Out'),
         content: const Text('Are you sure you want to log out?'),
-        actions: [
+        actions: [IconButton(tooltip: 'Chats', icon: const Icon(Icons.chat_bubble_outline), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatInboxScreen(customer: false)))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancel'),

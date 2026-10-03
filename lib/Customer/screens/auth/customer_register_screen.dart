@@ -1,3 +1,5 @@
+import '../../widgets/malaysia_phone_field.dart';
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/customer_theme.dart';
@@ -34,7 +36,13 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
 
   Future<void> _handleRegister() async {
     FocusScope.of(context).unfocus();
-    if (_formKey.currentState?.validate() != true) return;
+    if (_formKey.currentState?.validate() != true) {
+      await CustomerDialogs.show(
+        context,
+        message: 'Please correct the highlighted fields.',
+      );
+      return;
+    }
 
     setState(() => _loading = true);
     try {
@@ -49,15 +57,22 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
 
       // Check if user identities are empty (email already taken)
       if (res.user != null && (res.user!.identities?.isEmpty ?? false)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('This email is already registered. Please sign in or reset your password.'),
-            backgroundColor: CustomerTheme.danger,
-          ),
+        await CustomerDialogs.show(
+          context,
+          message:
+              'This email is already registered. Please sign in or reset your password.',
         );
         return;
       }
 
+      await CustomerDialogs.show(
+        context,
+        title: 'Registration received',
+        message: res.session == null
+            ? 'Check your email for the verification code to activate your account.'
+            : 'Your account is ready.',
+      );
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
@@ -68,22 +83,10 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
       );
     } on AuthException catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Auth Error: ${e.message}'),
-          backgroundColor: CustomerTheme.danger,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      await CustomerDialogs.show(context, message: 'Auth Error: ${e.message}');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Registration Error: $e'),
-          backgroundColor: CustomerTheme.danger,
-          duration: const Duration(seconds: 4),
-        ),
-      );
+      await CustomerDialogs.error(context, e);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -103,53 +106,72 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('Full Name', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Full Name',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _nameController,
-                    validator: (v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null,
+                    validator: (v) => (v == null || v.trim().isEmpty)
+                        ? 'Name is required'
+                        : null,
                     decoration: const InputDecoration(
                       hintText: 'Sarah Tan',
                       prefixIcon: Icon(Icons.person_outline),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Email Address', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Email Address',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
-                    validator: (v) => (v == null || !v.contains('@')) ? 'Valid email required' : null,
+                    validator: (v) => (v == null || !v.contains('@'))
+                        ? 'Valid email required'
+                        : null,
                     decoration: const InputDecoration(
                       hintText: 'user@example.com',
                       prefixIcon: Icon(Icons.email_outlined),
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text('Phone Number', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Phone Number',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
-                  TextFormField(
+                  MalaysiaPhoneField(
                     controller: _phoneController,
-                    keyboardType: TextInputType.phone,
-                    validator: (v) => (v == null || v.trim().length < 8) ? 'Valid phone required' : null,
-                    decoration: const InputDecoration(
-                      hintText: '+60 12-345 6789',
-                      prefixIcon: Icon(Icons.phone_outlined),
-                    ),
+                    enabled: !_loading,
                   ),
                   const SizedBox(height: 16),
-                  const Text('Password', style: TextStyle(fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Password',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 6),
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
-                    validator: (v) => (v == null || v.length < 6) ? 'Must be 6+ characters' : null,
+                    validator: (v) => (v == null || v.length < 6)
+                        ? 'Must be 6+ characters'
+                        : null,
                     decoration: InputDecoration(
                       hintText: '••••••••',
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
-                        icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
-                        onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                        ),
+                        onPressed: () => setState(
+                          () => _obscurePassword = !_obscurePassword,
+                        ),
                       ),
                     ),
                   ),
@@ -158,10 +180,13 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                     onPressed: _loading ? null : _handleRegister,
                     child: _loading
                         ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Text('Register & Verify'),
                   ),
                 ],

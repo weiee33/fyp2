@@ -1,3 +1,5 @@
+import '../../../shared/chat/chat_service.dart';
+import '../../../shared/chat/chat_screen.dart';
 import 'package:flutter/material.dart';
 import '../../services/booking_service.dart';
 
@@ -16,6 +18,8 @@ class _ChatScreenState extends State<ChatScreen> {
   bool _loading = true;
   bool _sending = false;
   String? _error;
+  ChatUpdates? _updates;
+  bool _refreshing = false;
 
   static const _primaryColor = Color(0xFFF97316); // Orange
   static const _accentColor = Color(0xFFFFF7ED); // Light orange tint
@@ -24,17 +28,36 @@ class _ChatScreenState extends State<ChatScreen> {
   void initState() {
     super.initState();
     _load();
+    _watch();
+  }
+
+  Future<void> _watch() async {
+    try {
+      final service = ChatService();
+      final id = await service.open(bookingId: widget.bookingId);
+      if (mounted)
+        _updates = ChatUpdates(
+          service,
+          () => _load(silent: true),
+          conversationId: id,
+        );
+    } catch (_) {
+      /* Existing load and retry controls report failures. */
+    }
   }
 
   @override
   void dispose() {
+    _updates?.dispose();
     _msg.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _load() async {
-    if (mounted) setState(() => _loading = true);
+  Future<void> _load({bool silent = false}) async {
+    if (_refreshing || !mounted) return;
+    _refreshing = true;
+    if (!silent) setState(() => _loading = true);
     try {
       final messages = await _service.getChatMessages(widget.bookingId);
       if (!mounted) return;
@@ -43,13 +66,18 @@ class _ChatScreenState extends State<ChatScreen> {
         _error = null;
         _loading = false;
       });
-      _scrollToBottom();
+      if (!silent ||
+          !_scrollController.hasClients ||
+          _scrollController.position.extentAfter < 80)
+        _scrollToBottom();
     } catch (e) {
       if (!mounted) return;
       setState(() {
         _error = 'Failed to load messages';
         _loading = false;
       });
+    } finally {
+      _refreshing = false;
     }
   }
 
@@ -97,6 +125,18 @@ class _ChatScreenState extends State<ChatScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Chat'),
+        actions: [
+          IconButton(
+            tooltip: 'Live chat and earlier messages',
+            icon: const Icon(Icons.forum_outlined),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => ConversationScreen(bookingId: widget.bookingId),
+              ),
+            ),
+          ),
+        ],
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -104,158 +144,158 @@ class _ChatScreenState extends State<ChatScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : Column(
-        children: [
-          // ===== Messages List =====
-          Expanded(
-            child: _error != null
-                ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.error_outline,
-                    size: 48,
-                    color: Colors.grey.shade400,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                  const SizedBox(height: 12),
-                  TextButton(
-                    onPressed: _load,
-                    style: TextButton.styleFrom(
-                      foregroundColor: _primaryColor,
-                    ),
-                    child: const Text('Retry'),
-                  ),
-                ],
-              ),
-            )
-                : _messages.isEmpty
-                ? Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.chat_bubble_outline,
-                    size: 64,
-                    color: Colors.grey.shade300,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    'No messages yet',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    'Start the conversation below',
-                    style: TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-            )
-                : ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.all(12),
-              itemCount: _messages.length,
-              itemBuilder: (_, i) {
-                final m = _messages[i];
-                return _messageBubble(m);
-              },
-            ),
-          ),
+              children: [
+                // ===== Messages List =====
+                Expanded(
+                  child: _error != null
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.error_outline,
+                                size: 48,
+                                color: Colors.grey.shade400,
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                _error!,
+                                style: const TextStyle(color: Colors.grey),
+                              ),
+                              const SizedBox(height: 12),
+                              TextButton(
+                                onPressed: _load,
+                                style: TextButton.styleFrom(
+                                  foregroundColor: _primaryColor,
+                                ),
+                                child: const Text('Retry'),
+                              ),
+                            ],
+                          ),
+                        )
+                      : _messages.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.chat_bubble_outline,
+                                size: 64,
+                                color: Colors.grey.shade300,
+                              ),
+                              const SizedBox(height: 12),
+                              const Text(
+                                'No messages yet',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              const Text(
+                                'Start the conversation below',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.builder(
+                          controller: _scrollController,
+                          padding: const EdgeInsets.all(12),
+                          itemCount: _messages.length,
+                          itemBuilder: (_, i) {
+                            final m = _messages[i];
+                            return _messageBubble(m);
+                          },
+                        ),
+                ),
 
-          // ===== Input Bar =====
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              border: Border(
-                top: BorderSide(color: Colors.grey.shade200),
-              ),
-            ),
-            child: SafeArea(
-              top: false,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _msg,
-                      enabled: !_sending,
-                      maxLines: 5,
-                      minLines: 1,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: (_) => _send(),
-                      decoration: InputDecoration(
-                        hintText: 'Type a message',
-                        hintStyle:
-                        const TextStyle(color: Colors.grey),
-                        filled: true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide(
-                            color: Colors.grey.shade300,
-                          ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: const BorderSide(
-                            color: _primaryColor,
-                            width: 2,
-                          ),
-                        ),
-                      ),
+                // ===== Input Bar =====
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border(
+                      top: BorderSide(color: Colors.grey.shade200),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    height: 48,
-                    width: 48,
-                    child: ElevatedButton(
-                      onPressed: _sending ? null : _send,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: EdgeInsets.zero,
-                        shape: const CircleBorder(),
-                        elevation: 0,
-                      ),
-                      child: _sending
-                          ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2.5,
-                          color: Colors.white,
+                  child: SafeArea(
+                    top: false,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _msg,
+                            enabled: !_sending,
+                            maxLength: 2000,
+                            maxLines: 5,
+                            minLines: 1,
+                            textInputAction: TextInputAction.send,
+                            onSubmitted: (_) => _send(),
+                            decoration: InputDecoration(
+                              hintText: 'Type a message',
+                              hintStyle: const TextStyle(color: Colors.grey),
+                              filled: true,
+                              fillColor: Colors.white,
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 12,
+                              ),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                borderSide: BorderSide.none,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                borderSide: BorderSide(
+                                  color: Colors.grey.shade300,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(24),
+                                borderSide: const BorderSide(
+                                  color: _primaryColor,
+                                  width: 2,
+                                ),
+                              ),
+                            ),
+                          ),
                         ),
-                      )
-                          : const Icon(Icons.send, size: 20),
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          height: 48,
+                          width: 48,
+                          child: ElevatedButton(
+                            onPressed: _sending ? null : _send,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _primaryColor,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.zero,
+                              shape: const CircleBorder(),
+                              elevation: 0,
+                            ),
+                            child: _sending
+                                ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(Icons.send, size: 20),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
     );
   }
 

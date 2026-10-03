@@ -1,3 +1,5 @@
+import '../../shared/chat/chat_service.dart';
+import '../../Customer/services/customer_transaction_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class BookingService {
@@ -45,24 +47,21 @@ class BookingService {
     );
   }
 
-  Future<List<Map<String, dynamic>>> getChatMessages(String bookingId) async {
-    final res = await _client
-        .from('notifications')
-        .select()
-        .eq('booking_id', bookingId)
-        .eq('notification_type', 'Message')
-        .order('created_at');
-    return List<Map<String, dynamic>>.from(res);
+  final Map<String,String> _conversationIds = {};
+  String? _retryBody, _retryId;
+  Future<String> _chatId(String bookingId) async => _conversationIds[bookingId] ??= await ChatService().open(bookingId: bookingId);
+  Future<List<Map<String,dynamic>>> getChatMessages(String bookingId) async {
+    final chat = ChatService();
+    final id = await _chatId(bookingId);
+    final result = await chat.history(id);
+    final rows = ChatService.rows(result['messages']);
+    if(rows.isNotEmpty) await chat.manage(id, 'read', readThrough: (rows.first['message_id'] as num).toInt());
+    return rows.reversed.map((m) => {...m, 'message': m['body']}).toList();
   }
-
-  Future<void> sendMessage(String bookingId, String message) async {
-    final uid = _client.auth.currentUser!.id;
-    await _client.from('notifications').insert({
-      'user_id': uid,
-      'booking_id': bookingId,
-      'notification_type': 'Message',
-      'title': 'Provider message',
-      'message': message,
-    });
+  Future<void> sendMessage(String bookingId,String message) async {
+    final body = '$bookingId:$message';
+    if(_retryBody != body) { _retryBody = body; _retryId = CustomerTransactionService.newRequestId(); }
+    await ChatService().send(await _chatId(bookingId), message, _retryId!);
+    _retryBody = null; _retryId = null;
   }
 }

@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../core/customer_theme.dart';
@@ -71,8 +72,14 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
       );
       if (mounted && request == _slotRequest) setState(() => _slots = slots);
     } catch (error) {
-      if (mounted && request == _slotRequest)
+      if (mounted && request == _slotRequest) {
         setState(() => _slotsError = bookingError(error));
+        CustomerDialogs.show(
+          context,
+          title: 'Unable to load times',
+          message: bookingError(error),
+        );
+      }
     } finally {
       if (mounted && request == _slotRequest)
         setState(() => _loadingSlots = false);
@@ -96,7 +103,14 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
         }
       });
     } catch (error) {
-      if (mounted) setState(() => _addressError = bookingError(error));
+      if (mounted) {
+        setState(() => _addressError = bookingError(error));
+        CustomerDialogs.show(
+          context,
+          title: 'Unable to load addresses',
+          message: bookingError(error),
+        );
+      }
     } finally {
       if (mounted) setState(() => _loadingAddresses = false);
     }
@@ -132,6 +146,13 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
         specialInstructions: _instructions.text.trim(),
       );
       if (!mounted) return;
+      await CustomerDialogs.show(
+        context,
+        title: 'Success',
+        message:
+            'Your booking request was sent. Wait for the provider to accept before paying.',
+      );
+      if (!mounted) return;
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => CustomerBookingDetailScreen(
@@ -141,10 +162,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
         ),
       );
     } catch (error) {
-      if (mounted)
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(bookingError(error))));
+      if (mounted) CustomerDialogs.show(context, message: bookingError(error));
       // Keep the request token: a lost response must not create a second booking.
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -154,7 +172,12 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
   @override
   Widget build(BuildContext context) {
     final price =
-        double.tryParse((widget.serviceData['quoted_amount'] ?? widget.serviceData['base_price']).toString()) ?? 0;
+        double.tryParse(
+          (widget.serviceData['quoted_amount'] ??
+                  widget.serviceData['base_price'])
+              .toString(),
+        ) ??
+        0;
     return Scaffold(
       appBar: AppBar(title: const Text('Book service')),
       body: AbsorbPointer(

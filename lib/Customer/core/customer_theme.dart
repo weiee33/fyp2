@@ -21,6 +21,7 @@ class CustomerTheme {
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Roboto',
       primaryColor: primary,
       scaffoldBackgroundColor: background,
       cardColor: cardColor,
@@ -37,6 +38,7 @@ class CustomerTheme {
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
+          fontFamily: 'Roboto',
           color: textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.bold,

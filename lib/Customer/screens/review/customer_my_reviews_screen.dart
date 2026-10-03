@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
 import '../../services/customer_review_service.dart';
@@ -16,11 +17,20 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
   @override
   void initState() {
     super.initState();
-    _reviews = _service.getMyReviews();
+    _reviews = _fetchRows();
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchRows() async {
+    try {
+      return await _service.getMyReviews();
+    } catch (e) {
+      if (mounted) CustomerDialogs.error(context, e);
+      rethrow;
+    }
   }
 
   Future<void> _reload() async {
-    final request = _service.getMyReviews();
+    final request = _fetchRows();
     setState(() => _reviews = request);
     try {
       await request;

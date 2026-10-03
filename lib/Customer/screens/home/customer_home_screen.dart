@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
 import '../../services/customer_home_service.dart';
@@ -6,7 +7,7 @@ import '../../services/customer_browsing_service.dart';
 import 'add_address_map_screen.dart';
 import '../browsing/customer_service_list_screen.dart';
 import '../browsing/customer_provider_detail_screen.dart';
-import '../notifications/customer_notification_screen.dart';
+import '../../../shared/chat/chat_inbox_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   final CustomerHomeService? homeService;
@@ -78,6 +79,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         () => _error =
             'Unable to load your services. Check your connection and retry.',
       );
+      CustomerDialogs.show(context, title: 'Unable to load', message: _error!);
     } finally {
       if (mounted && request == _requestVersion)
         setState(() => _loading = false);
@@ -189,10 +191,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       if (mounted) await _load();
     } catch (_) {
       if (mounted)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Unable to change your address. Please retry.'),
-          ),
+        CustomerDialogs.show(
+          context,
+          message: 'Unable to change your address. Please retry.',
         );
     }
   }
@@ -366,13 +367,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               ),
             ),
             IconButton(
-              tooltip: 'Notifications',
-              icon: const Icon(Icons.notifications_none, color: Colors.white),
+              tooltip: 'Chats',
+              icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
               onPressed: () => Navigator.push(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => const CustomerNotificationScreen(),
-                ),
+                MaterialPageRoute(builder: (_) => const ChatInboxScreen()),
               ),
             ),
           ],

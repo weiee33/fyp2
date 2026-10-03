@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../models/booking_model.dart';
 import '../../services/customer_transaction_service.dart';
@@ -31,7 +32,14 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
       final receipt = await _transactions.getReceipt(widget.bookingId);
       if (mounted) setState(() => _receipt = receipt);
     } catch (error) {
-      if (mounted) setState(() => _error = bookingError(error));
+      if (mounted) {
+        setState(() => _error = bookingError(error));
+        CustomerDialogs.show(
+          context,
+          title: 'Unable to complete',
+          message: bookingError(error),
+        );
+      }
     }
   }
 
