@@ -24,9 +24,9 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
   bool _submitting = false;
 
   // 🎨 Orange + White theme
-  static const _primaryOrange = Color(0xFFFF6B00);
-  static const _lightOrange = Color(0xFFFFF7ED);
-  static const _borderOrange = Color(0xFFFFE0CC);
+  static const _primaryOrange = Color(0xFFF97316); // Orange
+  static const _lightOrange = Color(0xFFFFF7ED);   // Light orange tint
+  static const _borderOrange = Color(0xFFFFE0CC);  // Soft orange border
 
   @override
   void initState() {
@@ -79,6 +79,19 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      // 🎨 Orange theme for the date picker
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: _primaryOrange,
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       _expiry.text =
@@ -129,11 +142,20 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Certification'),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        title: const Text(
+          'Delete Certification',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: const Text('Are you sure?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.grey.shade700,
+            ),
             child: const Text('Cancel'),
           ),
           TextButton(
@@ -218,7 +240,10 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
         elevation: 0,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+        // 🎨 Orange spinner
+        child: CircularProgressIndicator(color: _primaryOrange),
+      )
           : SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -300,9 +325,10 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                               color: _primaryOrange),
                         ),
                         style: OutlinedButton.styleFrom(
-                          padding:
-                          const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: _primaryOrange),
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 14),
+                          side: const BorderSide(
+                              color: _primaryOrange),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -398,8 +424,8 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                     ),
                     title: Text(
                       name,
-                      style:
-                      const TextStyle(fontWeight: FontWeight.w600),
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w600),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +451,8 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                               ScaffoldMessenger.of(context)
                                   .showSnackBar(
                                 SnackBar(
-                                    content: Text('File URL: $fileUrl')),
+                                    content:
+                                    Text('File URL: $fileUrl')),
                               );
                             },
                           ),
@@ -470,9 +497,12 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
+      hintStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,
+      contentPadding:
+      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -488,6 +518,10 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.red),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
     );
   }
