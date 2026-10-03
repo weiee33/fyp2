@@ -1,76 +1,62 @@
 import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../shared/account_access.dart';
+import 'customer_image_service.dart';
 
 class CustomerProfileService {
-  final SupabaseClient _client = Supabase.instance.client;
+  final SupabaseClient _client;
+  CustomerProfileService({SupabaseClient? client})
+    : _client = client ?? Supabase.instance.client;
 
-  User? get currentUser => _client.auth.currentUser;
-
-  /// Fetch combined user and customer_profile data
-  Future<Map<String, dynamic>?> getProfileData() async {
-    final uid = currentUser?.id;
-    if (uid == null) return null;
-
-    // Fetch from users table
-    final userRow = await _client
+  Future<Map<String, dynamic>> getProfileData() async {
+    final identity = await AccountAccess.requireRole(_client, 'customer');
+    final user = await _client
         .from('users')
         .select('full_name, phone, email, profile_photo_url')
-        .eq('user_id', uid)
-        .maybeSingle();
-
-    // Fetch from customer_profiles table
-    final customerRow = await _client
+        .eq('user_id', identity['user_id'])
+        .single();
+    final profile = await _client
         .from('customer_profiles')
         .select('customer_id, service_preferences, default_address')
-        .eq('user_id', uid)
-        .maybeSingle();
-
-    if (userRow == null) return null;
-
-    return {
-      ...userRow,
-      if (customerRow != null) ...customerRow,
-    };
+        .eq('user_id', identity['user_id'])
+        .single();
+    return {...user, ...profile};
   }
 
-  /// Update personal details and preference tags
+  Future<List<String>> getPreferenceOptions() async {
+    final rows = await _client
+        .from('service_categories')
+        .select('category_name')
+        .eq('is_active', true)
+        .order('display_order');
+    return rows.map((row) => row['category_name'].toString()).toList();
+  }
+
+  /// One transaction updates both user details and customer preferences.
   Future<void> updateProfile({
     required String fullName,
     required String phone,
     String? photoUrl,
     required List<String> preferences,
   }) async {
-    final uid = currentUser?.id;
-    if (uid == null) throw Exception('User not logged in');
-
-    // 1. Update public.users
-    await _client.from('users').update({
-      'full_name': fullName.trim(),
-      'phone': phone.trim(),
-      if (photoUrl != null) 'profile_photo_url': photoUrl,
-    }).eq('user_id', uid);
-
-    // 2. Update public.customer_profiles (Preference Tags)
-    await _client.from('customer_profiles').update({
-      'service_preferences': preferences,
-    }).eq('user_id', uid);
+    await _client.rpc(
+      'customer_profile_update',
+      params: {
+        'p_full_name': fullName.trim(),
+        'p_phone': phone.trim(),
+        'p_preferences': preferences.toSet().toList(),
+        'p_photo_url': photoUrl,
+      },
+    );
   }
 
-  /// Upload Avatar to Supabase Storage
   Future<String> uploadAvatar(Uint8List bytes, String fileExt) async {
-    final uid = currentUser?.id;
-    if (uid == null) throw Exception('User not logged in');
-
-    final path = 'customer_$uid/avatar_${DateTime.now().millisecondsSinceEpoch}.$fileExt';
-
-    await _client.storage.from('profiles').uploadBinary(
-      path,
-      bytes,
-      fileOptions: const FileOptions(upsert: true),
+    final path = await CustomerImageService(_client).upload(
+      bucket: 'profiles',
+      folder: 'avatars',
+      bytes: bytes,
+      extension: fileExt,
     );
-
-    final url = _client.storage.from('profiles').getPublicUrl(path);
-    // Append timestamp to bust cache
-    return '$url?t=${DateTime.now().millisecondsSinceEpoch}';
+    return _client.storage.from('profiles').getPublicUrl(path);
   }
 }

@@ -9,7 +9,7 @@ class CustomerHomeService {
   Future<List<Map<String, dynamic>>> getCategories() async {
     final rows = await _client
         .from('service_categories')
-        .select()
+        .select('category_id,category_name,display_order')
         .eq('is_active', true)
         .order('display_order');
     return List<Map<String, dynamic>>.from(rows);

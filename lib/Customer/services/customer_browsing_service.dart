@@ -1,70 +1,47 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/service_item.dart';
 
 class CustomerBrowsingService {
-  final SupabaseClient _client = Supabase.instance.client;
+  final SupabaseClient _client;
 
-  /// Fetches services matching search and filter criteria[cite: 378, 413]
-  Future<List<Map<String, dynamic>>> searchServices({
+  CustomerBrowsingService({SupabaseClient? client})
+    : _client = client ?? Supabase.instance.client;
+
+  /// The server filters verified, active providers and returns only public data.
+  /// Offset pagination uses the server's deterministic service ordering.
+  Future<List<ServiceItem>> searchServices({
     String? categoryId,
     String? categoryName,
     String? keyword,
+    String? city,
     double? maxPrice,
     double? minRating,
+    int limit = 21,
+    int offset = 0,
   }) async {
-    var query = _client.from('services').select('''
-      service_id,
-      service_name,
-      description,
-      base_price,
-      estimated_duration,
-      provider_profiles!inner (
-        provider_id,
-        business_name,
-        overall_rating,
-        total_reviews,
-        verification_status,
-        users!inner (
-          profile_photo_url
-        )
-      ),
-      service_categories!inner (
-        category_name
-      )
-    ''').eq('is_active', true);
-
-    // Apply Filters
-    if (categoryName != null && categoryName.isNotEmpty) {
-      query = query.eq('service_categories.category_name', categoryName);
-    }
-    if (keyword != null && keyword.trim().isNotEmpty) {
-      query = query.ilike('service_name', '%${keyword.trim()}%');
-    }
-    if (maxPrice != null) {
-      query = query.lte('base_price', maxPrice);
-    }
-    if (minRating != null) {
-      query = query.gte('provider_profiles.overall_rating', minRating);
-    }
-
-    final res = await query;
-    return List<Map<String, dynamic>>.from(res);
+    final rows = await _client.rpc(
+      'customer_search_services',
+      params: {
+        'p_category_id': categoryId,
+        'p_category_name': categoryName,
+        'p_keyword': keyword?.trim(),
+        'p_city': city?.trim(),
+        'p_max_price': maxPrice,
+        'p_min_rating': minRating,
+        'p_limit': limit,
+        'p_offset': offset,
+      },
+    );
+    return (rows as List)
+        .map((row) => ServiceItem.fromJson(Map<String, dynamic>.from(row)))
+        .toList();
   }
 
-  /// Fetches comprehensive provider details[cite: 378]
   Future<Map<String, dynamic>?> getProviderDetails(String providerId) async {
-    final res = await _client.from('provider_profiles').select('''
-      *,
-      users (full_name, profile_photo_url, phone),
-      services (*),
-      provider_certifications (certification_name, issuer, is_verified),
-      reviews (
-        rating_score, 
-        review_comment, 
-        created_at, 
-        customer_profiles (users (full_name))
-      )
-    ''').eq('provider_id', providerId).maybeSingle();
-
-    return res;
+    final result = await _client.rpc(
+      'customer_provider_details',
+      params: {'p_provider_id': providerId},
+    );
+    return result == null ? null : Map<String, dynamic>.from(result as Map);
   }
 }

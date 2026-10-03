@@ -146,7 +146,8 @@ try {
 } catch (Throwable $exception) {
     http_response_code(500);
     $reference=bin2hex(random_bytes(4));
-    error_log('Admin error '.$reference.' '.get_class($exception));
+    // Keep the reference useful without logging submitted passwords or tokens.
+    error_log('Admin error '.$reference.' '.get_class($exception).' '.basename($exception->getFile()).':'.$exception->getLine());
     $error=isset($config) ? 'Something went wrong. Please retry. Reference: '.$reference : $exception->getMessage();
 }
 $flash=$_SESSION['flash'] ?? null; unset($_SESSION['flash']);

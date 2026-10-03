@@ -55,6 +55,13 @@ class CustomerAddressService {
     );
   }
 
+  Future<void> deleteAddress(String addressId) async {
+    await _client.rpc(
+      'customer_delete_address',
+      params: {'p_address_id': addressId},
+    );
+  }
+
   /// Reverse geocode coordinates using OpenStreetMap Nominatim
   Future<Map<String, String>> reverseGeocode(double lat, double lng) async {
     try {

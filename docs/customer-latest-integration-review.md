@@ -1,5 +1,7 @@
 # Latest customer commit integration review
 
+**Historical review, superseded on 3 October 2026:** the findings below describe the old prototype. See [customer modules](customer-modules.md) for the implemented repair and remaining external configuration.
+
 Reviewed and incorporated GitHub commit `d77f289` (customer overall) into the admin/Auth repair branch. New customer screens, notifications, profile pages, browsing routes and `timeago` dependency are preserved. The home-screen merge keeps the real customer name/navigation and the repaired empty/error states.
 
 These remaining issues must not be resolved by giving the mobile client broad database write privileges:

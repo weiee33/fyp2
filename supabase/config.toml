@@ -1,0 +1,8 @@
+[functions.customer-checkout]
+verify_jwt = true
+
+[functions.fpx-webhook]
+verify_jwt = false
+
+[functions.payment-return]
+verify_jwt = false

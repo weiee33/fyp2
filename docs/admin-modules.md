@@ -44,7 +44,7 @@ Both roles must have an active admin profile, a linked Supabase Auth identity, a
 | Read the global audit trail | No | Yes |
 | Assign administrator roles, invite staff or suspend another administrator through the UI | No | No; no role-management screen is implemented |
 
-The initial reserved Super Admin email is `weiee0303@gmail.com`, as specified by the user. An invitation reserves authority; it is not itself a Supabase Auth account or password. The owner activates the account and chooses the password privately. Additional administrator provisioning is an explicit backend/invitation process; ordinary sign-up must not assign admin authority.
+The selected Super Admin email is `angethan765@gmail.com`; `weiee0303@gmail.com` remains a customer. An invitation reserves authority; it is not itself a Supabase Auth account or password. Additional administrator provisioning is an explicit backend/invitation process; ordinary sign-up must not assign admin authority.
 
 ## Website operations that are ready
 

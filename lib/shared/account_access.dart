@@ -17,8 +17,13 @@ class AccountAccess {
         );
       }
       return identity;
-    } catch (_) {
+    } on AuthException {
       await client.auth.signOut(scope: SignOutScope.local);
+      rethrow;
+    } on PostgrestException catch (error) {
+      if (error.code == '42501') {
+        await client.auth.signOut(scope: SignOutScope.local);
+      }
       rethrow;
     }
   }
