@@ -17,7 +17,8 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
   double _estimatedEarnings = 0;
   bool _loading = true;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  static const _primaryColor = Color(0xFFF97316); // Orange
+  static const _accentColor = Color(0xFFFFF7ED); // Light orange tint
 
   @override
   void initState() {
@@ -134,7 +135,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('AI Smart Schedule'),
         backgroundColor: _primaryColor,
@@ -174,7 +175,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                     label: 'Total Jobs',
                     value: '${_schedule.length}',
                     icon: Icons.work_outline,
-                    color: const Color(0xFF3B82F6),
+                    color: _primaryColor,
                   ),
                   _statCard(
                     label: 'Total Distance',
@@ -242,6 +243,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
 
     return Card(
       elevation: 1,
+      color: Colors.white,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
@@ -256,7 +258,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: _primaryColor.withValues(alpha: 0.12),
+                color: _accentColor,
                 shape: BoxShape.circle,
               ),
               alignment: Alignment.center,
@@ -346,6 +348,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
   }) {
     return Card(
       elevation: 1,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
       ),

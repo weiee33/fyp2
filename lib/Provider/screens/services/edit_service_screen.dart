@@ -25,7 +25,8 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   bool _loading = true;
   bool _saving = false;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
 
   bool get _isEditing => widget.existing != null;
 
@@ -81,7 +82,8 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
     try {
       final pid = await _service.getProviderId();
       if (pid == null) {
-        throw Exception('Provider profile not found. Please complete your profile first.');
+        throw Exception(
+            'Provider profile not found. Please complete your profile first.');
       }
 
       final data = {
@@ -168,10 +170,10 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(_isEditing ? 'Edit Service' : 'Add Service'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -311,7 +313,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryColor,
+                      backgroundColor: _primaryOrange,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -346,12 +348,12 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon),
+      prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -359,7 +361,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _primaryColor, width: 2),
+        borderSide: const BorderSide(color: _primaryOrange, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

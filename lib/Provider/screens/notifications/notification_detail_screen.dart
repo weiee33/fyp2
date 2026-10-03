@@ -5,7 +5,10 @@ class NotificationDetailScreen extends StatelessWidget {
   final Map<String, dynamic> data;
   const NotificationDetailScreen({super.key, required this.data});
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   Widget build(BuildContext context) {
@@ -15,10 +18,10 @@ class NotificationDetailScreen extends StatelessWidget {
     final icon = _iconForType(type);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Notification Detail'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -31,8 +34,10 @@ class NotificationDetailScreen extends StatelessWidget {
               // ---- Header Card ----
               Card(
                 elevation: 2,
+                color: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: _borderOrange),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -71,7 +76,7 @@ class NotificationDetailScreen extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: _primaryColor,
+                          color: _primaryOrange,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -118,8 +123,10 @@ class NotificationDetailScreen extends StatelessWidget {
               if (bookingId != null && bookingId.isNotEmpty)
                 Card(
                   elevation: 2,
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: _borderOrange),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -128,12 +135,12 @@ class NotificationDetailScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: _primaryColor.withValues(alpha: 0.12),
+                            color: _lightOrange,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
                             Icons.receipt_long_outlined,
-                            color: _primaryColor,
+                            color: _primaryOrange,
                             size: 22,
                           ),
                         ),
@@ -156,7 +163,7 @@ class NotificationDetailScreen extends StatelessWidget {
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
-                                  color: _primaryColor,
+                                  color: _primaryOrange,
                                 ),
                               ),
                             ],
@@ -191,7 +198,7 @@ class NotificationDetailScreen extends StatelessWidget {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryColor,
+                      backgroundColor: _primaryOrange,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -233,7 +240,7 @@ class NotificationDetailScreen extends StatelessWidget {
       case 'Message':
         return const Color(0xFF8B5CF6);
       default:
-        return _primaryColor;
+        return _primaryOrange;
     }
   }
 

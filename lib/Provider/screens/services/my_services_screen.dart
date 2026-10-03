@@ -14,7 +14,10 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -101,20 +104,20 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('My Services'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false, // ✅ 正确位置：AppBar 里
+        automaticallyImplyLeading: false,
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
-          color: _primaryColor,
+          color: _primaryOrange,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -136,7 +139,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _primaryColor,
+                    backgroundColor: _primaryOrange,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -196,9 +199,11 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
 
     return Card(
       elevation: 1,
+      color: Colors.white,
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: _borderOrange),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -208,12 +213,12 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: _primaryColor.withValues(alpha: 0.12),
+                color: _lightOrange,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
                 Icons.build_outlined,
-                color: _primaryColor,
+                color: _primaryOrange,
                 size: 22,
               ),
             ),
@@ -229,6 +234,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
+                      color: Color(0xFF111827),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -246,7 +252,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
 
             // Actions
             IconButton(
-              icon: const Icon(Icons.edit_outlined, color: _primaryColor),
+              icon: const Icon(Icons.edit_outlined, color: _primaryOrange),
               tooltip: 'Edit',
               onPressed: () => Navigator.push(
                 context,

@@ -16,7 +16,8 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   List<Map<String, dynamic>> _matches = [];
   bool _loading = true;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  static const _primaryColor = Color(0xFFF97316); // Orange
+  static const _accentColor = Color(0xFFFFF7ED); // Light orange tint
 
   @override
   void initState() {
@@ -160,7 +161,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('AI Job Matching'),
         backgroundColor: _primaryColor,
@@ -179,6 +180,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
               // Header Card
               Card(
                 elevation: 2,
+                color: _accentColor,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
@@ -245,6 +247,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
     return Card(
       elevation: 2,
+      color: Colors.white,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -343,8 +346,8 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                   child: OutlinedButton(
                     onPressed: () => _onNotInterested(m),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
+                      foregroundColor: _primaryColor,
+                      side: const BorderSide(color: _primaryColor),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),

@@ -19,7 +19,10 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
   bool _loading = true;
   bool _saving = false;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   static const _regions = [
     'Klang Valley',
@@ -136,10 +139,10 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Service Areas'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -156,8 +159,10 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                 // ---- Header Card ----
                 Card(
                   elevation: 2,
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: _borderOrange),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -166,13 +171,12 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: _primaryColor
-                                .withValues(alpha: 0.12),
+                            color: _lightOrange,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
                             Icons.location_on_outlined,
-                            color: _primaryColor,
+                            color: _primaryOrange,
                             size: 22,
                           ),
                         ),
@@ -187,7 +191,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
-                                  color: _primaryColor,
+                                  color: _primaryOrange,
                                 ),
                               ),
                               SizedBox(height: 2),
@@ -292,7 +296,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryColor,
+                      backgroundColor: _primaryOrange,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -342,7 +346,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _primaryColor, width: 2),
+        borderSide: const BorderSide(color: _primaryOrange, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

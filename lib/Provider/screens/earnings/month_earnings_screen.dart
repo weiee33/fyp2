@@ -19,9 +19,14 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
 
   bool _loading = true;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
+
+  // Pie chart palette (kept colorful to distinguish categories)
   static const _palette = [
-    Color(0xFF3B82F6),
+    Color(0xFFFF6B00),
     Color(0xFF10B981),
     Color(0xFF8B5CF6),
     Color(0xFFF59E0B),
@@ -42,7 +47,6 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
       final all = await _service.getAllEarnings();
       final now = DateTime.now();
 
-      // Reset
       _byCategory.clear();
       for (var i = 0; i < _weeklyTotals.length; i++) {
         _weeklyTotals[i] = 0;
@@ -58,12 +62,10 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
         final amt = (r['net_earnings'] as num?)?.toDouble() ?? 0;
         total += amt;
 
-        // Category breakdown
         final cat = r['bookings']?['services']?['service_name']?.toString() ??
             'Other';
         _byCategory[cat] = (_byCategory[cat] ?? 0) + amt;
 
-        // Weekly trend (week index = (day - 1) ~/ 7)
         final weekIdx = ((d.day - 1) ~/ 7).clamp(0, 4);
         _weeklyTotals[weekIdx] += amt;
       }
@@ -97,15 +99,14 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
     final hasCategory = _byCategory.isNotEmpty;
     final hasTrend = _weeklyTotals.any((v) => v > 0);
 
-    // Sort categories by amount descending
     final sortedCategories = _byCategory.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('This Month'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -114,15 +115,17 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
           : SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
-          color: _primaryColor,
+          color: _primaryOrange,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
               // ---- Total Card ----
               Card(
                 elevation: 2,
+                color: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: _borderOrange),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -134,13 +137,12 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: _primaryColor
-                                  .withValues(alpha: 0.12),
+                              color: _lightOrange,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
                               Icons.calendar_month,
-                              color: _primaryColor,
+                              color: _primaryOrange,
                               size: 22,
                             ),
                           ),
@@ -163,7 +165,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
-                          color: _primaryColor,
+                          color: _primaryOrange,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -184,8 +186,10 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
               if (hasCategory) ...[
                 Card(
                   elevation: 2,
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: _borderOrange),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -195,14 +199,14 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                         const Row(
                           children: [
                             Icon(Icons.pie_chart_outline,
-                                color: _primaryColor, size: 20),
+                                color: _primaryOrange, size: 20),
                             SizedBox(width: 8),
                             Text(
                               'Service Popularity',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
-                                color: _primaryColor,
+                                color: _primaryOrange,
                               ),
                             ),
                           ],
@@ -231,10 +235,8 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                                       : 0;
                                   return PieChartSectionData(
                                     value: e.value,
-                                    title:
-                                    '${pct.toStringAsFixed(0)}%',
-                                    color: _palette[
-                                    i % _palette.length],
+                                    title: '${pct.toStringAsFixed(0)}%',
+                                    color: _palette[i % _palette.length],
                                     radius: 60,
                                     titleStyle: const TextStyle(
                                       fontSize: 12,
@@ -262,8 +264,8 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                                     width: 12,
                                     height: 12,
                                     decoration: BoxDecoration(
-                                      color: _palette[
-                                      i % _palette.length],
+                                      color:
+                                      _palette[i % _palette.length],
                                       borderRadius:
                                       BorderRadius.circular(3),
                                     ),
@@ -284,7 +286,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
-                                      color: _primaryColor,
+                                      color: _primaryOrange,
                                     ),
                                   ),
                                 ],
@@ -302,8 +304,10 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
               // ---- Weekly Trend Card ----
               Card(
                 elevation: 2,
+                color: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: _borderOrange),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -313,14 +317,14 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                       const Row(
                         children: [
                           Icon(Icons.show_chart,
-                              color: _primaryColor, size: 20),
+                              color: _primaryOrange, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Weekly Trend',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: _primaryColor,
+                              color: _primaryOrange,
                             ),
                           ),
                         ],
@@ -405,7 +409,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                                       _weeklyTotals[i]),
                                 ),
                                 isCurved: true,
-                                color: _primaryColor,
+                                color: _primaryOrange,
                                 barWidth: 3,
                                 dotData: FlDotData(
                                   show: true,
@@ -415,12 +419,12 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                                         radius: 4,
                                         color: Colors.white,
                                         strokeWidth: 2,
-                                        strokeColor: _primaryColor,
+                                        strokeColor: _primaryOrange,
                                       ),
                                 ),
                                 belowBarData: BarAreaData(
                                   show: true,
-                                  color: _primaryColor
+                                  color: _primaryOrange
                                       .withValues(alpha: 0.15),
                                 ),
                               ),

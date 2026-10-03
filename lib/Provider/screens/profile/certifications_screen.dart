@@ -23,7 +23,10 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
   bool _loading = true;
   bool _submitting = false;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -207,10 +210,10 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Certifications'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -223,8 +226,10 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
             // ---- Add Form ----
             Card(
               elevation: 2,
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: _borderOrange),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -238,7 +243,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: _primaryColor,
+                          color: _primaryOrange,
                         ),
                       ),
                       const SizedBox(height: 16),
@@ -286,17 +291,18 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                           _file == null
                               ? Icons.upload_file_outlined
                               : Icons.check_circle_outline,
-                          color: _primaryColor,
+                          color: _primaryOrange,
                         ),
                         label: Text(
                           _file == null ? 'Choose File' : _file!.name,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: _primaryColor),
+                          style: const TextStyle(
+                              color: _primaryOrange),
                         ),
                         style: OutlinedButton.styleFrom(
                           padding:
                           const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: _primaryColor),
+                          side: const BorderSide(color: _primaryOrange),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -318,13 +324,15 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                           )
                               : const Icon(Icons.add),
                           label: Text(
-                            _submitting ? 'Adding...' : 'Add Certification',
+                            _submitting
+                                ? 'Adding...'
+                                : 'Add Certification',
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: _primaryColor,
+                            backgroundColor: _primaryOrange,
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -345,7 +353,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: _primaryColor,
+                color: _primaryOrange,
               ),
             ),
             const SizedBox(height: 12),
@@ -376,19 +384,22 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
 
                 return Card(
                   elevation: 1,
+                  color: Colors.white,
                   margin: const EdgeInsets.only(bottom: 10),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: _borderOrange),
                   ),
                   child: ListTile(
                     leading: const CircleAvatar(
-                      backgroundColor: Color(0xFFDBEAFE),
+                      backgroundColor: _lightOrange,
                       child: Icon(Icons.workspace_premium,
-                          color: _primaryColor),
+                          color: _primaryOrange),
                     ),
                     title: Text(
                       name,
-                      style: const TextStyle(fontWeight: FontWeight.w600),
+                      style:
+                      const TextStyle(fontWeight: FontWeight.w600),
                     ),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -408,19 +419,19 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
                         if (fileUrl != null && fileUrl.isNotEmpty)
                           IconButton(
                             icon: const Icon(Icons.file_present,
-                                color: _primaryColor),
+                                color: _primaryOrange),
                             tooltip: 'View File',
                             onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
+                              ScaffoldMessenger.of(context)
+                                  .showSnackBar(
                                 SnackBar(
                                     content: Text('File URL: $fileUrl')),
                               );
                             },
                           ),
-                        // ---- Edit button -> go to new page ----
                         IconButton(
                           icon: const Icon(Icons.edit_outlined,
-                              color: _primaryColor),
+                              color: _primaryOrange),
                           tooltip: 'Edit',
                           onPressed: () => _openEdit(c),
                         ),
@@ -459,7 +470,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon),
+      prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
@@ -472,7 +483,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _primaryColor, width: 2),
+        borderSide: const BorderSide(color: _primaryOrange, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

@@ -33,7 +33,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   bool _loading = true;
   int _tab = 0;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -113,11 +116,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       // AppBar only shows on the Profile tab
       appBar: _tab == 0
           ? AppBar(
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -180,7 +183,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         currentIndex: _tab,
         onTap: (i) => setState(() => _tab = i),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: _primaryColor,
+        selectedItemColor: _primaryOrange,
         unselectedItemColor: Colors.grey,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
@@ -207,15 +210,17 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: _load,
-        color: _primaryColor,
+        color: _primaryOrange,
         child: ListView(
           padding: const EdgeInsets.all(16),
           children: [
             // ---- Profile Header Card ----
             Card(
               elevation: 2,
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: _borderOrange),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -223,7 +228,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   children: [
                     CircleAvatar(
                       radius: 32,
-                      backgroundColor: const Color(0xFFDBEAFE),
+                      backgroundColor: _lightOrange,
                       backgroundImage:
                       photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
                       child: photoUrl.isEmpty
@@ -232,7 +237,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
-                          color: _primaryColor,
+                          color: _primaryOrange,
                         ),
                       )
                           : null,
@@ -247,6 +252,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
+                              color: Color(0xFF111827),
                             ),
                           ),
                           const SizedBox(height: 2),
@@ -373,7 +379,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _primaryColor,
+                  backgroundColor: _primaryOrange,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -410,8 +416,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         icon = Icons.block;
         break;
       default:
-        bg = Colors.orange.shade50;
-        fg = Colors.orange.shade700;
+      // Pending
+        bg = _lightOrange;
+        fg = _primaryOrange;
         icon = Icons.pending;
     }
 
@@ -441,12 +448,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
   Widget _tile(String label, IconData icon, VoidCallback onTap) => Card(
     elevation: 1,
+    color: Colors.white,
     margin: const EdgeInsets.only(bottom: 10),
     shape: RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(12),
+      side: const BorderSide(color: _borderOrange),
     ),
     child: ListTile(
-      leading: Icon(icon, color: _primaryColor),
+      leading: Icon(icon, color: _primaryOrange),
       title: Text(
         label,
         style: const TextStyle(fontWeight: FontWeight.w500),

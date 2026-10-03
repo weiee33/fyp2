@@ -15,7 +15,10 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   List<Map<String, dynamic>> _reviews = [];
   bool _loading = true;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -41,9 +44,9 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     }
   }
 
-  /// 从 _reviews 里统计每个星级出现的次数
+  /// Count reviews for each star level
   List<int> _ratingDistribution() {
-    final counts = List<int>.filled(5, 0); // index 0 = 1★, index 4 = 5★
+    final counts = List<int>.filled(5, 0);
     for (final r in _reviews) {
       final score = (r['rating_score'] as num?)?.toInt() ?? 0;
       if (score >= 1 && score <= 5) {
@@ -73,10 +76,10 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
         : dist.reduce((a, b) => a > b ? a : b).clamp(1, 9999);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Performance'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -87,8 +90,10 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
             // ============ Overall Rating Card ============
             Card(
               elevation: 2,
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: _borderOrange),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -112,7 +117,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                           style: const TextStyle(
                             fontSize: 44,
                             fontWeight: FontWeight.bold,
-                            color: _primaryColor,
+                            color: _primaryOrange,
                           ),
                         ),
                         const Padding(
@@ -153,8 +158,10 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
             // ============ Rating Distribution Bar Chart ============
             Card(
               elevation: 2,
+              color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: _borderOrange),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -163,14 +170,14 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                   children: [
                     const Row(
                       children: [
-                        Icon(Icons.bar_chart, color: _primaryColor, size: 20),
+                        Icon(Icons.bar_chart, color: _primaryOrange, size: 20),
                         SizedBox(width: 8),
                         Text(
                           'Rating Distribution',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
-                            color: _primaryColor,
+                            color: _primaryOrange,
                           ),
                         ),
                       ],
@@ -193,7 +200,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                               barRods: [
                                 BarChartRodData(
                                   toY: dist[i].toDouble(),
-                                  color: _primaryColor,
+                                  color: _primaryOrange,
                                   width: 22,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
@@ -272,7 +279,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                     label: 'Completion Rate',
                     value: '$completionRate%',
                     icon: Icons.task_alt,
-                    color: Colors.green,
+                    color: const Color(0xFF10B981),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -281,7 +288,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                     label: 'On-Time Rate',
                     value: '$onTimeRate%',
                     icon: Icons.schedule,
-                    color: Colors.blue,
+                    color: const Color(0xFF3B82F6),
                   ),
                 ),
               ],
@@ -291,7 +298,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
               label: 'Avg. Response Time',
               value: '$responseTime min',
               icon: Icons.timer_outlined,
-              color: Colors.orange,
+              color: _primaryOrange,
               fullWidth: true,
             ),
             const SizedBox(height: 20),
@@ -312,7 +319,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _primaryColor,
+                  backgroundColor: _primaryOrange,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -337,8 +344,10 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   }) {
     return Card(
       elevation: 1,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: _borderOrange),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -413,7 +422,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: _primaryColor,
+                color: _primaryOrange,
               ),
             ),
             const SizedBox(height: 8),
@@ -439,19 +448,21 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                   final comment = r['review_comment'] ?? '';
                   return Card(
                     elevation: 1,
+                    color: Colors.white,
                     margin: const EdgeInsets.only(bottom: 10),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: _borderOrange),
                     ),
                     child: ListTile(
                       leading: CircleAvatar(
-                        backgroundColor: const Color(0xFFDBEAFE),
+                        backgroundColor: _lightOrange,
                         child: Text(
                           name.toString().isNotEmpty
                               ? name.toString()[0].toUpperCase()
                               : 'C',
                           style: const TextStyle(
-                            color: _primaryColor,
+                            color: _primaryOrange,
                             fontWeight: FontWeight.bold,
                           ),
                         ),

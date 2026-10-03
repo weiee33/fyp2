@@ -30,7 +30,10 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   bool _saving = false;
   bool _uploadingPhoto = false;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -102,7 +105,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library),
+              leading: const Icon(Icons.photo_library,
+                  color: _primaryOrange),
               title: const Text('Choose from Gallery'),
               onTap: () {
                 Navigator.pop(ctx);
@@ -110,7 +114,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.camera_alt),
+              leading:
+              const Icon(Icons.camera_alt, color: _primaryOrange),
               title: const Text('Take a Photo'),
               onTap: () {
                 Navigator.pop(ctx);
@@ -229,10 +234,10 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Update Profile'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -250,11 +255,12 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                 const SizedBox(height: 8),
                 Center(
                   child: TextButton.icon(
-                    onPressed: _saving ? null : _showImageSourceSheet,
+                    onPressed:
+                    _saving ? null : _showImageSourceSheet,
                     icon: const Icon(Icons.photo_camera_outlined),
                     label: const Text('Change Photo'),
                     style: TextButton.styleFrom(
-                      foregroundColor: _primaryColor,
+                      foregroundColor: _primaryOrange,
                     ),
                   ),
                 ),
@@ -265,7 +271,8 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                   controller: _fullName,
                   textInputAction: TextInputAction.next,
                   enabled: !_saving,
-                  validator: (v) => _validateRequired(v, 'Full name'),
+                  validator: (v) =>
+                      _validateRequired(v, 'Full name'),
                   decoration: _inputDecoration(
                     hint: 'Your full name',
                     icon: Icons.person_outline,
@@ -344,7 +351,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                   child: ElevatedButton(
                     onPressed: _saving ? null : _save,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryColor,
+                      backgroundColor: _primaryOrange,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -393,7 +400,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       children: [
         CircleAvatar(
           radius: 56,
-          backgroundColor: const Color(0xFFDBEAFE),
+          backgroundColor: _lightOrange,
           backgroundImage: imageProvider,
           child: imageProvider == null
               ? Text(
@@ -403,7 +410,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             style: const TextStyle(
               fontSize: 40,
               fontWeight: FontWeight.bold,
-              color: _primaryColor,
+              color: _primaryOrange,
             ),
           )
               : null,
@@ -413,7 +420,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           right: 0,
           child: Container(
             decoration: BoxDecoration(
-              color: _primaryColor,
+              color: _primaryOrange,
               shape: BoxShape.circle,
               border: Border.all(color: Colors.white, width: 2),
             ),
@@ -444,12 +451,12 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon),
+      prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide.none,
+        borderSide: BorderSide(color: Colors.grey.shade300),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -457,7 +464,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _primaryColor, width: 2),
+        borderSide: const BorderSide(color: _primaryOrange, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

@@ -14,7 +14,10 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
   double _total = 0;
   bool _loading = true;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -76,10 +79,10 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
         '${today.day.toString().padLeft(2, '0')} / ${today.month.toString().padLeft(2, '0')} / ${today.year}';
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text("Today's Earnings"),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -88,15 +91,17 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
           : SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
-          color: _primaryColor,
+          color: _primaryOrange,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
               // ---- Total Card ----
               Card(
                 elevation: 2,
+                color: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: _borderOrange),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -108,12 +113,12 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: _primaryColor.withValues(alpha: 0.12),
+                              color: _lightOrange,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
                               Icons.today,
-                              color: _primaryColor,
+                              color: _primaryOrange,
                               size: 22,
                             ),
                           ),
@@ -136,7 +141,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
-                          color: _primaryColor,
+                          color: _primaryOrange,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -152,7 +157,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFEEF2F8),
+                          color: _lightOrange,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         child: Row(
@@ -161,14 +166,14 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
                             const Icon(
                               Icons.receipt_long_outlined,
                               size: 14,
-                              color: _primaryColor,
+                              color: _primaryOrange,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               '${_today.length} transaction${_today.length == 1 ? '' : 's'}',
                               style: const TextStyle(
                                 fontSize: 12,
-                                color: _primaryColor,
+                                color: _primaryOrange,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -188,7 +193,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
                   style: TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: _primaryColor,
+                    color: _primaryOrange,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -209,8 +214,10 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
   Widget _buildEmptyState() {
     return Card(
       elevation: 1,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: _borderOrange),
       ),
       child: const Padding(
         padding: EdgeInsets.symmetric(vertical: 48, horizontal: 24),
@@ -251,8 +258,10 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 10),
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: _borderOrange),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -261,12 +270,12 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: const Color(0xFFDBEAFE),
+                color: _lightOrange,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(
                 Icons.attach_money,
-                color: _primaryColor,
+                color: _primaryOrange,
                 size: 22,
               ),
             ),
@@ -280,6 +289,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
+                      color: Color(0xFF111827),
                     ),
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -305,7 +315,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: _primaryColor,
+                color: _primaryOrange,
               ),
             ),
           ],
@@ -320,16 +330,17 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
 
     switch (status.toLowerCase()) {
       case 'completed':
-        bg = Colors.green.shade50;
-        fg = Colors.green.shade700;
+        bg = const Color(0xFFECFDF5);
+        fg = const Color(0xFF065F46);
         break;
       case 'processing':
-        bg = Colors.blue.shade50;
-        fg = Colors.blue.shade700;
+        bg = const Color(0xFFEFF6FF);
+        fg = const Color(0xFF1E40AF);
         break;
       default:
-        bg = Colors.orange.shade50;
-        fg = Colors.orange.shade700;
+      // Pending
+        bg = _lightOrange;
+        fg = _primaryOrange;
     }
 
     return Container(

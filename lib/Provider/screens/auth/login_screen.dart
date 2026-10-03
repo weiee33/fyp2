@@ -21,7 +21,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _loading = false;
   bool _obscurePassword = true;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  static const _primaryColor = Color(0xFFF97316); // Orange
+  static const _accentColor = Color(0xFFFFF7ED); // Light orange tint
 
   @override
   void dispose() {
@@ -94,9 +95,9 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF5F7FA),
+        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
@@ -123,11 +124,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 24),
 
                 // ---- Icon ----
-                const Center(
-                  child: Icon(
-                    Icons.verified_user_rounded,
-                    size: 64,
-                    color: _primaryColor,
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: _accentColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.verified_user_rounded,
+                      size: 48,
+                      color: _primaryColor,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 16),

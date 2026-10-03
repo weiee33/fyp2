@@ -15,7 +15,10 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
   final List<double> _days = List.filled(7, 0);
   bool _loading = true;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
   static const _dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
   @override
@@ -33,7 +36,6 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
       final start = today.subtract(Duration(days: now.weekday - 1));
       final end = start.add(const Duration(days: 7));
 
-      // Reset
       for (var i = 0; i < 7; i++) {
         _days[i] = 0;
       }
@@ -73,7 +75,6 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
     }
   }
 
-  // Which day has the highest earnings
   int _busiestDayIndex() {
     int best = 0;
     for (var i = 1; i < 7; i++) {
@@ -96,10 +97,10 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
     final busiestIdx = _busiestDayIndex();
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('This Week'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -108,15 +109,17 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
           : SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
-          color: _primaryColor,
+          color: _primaryOrange,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
               // ---- Total Card ----
               Card(
                 elevation: 2,
+                color: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: _borderOrange),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(20),
@@ -128,12 +131,12 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: _primaryColor.withValues(alpha: 0.12),
+                              color: _lightOrange,
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: const Icon(
                               Icons.date_range,
-                              color: _primaryColor,
+                              color: _primaryOrange,
                               size: 22,
                             ),
                           ),
@@ -156,7 +159,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
-                          color: _primaryColor,
+                          color: _primaryOrange,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -177,8 +180,10 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
               if (hasData) ...[
                 Card(
                   elevation: 1,
+                  color: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
+                    side: const BorderSide(color: _borderOrange),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
@@ -187,12 +192,12 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: Colors.orange.withValues(alpha: 0.12),
+                            color: _lightOrange,
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
                             Icons.local_fire_department,
-                            color: Colors.orange,
+                            color: _primaryOrange,
                             size: 22,
                           ),
                         ),
@@ -215,7 +220,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.orange,
+                                  color: _primaryOrange,
                                 ),
                               ),
                             ],
@@ -226,7 +231,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: _primaryColor,
+                            color: _primaryOrange,
                           ),
                         ),
                       ],
@@ -239,8 +244,10 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
               // ---- Chart Card ----
               Card(
                 elevation: 2,
+                color: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: _borderOrange),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
@@ -250,14 +257,14 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                       const Row(
                         children: [
                           Icon(Icons.bar_chart,
-                              color: _primaryColor, size: 20),
+                              color: _primaryOrange, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Daily Breakdown',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: _primaryColor,
+                              color: _primaryOrange,
                             ),
                           ),
                         ],
@@ -287,9 +294,11 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                                 barRods: [
                                   BarChartRodData(
                                     toY: _days[i],
+                                    // Busiest day darker orange,
+                                    // others lighter orange
                                     color: isBusiest
-                                        ? const Color(0xFFF59E0B)
-                                        : const Color(0xFF60A5FA),
+                                        ? const Color(0xFFE85D00)
+                                        : const Color(0xFFFFB380),
                                     width: 22,
                                     borderRadius:
                                     BorderRadius.circular(6),

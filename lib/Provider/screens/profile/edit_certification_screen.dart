@@ -27,7 +27,10 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
   String? _existingFileUrl;
   bool _submitting = false;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -154,10 +157,10 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Edit Certification'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -212,7 +215,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                     _file == null
                         ? Icons.upload_file_outlined
                         : Icons.check_circle_outline,
-                    color: _primaryColor,
+                    color: _primaryOrange,
                   ),
                   label: Text(
                     _file == null
@@ -221,11 +224,11 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                         : 'Choose File')
                         : _file!.name,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(color: _primaryColor),
+                    style: const TextStyle(color: _primaryOrange),
                   ),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 14),
-                    side: const BorderSide(color: _primaryColor),
+                    side: const BorderSide(color: _primaryOrange),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -254,7 +257,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryColor,
+                      backgroundColor: _primaryOrange,
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -287,7 +290,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
   }) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon),
+      prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,
       border: OutlineInputBorder(
@@ -300,7 +303,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: _primaryColor, width: 2),
+        borderSide: const BorderSide(color: _primaryOrange, width: 2),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

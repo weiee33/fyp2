@@ -28,7 +28,10 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
   bool _loading = true;
   bool _saving = false;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -124,10 +127,10 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Working Hours'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -141,9 +144,11 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
               7,
                   (i) => Card(
                 elevation: 1,
+                color: Colors.white,
                 margin: const EdgeInsets.only(bottom: 10),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: _borderOrange),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(12),
@@ -151,18 +156,21 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(days[i],
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold)),
+                          Text(
+                            days[i],
+                            style: const TextStyle(
+                                fontWeight: FontWeight.bold),
+                          ),
                           Row(
                             children: [
                               Text(
                                 _on[i]! ? 'ON' : 'OFF',
                                 style: TextStyle(
                                   color: _on[i]!
-                                      ? Colors.green.shade700
+                                      ? _primaryOrange
                                       : Colors.grey,
                                   fontWeight: FontWeight.w600,
                                   fontSize: 12,
@@ -170,7 +178,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                               ),
                               Switch(
                                 value: _on[i]!,
-                                activeThumbColor: _primaryColor,
+                                activeThumbColor: _primaryOrange,
                                 onChanged: (v) =>
                                     setState(() => _on[i] = v),
                               ),
@@ -186,6 +194,14 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                               onPressed: _on[i]!
                                   ? () => _pick(i, true)
                                   : null,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: _primaryOrange,
+                                side: const BorderSide(
+                                    color: _primaryOrange),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
                               child: Text(_start[i]!.format(context)),
                             ),
                           ),
@@ -195,6 +211,14 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                               onPressed: _on[i]!
                                   ? () => _pick(i, false)
                                   : null,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: _primaryOrange,
+                                side: const BorderSide(
+                                    color: _primaryOrange),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
                               child: Text(_end[i]!.format(context)),
                             ),
                           ),
@@ -211,7 +235,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
               child: ElevatedButton(
                 onPressed: _saving ? null : _save,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: _primaryColor,
+                  backgroundColor: _primaryOrange,
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

@@ -15,7 +15,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   bool _loading = true;
   String _filter = 'All';
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -125,10 +128,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final list = _filtered;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Notifications'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
@@ -165,7 +168,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ? _buildEmpty()
                   : RefreshIndicator(
                 onRefresh: _load,
-                color: _primaryColor,
+                color: _primaryOrange,
                 child: ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: list.length,
@@ -188,13 +191,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? _primaryColor : const Color(0xFFEEF2F8),
+          color: selected ? _primaryOrange : _lightOrange,
           borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? _primaryOrange : _borderOrange,
+          ),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: selected ? Colors.white : _primaryColor,
+            color: selected ? Colors.white : _primaryOrange,
             fontWeight: FontWeight.w600,
             fontSize: 13,
           ),
@@ -226,12 +232,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Card(
         elevation: isRead ? 0 : 1,
         margin: const EdgeInsets.only(bottom: 10),
-        color: isRead ? const Color(0xFFF8FAFC) : Colors.white,
+        // Unread: white card with colored border
+        // Read: light orange tint to indicate already seen
+        color: isRead ? _lightOrange : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
             color: isRead
-                ? Colors.transparent
+                ? _borderOrange
                 : color.withValues(alpha: 0.3),
             width: 1,
           ),
@@ -367,7 +375,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case 'Message':
         return const Color(0xFF8B5CF6);
       default:
-        return _primaryColor;
+        return _primaryOrange;
     }
   }
 }

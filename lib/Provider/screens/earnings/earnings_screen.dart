@@ -20,10 +20,12 @@ class _EarningsScreenState extends State<EarningsScreen> {
   Map<String, double> _sum = {};
   bool _loading = true;
 
-  // Chart view: 0 = 7 days, 1 = monthly, 2 = yearly
   int _chartView = 0;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -58,7 +60,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
     }
   }
 
-  // ============ Parsing helpers ============
   DateTime? _parseDate(Map<String, dynamic> row) {
     final dateStr = row['earned_at']?.toString() ??
         row['bookings']?['booking_date']?.toString() ??
@@ -74,9 +75,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
         .toDouble();
   }
 
-  // ============ Chart data builders ============
-
-  /// Last 7 days
   List<double> _getLast7Days() {
     final now = DateTime.now();
     final result = List<double>.filled(7, 0);
@@ -102,7 +100,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
     });
   }
 
-  /// Monthly: every day of the CURRENT month (1 ~ 28/29/30/31)
   List<double> _getCurrentMonthDays() {
     final now = DateTime.now();
     final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
@@ -127,7 +124,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
     return List.generate(daysInMonth, (i) => '${i + 1}');
   }
 
-  /// Yearly: every month of the CURRENT year (Jan ~ Dec)
   List<double> _getCurrentYearMonths() {
     final now = DateTime.now();
     final result = List<double>.filled(12, 0);
@@ -153,8 +149,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
     return months;
   }
 
-  // ============ Build ============
-
   @override
   Widget build(BuildContext context) {
     if (_loading) {
@@ -168,7 +162,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
     final month = _sum['month'] ?? 0;
     final pending = _sum['pending'] ?? 0;
 
-    // Pick data based on view
     List<double> chartValues;
     List<String> chartLabels;
     String chartSubtitle;
@@ -195,18 +188,18 @@ class _EarningsScreenState extends State<EarningsScreen> {
         : 10.0;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Earnings'),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false, // ✅ 隐藏返回箭头
+        automaticallyImplyLeading: false,
       ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
-          color: _primaryColor,
+          color: _primaryOrange,
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -250,26 +243,27 @@ class _EarningsScreenState extends State<EarningsScreen> {
               // ---- Chart Card ----
               Card(
                 elevation: 2,
+                color: Colors.white,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: _borderOrange),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header
                       const Row(
                         children: [
                           Icon(Icons.show_chart,
-                              color: _primaryColor, size: 20),
+                              color: _primaryOrange, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Earnings Trend',
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: _primaryColor,
+                              color: _primaryOrange,
                             ),
                           ),
                         ],
@@ -282,11 +276,9 @@ class _EarningsScreenState extends State<EarningsScreen> {
                       ),
                       const SizedBox(height: 12),
 
-                      // Toggle buttons
                       _buildToggle(),
                       const SizedBox(height: 16),
 
-                      // Chart
                       SizedBox(
                         height: 220,
                         child: hasData
@@ -302,7 +294,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                                 barRods: [
                                   BarChartRodData(
                                     toY: chartValues[i],
-                                    color: const Color(0xFF60A5FA),
+                                    color: _primaryOrange,
                                     width: chartValues.length > 20
                                         ? 6
                                         : (chartValues.length > 8
@@ -393,7 +385,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: _primaryColor,
+                  color: _primaryOrange,
                 ),
               ),
               const SizedBox(height: 12),
@@ -450,12 +442,12 @@ class _EarningsScreenState extends State<EarningsScreen> {
     );
   }
 
-  // ============ Toggle Buttons ============
   Widget _buildToggle() {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFFEEF2F8),
+        color: _lightOrange,
         borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: _borderOrange),
       ),
       padding: const EdgeInsets.all(4),
       child: Row(
@@ -477,14 +469,14 @@ class _EarningsScreenState extends State<EarningsScreen> {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: selected ? _primaryColor : Colors.transparent,
+            color: selected ? _primaryOrange : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Center(
             child: Text(
               label,
               style: TextStyle(
-                color: selected ? Colors.white : Colors.grey.shade700,
+                color: selected ? Colors.white : _primaryOrange,
                 fontSize: 12,
                 fontWeight: selected ? FontWeight.bold : FontWeight.w500,
               ),
@@ -495,7 +487,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
     );
   }
 
-  // ========== Stat Card ==========
   Widget _statCard({
     required String label,
     required String value,
@@ -504,8 +495,10 @@ class _EarningsScreenState extends State<EarningsScreen> {
   }) {
     return Card(
       elevation: 2,
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
+        side: const BorderSide(color: _borderOrange),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -552,7 +545,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
     );
   }
 
-  // ========== Menu Tile ==========
   Widget _menuTile({
     required String title,
     required String subtitle,
@@ -563,8 +555,10 @@ class _EarningsScreenState extends State<EarningsScreen> {
     return Card(
       elevation: 1,
       margin: const EdgeInsets.only(bottom: 10),
+      color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: _borderOrange),
       ),
       child: ListTile(
         leading: Container(

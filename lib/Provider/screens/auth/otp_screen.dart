@@ -18,7 +18,8 @@ class _OtpScreenState extends State<OtpScreen> {
   bool _loading = false;
   bool _resending = false;
 
-  static const _primaryColor = Color(0xFF1E3A8A);
+  static const _primaryColor = Color(0xFFF97316); // Orange
+  static const _accentColor = Color(0xFFFFF7ED); // Light orange tint
 
   @override
   void dispose() {
@@ -96,7 +97,7 @@ class _OtpScreenState extends State<OtpScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text('Verify Your Account'),
         backgroundColor: _primaryColor,
@@ -110,10 +111,19 @@ class _OtpScreenState extends State<OtpScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const SizedBox(height: 16),
-              const Icon(
-                Icons.mark_email_read_outlined,
-                size: 64,
-                color: _primaryColor,
+              Center(
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: _accentColor,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.mark_email_read_outlined,
+                    size: 48,
+                    color: _primaryColor,
+                  ),
+                ),
               ),
               const SizedBox(height: 16),
               const Text(
@@ -138,10 +148,20 @@ class _OtpScreenState extends State<OtpScreen> {
                   letterSpacing: 8,
                   fontWeight: FontWeight.bold,
                 ),
-                decoration: const InputDecoration(
+                decoration: InputDecoration(
                   hintText: '000000',
+                  hintStyle: const TextStyle(color: Colors.grey),
                   counterText: '',
-                  border: OutlineInputBorder(),
+                  filled: true,
+                  fillColor: Colors.white,
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: _primaryColor, width: 2),
+                  ),
                 ),
               ),
               const SizedBox(height: 24),
@@ -155,7 +175,7 @@ class _OtpScreenState extends State<OtpScreen> {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    elevation: 2,
+                    elevation: 0,
                   ),
                   child: _loading
                       ? const SizedBox(
