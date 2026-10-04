@@ -95,7 +95,16 @@ void main() {
           'bin/cache/artifacts/material_fonts',
         ]) {
           final candidate = '${directory.path}/$relative';
-          if (File('$candidate/Roboto-Regular.ttf').existsSync()) {
+          if (Directory(candidate).existsSync() &&
+              Directory(candidate).listSync().any(
+                (f) =>
+                    f.path
+                        .replaceAll('\\', '/')
+                        .split('/')
+                        .last
+                        .toLowerCase() ==
+                    'roboto-regular.ttf',
+              )) {
             fontRoot = candidate;
             break;
           }
@@ -113,12 +122,16 @@ void main() {
         'Roboto': 'Roboto-Regular.ttf',
         'MaterialIcons': 'materialicons-regular.otf',
       }.entries) {
+        final font = Directory(fontRoot)
+            .listSync()
+            .whereType<File>()
+            .singleWhere(
+              (f) =>
+                  f.path.replaceAll('\\', '/').split('/').last.toLowerCase() ==
+                  e.value.toLowerCase(),
+            );
         final loader = FontLoader(e.key)
-          ..addFont(
-            File(
-              '$fontRoot/${e.value}',
-            ).readAsBytes().then((b) => ByteData.sublistView(b)),
-          );
+          ..addFont(font.readAsBytes().then((b) => ByteData.sublistView(b)));
         await loader.load();
       }
     }
