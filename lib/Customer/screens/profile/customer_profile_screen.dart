@@ -1,3 +1,4 @@
+import '../../widgets/customer_refresh.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
 import '../../services/customer_profile_service.dart';
@@ -75,10 +76,12 @@ class _ProfileState extends State<CustomerProfileScreen> {
     final photo = _profile?['profile_photo_url']?.toString() ?? '';
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      body: RefreshIndicator(
+      body: CustomerRefresh(
         onRefresh: _load,
         child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           padding: EdgeInsets.zero,
           children: [
             Container(
@@ -89,28 +92,6 @@ class _ProfileState extends State<CustomerProfileScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 12, 12, 24),
                   child: Column(
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            tooltip: 'Account settings',
-                            icon: const Icon(
-                              Icons.settings_outlined,
-                              color: Colors.white,
-                            ),
-                            onPressed: () =>
-                                _open(const CustomerSettingsScreen()),
-                          ),
-                          IconButton(
-                            tooltip: 'Chats',
-                            icon: const Icon(
-                              Icons.chat_bubble_outline,
-                              color: Colors.white,
-                            ),
-                            onPressed: () => _open(const ChatInboxScreen()),
-                          ),
-                        ],
-                      ),
                       Row(
                         children: [
                           InkWell(
@@ -149,11 +130,6 @@ class _ProfileState extends State<CustomerProfileScreen> {
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
                                     ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  const Text(
-                                    'Edit your profile  ›',
-                                    style: TextStyle(color: Colors.white),
                                   ),
                                 ],
                               ),
@@ -223,13 +199,6 @@ class _ProfileState extends State<CustomerProfileScreen> {
                         subtitle: 'Personal details and preferred services',
                         icon: Icons.person_outline,
                         onTap: _profile == null ? null : _edit,
-                      ),
-                      AccountRow(
-                        label: 'Account & Security',
-                        subtitle: 'Password and sign-in sessions',
-                        icon: Icons.shield_outlined,
-                        onTap: () =>
-                            _open(const CustomerAccountSecurityScreen()),
                       ),
                     ],
                   ),

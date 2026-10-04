@@ -1,3 +1,6 @@
+import '../../widgets/customer_refresh.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import '../../../shared/chat/chat_inbox_screen.dart';
 import '../../../shared/chat/chat_screen.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -23,7 +26,8 @@ class _CustomerNotificationScreenState
 
   List<Map<String, dynamic>> _allNotifications = [];
   bool _isLoading = true;
-  bool _isMarkingAll = false;
+  final Set<String> _busy = {};
+  int _loadVersion = 0;
   String? _loadError;
   CustomerLiveUpdates? _updates;
 
@@ -53,19 +57,21 @@ class _CustomerNotificationScreenState
   }
 
   Future<void> _fetchNotifications() async {
+    final version = ++_loadVersion;
     setState(() {
       _isLoading = true;
       _loadError = null;
     });
     try {
       final data = await _notificationService.getNotifications();
-      if (mounted) {
+      if (mounted && version == _loadVersion) {
         setState(() {
           _allNotifications = data;
           _isLoading = false;
         });
       }
     } catch (e) {
+      if (!mounted || version != _loadVersion) return;
       if (mounted)
         setState(() {
           _isLoading = false;
@@ -80,25 +86,38 @@ class _CustomerNotificationScreenState
     }
   }
 
-  Future<void> _handleMarkAllRead() async {
-    if (_isMarkingAll) return;
-    setState(() => _isMarkingAll = true);
+  Future<void> _manage(Map<String, dynamic> row, {required bool delete}) async {
+    final id = row['notification_id'] as String;
+    if (!_busy.add(id)) return;
     try {
-      await _notificationService.markAllAsRead();
+      if (delete &&
+          !await CustomerDialogs.confirm(
+            context,
+            title: 'Delete notification?',
+            message:
+                'Remove this notification from your list? Your booking is unchanged.',
+          ))
+        return;
+      if (delete) {
+        await _notificationService.deleteNotification(id);
+      } else {
+        await _notificationService.setPinned(id, row['is_pinned'] != true);
+      }
       if (!mounted) return;
-      setState(() {
-        for (final item in _allNotifications) {
-          item['is_read'] = true;
-        }
-      });
-      CustomerDialogs.show(
+      await _fetchNotifications();
+      if (!mounted) return;
+      await CustomerDialogs.show(
         context,
-        message: 'All notifications marked as read.',
+        message: delete
+            ? 'Notification deleted.'
+            : row['is_pinned'] == true
+            ? 'Notification unpinned.'
+            : 'Notification pinned.',
       );
-    } catch (_) {
-      _showError('Could not mark notifications as read. Please retry.');
+    } catch (e) {
+      if (mounted) await CustomerDialogs.error(context, e);
     } finally {
-      if (mounted) setState(() => _isMarkingAll = false);
+      _busy.remove(id);
     }
   }
 
@@ -146,6 +165,9 @@ class _CustomerNotificationScreenState
         builder: (context) => AlertDialog(
           title: Text(notification['title']?.toString() ?? 'Notification'),
           content: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             child: Text(notification['message']?.toString() ?? ''),
           ),
           actions: [
@@ -180,7 +202,7 @@ class _CustomerNotificationScreenState
       data: CustomerTheme.lightTheme,
       child: Scaffold(
         backgroundColor: CustomerTheme.background,
-        body: RefreshIndicator(
+        body: CustomerRefresh(
           color: CustomerTheme.primary,
           onRefresh: _fetchNotifications,
           child: CustomScrollView(
@@ -200,18 +222,14 @@ class _CustomerNotificationScreenState
                 ),
                 actions: [
                   IconButton(
-                    icon: const Icon(
-                      Icons.done_all_rounded,
-                      color: CustomerTheme.primary,
+                    tooltip: 'Chats',
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ChatInboxScreen(),
+                      ),
                     ),
-                    tooltip: 'Mark all as read',
-                    onPressed:
-                        !_isMarkingAll &&
-                            _allNotifications.any(
-                              (n) => !(n['is_read'] ?? false),
-                            )
-                        ? _handleMarkAllRead
-                        : null,
                   ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
@@ -301,7 +319,9 @@ class _CustomerNotificationScreenState
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         itemCount: _filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
@@ -349,47 +369,30 @@ class _CustomerNotificationScreenState
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Dismissible(
-        key: Key(id),
-        direction: DismissDirection.endToStart,
-        background: Container(
-          decoration: BoxDecoration(
-            color: CustomerTheme.danger,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 24),
-          child: const Icon(
-            Icons.delete_outline_rounded,
-            color: Colors.white,
-            size: 28,
-          ),
+      child: Slidable(
+        key: ValueKey(id),
+        endActionPane: ActionPane(
+          motion: const DrawerMotion(),
+          extentRatio: .5,
+          children: [
+            SlidableAction(
+              onPressed: (_) => _manage(notification, delete: false),
+              backgroundColor: CustomerTheme.primary,
+              foregroundColor: Colors.white,
+              icon: notification['is_pinned'] == true
+                  ? Icons.push_pin
+                  : Icons.push_pin_outlined,
+              label: notification['is_pinned'] == true ? 'Unpin' : 'Pin',
+            ),
+            SlidableAction(
+              onPressed: (_) => _manage(notification, delete: true),
+              backgroundColor: CustomerTheme.danger,
+              foregroundColor: Colors.white,
+              icon: Icons.delete_outline,
+              label: 'Delete',
+            ),
+          ],
         ),
-        confirmDismiss: (_) async {
-          if (!await CustomerDialogs.confirm(
-            context,
-            title: 'Dismiss notification?',
-            message:
-                'This notification will be removed from your list. Your booking is unchanged.',
-          ))
-            return false;
-          try {
-            await _notificationService.deleteNotification(id);
-            return mounted;
-          } catch (_) {
-            _showError(
-              'Could not dismiss this notification. It has been kept.',
-            );
-            return false;
-          }
-        },
-        onDismissed: (direction) {
-          HapticFeedback.lightImpact();
-          setState(() {
-            _allNotifications.removeWhere((n) => n['notification_id'] == id);
-          });
-          CustomerDialogs.show(context, message: 'Notification dismissed');
-        },
         child: InkWell(
           onTap: () => _handleNotificationTap(notification),
           borderRadius: BorderRadius.circular(16),
@@ -484,6 +487,26 @@ class _CustomerNotificationScreenState
                   ),
                 ),
 
+                PopupMenuButton<String>(
+                  tooltip: 'Notification actions',
+                  onSelected: (action) =>
+                      _manage(notification, delete: action == 'delete'),
+                  itemBuilder: (_) => [
+                    PopupMenuItem(
+                      value: 'pin',
+                      child: Text(
+                        notification['is_pinned'] == true ? 'Unpin' : 'Pin',
+                      ),
+                    ),
+                    const PopupMenuItem(value: 'delete', child: Text('Delete')),
+                  ],
+                  icon: Icon(
+                    notification['is_pinned'] == true
+                        ? Icons.push_pin
+                        : Icons.more_vert,
+                    size: 18,
+                  ),
+                ),
                 // Unread Indicator
                 if (!isRead) ...[
                   const SizedBox(width: 12),

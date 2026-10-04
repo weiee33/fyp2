@@ -1,3 +1,4 @@
+import 'customer_delete_account_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../widgets/account_widgets.dart';
@@ -7,31 +8,21 @@ import '../../../shared/portal_entry_screen.dart';
 import '../../../shared/chat/chat_inbox_screen.dart';
 import '../auth/customer_forgot_password_screen.dart';
 import 'customer_edit_profile_screen.dart';
-import 'customer_saved_addresses_screen.dart';
 
-Future<void> customerSignOut(
-  BuildContext context, {
-  bool allDevices = false,
-}) async {
+Future<void> customerSignOut(BuildContext context) async {
   if (!await CustomerDialogs.confirm(
     context,
-    title: allDevices ? 'Sign out all devices?' : 'Log out?',
-    message: allDevices
-        ? 'This ends your refresh sessions on every device. Existing access can remain valid until its current token expires.'
-        : 'You can sign in again with your email and password.',
+    title: 'Log out?',
+    message: 'You can sign in again with your email and password.',
   ))
     return;
   try {
-    await Supabase.instance.client.auth.signOut(
-      scope: allDevices ? SignOutScope.global : SignOutScope.local,
-    );
+    await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
     if (!context.mounted) return;
     await CustomerDialogs.show(
       context,
       title: 'Signed out',
-      message: allDevices
-          ? 'Your refresh sessions have been ended.'
-          : 'You have signed out successfully.',
+      message: 'You have signed out successfully.',
     );
     if (!context.mounted) return;
     Navigator.pushAndRemoveUntil(
@@ -49,20 +40,11 @@ class CustomerSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: const Color(0xFFF5F5F5),
-    appBar: AppBar(
-      title: const Text('Account Settings'),
-      actions: [
-        IconButton(
-          tooltip: 'Chats',
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const ChatInboxScreen()),
-          ),
-          icon: const Icon(Icons.chat_bubble_outline),
-        ),
-      ],
-    ),
+    appBar: AppBar(title: const Text('Account Settings')),
     body: ListView(
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
       padding: const EdgeInsets.all(10),
       children: [
         AccountGroup(
@@ -74,15 +56,6 @@ class CustomerSettingsScreen extends StatelessWidget {
                 context,
                 MaterialPageRoute(
                   builder: (_) => const CustomerAccountSecurityScreen(),
-                ),
-              ),
-            ),
-            AccountRow(
-              label: 'My Addresses',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const CustomerSavedAddressesScreen(),
                 ),
               ),
             ),
@@ -200,6 +173,9 @@ class _SecurityState extends State<CustomerAccountSecurityScreen> {
                   ),
           )
         : ListView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             padding: const EdgeInsets.all(10),
             children: [
               AccountGroup(
@@ -239,9 +215,14 @@ class _SecurityState extends State<CustomerAccountSecurityScreen> {
                 title: 'Security',
                 children: [
                   AccountRow(
-                    label: 'Sign out all devices',
-                    subtitle: 'End your account’s refresh sessions',
-                    onTap: () => customerSignOut(context, allDevices: true),
+                    label: 'Delete your account',
+                    subtitle: 'Permanently remove your login and profile',
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CustomerDeleteAccountScreen(),
+                      ),
+                    ),
                   ),
                 ],
               ),

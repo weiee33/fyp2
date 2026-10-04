@@ -140,6 +140,9 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
       appBar: AppBar(title: const Text('Reset password')),
       body: SafeArea(
         child: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(24),
           child: Form(
             key: _form,

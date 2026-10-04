@@ -8,7 +8,7 @@ This change builds on provider commits through `40cba27`. The provider screens r
 - Registration and profile phone editing display a fixed `+60`. Enter the Malaysian mobile number without its initial `0`, for example `102049818`. Stored value: `+60102049818`. Existing formatted numbers are converted to national format when opening the editor. Login continues to use email and password.
 - Forgot password: enter email, new password and confirmation; request an email code; enter the latest code; verify; update the password; return to sign-in. The password remains only in screen memory until verification and is cleared on completion/disposal.
 - Profile: tap the photo/name to edit, then Save. Name, phone, photo, service preferences, optional bio, gender and birthday are saved together. Email is displayed as the verified sign-in address, not an unverified editable profile field.
-- Settings: account/security, addresses, chat, booking help, privacy explanation and logout. Account/security includes email-code password change and sign out all devices.
+- Settings: account/security, chat, booking help, privacy explanation and logout. Account/security includes email-code password change and account deletion. Addresses remain on the Profile page.
 - Feedback: customer snackbars are removed. Success/error feedback uses acknowledged OK dialogs. Confirmations describe the action before Cancel/OK. Inline retry controls remain available after an error. Simultaneous background errors do not stack dialogs over another route.
 
 ## Chat behavior
@@ -44,7 +44,7 @@ The audit found live grant/policy drift. The migration restores scoped `users`/`
 
 ## Added beyond the requested layout
 
-Optional bio/gender/birthday, unsaved-profile confirmation, chat blocking and a blocked-chat list, unread counts, message retry protection, abuse limits, recovery resend cooldown, and sign out all devices are included. All-device sign-out ends refresh sessions; already-issued access tokens may remain usable until their expiry. No unsupported wallet, credit, biometric, social-login or device-management controls are displayed.
+Optional bio/gender/birthday, unsaved-profile confirmation, chat blocking and a blocked-chat list, unread counts, message retry protection, abuse limits, recovery resend cooldown are included. The subsequent [customer UX fixes](customer-ux-fixes.md) replace all-device sign-out with password-confirmed account deletion. No unsupported wallet, credit, biometric, social-login or device-management controls are displayed.
 
 ## Verification and device acceptance
 

@@ -88,78 +88,78 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
       data: CustomerTheme.lightTheme,
       child: Scaffold(
         appBar: AppBar(title: const Text('Verify Account')),
-        body: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 16),
-              const Icon(
-                Icons.mark_email_read_outlined,
-                size: 64,
-                color: CustomerTheme.primary,
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'Enter Verification Code',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'A verification code was sent to:\n${widget.email}',
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: CustomerTheme.textSecondary,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 32),
-              TextField(
-                controller: _otpController,
-                keyboardType: TextInputType.number,
-                textAlign: TextAlign.center,
-                maxLength: 10,
-                style: const TextStyle(
-                  fontSize: 24,
-                  letterSpacing: 8,
-                  fontWeight: FontWeight.bold,
-                ),
-                decoration: const InputDecoration(
-                  hintText: '000000',
-                  counterText: '',
-                ),
-              ),
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _loading ? null : _verifyOtp,
-                child: _loading
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Text('Verify & Proceed'),
-              ),
-              const SizedBox(height: 12),
-              TextButton(
-                onPressed: _resending ? null : _resendCode,
-                child: _resending
-                    ? const SizedBox(
-                        height: 16,
-                        width: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text(
-                        'Resend Code',
-                        style: TextStyle(color: CustomerTheme.primary),
-                      ),
-              ),
-            ],
+        body: ListView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
           ),
+          padding: const EdgeInsets.all(24),
+          children: [
+            const SizedBox(height: 16),
+            const Icon(
+              Icons.mark_email_read_outlined,
+              size: 64,
+              color: CustomerTheme.primary,
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Enter Verification Code',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'A verification code was sent to:\n${widget.email}',
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                color: CustomerTheme.textSecondary,
+                fontSize: 14,
+              ),
+            ),
+            const SizedBox(height: 32),
+            TextField(
+              controller: _otpController,
+              keyboardType: TextInputType.number,
+              textAlign: TextAlign.center,
+              maxLength: 10,
+              style: const TextStyle(
+                fontSize: 24,
+                letterSpacing: 8,
+                fontWeight: FontWeight.bold,
+              ),
+              decoration: const InputDecoration(
+                hintText: '000000',
+                counterText: '',
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: _loading ? null : _verifyOtp,
+              child: _loading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
+                  : const Text('Verify & Proceed'),
+            ),
+            const SizedBox(height: 12),
+            TextButton(
+              onPressed: _resending ? null : _resendCode,
+              child: _resending
+                  ? const SizedBox(
+                      height: 16,
+                      width: 16,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text(
+                      'Resend Code',
+                      style: TextStyle(color: CustomerTheme.primary),
+                    ),
+            ),
+          ],
         ),
       ),
     );

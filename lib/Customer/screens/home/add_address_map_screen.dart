@@ -1,150 +1,195 @@
-import '../../widgets/customer_dialogs.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../core/customer_theme.dart';
+import '../../widgets/customer_dialogs.dart';
 import '../../services/customer_address_service.dart';
+import '../../services/customer_location_service.dart';
 
 class AddAddressMapScreen extends StatefulWidget {
-  const AddAddressMapScreen({super.key});
-
+  final CustomerAddressService? service;
+  final Future<LatLng> Function()? locate;
+  final Widget Function(BuildContext, ValueChanged<LatLng>)? mapBuilder;
+  const AddAddressMapScreen({
+    super.key,
+    this.service,
+    this.locate,
+    this.mapBuilder,
+  });
   @override
   State<AddAddressMapScreen> createState() => _AddAddressMapScreenState();
 }
 
 class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
-  final Completer<GoogleMapController> _controller = Completer();
-  final CustomerAddressService _addressService = CustomerAddressService();
-
-  // Default coordinate: Kuala Lumpur City Center
-  static const LatLng _initialPosition = LatLng(3.1579, 101.7116);
+  final _map = MapController();
+  late final _addressService = widget.service ?? CustomerAddressService();
+  static const _initialPosition = LatLng(3.1579, 101.7116);
   LatLng _currentPosition = _initialPosition;
-
-  final TextEditingController _searchController = TextEditingController();
-  final TextEditingController _addressLineController = TextEditingController();
-  final TextEditingController _cityController = TextEditingController();
-  final TextEditingController _stateController = TextEditingController();
-  final TextEditingController _postcodeController = TextEditingController();
-
+  final _searchController = TextEditingController();
+  final _addressLineController = TextEditingController();
+  final _cityController = TextEditingController();
+  final _stateController = TextEditingController();
+  final _postcodeController = TextEditingController();
   String _selectedLabel = 'Home';
-  bool _isDefault = true;
-  bool _isFetchingLocation = false;
-  bool _isSaving = false;
-  Timer? _debounceTimer;
-  int _lookupVersion = 0;
+  bool _isDefault = true,
+      _isFetchingLocation = false,
+      _isSaving = false,
+      _locating = false;
+  bool _mapReady = false;
+  Timer? _debounce;
+  int _version = 0;
 
   @override
   void initState() {
     super.initState();
-    _triggerReverseGeocode(
-      _initialPosition.latitude,
-      _initialPosition.longitude,
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _myLocation();
+    });
   }
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
-    _searchController.dispose();
-    _addressLineController.dispose();
-    _cityController.dispose();
-    _stateController.dispose();
-    _postcodeController.dispose();
+    _debounce?.cancel();
+    _map.dispose();
+    for (final c in [
+      _searchController,
+      _addressLineController,
+      _cityController,
+      _stateController,
+      _postcodeController,
+    ]) {
+      c.dispose();
+    }
     super.dispose();
   }
 
-  void _onCameraMove(CameraPosition position) {
-    ++_lookupVersion;
-    _currentPosition = position.target;
-  }
-
-  void _onCameraIdle() {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 1100), () {
-      _triggerReverseGeocode(
-        _currentPosition.latitude,
-        _currentPosition.longitude,
-      );
-    });
-  }
-
-  Future<void> _triggerReverseGeocode(double lat, double lng) async {
-    final version = ++_lookupVersion;
-    final previous = [
-      _addressLineController.text,
-      _cityController.text,
-      _stateController.text,
-      _postcodeController.text,
-    ];
-    setState(() => _isFetchingLocation = true);
-    final data = await _addressService.reverseGeocode(lat, lng);
-    if (!mounted || version != _lookupVersion) return;
-
+  Future<void> _myLocation() async {
+    if (_locating) return;
+    final version = ++_version;
+    _debounce?.cancel();
     setState(() {
-      final controllers = [
-        _addressLineController,
-        _cityController,
-        _stateController,
-        _postcodeController,
-      ];
-      final keys = ['addressLine', 'city', 'state', 'postcode'];
-      for (var i = 0; i < controllers.length; i++) {
-        final value = data[keys[i]] ?? '';
-        // Preserve manual edits made while the lookup was in flight.
-        if (value.isNotEmpty && controllers[i].text == previous[i])
-          controllers[i].text = value;
-      }
+      _locating = true;
       _isFetchingLocation = false;
     });
-    if ((data['addressLine'] ?? '').isEmpty) {
-      CustomerDialogs.show(
-        context,
-        message:
-            'Address lookup is unavailable. Enter the address details manually.',
-      );
+    try {
+      final point =
+          await (widget.locate ?? CustomerLocationService.currentPosition)();
+      if (!mounted || version != _version) return;
+      _select(point, move: true);
+    } catch (e) {
+      if (mounted && version == _version) {
+        setState(() => _locating = false);
+        await CustomerDialogs.error(context, e);
+      }
+    } finally {
+      if (mounted && version == _version) setState(() => _locating = false);
     }
   }
 
-  Future<void> _searchAndAnimateMap() async {
+  void _select(LatLng point, {bool move = false}) {
+    final version = ++_version;
+    _debounce?.cancel();
+    setState(() {
+      _locating = false;
+      _currentPosition = point;
+      _isFetchingLocation = true;
+    });
+    if (move && _mapReady) _map.move(point, 17);
+    _debounce = Timer(
+      const Duration(milliseconds: 700),
+      () => _lookup(point, version),
+    );
+  }
+
+  Future<void> _lookup(LatLng point, int version) async {
+    final controllers = [
+      _addressLineController,
+      _cityController,
+      _stateController,
+      _postcodeController,
+    ];
+    final before = controllers.map((c) => c.text).toList();
+    try {
+      final data = await _addressService.reverseGeocode(
+        point.latitude,
+        point.longitude,
+      );
+      if (!mounted || version != _version) return;
+      final keys = ['addressLine', 'city', 'state', 'postcode'];
+      for (var i = 0; i < controllers.length; i++) {
+        // Clear missing fields from the previous location, but keep edits made during lookup.
+        if (controllers[i].text == before[i])
+          controllers[i].text = data[keys[i]] ?? '';
+      }
+      setState(() => _isFetchingLocation = false);
+      if ((data['addressLine'] ?? '').isEmpty) {
+        await CustomerDialogs.show(
+          context,
+          message:
+              'No address was found for this pin. Please enter the address details.',
+        );
+      }
+    } catch (e) {
+      if (!mounted || version != _version) return;
+      for (var i = 0; i < controllers.length; i++) {
+        if (controllers[i].text == before[i]) controllers[i].clear();
+      }
+      setState(() => _isFetchingLocation = false);
+      await CustomerDialogs.error(context, e);
+    }
+  }
+
+  Future<void> _search() async {
     final query = _searchController.text.trim();
     if (query.isEmpty) return;
-    final version = ++_lookupVersion;
-
+    final version = ++_version;
+    _debounce?.cancel();
     FocusScope.of(context).unfocus();
     setState(() => _isFetchingLocation = true);
-
-    final result = await _addressService.searchLocation(query);
-    if (!mounted || version != _lookupVersion) return;
-
-    if (result != null) {
-      final lat = result['lat'] as double;
-      final lng = result['lng'] as double;
-      final target = LatLng(lat, lng);
-      _currentPosition = target;
-
-      final GoogleMapController controller = await _controller.future;
-      if (!mounted || version != _lookupVersion) return;
-      controller.animateCamera(CameraUpdate.newLatLngZoom(target, 17));
-
-      _triggerReverseGeocode(lat, lng);
-    } else {
-      setState(() => _isFetchingLocation = false);
-      CustomerDialogs.show(
-        context,
-        message: 'Address not found in Malaysia. Please adjust pin manually.',
-      );
+    try {
+      final result = await _addressService.searchLocation(query);
+      if (!mounted || version != _version) return;
+      if (result == null) {
+        setState(() => _isFetchingLocation = false);
+        await CustomerDialogs.show(
+          context,
+          message:
+              'Address not found in Malaysia. Try a nearby street or building.',
+        );
+      } else {
+        _select(
+          LatLng(result['lat'] as double, result['lng'] as double),
+          move: true,
+        );
+      }
+    } catch (e) {
+      if (mounted && version == _version) {
+        setState(() => _isFetchingLocation = false);
+        await CustomerDialogs.error(context, e);
+      }
     }
   }
 
   Future<void> _saveAddress() async {
-    if (_addressLineController.text.trim().isEmpty) {
-      CustomerDialogs.show(context, message: 'Please enter an address line');
+    if ([
+          _addressLineController,
+          _cityController,
+          _stateController,
+          _postcodeController,
+        ].any((c) => c.text.trim().isEmpty) ||
+        !RegExp(r'^\d{5}$').hasMatch(_postcodeController.text.trim())) {
+      await CustomerDialogs.show(
+        context,
+        message:
+            'Please enter the address, city, state and a five-digit Malaysian postcode.',
+      );
       return;
     }
-
     setState(() => _isSaving = true);
     try {
-      final newAddress = await _addressService.addAddress(
+      final address = await _addressService.addAddress(
         label: _selectedLabel,
         addressLine: _addressLineController.text.trim(),
         city: _cityController.text.trim(),
@@ -154,283 +199,299 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
         longitude: _currentPosition.longitude,
         isDefault: _isDefault,
       );
-
       if (!mounted) return;
-      await CustomerDialogs.show(context, title: 'Success', message: 'Address saved successfully.');
-      if (!mounted) return;
-      Navigator.pop(context, newAddress);
+      setState(() => _isSaving = false);
+      await CustomerDialogs.show(
+        context,
+        title: 'Success',
+        message: 'Address saved successfully.',
+      );
+      if (mounted) Navigator.pop(context, address);
     } catch (e) {
-      if (!mounted) return;
-      CustomerDialogs.error(context, e);
+      if (mounted) {
+        setState(() => _isSaving = false);
+        await CustomerDialogs.error(context, e);
+      }
     } finally {
       if (mounted) setState(() => _isSaving = false);
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Theme(
-      data: CustomerTheme.lightTheme,
-      child: Scaffold(
-        resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          title: const Text('Add Service Location'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: Stack(
+  Widget build(BuildContext context) => Theme(
+    data: CustomerTheme.lightTheme,
+    child: Scaffold(
+      appBar: AppBar(title: const Text('Add Service Location')),
+      body: LayoutBuilder(
+        builder: (context, bounds) => Stack(
           children: [
-            // 1. Google Map View
-            GoogleMap(
-              initialCameraPosition: const CameraPosition(
-                target: _initialPosition,
-                zoom: 16.0,
-              ),
-              onMapCreated: (GoogleMapController controller) {
-                _controller.complete(controller);
-              },
-              onCameraMove: _onCameraMove,
-              onCameraIdle: _onCameraIdle,
-              myLocationEnabled: false,
-              myLocationButtonEnabled: false,
-              zoomControlsEnabled: false,
-            ),
-
-            // 2. Fixed Center Pin
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 35),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
+            // A fixed map viewport: resizing/scrolling the card never changes its camera.
+            SizedBox(
+              height: bounds.maxHeight * .6,
+              child:
+                  widget.mapBuilder?.call(context, _select) ??
+                  FlutterMap(
+                    mapController: _map,
+                    options: MapOptions(
+                      initialCenter: _initialPosition,
+                      initialZoom: 16,
+                      maxZoom: 19,
+                      onMapReady: () {
+                        _mapReady = true;
+                        _map.move(_currentPosition, 16);
+                      },
+                      onTap: (_, point) => _select(point),
+                      onPositionChanged: (camera, gesture) {
+                        if (gesture) _select(camera.center);
+                      },
+                      interactionOptions: const InteractionOptions(
+                        flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.black87,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        _isFetchingLocation
-                            ? 'Locating...'
-                            : 'Set service location',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 11,
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: const String.fromEnvironment(
+                          'MAP_TILE_URL',
+                          defaultValue:
+                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                         ),
+                        userAgentPackageName: 'com.locallife.fyp2',
+                        maxNativeZoom: 19,
                       ),
-                    ),
-                    const Icon(
-                      Icons.location_pin,
-                      size: 48,
-                      color: CustomerTheme.primary,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-
-            // 3. Top Search Box for Forward Geocoding
-            Positioned(
-              top: 16,
-              left: 16,
-              right: 16,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(14),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.12),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: TextField(
-                  controller: _searchController,
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (_) => _searchAndAnimateMap(),
-                  decoration: InputDecoration(
-                    hintText: 'Search area or building (e.g. Astrum Ampang)...',
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: CustomerTheme.primary,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: const Icon(
-                        Icons.arrow_forward_rounded,
-                        color: CustomerTheme.primary,
-                      ),
-                      onPressed: _searchAndAnimateMap,
-                    ),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                ),
-              ),
-            ),
-
-            // 4. Bottom Form Card
-            DraggableScrollableSheet(
-              initialChildSize: 0.45,
-              minChildSize: 0.22,
-              maxChildSize: 0.85,
-              builder: (ctx, scrollController) {
-                return Container(
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(24),
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black12,
-                        blurRadius: 16,
-                        offset: Offset(0, -4),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: _currentPosition,
+                            width: 48,
+                            height: 48,
+                            alignment: Alignment.topCenter,
+                            child: const IgnorePointer(
+                              child: Icon(
+                                Icons.location_pin,
+                                color: CustomerTheme.primary,
+                                size: 48,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  child: ListView(
-                    controller: scrollController,
-                    padding: const EdgeInsets.all(20),
-                    children: [
-                      Center(
-                        child: Container(
-                          width: 36,
-                          height: 4,
-                          decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
-                            borderRadius: BorderRadius.circular(10),
+            ),
+            Positioned(
+              top: 10,
+              left: 12,
+              right: 12,
+              child: Column(
+                children: [
+                  Material(
+                    elevation: 3,
+                    borderRadius: BorderRadius.circular(12),
+                    child: TextField(
+                      controller: _searchController,
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => _search(),
+                      decoration: InputDecoration(
+                        hintText: 'Search street or building',
+                        prefixIcon: const Icon(Icons.search),
+                        suffixIcon: IconButton(
+                          tooltip: 'Search address',
+                          onPressed: _search,
+                          icon: const Icon(Icons.arrow_forward),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton.icon(
+                      onPressed: _locating ? null : _myLocation,
+                      style: TextButton.styleFrom(
+                        backgroundColor: Colors.white,
+                      ),
+                      icon: const Icon(Icons.my_location),
+                      label: Text(_locating ? 'Locating…' : 'My location'),
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Material(
+                      color: Colors.white,
+                      child: InkWell(
+                        onTap: () => launchUrl(
+                          Uri.parse('https://www.openstreetmap.org/copyright'),
+                        ),
+                        child: const Padding(
+                          padding: EdgeInsets.all(4),
+                          child: Text(
+                            '© OpenStreetMap contributors',
+                            style: TextStyle(fontSize: 11),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 14),
-                      Row(
-                        children: [
-                          const Text(
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            DraggableScrollableSheet(
+              initialChildSize: .45,
+              minChildSize: .4,
+              maxChildSize: .85,
+              builder: (context, scroll) => Material(
+                key: const ValueKey('address-details-card'),
+                color: Colors.white,
+                elevation: 8,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: ListView(
+                  controller: scroll,
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
+                  padding: EdgeInsets.fromLTRB(
+                    20,
+                    12,
+                    20,
+                    20 + MediaQuery.paddingOf(context).bottom,
+                  ),
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        color: Colors.grey.shade300,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Expanded(
+                          child: Text(
                             'Address Details',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const Spacer(),
-                          if (_isFetchingLocation)
-                            const SizedBox(
-                              width: 16,
-                              height: 16,
+                        ),
+                        if (_isFetchingLocation || _locating)
+                          const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                      ],
+                    ),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      child: Text(
+                        'Review the pin and address. Add your unit or floor number if needed.',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                    ),
+                    // Label Selector (Home, Office, Other)
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: ['Home', 'Office', 'Other'].map((label) {
+                        final isSelected = _selectedLabel == label;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(label),
+                            selected: isSelected,
+                            selectedColor: CustomerTheme.primarySurface,
+                            labelStyle: TextStyle(
+                              color: isSelected
+                                  ? CustomerTheme.primary
+                                  : CustomerTheme.textPrimary,
+                              fontWeight: isSelected
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                            ),
+                            side: BorderSide(
+                              color: isSelected
+                                  ? CustomerTheme.primary
+                                  : CustomerTheme.borderColor,
+                            ),
+                            onSelected: (_) =>
+                                setState(() => _selectedLabel = label),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 14),
+                    TextField(
+                      controller: _addressLineController,
+                      decoration: const InputDecoration(
+                        labelText: 'Address Line / Unit No.',
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _cityController,
+                            decoration: const InputDecoration(
+                              labelText: 'City',
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: TextField(
+                            controller: _postcodeController,
+                            keyboardType: TextInputType.number,
+                            decoration: const InputDecoration(
+                              labelText: 'Postcode',
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 10),
+                    TextField(
+                      controller: _stateController,
+                      decoration: const InputDecoration(labelText: 'State'),
+                    ),
+                    const SizedBox(height: 10),
+                    SwitchListTile(
+                      contentPadding: EdgeInsets.zero,
+                      activeThumbColor: CustomerTheme.primary,
+                      title: const Text(
+                        'Set as default service address',
+                        style: TextStyle(fontSize: 14),
+                      ),
+                      value: _isDefault,
+                      onChanged: (val) => setState(() => _isDefault = val),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: _isSaving || _isFetchingLocation || _locating
+                          ? null
+                          : _saveAddress,
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
                               child: CircularProgressIndicator(
+                                color: Colors.white,
                                 strokeWidth: 2,
-                                color: CustomerTheme.primary,
                               ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      // Label Selector (Home, Office, Other)
-                      Row(
-                        children: ['Home', 'Office', 'Other'].map((label) {
-                          final isSelected = _selectedLabel == label;
-                          return Padding(
-                            padding: const EdgeInsets.only(right: 8),
-                            child: ChoiceChip(
-                              label: Text(label),
-                              selected: isSelected,
-                              selectedColor: CustomerTheme.primarySurface,
-                              labelStyle: TextStyle(
-                                color: isSelected
-                                    ? CustomerTheme.primary
-                                    : CustomerTheme.textPrimary,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                              side: BorderSide(
-                                color: isSelected
-                                    ? CustomerTheme.primary
-                                    : CustomerTheme.borderColor,
-                              ),
-                              onSelected: (_) =>
-                                  setState(() => _selectedLabel = label),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 14),
-                      TextField(
-                        controller: _addressLineController,
-                        decoration: const InputDecoration(
-                          labelText: 'Address Line / Unit No.',
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: TextField(
-                              controller: _cityController,
-                              decoration: const InputDecoration(
-                                labelText: 'City',
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: TextField(
-                              controller: _postcodeController,
-                              keyboardType: TextInputType.number,
-                              decoration: const InputDecoration(
-                                labelText: 'Postcode',
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        controller: _stateController,
-                        decoration: const InputDecoration(labelText: 'State'),
-                      ),
-                      const SizedBox(height: 10),
-                      SwitchListTile(
-                        contentPadding: EdgeInsets.zero,
-                        activeColor: CustomerTheme.primary,
-                        title: const Text(
-                          'Set as default service address',
-                          style: TextStyle(fontSize: 14),
-                        ),
-                        value: _isDefault,
-                        onChanged: (val) => setState(() => _isDefault = val),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: _isSaving || _isFetchingLocation
-                            ? null
-                            : _saveAddress,
-                        child: _isSaving
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : const Text('Save & Select Address'),
-                      ),
-                    ],
-                  ),
-                );
-              },
+                            )
+                          : const Text('Save & Select Address'),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
 }

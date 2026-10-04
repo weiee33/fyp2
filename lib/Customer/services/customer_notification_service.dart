@@ -16,11 +16,13 @@ class CustomerNotificationService {
     final rows = await _client
         .from('notifications')
         .select(
-          'notification_id, booking_id, deep_link, notification_type, title, message, is_read, created_at',
+          'notification_id, booking_id, deep_link, notification_type, title, message, is_read, is_pinned, created_at',
         )
         .eq('user_id', uid)
         .isFilter('dismissed_at', null)
-        .order('created_at', ascending: false);
+        .order('is_pinned', ascending: false)
+        .order('created_at', ascending: false)
+        .order('notification_id');
     return List<Map<String, dynamic>>.from(rows);
   }
 
@@ -43,6 +45,13 @@ class CustomerNotificationService {
         .eq('user_id', uid)
         .isFilter('dismissed_at', null)
         .eq('is_read', false);
+  }
+
+  Future<void> setPinned(String id, bool pinned) async {
+    await _client.rpc(
+      'customer_notification_pin',
+      params: {'p_notification_id': id, 'p_pinned': pinned},
+    );
   }
 
   Future<void> deleteNotification(String notificationId) async {

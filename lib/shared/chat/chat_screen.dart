@@ -1,3 +1,4 @@
+import '../../Customer/widgets/customer_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../Customer/core/customer_theme.dart';
@@ -265,11 +266,6 @@ class _ConversationState extends State<ConversationScreen> {
       appBar: AppBar(
         title: Text(_name, overflow: TextOverflow.ellipsis),
         actions: [
-          IconButton(
-            tooltip: 'Refresh chat',
-            onPressed: _id == null ? _start : _refresh,
-            icon: const Icon(Icons.refresh),
-          ),
           PopupMenuButton<String>(
             onSelected: (_) => _toggleBlock(),
             itemBuilder: (_) => [
@@ -304,62 +300,77 @@ class _ConversationState extends State<ConversationScreen> {
             Expanded(
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
-                  : _messages.isEmpty
-                  ? const Center(child: Text('Start the conversation.'))
-                  : ListView.builder(
-                      controller: _scroll,
-                      reverse: true,
-                      padding: const EdgeInsets.all(12),
-                      itemCount: _messages.length + (_more ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == _messages.length) {
-                          return TextButton(
-                            onPressed: _olderLoading ? null : _older,
-                            child: Text(
-                              _olderLoading
-                                  ? 'Loading…'
-                                  : 'Load earlier messages',
+                  : CustomerRefresh(
+                      onRefresh: _id == null ? _start : _refresh,
+                      child: ListView.builder(
+                        physics: const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
+                        controller: _scroll,
+                        reverse: true,
+                        padding: const EdgeInsets.all(12),
+                        itemCount: _messages.isEmpty
+                            ? 1
+                            : _messages.length + (_more ? 1 : 0),
+                        itemBuilder: (context, index) {
+                          if (_messages.isEmpty)
+                            return const Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Center(
+                                child: Text('Start the conversation.'),
+                              ),
+                            );
+                          if (index == _messages.length) {
+                            return TextButton(
+                              onPressed: _olderLoading ? null : _older,
+                              child: Text(
+                                _olderLoading
+                                    ? 'Loading…'
+                                    : 'Load earlier messages',
+                              ),
+                            );
+                          }
+                          final m = _messages[index],
+                              mine = m['is_mine'] == true;
+                          final date = DateTime.tryParse(
+                            m['created_at'].toString(),
+                          )?.toLocal();
+                          return Align(
+                            alignment: mine
+                                ? Alignment.centerRight
+                                : Alignment.centerLeft,
+                            child: Container(
+                              constraints: BoxConstraints(
+                                maxWidth:
+                                    MediaQuery.sizeOf(context).width * .78,
+                              ),
+                              margin: const EdgeInsets.only(bottom: 10),
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: mine
+                                    ? CustomerTheme.primarySurface
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  SelectableText(m['body'].toString()),
+                                  const SizedBox(height: 4),
+                                  if (date != null)
+                                    Text(
+                                      DateFormat('d MMM, HH:mm').format(date),
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                ],
+                              ),
                             ),
                           );
-                        }
-                        final m = _messages[index], mine = m['is_mine'] == true;
-                        final date = DateTime.tryParse(
-                          m['created_at'].toString(),
-                        )?.toLocal();
-                        return Align(
-                          alignment: mine
-                              ? Alignment.centerRight
-                              : Alignment.centerLeft,
-                          child: Container(
-                            constraints: BoxConstraints(
-                              maxWidth: MediaQuery.sizeOf(context).width * .78,
-                            ),
-                            margin: const EdgeInsets.only(bottom: 10),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: mine
-                                  ? CustomerTheme.primarySurface
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                SelectableText(m['body'].toString()),
-                                const SizedBox(height: 4),
-                                if (date != null)
-                                  Text(
-                                    DateFormat('d MMM, HH:mm').format(date),
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.black54,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
+                        },
+                      ),
                     ),
             ),
             if (!_loading && !_canSend)

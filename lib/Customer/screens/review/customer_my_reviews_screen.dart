@@ -1,3 +1,4 @@
+import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
@@ -58,10 +59,12 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
             ),
           );
         final rows = snapshot.data ?? [];
-        return RefreshIndicator(
+        return CustomerRefresh(
           onRefresh: _reload,
           child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             padding: const EdgeInsets.all(16),
             children: rows.isEmpty
                 ? [

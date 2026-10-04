@@ -183,6 +183,9 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
       body: AbsorbPointer(
         absorbing: _saving,
         child: ListView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(20),
           children: [
             Text(

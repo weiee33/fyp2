@@ -119,6 +119,9 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
     return Scaffold(
       appBar: AppBar(title: const Text('Payment')),
       body: ListView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         padding: const EdgeInsets.all(24),
         children: [
           if (_loading || _processing) const LinearProgressIndicator(),

@@ -6,3 +6,9 @@ verify_jwt = false
 
 [functions.payment-return]
 verify_jwt = false
+
+[functions.customer-delete-account]
+verify_jwt = true
+
+[functions.customer-geocode]
+verify_jwt = true

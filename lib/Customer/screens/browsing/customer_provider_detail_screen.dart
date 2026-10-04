@@ -1,3 +1,4 @@
+import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import '../../../shared/chat/chat_screen.dart';
 import 'package:flutter/material.dart';
@@ -97,10 +98,12 @@ class _CustomerProviderDetailScreenState
           ),
         ],
       ),
-      body: RefreshIndicator(
+      body: CustomerRefresh(
         onRefresh: _fetch,
         child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(20),
           children: [
             if (_loading) const LinearProgressIndicator(),

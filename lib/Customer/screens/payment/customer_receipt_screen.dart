@@ -57,6 +57,9 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
     return Scaffold(
       appBar: AppBar(title: const Text('Payment receipt')),
       body: ListView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         padding: const EdgeInsets.all(24),
         children: [
           if (_error != null) ...[

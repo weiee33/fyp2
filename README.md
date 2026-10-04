@@ -37,6 +37,8 @@ Refund requests do not move funds. Notifications are recorded and email delivery
 
 See [Chapter 4 coverage and added features](docs/admin-modules.md), [database audit](docs/database-audit/README.md), and [setup/deployment](docs/admin-setup.md).
 
+See [Customer location and account UX fixes](docs/customer-ux-fixes.md) for OpenStreetMap, notification gestures, account deletion and device checks.
+
 ## Verification
 
 Customer account, recovery, settings and provider chat setup/acceptance checks are in [Customer account and chat](docs/customer-account-chat.md). The Supabase recovery email template is versioned in `supabase/templates/recovery.html`.
