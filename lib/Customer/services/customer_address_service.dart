@@ -1,5 +1,3 @@
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CustomerAddressService {
@@ -62,63 +60,36 @@ class CustomerAddressService {
     );
   }
 
-  /// Reverse geocode coordinates using OpenStreetMap Nominatim
-  Future<Map<String, String>> reverseGeocode(double lat, double lng) async {
-    try {
-      final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/reverse?format=json&lat=$lat&lon=$lng&zoom=18&addressdetails=1',
-      );
-      final res = await http
-          .get(url, headers: {'User-Agent': 'LocalLifeApp/1.0'})
-          .timeout(const Duration(seconds: 10));
-
-      if (res.statusCode == 200) {
-        final data = jsonDecode(res.body);
-        final addr = data['address'] as Map<String, dynamic>? ?? {};
-
-        final road = addr['road'] ?? addr['suburb'] ?? '';
-        final building = addr['building'] ?? addr['house_number'] ?? '';
-        final addressLine = building.isNotEmpty
-            ? '$building, $road'
-            : (road.isNotEmpty ? road : (data['display_name'] ?? ''));
-        final city = addr['city'] ?? addr['town'] ?? addr['municipality'] ?? '';
-        final state = addr['state'] ?? '';
-        final postcode = addr['postcode'] ?? '';
-
-        return {
-          'addressLine': addressLine.toString().trim(),
-          'city': city.toString().trim(),
-          'state': state.toString().trim(),
-          'postcode': postcode.toString().trim(),
-        };
+  Future<dynamic> _lookup(Map<String, dynamic> body) async {
+    for (var attempt = 0; attempt < 3; attempt++) {
+      try {
+        return (await _client.functions.invoke(
+          'customer-geocode',
+          body: body,
+        )).data;
+      } on FunctionException catch (e) {
+        if (e.status == 429 && attempt < 2) {
+          await Future<void>.delayed(const Duration(seconds: 2));
+          continue;
+        }
+        throw FormatException(
+          e.details is Map
+              ? e.details['error']?.toString() ??
+                    'Address lookup is unavailable.'
+              : 'Address lookup is unavailable. Enter the address manually.',
+        );
       }
-    } catch (_) {}
-
-    return {'addressLine': '', 'city': '', 'state': '', 'postcode': ''};
+    }
+    throw const FormatException('Address lookup is busy. Please retry.');
   }
 
-  /// Forward geocode query to Lat/Lng
-  Future<Map<String, dynamic>?> searchLocation(String query) async {
-    try {
-      final url = Uri.parse(
-        'https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(query)}&countrycodes=my&limit=1',
-      );
-      final res = await http
-          .get(url, headers: {'User-Agent': 'LocalLifeApp/1.0'})
-          .timeout(const Duration(seconds: 10));
+  Future<Map<String, String>> reverseGeocode(double lat, double lng) async {
+    final data = await _lookup({'kind': 'reverse', 'lat': lat, 'lng': lng});
+    return Map<String, String>.from(data as Map);
+  }
 
-      if (res.statusCode == 200) {
-        final List list = jsonDecode(res.body);
-        if (list.isNotEmpty) {
-          final first = list.first;
-          return {
-            'lat': double.parse(first['lat']),
-            'lng': double.parse(first['lon']),
-            'displayName': first['display_name'],
-          };
-        }
-      }
-    } catch (_) {}
-    return null;
+  Future<Map<String, dynamic>?> searchLocation(String query) async {
+    final data = await _lookup({'kind': 'search', 'query': query});
+    return data == null ? null : Map<String, dynamic>.from(data as Map);
   }
 }

@@ -352,7 +352,9 @@ void main() {
       expect(find.text('Wei Ee'), findsOneWidget);
       expect(find.text('Notifications'), findsOneWidget);
       expect(find.text('Explore'), findsOneWidget);
-      expect(find.byTooltip('Account settings'), findsOneWidget);
+      expect(find.byTooltip('Account settings'), findsNothing);
+      expect(find.text('Edit your profile  ›'), findsNothing);
+      expect(find.text('Account & Security'), findsNothing);
       expect(find.text('My Addresses'), findsOneWidget);
       expect(t.takeException(), isNull);
       await proof(t, 'profile');
@@ -557,7 +559,7 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('Cleared old message'), findsOneWidget);
     cleared = 1;
-    await t.tap(find.byTooltip('Refresh chat'));
+    await t.drag(find.byType(ListView).first, const Offset(0, -350));
     await t.pumpAndSettle();
     expect(find.text('Cleared old message'), findsNothing);
     expect(find.text('New reply'), findsOneWidget);

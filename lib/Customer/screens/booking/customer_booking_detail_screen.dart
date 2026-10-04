@@ -1,3 +1,4 @@
+import '../../widgets/customer_refresh.dart';
 import '../../../shared/chat/chat_screen.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -126,6 +127,9 @@ class _CustomerBookingDetailScreenState
       builder: (ctx) => AlertDialog(
         title: const Text('Request booking support'),
         content: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
           child: Form(
             key: form,
             child: Column(
@@ -209,20 +213,16 @@ class _CustomerBookingDetailScreenState
             ),
             icon: const Icon(Icons.chat_bubble_outline),
           ),
-
-          IconButton(
-            onPressed: _loading || _acting ? null : _load,
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh booking',
-          ),
         ],
       ),
       body: _loading && booking == null
           ? const Center(child: CircularProgressIndicator())
-          : RefreshIndicator(
+          : CustomerRefresh(
               onRefresh: _load,
               child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 padding: const EdgeInsets.all(20),
                 children: [
                   if (_error != null) ...[

@@ -1,3 +1,4 @@
+import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../services/customer_address_service.dart';
@@ -120,10 +121,12 @@ class _CustomerSavedAddressesScreenState
             ),
           );
         final rows = snapshot.data ?? [];
-        return RefreshIndicator(
+        return CustomerRefresh(
           onRefresh: _reload,
           child: ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
             children: [
               if (_busy) const LinearProgressIndicator(),

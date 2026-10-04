@@ -1,3 +1,4 @@
+import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../models/booking_model.dart';
@@ -66,20 +67,13 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(
-      title: const Text('My bookings'),
-      actions: [
-        IconButton(
-          onPressed: _loading ? null : () => _load(reset: true),
-          icon: const Icon(Icons.refresh),
-          tooltip: 'Refresh bookings',
-        ),
-      ],
-    ),
-    body: RefreshIndicator(
+    appBar: AppBar(title: const Text('My bookings'), actions: []),
+    body: CustomerRefresh(
       onRefresh: () => _load(reset: true),
       child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         padding: const EdgeInsets.all(16),
         children: [
           if (_loading && _bookings.isEmpty)

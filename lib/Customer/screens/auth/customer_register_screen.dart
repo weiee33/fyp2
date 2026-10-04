@@ -100,6 +100,9 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
         appBar: AppBar(title: const Text('Create Customer Account')),
         body: SafeArea(
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,

@@ -1,3 +1,4 @@
+import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
@@ -132,6 +133,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             ),
             Expanded(
               child: ListView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 children: [
                   if (_addresses.isEmpty)
                     const Padding(
@@ -201,10 +205,12 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   @override
   Widget build(BuildContext context) => Scaffold(
     backgroundColor: CustomerTheme.background,
-    body: RefreshIndicator(
+    body: CustomerRefresh(
       onRefresh: _load,
       child: ListView(
-        physics: const AlwaysScrollableScrollPhysics(),
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
         children: [
           _header(),
           if (_loading) const LinearProgressIndicator(),

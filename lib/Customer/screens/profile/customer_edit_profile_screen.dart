@@ -346,6 +346,9 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       body: _isSaving
           ? const Center(child: CircularProgressIndicator())
           : ListView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               padding: const EdgeInsets.all(10),
               children: [
                 AccountGroup(

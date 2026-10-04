@@ -86,6 +86,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics(),
+            ),
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,

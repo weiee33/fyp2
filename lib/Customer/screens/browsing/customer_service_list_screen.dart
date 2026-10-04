@@ -1,3 +1,4 @@
+import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
@@ -187,11 +188,13 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
             ),
           ),
         Expanded(
-          child: RefreshIndicator(
+          child: CustomerRefresh(
             onRefresh: _fetch,
             child: ListView(
               key: const PageStorageKey('service-results'),
-              physics: const AlwaysScrollableScrollPhysics(),
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
               padding: const EdgeInsets.all(16),
               children: [
                 if (_loading && _services.isEmpty)
@@ -357,6 +360,9 @@ class _FilterSheetState extends State<_FilterSheet> {
 
   @override
   Widget build(BuildContext context) => SingleChildScrollView(
+    physics: const BouncingScrollPhysics(
+      parent: AlwaysScrollableScrollPhysics(),
+    ),
     padding: EdgeInsets.fromLTRB(
       20,
       20,

@@ -1,3 +1,4 @@
+import '../../Customer/widgets/customer_refresh.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../Customer/core/customer_theme.dart';
@@ -158,11 +159,6 @@ class _InboxState extends State<ChatInboxScreen> {
             },
             icon: Icon(_blockedOnly ? Icons.chat_bubble_outline : Icons.block),
           ),
-          IconButton(
-            tooltip: 'Refresh chats',
-            onPressed: _load,
-            icon: const Icon(Icons.refresh),
-          ),
         ],
       ),
       body: Column(
@@ -192,10 +188,12 @@ class _InboxState extends State<ChatInboxScreen> {
             ),
           ),
           Expanded(
-            child: RefreshIndicator(
+            child: CustomerRefresh(
               onRefresh: _load,
               child: ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 children: [
                   if (_loading)
                     const Center(child: CircularProgressIndicator()),
