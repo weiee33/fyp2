@@ -1,3 +1,4 @@
+import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,6 @@ import '../../services/customer_browsing_service.dart';
 import 'add_address_map_screen.dart';
 import '../browsing/customer_service_list_screen.dart';
 import '../browsing/customer_provider_detail_screen.dart';
-import '../../../shared/chat/chat_inbox_screen.dart';
 
 class CustomerHomeScreen extends StatefulWidget {
   final CustomerHomeService? homeService;
@@ -372,14 +372,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ],
               ),
             ),
-            IconButton(
-              tooltip: 'Chats',
-              icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ChatInboxScreen()),
-              ),
-            ),
+            const CustomerChatButton(color: Colors.white),
           ],
         ),
         const SizedBox(height: 12),

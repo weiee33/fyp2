@@ -1,3 +1,5 @@
+import '../../services/customer_notification_service.dart';
+import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../../shared/chat/chat_screen.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -53,6 +55,16 @@ class _CustomerBookingDetailScreenState
     try {
       final booking = await _transactions.getBooking(widget.bookingId);
       if (mounted) setState(() => _booking = booking);
+      if (mounted &&
+          _transactions.usesLiveBackend &&
+          ModalRoute.of(context)?.isCurrent == true) {
+        try {
+          await CustomerNotificationService().markBookingRead(widget.bookingId);
+          await CustomerActivityCounts.shared.refresh();
+        } catch (_) {
+          /* Realtime/reopen retries acknowledgement. */
+        }
+      }
     } catch (error) {
       if (mounted) {
         setState(() => _error = bookingError(error));

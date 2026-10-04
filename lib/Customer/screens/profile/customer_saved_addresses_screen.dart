@@ -5,7 +5,8 @@ import '../../services/customer_address_service.dart';
 import '../home/add_address_map_screen.dart';
 
 class CustomerSavedAddressesScreen extends StatefulWidget {
-  const CustomerSavedAddressesScreen({super.key});
+  final CustomerAddressService? service;
+  const CustomerSavedAddressesScreen({super.key, this.service});
   @override
   State<CustomerSavedAddressesScreen> createState() =>
       _CustomerSavedAddressesScreenState();
@@ -13,7 +14,7 @@ class CustomerSavedAddressesScreen extends StatefulWidget {
 
 class _CustomerSavedAddressesScreenState
     extends State<CustomerSavedAddressesScreen> {
-  final _service = CustomerAddressService();
+  late final _service = widget.service ?? CustomerAddressService();
   late Future<List<Map<String, dynamic>>> _addresses;
   bool _busy = false;
   @override
@@ -33,7 +34,9 @@ class _CustomerSavedAddressesScreenState
 
   Future<void> _reload() async {
     final future = _fetchRows();
-    setState(() => _addresses = future);
+    setState(() {
+      _addresses = future;
+    });
     try {
       await future;
     } catch (_) {
@@ -54,12 +57,11 @@ class _CustomerSavedAddressesScreenState
           message: 'Address updated successfully.',
         );
       }
-    } catch (_) {
-      if (mounted)
-        CustomerDialogs.show(
-          context,
-          message: 'Could not update this address. Please retry.',
-        );
+    } catch (e) {
+      if (mounted) {
+        setState(() => _busy = false);
+        await CustomerDialogs.error(context, e);
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }

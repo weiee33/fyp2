@@ -1,9 +1,9 @@
 name: Customer account and location checks
 on:
   push:
-    paths: ['supabase/functions/customer-delete-account/**', 'supabase/functions/customer-geocode/**', 'supabase/functions/_shared/customer-*.ts', 'supabase/tests/customer_account_edge.test.mjs', '.github/workflows/customer-account.yml']
+    paths: ['supabase/functions/customer-delete-account/**', 'supabase/functions/customer-geocode/**', 'supabase/functions/customer-recovery/**', 'supabase/functions/_shared/customer-*.ts', 'supabase/tests/customer_account_edge.test.mjs', 'supabase/tests/customer_recovery_edge.test.mjs', '.github/workflows/customer-account.yml']
   pull_request:
-    paths: ['supabase/functions/customer-delete-account/**', 'supabase/functions/customer-geocode/**', 'supabase/functions/_shared/customer-*.ts', 'supabase/tests/customer_account_edge.test.mjs', '.github/workflows/customer-account.yml']
+    paths: ['supabase/functions/customer-delete-account/**', 'supabase/functions/customer-geocode/**', 'supabase/functions/customer-recovery/**', 'supabase/functions/_shared/customer-*.ts', 'supabase/tests/customer_account_edge.test.mjs', 'supabase/tests/customer_recovery_edge.test.mjs', '.github/workflows/customer-account.yml']
 permissions:
   contents: read
 jobs:
@@ -14,4 +14,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --experimental-strip-types --test supabase/tests/customer_account_edge.test.mjs
+      - run: node --experimental-strip-types --test supabase/tests/customer_account_edge.test.mjs supabase/tests/customer_recovery_edge.test.mjs

@@ -183,13 +183,13 @@ void main() {
                   headers: {'content-type': 'application/json'},
                   request: request,
                 );
-            if (request.url.path.endsWith('/recover')) {
+            if (request.url.path.endsWith('/customer-recovery')) {
               expect(
                 jsonDecode(request.body)['email'],
                 'fixture@example.invalid',
               );
               expect(request.body.contains('password'), false);
-              return response({});
+              return response({'sent': true});
             }
             if (request.url.path.endsWith('/verify')) {
               verifyCalls++;
@@ -249,6 +249,54 @@ void main() {
         await service.dispose();
       },
     );
+  }
+  for (final correct in [true, false]) {
+    test('current password is validated against Auth: $correct', () async {
+      var checkedRole = false;
+      final client = SupabaseClient(
+        'https://fixture.invalid',
+        'test',
+        authOptions: const AuthClientOptions(autoRefreshToken: false),
+        httpClient: MockClient((request) async {
+          Object body = {};
+          var status = 200;
+          if (request.url.path.endsWith('/token')) {
+            expect(jsonDecode(request.body)['password'], 'provided-current');
+            body = correct ? session() : {'msg': 'Invalid login credentials'};
+            status = correct ? 200 : 400;
+          } else if (request.url.path.endsWith('/account_identity')) {
+            checkedRole = true;
+            body = {'role': 'customer', 'user_id': 'application-id'};
+          } else if (!request.url.path.endsWith('/logout')) {
+            throw StateError('Unexpected endpoint');
+          }
+          return http.Response(
+            jsonEncode(body),
+            status,
+            request: request,
+            headers: {'content-type': 'application/json'},
+          );
+        }),
+      );
+      final service = CustomerRecoveryService(client: client);
+      if (correct) {
+        await service.verifyCurrentPassword(
+          'fixture@example.invalid',
+          'provided-current',
+        );
+      } else {
+        await expectLater(
+          service.verifyCurrentPassword(
+            'fixture@example.invalid',
+            'provided-current',
+          ),
+          throwsA(isA<AuthException>()),
+        );
+      }
+      expect(checkedRole, correct);
+      expect(client.auth.currentSession, isNull);
+      await service.dispose();
+    });
   }
   testWidgets('phone prefix remains visible and error dialog requires OK', (
     t,

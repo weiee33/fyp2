@@ -20,8 +20,44 @@ class CustomerRecoveryService {
           );
 
   Future<void> requestCode(String email) async {
-    await _client.auth.resetPasswordForEmail(email.trim());
+    try {
+      final result = await _client.functions.invoke(
+        'customer-recovery',
+        body: {'email': email.trim().toLowerCase()},
+      );
+      if (result.data is! Map || result.data['sent'] != true)
+        throw const FormatException(
+          'Could not send the verification code. Please retry.',
+        );
+    } on FunctionException catch (e) {
+      throw FormatException(
+        e.details is Map
+            ? e.details['error']?.toString() ?? 'Recovery is unavailable.'
+            : 'Recovery is unavailable. Please retry.',
+      );
+    }
     _verifiedEmail = null;
+  }
+
+  Future<void> verifyCurrentPassword(String email, String password) async {
+    try {
+      final response = await _client.auth.signInWithPassword(
+        email: email.trim().toLowerCase(),
+        password: password,
+      );
+      if (response.session == null)
+        throw const AuthException('Current password is incorrect.');
+      await AccountAccess.requireRole(_client, 'customer');
+    } on AuthException {
+      throw const AuthException(
+        'Current password is incorrect. Please try again.',
+      );
+    } finally {
+      _verifiedEmail = null;
+      try {
+        await _client.auth.signOut(scope: SignOutScope.local);
+      } catch (_) {}
+    }
   }
 
   Future<void> changePassword({

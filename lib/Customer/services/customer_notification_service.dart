@@ -37,6 +37,16 @@ class CustomerNotificationService {
         .single();
   }
 
+  Future<void> markBookingRead(String bookingId) async {
+    final uid = await _applicationUserId();
+    await _client
+        .from('notifications')
+        .update({'is_read': true})
+        .eq('user_id', uid)
+        .eq('booking_id', bookingId)
+        .eq('is_read', false);
+  }
+
   Future<void> markAllAsRead() async {
     final uid = await _applicationUserId();
     await _client
