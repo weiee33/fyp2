@@ -9,10 +9,12 @@ import 'customer_login_screen.dart';
 
 class CustomerForgotPasswordScreen extends StatefulWidget {
   final String initialEmail;
+  final bool requireCurrentPassword;
   final CustomerRecoveryService? service;
   const CustomerForgotPasswordScreen({
     super.key,
     this.initialEmail = '',
+    this.requireCurrentPassword = false,
     this.service,
   });
   @override
@@ -22,6 +24,7 @@ class CustomerForgotPasswordScreen extends StatefulWidget {
 class _RecoveryState extends State<CustomerForgotPasswordScreen> {
   final _form = GlobalKey<FormState>();
   late final _email = TextEditingController(text: widget.initialEmail);
+  final _currentPassword = TextEditingController();
   final _password = TextEditingController(),
       _confirm = TextEditingController(),
       _code = TextEditingController();
@@ -43,7 +46,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
   @override
   void dispose() {
     _timer?.cancel();
-    for (final c in [_email, _password, _confirm, _code]) {
+    for (final c in [_email, _currentPassword, _password, _confirm, _code]) {
       c.clear();
       c.dispose();
     }
@@ -63,6 +66,11 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
     }
     setState(() => _busy = true);
     try {
+      if (widget.requireCurrentPassword)
+        await _service.verifyCurrentPassword(
+          _email.text,
+          _currentPassword.text,
+        );
       await _service.requestCode(_email.text);
       if (!mounted) return;
       setState(() {
@@ -75,7 +83,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
         context,
         title: 'Check your email',
         message:
-            'If this email has an account, a verification code will arrive shortly. Check your inbox and spam folder. Your password has not changed yet.',
+            'A verification code has been requested for your registered customer email. Check your inbox and spam folder. Your password has not changed yet.',
       );
     } catch (e) {
       if (mounted) {
@@ -104,6 +112,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
         code: _code.text,
         password: _password.text,
       );
+      _currentPassword.clear();
       _password.clear();
       _confirm.clear();
       _code.clear();
@@ -115,7 +124,11 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
         message: 'Your new password is ready. Please sign in again.',
       );
       if (widget.service == null) {
-        await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
+        // The password update already succeeded. Logout transport failure must
+        // not misreport it as a failed password change or ask to reuse the OTP.
+        try {
+          await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
+        } catch (_) {}
       }
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
@@ -137,7 +150,11 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
   Widget build(BuildContext context) => Theme(
     data: CustomerTheme.lightTheme,
     child: Scaffold(
-      appBar: AppBar(title: const Text('Reset password')),
+      appBar: AppBar(
+        title: Text(
+          widget.requireCurrentPassword ? 'Change password' : 'Reset password',
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           physics: const BouncingScrollPhysics(
@@ -169,7 +186,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                 if (!_sent) ...[
                   TextFormField(
                     controller: _email,
-                    enabled: !_busy,
+                    enabled: !_busy && !widget.requireCurrentPassword,
                     keyboardType: TextInputType.emailAddress,
                     autofillHints: const [AutofillHints.email],
                     decoration: const InputDecoration(
@@ -183,6 +200,22 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                         : 'Enter a valid email address',
                   ),
                   const SizedBox(height: 16),
+                  if (widget.requireCurrentPassword) ...[
+                    TextFormField(
+                      controller: _currentPassword,
+                      enabled: !_busy,
+                      obscureText: true,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      decoration: const InputDecoration(
+                        labelText: 'Current password',
+                      ),
+                      validator: (v) => (v ?? '').isEmpty
+                          ? 'Enter your current password'
+                          : null,
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   TextFormField(
                     controller: _password,
                     enabled: !_busy,
@@ -200,7 +233,11 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                         ),
                       ),
                     ),
-                    validator: (v) => (v?.length ?? 0) >= 12 && v!.length <= 128
+                    validator: (v) =>
+                        widget.requireCurrentPassword &&
+                            v == _currentPassword.text
+                        ? 'Choose a different new password'
+                        : (v?.length ?? 0) >= 12 && v!.length <= 128
                         ? null
                         : 'Use 12–128 characters',
                   ),

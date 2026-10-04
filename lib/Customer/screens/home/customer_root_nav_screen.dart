@@ -1,3 +1,4 @@
+import '../../widgets/customer_unread_badge.dart';
 import '../notifications/customer_notification_screen.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
@@ -32,12 +33,14 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
   @override
   Widget build(BuildContext context) {
     // Define the 4 main screens for the bottom navigation
-    final screens = widget.pages ?? [
-      const CustomerHomeScreen(),
-      const CustomerBookingsScreen(),
-      const CustomerNotificationScreen(),
-      const CustomerProfileScreen(),
-    ];
+    final screens =
+        widget.pages ??
+        [
+          const CustomerHomeScreen(),
+          const CustomerBookingsScreen(),
+          const CustomerNotificationScreen(),
+          const CustomerProfileScreen(),
+        ];
 
     return Scaffold(
       body: screens[_currentIndex],
@@ -68,7 +71,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
               _currentIndex = index;
             });
           },
-          destinations: const [
+          destinations: [
             NavigationDestination(
               icon: Icon(Icons.explore_outlined),
               selectedIcon: Icon(
@@ -78,18 +81,34 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
               label: 'Explore',
             ),
             NavigationDestination(
-              icon: Icon(Icons.receipt_long_outlined),
-              selectedIcon: Icon(
-                Icons.receipt_long_rounded,
-                color: CustomerTheme.primary,
+              icon: CustomerUnreadBadge(
+                kind: 'bookings',
+                enabled: widget.pages == null,
+                child: const Icon(Icons.receipt_long_outlined),
+              ),
+              selectedIcon: CustomerUnreadBadge(
+                kind: 'bookings',
+                enabled: widget.pages == null,
+                child: const Icon(
+                  Icons.receipt_long_rounded,
+                  color: CustomerTheme.primary,
+                ),
               ),
               label: 'Bookings',
             ),
             NavigationDestination(
-              icon: Icon(Icons.notifications_none),
-              selectedIcon: Icon(
-                Icons.notifications,
-                color: CustomerTheme.primary,
+              icon: CustomerUnreadBadge(
+                kind: 'notifications',
+                enabled: widget.pages == null,
+                child: const Icon(Icons.notifications_none),
+              ),
+              selectedIcon: CustomerUnreadBadge(
+                kind: 'notifications',
+                enabled: widget.pages == null,
+                child: const Icon(
+                  Icons.notifications,
+                  color: CustomerTheme.primary,
+                ),
               ),
               label: 'Notifications',
             ),

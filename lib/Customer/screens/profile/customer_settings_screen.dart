@@ -199,11 +199,12 @@ class _SecurityState extends State<CustomerAccountSecurityScreen> {
                   ),
                   AccountRow(
                     label: 'Change Password',
-                    subtitle: 'Verify an email code before changing',
+                    subtitle: 'Current password and email verification',
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => CustomerForgotPasswordScreen(
+                          requireCurrentPassword: true,
                           initialEmail: _profile!['email']?.toString() ?? '',
                         ),
                       ),

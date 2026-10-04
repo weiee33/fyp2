@@ -167,7 +167,7 @@ void main() {
       'state': '',
       'postcode': '',
     };
-    await t.tapAt(const Offset(190, 280));
+    await t.tapAt(const Offset(190, 180));
     await ready(t);
     expect(addresses.points.length, 2);
     expect(find.text('10 Jalan Test'), findsNothing);
@@ -182,7 +182,7 @@ void main() {
     final gps = Completer<LatLng>();
     await t.pumpWidget(app(map(addresses, locate: () => gps.future)));
     await t.pump();
-    await t.tapAt(const Offset(190, 280));
+    await t.tapAt(const Offset(190, 180));
     await ready(t);
     gps.complete(const LatLng(2.0, 102.0));
     await ready(t);
@@ -245,16 +245,16 @@ void main() {
       final service = Notices();
       await t.pumpWidget(app(CustomerNotificationScreen(service: service)));
       await t.pumpAndSettle();
-      await t.tap(find.byTooltip('Notification actions').first);
+      await t.drag(find.text('Booking accepted'), const Offset(-240, 0));
       await t.pumpAndSettle();
-      await t.tap(find.text('Delete').last);
+      await t.tap(find.text('Delete').first);
       await t.pumpAndSettle();
       await t.tap(find.text('Cancel'));
       await t.pumpAndSettle();
       expect(service.deletes, 0);
-      await t.tap(find.byTooltip('Notification actions').first);
+      await t.drag(find.text('Booking accepted'), const Offset(-240, 0));
       await t.pumpAndSettle();
-      await t.tap(find.text('Delete').last);
+      await t.tap(find.text('Delete').first);
       await t.pumpAndSettle();
       await t.tap(find.text('OK'));
       await t.pumpAndSettle();

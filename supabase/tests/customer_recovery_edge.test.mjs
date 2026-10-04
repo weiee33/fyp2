@@ -1,0 +1,10 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {handleRecovery} from '../functions/_shared/customer-recovery.ts';
+const request=(email='known@example.invalid')=>new Request('https://test.invalid',{method:'POST',headers:{'Content-Type':'application/json','x-forwarded-for':'127.0.0.1'},body:JSON.stringify({email})});
+function deps(result,sentStatus=200){const calls=[];return {calls,env:n=>({SUPABASE_URL:'https://backend.invalid',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'server'})[n],fetch:async(url,options)=>{calls.push({url,options});return new Response(JSON.stringify(url.includes('/rpc/')?result:{}),{status:url.includes('/rpc/')?200:sentStatus,headers:{'Content-Type':'application/json'}});}};}
+test('unknown email does not request recovery or create a user',async()=>{const d=deps({allowed:true,registered:false});const r=await handleRecovery(request(),d);assert.equal(r.status,404);assert.equal(d.calls.length,1);});
+test('rate gate blocks mail request',async()=>{const d=deps({allowed:false});assert.equal((await handleRecovery(request(),d)).status,429);assert.equal(d.calls.length,1);});
+test('registered email uses recovery with anon key and no password',async()=>{const d=deps({allowed:true,registered:true});assert.equal((await handleRecovery(request(' KNOWN@example.invalid '),d)).status,200);assert.equal(d.calls[1].options.headers.apikey,'anon');assert.deepEqual(JSON.parse(d.calls[1].options.body),{email:'known@example.invalid'});assert.match(JSON.parse(d.calls[0].options.body).p_ip_hash,/^[a-f0-9]{64}$/);});
+test('mail failure is never reported as sent',async()=>{const d=deps({allowed:true,registered:true},500);assert.equal((await handleRecovery(request(),d)).status,503);});
+test('invalid and oversized request never query account data',async()=>{const d=deps({});assert.equal((await handleRecovery(request('invalid'),d)).status,400);assert.equal((await handleRecovery(request('x'.repeat(2000)),d)).status,413);assert.equal(d.calls.length,0);});

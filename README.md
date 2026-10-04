@@ -52,3 +52,5 @@ HTTP tests use a local stub and isolated temporary application, never live recor
 `admin/public` is the sole web document root. Server code is in `admin/src` and `admin/views`. Database upgrades/tests are in `supabase`; the existing Flutter starter is in its original folders.
 
 Migrations upgrade the existing FYP schema; they are not an empty-project bootstrap. Do not reapply recorded migrations. Never commit `admin/.env`, sessions, passwords or Supabase secret/service-role keys.
+
+Customer address errors, activity badges and password validation: [implementation and verification](docs/customer-address-activity-password.md).

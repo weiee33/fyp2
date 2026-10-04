@@ -1,3 +1,4 @@
+import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
@@ -59,7 +60,14 @@ class _ProfileState extends State<CustomerProfileScreen> {
         padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 4),
         child: Column(
           children: [
-            Icon(icon, size: 28, color: CustomerTheme.primary),
+            if (label == 'Chats' || label == 'Bookings')
+              CustomerUnreadBadge(
+                kind: label == 'Chats' ? 'chats' : 'bookings',
+                enabled: widget.service == null,
+                child: Icon(icon, size: 28, color: CustomerTheme.primary),
+              )
+            else
+              Icon(icon, size: 28, color: CustomerTheme.primary),
             const SizedBox(height: 10),
             Text(
               label,

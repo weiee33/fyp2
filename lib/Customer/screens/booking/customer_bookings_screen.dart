@@ -1,3 +1,4 @@
+import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -67,7 +68,10 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('My bookings'), actions: []),
+    appBar: AppBar(
+      title: const Text('My bookings'),
+      actions: [CustomerChatButton(enabled: _transactions.usesLiveBackend)],
+    ),
     body: CustomerRefresh(
       onRefresh: () => _load(reset: true),
       child: ListView(

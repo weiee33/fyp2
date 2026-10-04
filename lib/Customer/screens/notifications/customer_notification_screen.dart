@@ -1,6 +1,6 @@
+import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
-import '../../../shared/chat/chat_inbox_screen.dart';
 import '../../../shared/chat/chat_screen.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -220,18 +220,7 @@ class _CustomerNotificationScreenState
                   'Notifications',
                   style: TextStyle(color: CustomerTheme.textPrimary),
                 ),
-                actions: [
-                  IconButton(
-                    tooltip: 'Chats',
-                    icon: const Icon(Icons.chat_bubble_outline),
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ChatInboxScreen(),
-                      ),
-                    ),
-                  ),
-                ],
+                actions: [CustomerChatButton(enabled: widget.service == null)],
                 flexibleSpace: FlexibleSpaceBar(
                   background: Column(
                     mainAxisAlignment: MainAxisAlignment.end,
@@ -487,26 +476,11 @@ class _CustomerNotificationScreenState
                   ),
                 ),
 
-                PopupMenuButton<String>(
-                  tooltip: 'Notification actions',
-                  onSelected: (action) =>
-                      _manage(notification, delete: action == 'delete'),
-                  itemBuilder: (_) => [
-                    PopupMenuItem(
-                      value: 'pin',
-                      child: Text(
-                        notification['is_pinned'] == true ? 'Unpin' : 'Pin',
-                      ),
-                    ),
-                    const PopupMenuItem(value: 'delete', child: Text('Delete')),
-                  ],
-                  icon: Icon(
-                    notification['is_pinned'] == true
-                        ? Icons.push_pin
-                        : Icons.more_vert,
-                    size: 18,
+                if (notification['is_pinned'] == true)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8),
+                    child: Icon(Icons.push_pin, size: 16),
                   ),
-                ),
                 // Unread Indicator
                 if (!isRead) ...[
                   const SizedBox(width: 12),
