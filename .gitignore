@@ -51,5 +51,12 @@ admin/var/*
 !admin/var/.gitkeep
 admin/tests/output/
 supabase/.temp/
+
 # Widget Preview related
 .widget_preview/
+
+# Flutter auto-generated plugin files (should not be committed)
+**/generated_plugin_registrant.*
+**/generated_plugins.cmake
+**/GeneratedPluginRegistrant.*
+.flutter-plugins

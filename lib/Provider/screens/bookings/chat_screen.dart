@@ -6,6 +6,7 @@ import '../../services/booking_service.dart';
 class ChatScreen extends StatefulWidget {
   final String bookingId;
   const ChatScreen({super.key, required this.bookingId});
+
   @override
   State<ChatScreen> createState() => _ChatScreenState();
 }
@@ -21,8 +22,10 @@ class _ChatScreenState extends State<ChatScreen> {
   ChatUpdates? _updates;
   bool _refreshing = false;
 
-  static const _primaryColor = Color(0xFFF97316); // Orange
-  static const _accentColor = Color(0xFFFFF7ED); // Light orange tint
+  // 🎨 Orange + White theme
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -35,12 +38,13 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final service = ChatService();
       final id = await service.open(bookingId: widget.bookingId);
-      if (mounted)
+      if (mounted) {
         _updates = ChatUpdates(
           service,
-          () => _load(silent: true),
+              () => _load(silent: true),
           conversationId: id,
         );
+      }
     } catch (_) {
       /* Existing load and retry controls report failures. */
     }
@@ -68,8 +72,9 @@ class _ChatScreenState extends State<ChatScreen> {
       });
       if (!silent ||
           !_scrollController.hasClients ||
-          _scrollController.position.extentAfter < 80)
+          _scrollController.position.extentAfter < 80) {
         _scrollToBottom();
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -122,9 +127,12 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _lightOrange,
       appBar: AppBar(
-        title: const Text('Chat'),
+        title: const Text(
+          'Chat',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
         actions: [
           IconButton(
             tooltip: 'Live chat and earlier messages',
@@ -132,170 +140,186 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ConversationScreen(bookingId: widget.bookingId),
+                builder: (_) =>
+                    ConversationScreen(bookingId: widget.bookingId),
               ),
             ),
           ),
         ],
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+        child: CircularProgressIndicator(color: _primaryOrange),
+      )
           : Column(
-              children: [
-                // ===== Messages List =====
-                Expanded(
-                  child: _error != null
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.error_outline,
-                                size: 48,
-                                color: Colors.grey.shade400,
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                _error!,
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                              const SizedBox(height: 12),
-                              TextButton(
-                                onPressed: _load,
-                                style: TextButton.styleFrom(
-                                  foregroundColor: _primaryColor,
-                                ),
-                                child: const Text('Retry'),
-                              ),
-                            ],
-                          ),
-                        )
-                      : _messages.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.chat_bubble_outline,
-                                size: 64,
-                                color: Colors.grey.shade300,
-                              ),
-                              const SizedBox(height: 12),
-                              const Text(
-                                'No messages yet',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 15,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              const Text(
-                                'Start the conversation below',
-                                style: TextStyle(
-                                  color: Colors.grey,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.builder(
-                          controller: _scrollController,
-                          padding: const EdgeInsets.all(12),
-                          itemCount: _messages.length,
-                          itemBuilder: (_, i) {
-                            final m = _messages[i];
-                            return _messageBubble(m);
-                          },
-                        ),
-                ),
-
-                // ===== Input Bar =====
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border(
-                      top: BorderSide(color: Colors.grey.shade200),
+        children: [
+          // ===== Messages List =====
+          Expanded(
+            child: _error != null
+                ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.error_outline,
+                    size: 48,
+                    color: Colors.grey.shade400,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    onPressed: _load,
+                    style: TextButton.styleFrom(
+                      foregroundColor: _primaryOrange,
+                    ),
+                    child: const Text('Retry'),
+                  ),
+                ],
+              ),
+            )
+                : _messages.isEmpty
+                ? Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: _lightOrange,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: _borderOrange,
+                        width: 2,
+                      ),
+                    ),
+                    child: const Icon(
+                      Icons.chat_bubble_outline,
+                      size: 48,
+                      color: _primaryOrange,
                     ),
                   ),
-                  child: SafeArea(
-                    top: false,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            controller: _msg,
-                            enabled: !_sending,
-                            maxLength: 2000,
-                            maxLines: 5,
-                            minLines: 1,
-                            textInputAction: TextInputAction.send,
-                            onSubmitted: (_) => _send(),
-                            decoration: InputDecoration(
-                              hintText: 'Type a message',
-                              hintStyle: const TextStyle(color: Colors.grey),
-                              filled: true,
-                              fillColor: Colors.white,
-                              contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 12,
-                              ),
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide.none,
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                borderSide: BorderSide(
-                                  color: Colors.grey.shade300,
-                                ),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(24),
-                                borderSide: const BorderSide(
-                                  color: _primaryColor,
-                                  width: 2,
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          height: 48,
-                          width: 48,
-                          child: ElevatedButton(
-                            onPressed: _sending ? null : _send,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _primaryColor,
-                              foregroundColor: Colors.white,
-                              padding: EdgeInsets.zero,
-                              shape: const CircleBorder(),
-                              elevation: 0,
-                            ),
-                            child: _sending
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2.5,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(Icons.send, size: 20),
-                          ),
-                        ),
-                      ],
+                  const SizedBox(height: 16),
+                  const Text(
+                    'No messages yet',
+                    style: TextStyle(
+                      color: Colors.black87,
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Start the conversation below',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
+              ),
+            )
+                : ListView.builder(
+              controller: _scrollController,
+              padding: const EdgeInsets.all(12),
+              itemCount: _messages.length,
+              itemBuilder: (_, i) =>
+                  _messageBubble(_messages[i]),
             ),
+          ),
+
+          // ===== Input Bar =====
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              border: Border(
+                top: BorderSide(color: _borderOrange),
+              ),
+            ),
+            child: SafeArea(
+              top: false,
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _msg,
+                      enabled: !_sending,
+                      maxLength: 2000,
+                      maxLines: 5,
+                      minLines: 1,
+                      textInputAction: TextInputAction.send,
+                      onSubmitted: (_) => _send(),
+                      decoration: InputDecoration(
+                        hintText: 'Type a message',
+                        hintStyle: const TextStyle(color: Colors.grey),
+                        filled: true,
+                        fillColor: Colors.white,
+                        counterText: '',
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(
+                            color: _borderOrange,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(
+                            color: _borderOrange,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(24),
+                          borderSide: const BorderSide(
+                            color: _primaryOrange,
+                            width: 2,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox(
+                    height: 48,
+                    width: 48,
+                    child: ElevatedButton(
+                      onPressed: _sending ? null : _send,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryOrange,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.zero,
+                        shape: const CircleBorder(),
+                        elevation: 2,
+                      ),
+                      child: _sending
+                          ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2.5,
+                          color: Colors.white,
+                        ),
+                      )
+                          : const Icon(Icons.send, size: 20),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -303,8 +327,6 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _messageBubble(Map<String, dynamic> m) {
     final text = m['message']?.toString() ?? '';
     final time = m['created_at']?.toString() ?? '';
-    // Detect if this message is from the current user (assumes sender_id field)
-    // Fallback: right-align if 'is_mine' is true, otherwise left-align
     final isMine = m['is_mine'] == true;
 
     return Align(
@@ -316,7 +338,7 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         decoration: BoxDecoration(
-          color: isMine ? _primaryColor : _accentColor,
+          color: isMine ? _primaryOrange : Colors.white,
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -325,7 +347,14 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           border: isMine
               ? null
-              : Border.all(color: _primaryColor.withValues(alpha: 0.2)),
+              : Border.all(color: _borderOrange, width: 1.5),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -345,7 +374,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 style: TextStyle(
                   fontSize: 10,
                   color: isMine
-                      ? Colors.white.withValues(alpha: 0.8)
+                      ? Colors.white.withValues(alpha: 0.85)
                       : Colors.grey.shade600,
                 ),
               ),

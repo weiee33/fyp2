@@ -1,6 +1,6 @@
-import '../../../shared/chat/chat_inbox_screen.dart';
 import 'package:flutter/material.dart';
 
+import '../../../shared/chat/chat_inbox_screen.dart';
 import 'package:fyp2/Provider/services/profile_service.dart';
 import 'package:fyp2/Provider/services/auth_service.dart';
 import 'package:fyp2/Provider/services/notification_service.dart';
@@ -73,7 +73,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       builder: (ctx) => AlertDialog(
         title: const Text('Log Out'),
         content: const Text('Are you sure you want to log out?'),
-        actions: [IconButton(tooltip: 'Chats', icon: const Icon(Icons.chat_bubble_outline), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatInboxScreen(customer: false)))),
+        actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: const Text('Cancel'),
@@ -107,6 +107,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     setState(() {});
   }
 
+  void _openChats() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => const ChatInboxScreen(customer: false),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final pages = [
@@ -130,6 +139,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
+          // ---- Chat Icon ----
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline),
+            tooltip: 'Chats',
+            onPressed: _openChats,
+          ),
+
           // ---- Notification Bell with Unread Badge ----
           FutureBuilder<List<Map<String, dynamic>>>(
             future: _notificationService.getMyNotifications(),
