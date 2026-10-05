@@ -167,60 +167,56 @@ void main() {
       () async {
         final calls = <String>[];
         var verifyCalls = 0, updates = 0;
-        final client = SupabaseClient(
-          'https://fixture.invalid',
-          'fixture-key',
-          authOptions: const AuthClientOptions(
-            autoRefreshToken: false,
-            authFlowType: AuthFlowType.implicit,
-          ),
-          httpClient: MockClient((request) async {
-            calls.add(request.url.path);
-            http.Response response(Object value, [int status = 200]) =>
-                http.Response(
-                  jsonEncode(value),
-                  status,
-                  headers: {'content-type': 'application/json'},
-                  request: request,
-                );
-            if (request.url.path.endsWith('/customer-recovery')) {
-              expect(
-                jsonDecode(request.body)['email'],
-                'fixture@example.invalid',
+        final client = MockClient((request) async {
+          calls.add(request.url.path);
+          http.Response response(Object value, [int status = 200]) =>
+              http.Response(
+                jsonEncode(value),
+                status,
+                headers: {'content-type': 'application/json'},
+                request: request,
               );
-              expect(request.body.contains('password'), false);
-              return response({'sent': true});
-            }
-            if (request.url.path.endsWith('/verify')) {
-              verifyCalls++;
-              expect(jsonDecode(request.body)['type'], 'recovery');
-              return scenario == 'bad_code'
-                  ? response({
-                      'msg': 'Token has expired or is invalid',
-                      'code': 'otp_expired',
-                    }, 403)
-                  : response(session());
-            }
-            if (request.url.path.endsWith('/account_identity'))
-              return response({
-                'role': scenario == 'provider' ? 'provider' : 'customer',
-                'user_id': 'different-app-id',
-              });
-            if (request.url.path.endsWith('/user')) {
-              updates++;
-              expect(
-                jsonDecode(request.body)['password'],
-                'fixture-new-password',
-              );
-              if (scenario == 'update_retry' && updates == 1)
-                return response({'msg': 'Temporary failure'}, 500);
-              return response(session()['user']);
-            }
-            if (request.url.path.endsWith('/logout')) return response({});
-            throw StateError('Unexpected endpoint');
-          }),
+          if (request.url.path.endsWith('/customer-recovery')) {
+            expect(
+              jsonDecode(request.body)['email'],
+              'fixture@example.invalid',
+            );
+            expect(request.body.contains('password'), false);
+            return response({'sent': true});
+          }
+          if (request.url.path.endsWith('/verify')) {
+            verifyCalls++;
+            expect(jsonDecode(request.body)['type'], 'recovery');
+            return scenario == 'bad_code'
+                ? response({
+                    'msg': 'Token has expired or is invalid',
+                    'code': 'otp_expired',
+                  }, 403)
+                : response(session());
+          }
+          if (request.url.path.endsWith('/account_identity'))
+            return response({
+              'role': scenario == 'provider' ? 'provider' : 'customer',
+              'user_id': 'different-app-id',
+            });
+          if (request.url.path.endsWith('/user')) {
+            updates++;
+            expect(
+              jsonDecode(request.body)['password'],
+              'fixture-new-password',
+            );
+            if (scenario == 'update_retry' && updates == 1)
+              return response({'msg': 'Temporary failure'}, 500);
+            return response(session()['user']);
+          }
+          if (request.url.path.endsWith('/logout')) return response({});
+          throw StateError('Unexpected endpoint');
+        });
+        final service = CustomerRecoveryService(
+          httpClient: client,
+          url: 'https://fixture.invalid',
+          anonKey: 'fixture-key',
         );
-        final service = CustomerRecoveryService(client: client);
         await service.requestCode('fixture@example.invalid');
         Future<void> change() => service.changePassword(
           email: 'fixture@example.invalid',
@@ -253,32 +249,31 @@ void main() {
   for (final correct in [true, false]) {
     test('current password is validated against Auth: $correct', () async {
       var checkedRole = false;
-      final client = SupabaseClient(
-        'https://fixture.invalid',
-        'test',
-        authOptions: const AuthClientOptions(autoRefreshToken: false),
-        httpClient: MockClient((request) async {
-          Object body = {};
-          var status = 200;
-          if (request.url.path.endsWith('/token')) {
-            expect(jsonDecode(request.body)['password'], 'provided-current');
-            body = correct ? session() : {'msg': 'Invalid login credentials'};
-            status = correct ? 200 : 400;
-          } else if (request.url.path.endsWith('/account_identity')) {
-            checkedRole = true;
-            body = {'role': 'customer', 'user_id': 'application-id'};
-          } else if (!request.url.path.endsWith('/logout')) {
-            throw StateError('Unexpected endpoint');
-          }
-          return http.Response(
-            jsonEncode(body),
-            status,
-            request: request,
-            headers: {'content-type': 'application/json'},
-          );
-        }),
+      final client = MockClient((request) async {
+        Object body = {};
+        var status = 200;
+        if (request.url.path.endsWith('/token')) {
+          expect(jsonDecode(request.body)['password'], 'provided-current');
+          body = correct ? session() : {'msg': 'Invalid login credentials'};
+          status = correct ? 200 : 400;
+        } else if (request.url.path.endsWith('/account_identity')) {
+          checkedRole = true;
+          body = {'role': 'customer', 'user_id': 'application-id'};
+        } else if (!request.url.path.endsWith('/logout')) {
+          throw StateError('Unexpected endpoint');
+        }
+        return http.Response(
+          jsonEncode(body),
+          status,
+          request: request,
+          headers: {'content-type': 'application/json'},
+        );
+      });
+      final service = CustomerRecoveryService(
+        httpClient: client,
+        url: 'https://fixture.invalid',
+        anonKey: 'fixture-key',
       );
-      final service = CustomerRecoveryService(client: client);
       if (correct) {
         await service.verifyCurrentPassword(
           'fixture@example.invalid',
@@ -294,7 +289,7 @@ void main() {
         );
       }
       expect(checkedRole, correct);
-      expect(client.auth.currentSession, isNull);
+
       await service.dispose();
     });
   }

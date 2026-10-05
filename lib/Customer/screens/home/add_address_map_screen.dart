@@ -24,6 +24,7 @@ class AddAddressMapScreen extends StatefulWidget {
 
 class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   final _map = MapController();
+  final _sheet = DraggableScrollableController();
   late final _addressService = widget.service ?? CustomerAddressService();
   static const _initialPosition = LatLng(3.1579, 101.7116);
   LatLng _currentPosition = _initialPosition;
@@ -53,6 +54,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   void dispose() {
     _debounce?.cancel();
     _map.dispose();
+    _sheet.dispose();
     for (final c in [
       _searchController,
       _addressLineController,
@@ -96,7 +98,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       _currentPosition = point;
       _isFetchingLocation = true;
     });
-    if (move && _mapReady) _map.move(point, 17);
+    if (move && _mapReady) _centerMap(point, 17);
     _debounce = Timer(
       const Duration(milliseconds: 700),
       () => _lookup(point, version),
@@ -217,329 +219,362 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
     }
   }
 
+  void _centerMap(LatLng point, double zoom) {
+    _map.move(
+      point,
+      zoom,
+      offset: Offset(0, -_map.camera.nonRotatedSize.height * .25),
+    );
+  }
+
+  void _expandSheet() {
+    if (_sheet.isAttached) {
+      unawaited(
+        _sheet.animateTo(
+          .94,
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+        ),
+      );
+    }
+  }
+
+  Widget _field(
+    TextEditingController controller,
+    String label, {
+    bool numeric = false,
+  }) => TextField(
+    controller: controller,
+    onTap: _expandSheet,
+    keyboardType: numeric ? TextInputType.number : TextInputType.streetAddress,
+    decoration: InputDecoration(
+      labelText: label,
+      isDense: true,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) => Theme(
     data: CustomerTheme.lightTheme,
     child: Scaffold(
       appBar: AppBar(title: const Text('Add Service Location')),
-      body: LayoutBuilder(
-        builder: (context, bounds) {
-          final initial =
-              ((530 * MediaQuery.textScalerOf(context).scale(1) +
-                          MediaQuery.paddingOf(context).bottom) /
-                      bounds.maxHeight)
-                  .clamp(.55, .92);
-          return Stack(
-            children: [
-              // A fixed map viewport: resizing/scrolling the card never changes its camera.
-              SizedBox(
-                height: (bounds.maxHeight * (1 - initial) * 2 - 20).clamp(
-                  bounds.maxHeight * .15,
-                  bounds.maxHeight * .6,
-                ),
-                child:
-                    widget.mapBuilder?.call(context, _select) ??
-                    FlutterMap(
-                      mapController: _map,
-                      options: MapOptions(
-                        initialCenter: _initialPosition,
-                        initialZoom: 16,
-                        maxZoom: 19,
-                        onMapReady: () {
-                          _mapReady = true;
-                          _map.move(_currentPosition, 16);
-                        },
-                        onTap: (_, point) => _select(point),
-                        onPositionChanged: (camera, gesture) {
-                          if (gesture) _select(camera.center);
-                        },
-                        interactionOptions: const InteractionOptions(
-                          flags: InteractiveFlag.all & ~InteractiveFlag.rotate,
-                        ),
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate: const String.fromEnvironment(
-                            'MAP_TILE_URL',
-                            defaultValue:
-                                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      body: SafeArea(
+        top: false,
+        child: LayoutBuilder(
+          builder: (context, bounds) {
+            final headerHeight =
+                110.0 +
+                (MediaQuery.textScalerOf(context).scale(14) - 14).clamp(0, 28);
+            final minimum = (headerHeight / bounds.maxHeight).clamp(.14, .46);
+            return Stack(
+              children: [
+                // Full, fixed map viewport. Sheet gestures never resize or pan its camera.
+                Positioned.fill(
+                  child:
+                      widget.mapBuilder?.call(context, _select) ??
+                      FlutterMap(
+                        mapController: _map,
+                        options: MapOptions(
+                          initialCenter: _initialPosition,
+                          initialZoom: 16,
+                          maxZoom: 19,
+                          onMapReady: () {
+                            _mapReady = true;
+                            _centerMap(_currentPosition, 16);
+                          },
+                          onTap: (_, point) => _select(point),
+                          onPositionChanged: (camera, gesture) {
+                            if (gesture)
+                              _select(
+                                camera.screenOffsetToLatLng(
+                                  Offset(
+                                    camera.nonRotatedSize.width / 2,
+                                    camera.nonRotatedSize.height * .25,
+                                  ),
+                                ),
+                              );
+                          },
+                          interactionOptions: const InteractionOptions(
+                            flags:
+                                InteractiveFlag.all & ~InteractiveFlag.rotate,
                           ),
-                          userAgentPackageName: 'com.locallife.fyp2',
-                          maxNativeZoom: 19,
                         ),
-                        MarkerLayer(
-                          markers: [
-                            Marker(
-                              point: _currentPosition,
-                              width: 48,
-                              height: 48,
-                              alignment: Alignment.topCenter,
-                              child: const IgnorePointer(
-                                child: Icon(
-                                  Icons.location_pin,
-                                  color: CustomerTheme.primary,
-                                  size: 48,
+                        children: [
+                          TileLayer(
+                            urlTemplate: const String.fromEnvironment(
+                              'MAP_TILE_URL',
+                              defaultValue:
+                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                            ),
+                            userAgentPackageName: 'com.locallife.fyp2',
+                            maxNativeZoom: 19,
+                          ),
+                          MarkerLayer(
+                            markers: [
+                              Marker(
+                                point: _currentPosition,
+                                width: 48,
+                                height: 48,
+                                alignment: Alignment.topCenter,
+                                child: const IgnorePointer(
+                                  child: Icon(
+                                    Icons.location_pin,
+                                    color: CustomerTheme.primary,
+                                    size: 48,
+                                  ),
                                 ),
                               ),
+                            ],
+                          ),
+                        ],
+                      ),
+                ),
+                DraggableScrollableSheet(
+                  controller: _sheet,
+                  initialChildSize: .55,
+                  minChildSize: minimum,
+                  maxChildSize: .94,
+                  snap: true,
+                  snapSizes: const [.55],
+                  snapAnimationDuration: const Duration(milliseconds: 250),
+                  builder: (context, scroll) => Material(
+                    key: const ValueKey('address-details-card'),
+                    color: Colors.white,
+                    elevation: 8,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: CustomScrollView(
+                      controller: scroll,
+                      physics: const ClampingScrollPhysics(),
+                      slivers: [
+                        SliverPersistentHeader(
+                          pinned: true,
+                          delegate: _AddressSearchHeader(
+                            height: headerHeight,
+                            child: Material(
+                              color: Colors.white,
+                              child: Column(
+                                children: [
+                                  Semantics(
+                                    label: 'Drag to resize address panel',
+                                    child: SizedBox(
+                                      key: const ValueKey(
+                                        'address-sheet-handle',
+                                      ),
+                                      height: 24,
+                                      width: double.infinity,
+                                      child: Center(
+                                        child: Container(
+                                          width: 38,
+                                          height: 4,
+                                          decoration: BoxDecoration(
+                                            color: Colors.grey.shade300,
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: TextField(
+                                      key: const ValueKey(
+                                        'address-sheet-search',
+                                      ),
+                                      controller: _searchController,
+                                      onTap: _expandSheet,
+                                      textInputAction: TextInputAction.search,
+                                      onSubmitted: (_) => _search(),
+                                      decoration: InputDecoration(
+                                        hintText: 'Search street or building',
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              vertical: 10,
+                                            ),
+                                        prefixIcon: const Icon(Icons.search),
+                                        suffixIcon: IconButton(
+                                          tooltip: 'Search address',
+                                          onPressed: _search,
+                                          icon: const Icon(Icons.arrow_forward),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  // Attribution stays visible even when only the search dock is showing.
+                                  SizedBox(
+                                    height: 26,
+                                    child: TextButton(
+                                      style: TextButton.styleFrom(
+                                        padding: EdgeInsets.zero,
+                                        minimumSize: Size.zero,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
+                                      ),
+                                      onPressed: () => launchUrl(
+                                        Uri.parse(
+                                          'https://www.openstreetmap.org/copyright',
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        '© OpenStreetMap contributors',
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ],
+                          ),
+                        ),
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                          sliver: SliverList.list(
+                            children: [
+                              Row(
+                                children: [
+                                  const Expanded(
+                                    child: Text(
+                                      'Address Details',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  TextButton.icon(
+                                    onPressed: _locating ? null : _myLocation,
+                                    icon: const Icon(
+                                      Icons.my_location,
+                                      size: 18,
+                                    ),
+                                    label: Text(
+                                      _locating ? 'Locating…' : 'My location',
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              if (_isFetchingLocation || _locating)
+                                const LinearProgressIndicator(),
+                              const Padding(
+                                padding: EdgeInsets.symmetric(vertical: 4),
+                                child: Text(
+                                  'Add your unit or floor number if needed.',
+                                  style: TextStyle(fontSize: 12),
+                                ),
+                              ),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: ['Home', 'Office', 'Other']
+                                    .map(
+                                      (label) => ChoiceChip(
+                                        label: Text(label),
+                                        selected: _selectedLabel == label,
+                                        selectedColor:
+                                            CustomerTheme.primarySurface,
+                                        onSelected: (_) => setState(
+                                          () => _selectedLabel = label,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                              const SizedBox(height: 8),
+                              _field(
+                                _addressLineController,
+                                'Address Line / Unit No.',
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _field(_cityController, 'City'),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: _field(
+                                      _postcodeController,
+                                      'Postcode',
+                                      numeric: true,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              _field(_stateController, 'State'),
+                              SwitchListTile(
+                                contentPadding: EdgeInsets.zero,
+                                activeThumbColor: CustomerTheme.primary,
+                                title: const Text(
+                                  'Set as default service address',
+                                  style: TextStyle(fontSize: 14),
+                                ),
+                                value: _isDefault,
+                                onChanged: (value) =>
+                                    setState(() => _isDefault = value),
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton(
+                                key: const ValueKey('address-sheet-save'),
+                                onPressed:
+                                    _isSaving ||
+                                        _isFetchingLocation ||
+                                        _locating
+                                    ? null
+                                    : _saveAddress,
+                                child: _isSaving
+                                    ? const SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Text('Save & Select Address'),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
-              ),
-              Positioned(
-                top: 10,
-                left: 12,
-                right: 12,
-                child: Column(
-                  children: [
-                    Material(
-                      elevation: 3,
-                      borderRadius: BorderRadius.circular(12),
-                      child: TextField(
-                        controller: _searchController,
-                        textInputAction: TextInputAction.search,
-                        onSubmitted: (_) => _search(),
-                        decoration: InputDecoration(
-                          hintText: 'Search street or building',
-                          prefixIcon: const Icon(Icons.search),
-                          suffixIcon: IconButton(
-                            tooltip: 'Search address',
-                            onPressed: _search,
-                            icon: const Icon(Icons.arrow_forward),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              DraggableScrollableSheet(
-                initialChildSize: initial,
-                minChildSize: (initial - .12).clamp(.4, .8),
-                maxChildSize: .96,
-                builder: (context, scroll) => Material(
-                  key: const ValueKey('address-details-card'),
-                  color: Colors.white,
-                  elevation: 8,
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(24),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    children: [
-                      Expanded(
-                        child: ListView(
-                          controller: scroll,
-                          physics: const BouncingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics(),
-                          ),
-                          padding: EdgeInsets.fromLTRB(20, 12, 20, 4),
-                          children: [
-                            Center(
-                              child: Container(
-                                width: 36,
-                                height: 4,
-                                color: Colors.grey.shade300,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                const Expanded(
-                                  child: Text(
-                                    'Address Details',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                                TextButton.icon(
-                                  onPressed: _locating ? null : _myLocation,
-                                  icon: const Icon(Icons.my_location, size: 18),
-                                  label: Text(
-                                    _locating ? 'Locating…' : 'My location',
-                                  ),
-                                ),
-                                if (_isFetchingLocation || _locating)
-                                  const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  ),
-                              ],
-                            ),
-                            const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 4),
-                              child: Text(
-                                'Add your unit or floor number if needed.',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                            // Label Selector (Home, Office, Other)
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 4,
-                              children: ['Home', 'Office', 'Other'].map((
-                                label,
-                              ) {
-                                final isSelected = _selectedLabel == label;
-                                return ChoiceChip(
-                                  label: Text(label),
-                                  selected: isSelected,
-                                  selectedColor: CustomerTheme.primarySurface,
-                                  labelStyle: TextStyle(
-                                    color: isSelected
-                                        ? CustomerTheme.primary
-                                        : CustomerTheme.textPrimary,
-                                    fontWeight: isSelected
-                                        ? FontWeight.bold
-                                        : FontWeight.normal,
-                                  ),
-                                  side: BorderSide(
-                                    color: isSelected
-                                        ? CustomerTheme.primary
-                                        : CustomerTheme.borderColor,
-                                  ),
-                                  onSelected: (_) =>
-                                      setState(() => _selectedLabel = label),
-                                );
-                              }).toList(),
-                            ),
-                            const SizedBox(height: 6),
-                            TextField(
-                              controller: _addressLineController,
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                labelText: 'Address Line / Unit No.',
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _cityController,
-                                    decoration: const InputDecoration(
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 12,
-                                      ),
-                                      labelText: 'City',
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 10),
-                                Expanded(
-                                  child: TextField(
-                                    controller: _postcodeController,
-                                    keyboardType: TextInputType.number,
-                                    decoration: const InputDecoration(
-                                      isDense: true,
-                                      contentPadding: EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 12,
-                                      ),
-                                      labelText: 'Postcode',
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            TextField(
-                              controller: _stateController,
-                              decoration: const InputDecoration(
-                                isDense: true,
-                                contentPadding: EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 12,
-                                ),
-                                labelText: 'State',
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            SwitchListTile(
-                              contentPadding: EdgeInsets.zero,
-                              activeThumbColor: CustomerTheme.primary,
-                              title: const Text(
-                                'Set as default service address',
-                                style: TextStyle(fontSize: 14),
-                              ),
-                              value: _isDefault,
-                              onChanged: (val) =>
-                                  setState(() => _isDefault = val),
-                            ),
-                            const SizedBox(height: 6),
-                          ],
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          20,
-                          0,
-                          20,
-                          MediaQuery.paddingOf(context).bottom + 4,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            ElevatedButton(
-                              onPressed:
-                                  _isSaving || _isFetchingLocation || _locating
-                                  ? null
-                                  : _saveAddress,
-                              child: _isSaving
-                                  ? const SizedBox(
-                                      height: 20,
-                                      width: 20,
-                                      child: CircularProgressIndicator(
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                      ),
-                                    )
-                                  : const Text('Save & Select Address'),
-                            ),
-                            Center(
-                              child: TextButton(
-                                style: TextButton.styleFrom(
-                                  visualDensity: VisualDensity.compact,
-                                  minimumSize: const Size(0, 28),
-                                  padding: const EdgeInsets.all(2),
-                                ),
-                                onPressed: () => launchUrl(
-                                  Uri.parse(
-                                    'https://www.openstreetmap.org/copyright',
-                                  ),
-                                ),
-                                child: const Text(
-                                  '© OpenStreetMap contributors',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.black54,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
                   ),
                 ),
-              ),
-            ],
-          );
-        },
+              ],
+            );
+          },
+        ),
       ),
     ),
   );
+}
+
+class _AddressSearchHeader extends SliverPersistentHeaderDelegate {
+  final double height;
+  final Widget child;
+  _AddressSearchHeader({required this.height, required this.child});
+  @override
+  double get minExtent => height;
+  @override
+  double get maxExtent => height;
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) => child;
+  @override
+  bool shouldRebuild(covariant _AddressSearchHeader oldDelegate) =>
+      oldDelegate.height != height || oldDelegate.child != child;
 }

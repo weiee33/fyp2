@@ -18,3 +18,4 @@ jobs:
           cache: true
       - run: flutter pub get
       - run: flutter test --no-pub
+      - run: flutter test --no-pub --platform chrome test/customer_recovery_web_test.dart

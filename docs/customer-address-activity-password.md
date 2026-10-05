@@ -2,6 +2,8 @@
 
 This change builds on merged PR #6 (`8e5366b`).
 
+Follow-up: [password cancellation and address sheet](customer-session-address-sheet.md) replaces the temporary Auth client and fixed-footer layout described below after a browser session-sharing defect was found.
+
 ## Address fixes
 
 The reported default/delete failure came from `setState(() => _addresses = future)`: the assignment returned a Future, which Flutter rejects as a state callback. The database mutation had already succeeded. A synchronous block now assigns the Future, and a regression test exercises both default selection and deletion through the real screen. Failed mutations retain the address and show the actual error. Existing atomic ownership/default-selection SQL is preserved.
