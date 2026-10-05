@@ -68,11 +68,8 @@ try {
         $admin = $auth->requireSession($page !== 'mfa');
         if ($page === 'document') {
             $document=$api->rpc('admin_document',['record_id'=>Security::uuid((string)($_GET['id'] ?? ''))]);
-            $path=implode('/',array_map('rawurlencode',explode('/',$document['path'])));
-            $signed=$api->request('POST','/storage/v1/object/sign/provider-documents/'.$path,['expiresIn'=>60],$_SESSION['auth']['access_token']);
-            $signedPath=$signed['signedURL'] ?? $signed['signedUrl'] ?? '';
-            if (!str_starts_with($signedPath,'/object/sign/provider-documents/')) { throw new ApiException(502,'Unable to open this document.'); }
-            $redirect($config->supabaseUrl.'/storage/v1'.$signedPath);
+            $path=$document['path'];
+            $redirect($config->supabaseUrl.'/storage/v1/object/public/certifications/'.$path);
         }
         if ($page === 'mfa') {
             if ($admin['mfa_verified']) { $redirect(url(!empty($_SESSION['password_recovery']) ? 'reset' : 'dashboard')); }
