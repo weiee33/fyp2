@@ -231,8 +231,8 @@ try {
     });
     test('credential document uses a 60-second authenticated storage link',function() use ($record,$environment): void {
         $response=request('GET',['page'=>'document','id'=>$record]); expectStatus($response,303);
-        assertThat(($response['headers']['location'][0]??'')===$environment['SUPABASE_URL'].'/storage/v1/object/sign/provider-documents/fake.pdf?token=fixture-signed-token','Document redirect does not use the trusted bucket.');
-        $entries=logs('/storage/v1/object/sign/provider-documents/fake.pdf');
+        assertThat(($response['headers']['location'][0]??'')===$environment['SUPABASE_URL'].'/storage/v1/object/sign/certifications/fake.pdf?token=fixture-signed-token','Document redirect does not use the trusted bucket.');
+        $entries=logs('/storage/v1/object/sign/certifications/fake.pdf');
         assertThat(end($entries)['token']==='fixture-access-aal2','Document signing did not use verified access token.');
     });
     test('filter pagination is forwarded and stored HTML is escaped',function(): void {

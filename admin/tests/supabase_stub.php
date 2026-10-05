@@ -83,9 +83,9 @@ if ($path==='/storage/v1/object/category-icons' && $method==='DELETE') {
     if (!$verified || empty($body['prefixes'])) { respond(['message'=>'Verified cleanup required'],403); }
     respond([]);
 }
-if ($path === '/storage/v1/object/sign/provider-documents/fake.pdf' && $method === 'POST') {
+if ($path === '/storage/v1/object/sign/certifications/fake.pdf' && $method === 'POST') {
     if (!$verified || ($body['expiresIn'] ?? null)!==60) { respond(['message'=>'Short-lived verified access required'],403); }
-    respond(['signedURL'=>'/object/sign/provider-documents/fake.pdf?token=fixture-signed-token']);
+    respond(['signedURL'=>'/object/sign/certifications/fake.pdf?token=fixture-signed-token']);
 }
 if ($path === '/rest/v1/rpc/admin_identity') {
     if ($token==='fixture-customer-token') { respond(['code'=>'42501','message'=>'An active administrator account is required'],403); }
@@ -116,7 +116,7 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
         $common=['version'=>$version,'created_at'=>'2026-10-01T00:00:00+00:00','updated_at'=>'2026-10-01T00:00:00+00:00'];
         $detail=$common + match($resource) {
             'users'=>['user_id'=>$record,'email'=>'user@example.test','full_name'=>'Test Customer','phone'=>'+60123456789','role'=>'customer','is_active'=>true,'email_verified'=>true,'last_login_at'=>null,'actions'=>[]],
-            'providers'=>['provider_id'=>$record,'user_id'=>$record,'business_name'=>'Fixture Plumbing','full_name'=>'Test Provider','email'=>'provider@example.test','business_license'=>'SSM-TEST','verification_status'=>'Pending','bio'=>'Qualified plumber','region'=>'Selangor','city'=>'Petaling Jaya','years_experience'=>5,'service_radius_km'=>10,'certifications'=>[['certification_id'=>$record,'certification_name'=>'Plumbing credential','issuer'=>'Fixture Institute','expiry_date'=>'2027-10-01','file_url'=>'provider-documents/fake.pdf','is_verified'=>false,'version'=>$version]],'hours'=>[['day_of_week'=>0,'start_time'=>'09:00:00','end_time'=>'17:00:00','is_active'=>true]],'portfolio'=>[]],
+            'providers'=>['provider_id'=>$record,'user_id'=>$record,'business_name'=>'Fixture Plumbing','full_name'=>'Test Provider','email'=>'provider@example.test','business_license'=>'SSM-TEST','verification_status'=>'Pending','bio'=>'Qualified plumber','region'=>'Selangor','city'=>'Petaling Jaya','years_experience'=>5,'service_radius_km'=>10,'certifications'=>[['certification_id'=>$record,'certification_name'=>'Plumbing credential','issuer'=>'Fixture Institute','expiry_date'=>'2027-10-01','file_url'=>'certifications/fake.pdf','is_verified'=>false,'version'=>$version]],'hours'=>[['day_of_week'=>0,'start_time'=>'09:00:00','end_time'=>'17:00:00','is_active'=>true]],'portfolio'=>[]],
             'categories'=>['category_id'=>$record,'category_name'=>'Plumbing','description'=>'Household plumbing','color_code'=>'#F97316','parent_category_id'=>null,'display_order'=>1,'is_active'=>true],
             'bookings'=>booking(1)+['payment'=>['payment_id'=>$record,'payment_status'=>'Success','payment_amount'=>'80.00','payment_method'=>'FPX','fpx_transaction_ref'=>'FPX-FIXTURE','payment_timestamp'=>'2026-10-01T00:00:00+00:00','escrow_held'=>true,'receipt_url'=>null],'history'=>[['previous_status'=>null,'new_status'=>'Pending','created_at'=>'2026-10-01T00:00:00+00:00','notes'=>'Booked by customer']],'disputes'=>[],'customer_address'=>'Petaling Jaya','special_instructions'=>'Fix leaking tap'],
             'reviews'=>['review_id'=>$record,'booking_id'=>$record,'rating_score'=>4,'review_comment'=>'Helpful service','is_flagged'=>true,'is_verified_booking'=>true,'flag_reason'=>'Potential spam','moderation_status'=>'visible','moderation_reason'=>null],
