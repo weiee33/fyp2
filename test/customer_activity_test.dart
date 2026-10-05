@@ -251,6 +251,35 @@ void main() {
       },
     );
   }
+  testWidgets('address sheet keeps search and Save reachable with keyboard', (
+    t,
+  ) async {
+    fixture.pixel(t);
+    final service = fixture.Addresses();
+    await t.pumpWidget(fixture.app(fixture.map(service)));
+    await fixture.ready(t);
+    final search = find.byKey(const ValueKey('address-sheet-search'));
+    await t.tap(search);
+    await t.pumpAndSettle();
+    t.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(t.view.resetViewInsets);
+    await t.pumpAndSettle();
+    expect(search.hitTestable(), findsOneWidget);
+    expect(
+      t.getTopLeft(search).dy,
+      greaterThan(t.getBottomLeft(find.byType(AppBar)).dy),
+    );
+    await t.drag(find.byType(CustomScrollView), const Offset(0, -500));
+    await t.pumpAndSettle();
+    expect(find.text('Save & Select Address').hitTestable(), findsOneWidget);
+    expect(search.hitTestable(), findsOneWidget);
+    expect(
+      service.points.length,
+      1,
+      reason: 'Form scrolling must not select a map point.',
+    );
+    expect(t.takeException(), isNull);
+  });
   testWidgets('badge follows incoming and read counts and hides zero', (
     t,
   ) async {

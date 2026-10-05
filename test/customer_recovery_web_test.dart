@@ -62,13 +62,24 @@ void main() {
             );
           }),
         );
-        await mainClient.auth.recoverSession(jsonEncode(primary));
+        addTearDown(mainClient.dispose);
         final events = <AuthChangeEvent>[];
+        final restored = Completer<void>();
         final listener = mainClient.auth.onAuthStateChange.listen((state) {
+          if (!restored.isCompleted &&
+              state.event == AuthChangeEvent.tokenRefreshed) {
+            restored.complete();
+          }
           if (state.event != AuthChangeEvent.initialSession) {
             events.add(state.event);
           }
         });
+        addTearDown(listener.cancel);
+        await mainClient.auth.recoverSession(jsonEncode(primary));
+        // recoverSession itself emits tokenRefreshed. Observe setup completion
+        // before measuring events caused by the recovery/cancellation flow.
+        await restored.future;
+        events.clear();
         final gate = Completer<void>();
         var mutations = 0, cleanups = 0;
         final httpClient = MockClient((request) async {
@@ -99,6 +110,8 @@ void main() {
           url: 'https://fixture.invalid',
           anonKey: 'test',
         );
+        addTearDown(httpClient.close);
+        addTearDown(service.dispose);
         if (phase == 'after password check') {
           await service.verifyCurrentPassword(
             'fixture@example.invalid',
@@ -131,9 +144,6 @@ void main() {
         expect(mutations, 0);
         expect(cleanups, 1);
         expect((await mainClient.rpc('account_identity'))['role'], 'customer');
-        await listener.cancel();
-        await mainClient.dispose();
-        httpClient.close();
       },
     );
   }
