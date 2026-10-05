@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
@@ -65,6 +66,13 @@ class Recovery extends CustomerRecoveryService {
   Future<void> dispose() async {}
 }
 
+class DelayedRecovery extends Recovery {
+  final check = Completer<void>();
+  @override
+  Future<void> verifyCurrentPassword(String email, String password) =>
+      check.future;
+}
+
 class Counts extends CustomerActivityCounts {
   int refs = 0;
   @override
@@ -120,6 +128,8 @@ void main() {
     if (fontRoot.isNotEmpty) {
       for (final e in {
         'Roboto': 'Roboto-Regular.ttf',
+        // Button TextStyle can fall back to the test default font family.
+        'Ahem': 'Roboto-Regular.ttf',
         'MaterialIcons': 'materialicons-regular.otf',
       }.entries) {
         final font = Directory(fontRoot)
@@ -175,12 +185,35 @@ void main() {
   );
   for (final size in [const Size(393, 808), const Size(360, 720)]) {
     testWidgets(
-      'address panel save and attribution visible without dragging at $size',
+      'address sheet snaps and keeps search with its contents at $size',
       (t) async {
         fixture.pixel(t);
         t.view.physicalSize = size;
         await t.pumpWidget(fixture.app(fixture.map(fixture.Addresses())));
         await fixture.ready(t);
+        final card = find.byKey(const ValueKey('address-details-card'));
+        final handle = find.byKey(const ValueKey('address-sheet-handle'));
+        final search = find.byKey(const ValueKey('address-sheet-search'));
+        final mapSize = t.getSize(find.byKey(const ValueKey('map-surface')));
+        final middleTop = t.getTopLeft(card).dy;
+        expect(t.getTopLeft(search).dy, greaterThan(middleTop));
+        await t.drag(handle, const Offset(0, 650));
+        await t.pumpAndSettle();
+        expect(t.getTopLeft(card).dy, greaterThan(middleTop + 100));
+        expect(search.hitTestable(), findsOneWidget);
+        expect(find.text('Save & Select Address').hitTestable(), findsNothing);
+        expect(
+          find.text('© OpenStreetMap contributors').hitTestable(),
+          findsOneWidget,
+        );
+        await t.drag(handle, const Offset(0, -750));
+        await t.pumpAndSettle();
+        expect(t.getTopLeft(card).dy, lessThan(middleTop));
+        expect(
+          t.getTopLeft(search).dy,
+          greaterThan(t.getBottomLeft(find.byType(AppBar)).dy),
+        );
+        expect(t.getSize(find.byKey(const ValueKey('map-surface'))), mapSize);
         expect(
           find.text('Save & Select Address').hitTestable(),
           findsOneWidget,
@@ -209,7 +242,7 @@ void main() {
               format: ui.ImageByteFormat.png,
             );
             await File(
-              '.tools/customer-ui/address-panel-${size.width.toInt()}.png',
+              '.tools/customer-ui/address-sheet-${size.width.toInt()}.png',
             ).writeAsBytes(bytes!.buffer.asUint8List());
             image.dispose();
           });
@@ -218,6 +251,35 @@ void main() {
       },
     );
   }
+  testWidgets('address sheet keeps search and Save reachable with keyboard', (
+    t,
+  ) async {
+    fixture.pixel(t);
+    final service = fixture.Addresses();
+    await t.pumpWidget(fixture.app(fixture.map(service)));
+    await fixture.ready(t);
+    final search = find.byKey(const ValueKey('address-sheet-search'));
+    await t.tap(search);
+    await t.pumpAndSettle();
+    t.view.viewInsets = const FakeViewPadding(bottom: 300);
+    addTearDown(t.view.resetViewInsets);
+    await t.pumpAndSettle();
+    expect(search.hitTestable(), findsOneWidget);
+    expect(
+      t.getTopLeft(search).dy,
+      greaterThan(t.getBottomLeft(find.byType(AppBar)).dy),
+    );
+    await t.drag(find.byType(CustomScrollView), const Offset(0, -500));
+    await t.pumpAndSettle();
+    expect(find.text('Save & Select Address').hitTestable(), findsOneWidget);
+    expect(search.hitTestable(), findsOneWidget);
+    expect(
+      service.points.length,
+      1,
+      reason: 'Form scrolling must not select a map point.',
+    );
+    expect(t.takeException(), isNull);
+  });
   testWidgets('badge follows incoming and read counts and hides zero', (
     t,
   ) async {
@@ -302,6 +364,56 @@ void main() {
       await t.pumpAndSettle();
       expect(s.sends, 1);
       await t.pumpWidget(const SizedBox());
+    },
+  );
+  testWidgets(
+    'leaving during password validation never sends OTP or touches disposed fields',
+    (t) async {
+      fixture.pixel(t);
+      final service = DelayedRecovery();
+      await t.pumpWidget(
+        fixture.app(
+          Builder(
+            builder: (context) => TextButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => CustomerForgotPasswordScreen(
+                    service: service,
+                    initialEmail: 'known@example.invalid',
+                    requireCurrentPassword: true,
+                  ),
+                ),
+              ),
+              child: const Text('Open change password'),
+            ),
+          ),
+        ),
+      );
+      await t.tap(find.text('Open change password'));
+      await t.pumpAndSettle();
+      await t.enterText(
+        find.widgetWithText(TextFormField, 'Current password'),
+        'correct-current',
+      );
+      await t.enterText(
+        find.widgetWithText(TextFormField, 'New password'),
+        'valid-new-password',
+      );
+      await t.enterText(
+        find.widgetWithText(TextFormField, 'Confirm new password'),
+        'valid-new-password',
+      );
+      await t.ensureVisible(find.text('Confirm change password'));
+      await t.tap(find.text('Confirm change password'));
+      await t.pump();
+      await t.pageBack();
+      await t.pumpAndSettle();
+      service.check.complete();
+      await t.pumpAndSettle();
+      expect(service.sends, 0);
+      expect(find.text('Open change password'), findsOneWidget);
+      expect(t.takeException(), isNull);
     },
   );
   testWidgets(

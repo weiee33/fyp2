@@ -53,6 +53,7 @@ class CustomerTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
+            fontFamily: 'Roboto',
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -62,7 +63,10 @@ class CustomerTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: borderColor),
