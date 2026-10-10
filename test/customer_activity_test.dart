@@ -289,6 +289,8 @@ void main() {
     testWidgets('${entry.key} form does not overscroll at the top', (t) async {
       fixture.pixel(t);
       await t.pumpWidget(fixture.app(entry.value()));
+      expect(find.byType(StretchingOverscrollIndicator), findsNothing);
+      expect(find.byType(GlowingOverscrollIndicator), findsNothing);
       final scroll = find.byType(SingleChildScrollView);
       final position = t
           .state<ScrollableState>(

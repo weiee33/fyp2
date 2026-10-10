@@ -98,99 +98,102 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
       data: CustomerTheme.lightTheme,
       child: Scaffold(
         appBar: AppBar(title: const Text('Create Customer Account')),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const Text(
-                    'Full Name',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _nameController,
-                    validator: (v) => (v == null || v.trim().isEmpty)
-                        ? 'Name is required'
-                        : null,
-                    decoration: const InputDecoration(
-                      hintText: 'Sarah Tan',
-                      prefixIcon: Icon(Icons.person_outline),
+        body: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Text(
+                      'Full Name',
+                      style: TextStyle(fontWeight: FontWeight.w600),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Email Address',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    validator: (v) => (v == null || !v.contains('@'))
-                        ? 'Valid email required'
-                        : null,
-                    decoration: const InputDecoration(
-                      hintText: 'user@example.com',
-                      prefixIcon: Icon(Icons.email_outlined),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _nameController,
+                      validator: (v) => (v == null || v.trim().isEmpty)
+                          ? 'Name is required'
+                          : null,
+                      decoration: const InputDecoration(
+                        hintText: 'Sarah Tan',
+                        prefixIcon: Icon(Icons.person_outline),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Phone Number',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-                  MalaysiaPhoneField(
-                    controller: _phoneController,
-                    enabled: !_loading,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Password',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    validator: (v) => (v == null || v.length < 6)
-                        ? 'Must be 6+ characters'
-                        : null,
-                    decoration: InputDecoration(
-                      hintText: '••••••••',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Email Address',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: (v) => (v == null || !v.contains('@'))
+                          ? 'Valid email required'
+                          : null,
+                      decoration: const InputDecoration(
+                        hintText: 'user@example.com',
+                        prefixIcon: Icon(Icons.email_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Phone Number',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    MalaysiaPhoneField(
+                      controller: _phoneController,
+                      enabled: !_loading,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Password',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      validator: (v) => (v == null || v.length < 6)
+                          ? 'Must be 6+ characters'
+                          : null,
+                      decoration: InputDecoration(
+                        hintText: '••••••••',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 28),
-                  ElevatedButton(
-                    onPressed: _loading ? null : _handleRegister,
-                    child: _loading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text('Register & Verify'),
-                  ),
-                ],
+                    const SizedBox(height: 28),
+                    ElevatedButton(
+                      onPressed: _loading ? null : _handleRegister,
+                      child: _loading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Register & Verify'),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
