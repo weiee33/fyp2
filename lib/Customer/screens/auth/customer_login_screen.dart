@@ -17,7 +17,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = CustomerAuthService();
+  late final _authService = CustomerAuthService();
 
   bool _loading = false;
   bool _obscurePassword = true;
@@ -46,12 +46,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
         password: _passwordController.text,
       );
 
-      if (!mounted) return;
-      await CustomerDialogs.show(
-        context,
-        title: 'Success',
-        message: 'You are signed in successfully.',
-      );
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
@@ -84,153 +78,154 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
           ),
           title: const Text('Customer Login'),
         ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SizedBox(height: 12),
-                  const Center(
-                    child: Icon(
-                      Icons.lock_person_rounded,
-                      size: 64,
-                      color: CustomerTheme.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Center(
-                    child: Text(
-                      'Welcome to Local Life',
-                      style: TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: CustomerTheme.textPrimary,
+        body: ScrollConfiguration(
+          behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              physics: const ClampingScrollPhysics(),
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 12),
+                    const Center(
+                      child: Icon(
+                        Icons.lock_person_rounded,
+                        size: 64,
+                        color: CustomerTheme.primary,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 6),
-                  const Center(
-                    child: Text(
-                      'Sign in to book household repair & cleaning',
-                      style: TextStyle(
-                        color: CustomerTheme.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  const Text(
-                    'Email Address',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    enabled: !_loading,
-                    validator: (v) => (v == null || !v.contains('@'))
-                        ? 'Valid email required'
-                        : null,
-                    decoration: const InputDecoration(
-                      hintText: 'name@example.com',
-                      prefixIcon: Icon(Icons.email_outlined),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Password',
-                    style: TextStyle(fontWeight: FontWeight.w600),
-                  ),
-                  const SizedBox(height: 6),
-                  TextFormField(
-                    controller: _passwordController,
-                    obscureText: _obscurePassword,
-                    enabled: !_loading,
-                    validator: (v) => (v == null || v.length < 6)
-                        ? 'Password must be 6+ characters'
-                        : null,
-                    decoration: InputDecoration(
-                      hintText: '••••••••',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility_off
-                              : Icons.visibility,
-                        ),
-                        onPressed: () => setState(
-                          () => _obscurePassword = !_obscurePassword,
+                    const SizedBox(height: 16),
+                    const Center(
+                      child: Text(
+                        'Welcome to Local Life',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: CustomerTheme.textPrimary,
                         ),
                       ),
                     ),
-                  ),
-                  Align(
-                    alignment: Alignment.centerRight,
-                    child: TextButton(
-                      onPressed: _loading
-                          ? null
-                          : () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => CustomerForgotPasswordScreen(
-                                  initialEmail: _emailController.text.trim(),
-                                ),
-                              ),
-                            ),
-                      child: const Text('Forgot password?'),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: _loading ? null : _handleLogin,
-                    child: _loading
-                        ? const SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text('Login'),
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text(
-                        "New here? ",
-                        style: TextStyle(color: CustomerTheme.textSecondary),
+                    const SizedBox(height: 6),
+                    const Center(
+                      child: Text(
+                        'Sign in to book household repair & cleaning',
+                        style: TextStyle(
+                          color: CustomerTheme.textSecondary,
+                          fontSize: 14,
+                        ),
                       ),
-                      TextButton(
-                        onPressed: _loading
-                            ? null
-                            : () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const CustomerRegisterScreen(),
-                                  ),
-                                );
-                              },
-                        child: const Text(
-                          'Create Account',
-                          style: TextStyle(
-                            color: CustomerTheme.primary,
-                            fontWeight: FontWeight.bold,
+                    ),
+                    const SizedBox(height: 32),
+                    const Text(
+                      'Email Address',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      enabled: !_loading,
+                      validator: (v) => (v == null || !v.contains('@'))
+                          ? 'Valid email required'
+                          : null,
+                      decoration: const InputDecoration(
+                        hintText: 'name@example.com',
+                        prefixIcon: Icon(Icons.email_outlined),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Password',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 6),
+                    TextFormField(
+                      controller: _passwordController,
+                      obscureText: _obscurePassword,
+                      enabled: !_loading,
+                      validator: (v) => (v == null || v.length < 6)
+                          ? 'Password must be 6+ characters'
+                          : null,
+                      decoration: InputDecoration(
+                        hintText: '••••••••',
+                        prefixIcon: const Icon(Icons.lock_outline),
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility_off
+                                : Icons.visibility,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _loading
+                            ? null
+                            : () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => CustomerForgotPasswordScreen(
+                                    initialEmail: _emailController.text.trim(),
+                                  ),
+                                ),
+                              ),
+                        child: const Text('Forgot password?'),
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                    ElevatedButton(
+                      onPressed: _loading ? null : _handleLogin,
+                      child: _loading
+                          ? const SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text('Login'),
+                    ),
+                    const SizedBox(height: 20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text(
+                          "New here? ",
+                          style: TextStyle(color: CustomerTheme.textSecondary),
+                        ),
+                        TextButton(
+                          onPressed: _loading
+                              ? null
+                              : () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) =>
+                                          const CustomerRegisterScreen(),
+                                    ),
+                                  );
+                                },
+                          child: const Text(
+                            'Create Account',
+                            style: TextStyle(
+                              color: CustomerTheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

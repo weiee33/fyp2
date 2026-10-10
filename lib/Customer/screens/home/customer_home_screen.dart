@@ -106,12 +106,14 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      showDragHandle: true,
+      backgroundColor: Colors.white,
       builder: (sheetContext) => SizedBox(
         height: MediaQuery.sizeOf(sheetContext).height * .65,
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 12, 8, 0),
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
               child: Row(
                 children: [
                   const Expanded(
@@ -122,11 +124,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  IconButton(
-                    tooltip: 'Close addresses',
-                    onPressed: () => Navigator.pop(sheetContext),
-                    icon: const Icon(Icons.close),
                   ),
                 ],
               ),
