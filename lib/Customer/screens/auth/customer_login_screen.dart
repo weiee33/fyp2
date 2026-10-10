@@ -17,7 +17,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = CustomerAuthService();
+  late final _authService = CustomerAuthService();
 
   bool _loading = false;
   bool _obscurePassword = true;
@@ -46,12 +46,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
         password: _passwordController.text,
       );
 
-      if (!mounted) return;
-      await CustomerDialogs.show(
-        context,
-        title: 'Success',
-        message: 'You are signed in successfully.',
-      );
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
@@ -86,9 +80,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
         ),
         body: SafeArea(
           child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,

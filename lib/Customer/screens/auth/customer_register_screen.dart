@@ -20,7 +20,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = CustomerAuthService();
+  late final _authService = CustomerAuthService();
 
   bool _loading = false;
   bool _obscurePassword = true;
@@ -100,9 +100,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
         appBar: AppBar(title: const Text('Create Customer Account')),
         body: SafeArea(
           child: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
+            physics: const ClampingScrollPhysics(),
             padding: const EdgeInsets.all(24),
             child: Form(
               key: _formKey,

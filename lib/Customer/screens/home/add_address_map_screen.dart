@@ -246,11 +246,13 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   }) => TextField(
     controller: controller,
     onTap: _expandSheet,
+    minLines: label == 'Address Line / Unit No.' ? 2 : 1,
+    maxLines: label == 'Address Line / Unit No.' ? 3 : 1,
     keyboardType: numeric ? TextInputType.number : TextInputType.streetAddress,
     decoration: InputDecoration(
       labelText: label,
-      isDense: true,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
   );
 
@@ -438,7 +440,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                           ),
                         ),
                         SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
                           sliver: SliverList.list(
                             children: [
                               Row(
@@ -467,7 +469,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                               if (_isFetchingLocation || _locating)
                                 const LinearProgressIndicator(),
                               const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 4),
+                                padding: EdgeInsets.only(top: 4, bottom: 16),
                                 child: Text(
                                   'Add your unit or floor number if needed.',
                                   style: TextStyle(fontSize: 12),
@@ -490,12 +492,12 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                     )
                                     .toList(),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 20),
                               _field(
                                 _addressLineController,
                                 'Address Line / Unit No.',
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 20),
                               Row(
                                 children: [
                                   Expanded(
@@ -511,8 +513,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 20),
                               _field(_stateController, 'State'),
+                              const SizedBox(height: 12),
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
                                 activeThumbColor: CustomerTheme.primary,
@@ -524,7 +527,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                 onChanged: (value) =>
                                     setState(() => _isDefault = value),
                               ),
-                              const SizedBox(height: 8),
+                              const SizedBox(height: 16),
                               ElevatedButton(
                                 key: const ValueKey('address-sheet-save'),
                                 onPressed:
