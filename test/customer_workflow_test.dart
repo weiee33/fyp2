@@ -272,6 +272,7 @@ void main() {
       expect(find.text('View receipt'), findsNothing);
       paid = true;
       await tester.scrollUntilVisible(find.text('Check payment status'), 250);
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Check payment status'));
       await tester.pumpAndSettle();
       expect(find.text('View receipt'), findsOneWidget);

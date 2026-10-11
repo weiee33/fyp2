@@ -1,6 +1,9 @@
-import '../../widgets/customer_dialogs.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../core/customer_theme.dart';
+import '../../widgets/booking_section.dart';
 import '../../models/booking_model.dart';
 import '../../services/customer_transaction_service.dart';
 import 'customer_receipt_screen.dart';
@@ -24,11 +27,15 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
   late final CustomerTransactionService _transactions =
       widget.transactions ?? CustomerTransactionService();
   CustomerBooking? _booking;
-  String? _error;
-  bool _loading = true;
-  bool _processing = false;
-  bool _openedGateway = false;
-  bool _testMode = false;
+  String? _checkoutError, _statusError;
+  bool _setupRequired = false,
+      _loading = false,
+      _processing = false,
+      _openedGateway = false;
+  bool _foreground = true;
+  Timer? _poll, _deadline;
+  int _pollsRemaining = 0;
+
   @override
   void initState() {
     super.initState();
@@ -38,171 +45,400 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
 
   @override
   void dispose() {
+    _poll?.cancel();
+    _deadline?.cancel();
     WidgetsBinding.instance.removeObserver(this);
     super.dispose();
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed &&
-        _openedGateway &&
-        !_processing &&
-        !_loading)
+    _foreground = state == AppLifecycleState.resumed;
+    if (!_foreground) {
+      _poll?.cancel();
+      return;
+    }
+    if (_openedGateway) {
+      _pollsRemaining = 12;
       _refresh();
+    }
+  }
+
+  void _scheduleCheck() {
+    _poll?.cancel();
+    if (!_foreground ||
+        !_openedGateway ||
+        _booking?.hasReceipt == true ||
+        _pollsRemaining <= 0) {
+      return;
+    }
+    _poll = Timer(const Duration(seconds: 5), () {
+      _pollsRemaining--;
+      _refresh();
+    });
   }
 
   Future<void> _refresh() async {
+    if (!mounted || _loading) return;
     setState(() {
       _loading = true;
-      _error = null;
+      _statusError = null;
     });
     try {
       final booking = await _transactions.getBooking(widget.bookingId);
-      if (mounted) setState(() => _booking = booking);
-    } catch (error) {
-      if (mounted) {
-        setState(() => _error = bookingError(error));
-        CustomerDialogs.show(
-          context,
-          title: 'Unable to complete',
-          message: bookingError(error),
+      if (!mounted) return;
+      setState(() {
+        _booking = booking;
+        if (booking.hasReceipt) {
+          _checkoutError = null;
+          _setupRequired = false;
+        }
+      });
+      _deadline?.cancel();
+      if (booking.canPay && booking.paymentDeadline != null) {
+        _deadline = Timer(
+          booking.paymentDeadline!.difference(DateTime.now()),
+          () {
+            if (mounted) setState(() {});
+          },
         );
       }
+    } catch (error) {
+      if (mounted) setState(() => _statusError = bookingError(error));
     } finally {
-      if (mounted) setState(() => _loading = false);
+      if (mounted) {
+        setState(() => _loading = false);
+        _scheduleCheck();
+      }
     }
   }
 
   Future<void> _pay() async {
-    if (_processing || _booking?.canPay != true) return;
+    if (_processing || _loading || _booking?.canPay != true) return;
     setState(() {
       _processing = true;
-      _error = null;
+      _checkoutError = null;
+      _setupRequired = false;
     });
     try {
       final session = await _transactions.startCheckout(widget.bookingId);
       if (!mounted) return;
-      setState(() {
-        _openedGateway = true;
-        _testMode = session.testMode;
-      });
       final launched =
           await (widget.launchCheckout?.call(session.url) ??
               launchUrl(session.url, mode: LaunchMode.externalApplication));
-      if (!launched) throw StateError('Could not open gateway');
+      if (!mounted) return;
+      if (!launched) {
+        setState(
+          () => _checkoutError =
+              'The bank page could not open. Please try again.',
+        );
+      } else {
+        setState(() => _openedGateway = true);
+        _pollsRemaining = 12;
+      }
     } catch (error) {
       if (mounted) {
-        setState(() => _error = bookingError(error));
-        CustomerDialogs.show(
-          context,
-          title: 'Unable to complete',
-          message: bookingError(error),
-        );
+        setState(() {
+          _checkoutError = bookingError(error);
+          _setupRequired = checkoutSetupRequired(error);
+        });
       }
     } finally {
       if (mounted) {
         setState(() => _processing = false);
-        await _refreshKeepingError();
+        await _refresh();
       }
     }
   }
 
-  Future<void> _refreshKeepingError() async {
-    final existing = _error;
-    await _refresh();
-    if (mounted && existing != null) setState(() => _error = existing);
+  void _receipt() {
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(
+        builder: (_) => CustomerReceiptScreen(
+          bookingId: widget.bookingId,
+          transactions: _transactions,
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final booking = _booking;
+    final paid = booking?.hasReceipt == true;
+    final busy = _loading || _processing;
+    final accepted =
+        booking != null &&
+        (booking.data['accepted_at'] != null ||
+            [
+              'Confirmed',
+              'In Progress',
+              'Completed',
+            ].contains(booking.status) ||
+            paid);
+    final error = _checkoutError ?? _statusError;
     return Scaffold(
       appBar: AppBar(title: const Text('Payment')),
-      body: ListView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        padding: const EdgeInsets.all(24),
-        children: [
-          if (_loading || _processing) const LinearProgressIndicator(),
-          if (_error != null) ...[
-            const SizedBox(height: 16),
-            Text(
-              'Payment could not be completed. Please retry.',
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
-            TextButton(
-              onPressed: _loading || _processing ? null : _refresh,
-              child: const Text('Refresh status'),
-            ),
-          ],
-          if (booking != null) ...[
-            const SizedBox(height: 24),
-            Text(
-              booking.serviceName,
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            Text(booking.providerName),
-            const SizedBox(height: 16),
-            Text('${booking.date} · ${booking.time} (Malaysia time)'),
-            Text(booking.address),
-            const Divider(height: 40),
-            Text(
-              'RM ${booking.amount.toStringAsFixed(2)}',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            const SizedBox(height: 16),
-            Text('Payment status: ${booking.paymentStatus}'),
-            if (_testMode)
-              const Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: Text(
-                  'Test payment mode: use only the gateway test payment details. No real payment will be taken.',
+      body: booking == null && _loading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(16),
+              children: [
+                if (busy) const LinearProgressIndicator(),
+                BookingSection(
+                  title: 'Your payment journey',
+                  icon: Icons.route_outlined,
+                  children: [
+                    _step(
+                      1,
+                      'Provider acceptance',
+                      accepted
+                          ? 'Your requested appointment was accepted.'
+                          : 'Waiting for the provider to accept your request.',
+                      done: accepted,
+                      current: !accepted,
+                    ),
+                    _step(
+                      2,
+                      'Bank payment',
+                      paid
+                          ? 'Payment recorded.'
+                          : _openedGateway
+                          ? 'Bank page opened. Complete the test payment there.'
+                          : 'Choose a bank and authorise payment on the secure page.',
+                      done: paid,
+                      current: accepted && !paid,
+                    ),
+                    _step(
+                      3,
+                      'Payment confirmation',
+                      paid
+                          ? 'Verified by the payment server. Your receipt is ready.'
+                          : 'Your receipt appears only after the bank result is verified.',
+                      done: paid,
+                      current: false,
+                      last: true,
+                    ),
+                  ],
                 ),
-              ),
-            const SizedBox(height: 24),
-            if (booking.hasReceipt) ...[
-              const Text('Payment has been recorded by the server.'),
-              FilledButton(
-                onPressed: () => Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(
-                    builder: (_) => CustomerReceiptScreen(
-                      bookingId: booking.id,
-                      transactions: _transactions,
+                if (error != null)
+                  BookingSection(
+                    title: _setupRequired
+                        ? 'Payment unavailable'
+                        : _checkoutError != null
+                        ? 'Could not open bank payment'
+                        : 'Could not check payment status',
+                    icon: Icons.info_outline,
+                    highlighted: true,
+                    children: [
+                      Text(error),
+                      const SizedBox(height: 8),
+                      Text(
+                        _setupRequired
+                            ? 'No new bank checkout was opened. You can try again once the service is available.'
+                            : 'Your booking is not marked paid unless the payment server confirms it.',
+                      ),
+                      if (_statusError != null)
+                        TextButton(
+                          onPressed: busy ? null : _refresh,
+                          child: const Text('Refresh status'),
+                        ),
+                    ],
+                  ),
+                if (booking != null) ...[
+                  BookingSection(
+                    title: paid
+                        ? (booking.paymentStatus == 'Refunded'
+                              ? 'Payment refunded'
+                              : 'Payment confirmed')
+                        : 'Payment summary',
+                    icon: paid
+                        ? Icons.verified_outlined
+                        : Icons.receipt_long_outlined,
+                    highlighted: true,
+                    children: [
+                      Text(
+                        booking.serviceName,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: 6),
+                      Text(booking.providerName),
+                      const SizedBox(height: 16),
+                      Row(
+                        children: [
+                          const Expanded(child: Text('Total')),
+                          Text(
+                            'RM ${booking.amount.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 24,
+                              color: CustomerTheme.primary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Text('Payment status: ${booking.paymentStatus}'),
+                      if (booking.canPay && booking.paymentDeadline != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 10),
+                          child: Text(
+                            'Pay by ${DateFormat('d MMM, h:mm a').format(booking.paymentDeadline!.toUtc().add(const Duration(hours: 8)))} (Malaysia time)',
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (_openedGateway && !paid)
+                    BookingSection(
+                      title: 'Waiting for the bank result',
+                      icon: Icons.schedule,
+                      children: [
+                        const Text(
+                          'Return here after completing the bank page. We check for confirmation automatically for one minute. Closing that page alone does not confirm payment.',
+                        ),
+                        const SizedBox(height: 12),
+                        OutlinedButton(
+                          onPressed: busy
+                              ? null
+                              : () {
+                                  _pollsRemaining = 12;
+                                  _refresh();
+                                },
+                          child: const Text('Check payment status'),
+                        ),
+                      ],
+                    ),
+                  if (!paid && !booking.canPay)
+                    BookingSection(
+                      title: booking.needsNewBooking
+                          ? 'Payment window ended'
+                          : 'Payment not available yet',
+                      icon: Icons.event_busy_outlined,
+                      children: [
+                        Text(
+                          booking.needsNewBooking
+                              ? 'This unpaid reservation expired. Return to Booking details to choose a new appointment. If you already completed the bank page, check the payment status before starting another booking.'
+                              : 'Return to Booking details to check the provider response and booking status.',
+                        ),
+                      ],
+                    ),
+                  BookingSection(
+                    title: 'Appointment',
+                    icon: Icons.event_outlined,
+                    children: [
+                      Text('${booking.date} · ${booking.time} (Malaysia time)'),
+                      const SizedBox(height: 10),
+                      Text(booking.address),
+                    ],
+                  ),
+                  if (!paid)
+                    const BookingSection(
+                      title: 'FPX test payment',
+                      icon: Icons.science_outlined,
+                      children: [
+                        Text(
+                          'This project uses a simulated bank payment page. No real money is collected. Choose a test outcome on the gateway page, then return here for confirmation.',
+                        ),
+                      ],
+                    ),
+                ],
+              ],
+            ),
+      bottomNavigationBar: booking == null
+          ? null
+          : Material(
+              color: Colors.white,
+              elevation: 4,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: busy
+                          ? null
+                          : paid
+                          ? _receipt
+                          : booking.canPay
+                          ? _pay
+                          : () => Navigator.maybePop(context),
+                      icon: Icon(
+                        paid
+                            ? Icons.receipt_long
+                            : booking.canPay
+                            ? Icons.open_in_new
+                            : Icons.arrow_back,
+                      ),
+                      label: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(
+                          paid
+                              ? 'View receipt'
+                              : _processing
+                              ? 'Opening payment…'
+                              : booking.canPay
+                              ? (_openedGateway
+                                    ? 'Reopen bank payment'
+                                    : 'Open secure payment')
+                              : 'Back to booking',
+                        ),
+                      ),
                     ),
                   ),
                 ),
-                child: const Text('View receipt'),
               ),
-            ] else if (booking.canPay) ...[
-              const Text(
-                'Choose your payment method on the secure gateway page. Return here afterwards to check the result.',
-              ),
-              const SizedBox(height: 16),
-              FilledButton.icon(
-                onPressed: _processing || _loading ? null : _pay,
-                icon: const Icon(Icons.open_in_new),
-                label: Text(
-                  _processing ? 'Opening payment…' : 'Open secure payment',
-                ),
-              ),
-            ] else
-              const Text(
-                'Payment is not available for the current booking status.',
-              ),
-            if (_openedGateway && !booking.hasReceipt) ...[
-              const SizedBox(height: 24),
-              const Text(
-                'Closing the gateway does not confirm payment. Confirmation may take a moment. You can also check this booking later from My bookings.',
-              ),
-              OutlinedButton(
-                onPressed: _loading || _processing ? null : _refresh,
-                child: const Text('Check payment status'),
-              ),
-            ],
-          ],
-        ],
-      ),
+            ),
     );
   }
+
+  Widget _step(
+    int number,
+    String title,
+    String subtitle, {
+    required bool done,
+    required bool current,
+    bool last = false,
+  }) => Padding(
+    padding: EdgeInsets.only(bottom: last ? 0 : 20),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        CircleAvatar(
+          radius: 16,
+          backgroundColor: done
+              ? CustomerTheme.success
+              : current
+              ? CustomerTheme.primary
+              : CustomerTheme.borderColor,
+          child: done
+              ? const Icon(Icons.check, color: Colors.white, size: 19)
+              : Text(
+                  '$number',
+                  style: TextStyle(
+                    color: current ? Colors.white : CustomerTheme.textSecondary,
+                  ),
+                ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: CustomerTheme.textSecondary,
+                  height: 1.4,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    ),
+  );
 }

@@ -151,3 +151,9 @@ String bookingError(Object error) {
   }
   return 'Unable to complete the request. Check your connection and try again.';
 }
+
+/// Stable gateway codes distinguish unavailable setup from a failed bank payment.
+bool checkoutSetupRequired(Object error) =>
+    error is FunctionException &&
+    error.details is Map &&
+    (error.details as Map)['code'] == 'checkout_setup_required';

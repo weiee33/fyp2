@@ -477,7 +477,7 @@ class _CustomerBookingDetailScreenState
           : 'Payment received';
     }
     if (booking.needsNewBooking) return 'Payment is no longer available';
-    if (booking.canPay) return 'Your slot is accepted — pay by FPX';
+    if (booking.canPay) return 'Provider accepted your booking';
     if (booking.status == 'Pending') return 'Waiting for provider acceptance';
     if (booking.status == 'Cancelled') return 'Booking cancelled';
     return 'Booking status';
@@ -491,7 +491,7 @@ class _CustomerBookingDetailScreenState
       return 'This unpaid reservation has expired. The request or payment deadline has passed, or the appointment time is already over. Choose a new available appointment to book again.';
     }
     if (booking.canPay) {
-      return 'Complete secure FPX payment to keep your appointment. Use the payment button below. Availability is checked again before checkout.';
+      return 'Next: complete FPX payment to keep your appointment. Use the payment button below. Availability is checked again before checkout.';
     }
     if (booking.status == 'Pending') {
       return 'Your request has been sent. Once the provider accepts, you have 30 minutes to pay. We will notify you when payment is available.';
