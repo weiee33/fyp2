@@ -1,14 +1,15 @@
 type Dependencies = { env: (name: string) => string | undefined; fetch: typeof fetch; now: () => number };
 class HttpError extends Error {
   status: number;
-  constructor(status: number, message: string) { super(message); this.status = status; }
+  code: string;
+  constructor(status: number, message: string, code = 'payment_unavailable') { super(message); this.status = status; this.code = code; }
 }
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'no-store' } });
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function required(deps: Dependencies, name: string): string {
   const value = deps.env(name);
-  if (!value) throw new HttpError(503, 'FPX test checkout is not configured yet. Please contact the project owner.');
+  if (!value) throw new HttpError(503, 'Bank checkout is temporarily unavailable. Please contact support or try again later.', 'checkout_setup_required');
   return value;
 }
 async function boundedBody(request: Request, maximum: number): Promise<string> {
@@ -59,7 +60,10 @@ export async function handleCheckout(request: Request, deps: Dependencies): Prom
     try { input = JSON.parse(await boundedBody(request, 8192)); } catch (e) { if (e instanceof HttpError) throw e; throw new HttpError(400, 'Invalid checkout request'); }
     if (!uuid.test(input?.booking_id ?? '') || Object.keys(input).some(key => key !== 'booking_id')) throw new HttpError(400, 'Only the booking ID is accepted; prices are calculated by the server.');
     const stripeKey = required(deps, 'STRIPE_SECRET_KEY');
-    if (!stripeKey.startsWith('sk_test_')) throw new HttpError(503, 'This FYP gateway requires a Stripe test key. Live payments are disabled.');
+    if (!stripeKey.startsWith('sk_test_')) throw new HttpError(503, 'Bank checkout is temporarily unavailable. Please contact support or try again later.', 'checkout_setup_required');
+    // Never open a bank session when its payment confirmation handler cannot authenticate callbacks.
+    const webhookSecret = required(deps, 'STRIPE_WEBHOOK_SECRET');
+    if (!webhookSecret.startsWith('whsec_')) throw new HttpError(503, 'Bank checkout is temporarily unavailable. Please contact support or try again later.', 'checkout_setup_required');
     const serviceKey = required(deps, 'SUPABASE_SERVICE_ROLE_KEY');
     const attempt = await rpc(deps, 'customer_prepare_checkout', { p_booking_id: input.booking_id }, token, apiKey);
     if (attempt.state === 'Open' && attempt.checkout_url) return json({ checkout_url: checkoutUrl(attempt.checkout_url), session_id: attempt.gateway_session_id, expires_at: attempt.expires_at, test_mode: true });
@@ -89,7 +93,7 @@ export async function handleCheckout(request: Request, deps: Dependencies): Prom
     if (session.livemode !== false || !String(session.id).startsWith('cs_test_') || session.currency !== 'myr' || session.amount_total !== Number(attempt.amount_sen)) throw new HttpError(502, 'Gateway checkout did not match the booking quote');
     await rpc(deps, 'gateway_attach_checkout', { p_attempt_id: attempt.attempt_id, p_session_id: session.id, p_checkout_url: url, p_expires_at: new Date(session.expires_at * 1000).toISOString() }, serviceKey, serviceKey);
     return json({ checkout_url: url, session_id: session.id, expires_at: new Date(session.expires_at * 1000).toISOString(), test_mode: true });
-  } catch (error) { return json({ error: error instanceof HttpError ? error.message : 'Checkout is temporarily unavailable. Please retry.' }, error instanceof HttpError ? error.status : 503); }
+  } catch (error) { return json({ error: error instanceof HttpError ? error.message : 'Checkout is temporarily unavailable. Please retry.', code: error instanceof HttpError ? error.code : 'payment_unavailable' }, error instanceof HttpError ? error.status : 503); }
 }
 
 export async function verifyStripeSignature(body: string, signature: string, secret: string, now: number): Promise<boolean> {

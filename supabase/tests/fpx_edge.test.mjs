@@ -101,3 +101,27 @@ for (const [status, release] of [[400, true], [500, false], [429, false]]) {
     assert.equal(response.status, 502); assert.equal(released, release);
   });
 }
+
+for (const missing of ['STRIPE_SECRET_KEY', 'STRIPE_WEBHOOK_SECRET']) {
+  test(`missing ${missing} returns setup code before reserving or opening checkout`, async () => {
+    const calls = [];
+    const response = await handleCheckout(checkout(), deps(async (url) => {
+      calls.push(url);
+      assert.ok(url.endsWith('/auth/v1/user'));
+      return json({ id: 'customer' });
+    }, { [missing]: undefined }));
+    assert.equal(response.status, 503);
+    const result = await response.json();
+    assert.equal(result.code, 'checkout_setup_required');
+    assert.equal(calls.length, 1);
+    assert.ok(!JSON.stringify(result).includes('sk_test_'));
+  });
+}
+test('invalid webhook configuration fails before creating an attempt', async () => {
+  const response = await handleCheckout(checkout(), deps(async url => {
+    assert.ok(url.endsWith('/auth/v1/user'));
+    return json({ id: 'customer' });
+  }, { STRIPE_WEBHOOK_SECRET: 'invalid' }));
+  assert.equal(response.status, 503);
+  assert.equal((await response.json()).code, 'checkout_setup_required');
+});
