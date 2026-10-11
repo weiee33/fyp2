@@ -27,16 +27,6 @@ class ChatService {
       'p_limit': 30,
     }),
   );
-  Future<List<Map<String, dynamic>>> blocked({
-    String keyword = '',
-    int offset = 0,
-  }) async => rows(
-    await _rpc('chat_blocked', {
-      'p_keyword': keyword,
-      'p_offset': offset,
-      'p_limit': 30,
-    }),
-  );
   Future<List<Map<String, dynamic>>> search(String keyword) async => rows(
     await _rpc('chat_provider_search', {'p_keyword': keyword, 'p_limit': 30}),
   );

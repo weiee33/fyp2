@@ -111,7 +111,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                 isThreeLine: true,
                 title: Text(booking.serviceName),
                 subtitle: Text(
-                  '${booking.providerName}\n${booking.date} · ${booking.time}\n${booking.status} · ${booking.paymentStatus}',
+                  '${booking.providerName}\n${booking.date} · ${booking.time}\n${booking.displayStatus} · ${booking.paymentStatus}',
                 ),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () async {

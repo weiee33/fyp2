@@ -1,3 +1,4 @@
+import '../../widgets/booking_section.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -188,132 +189,158 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
           ),
           padding: const EdgeInsets.all(20),
           children: [
-            Text(
-              widget.serviceData['service_name']?.toString() ?? 'Service',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-            Text(widget.providerData['business_name']?.toString() ?? ''),
-            const SizedBox(height: 12),
-            Text(
-              'RM ${price.toStringAsFixed(2)}',
-              style: const TextStyle(
-                fontSize: 22,
-                color: CustomerTheme.primary,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const Text(
-              'The current price and appointment will be checked when you book.',
-            ),
-            const SizedBox(height: 24),
-            const Text(
-              'Service address',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            if (_loadingAddresses)
-              const LinearProgressIndicator()
-            else if (_addressError != null) ...[
-              Text(_addressError!),
-              TextButton(
-                onPressed: _loadAddresses,
-                child: const Text('Retry addresses'),
-              ),
-            ] else if (_addresses.isEmpty)
-              const Text('Add a saved address before booking.')
-            else
-              DropdownButtonFormField<String>(
-                initialValue: _addressId,
-                isExpanded: true,
-                items: _addresses
-                    .map(
-                      (address) => DropdownMenuItem(
-                        value: address['address_id'] as String,
-                        child: Text(
-                          '${address['label'] ?? 'Address'}: ${address['address_line']}, ${address['city']}',
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    )
-                    .toList(),
-                onChanged: (value) => setState(() {
-                  _addressId = value;
-                  _requestId = CustomerTransactionService.newRequestId();
-                }),
-              ),
-            TextButton.icon(
-              onPressed: () async {
-                await Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const AddAddressMapScreen(),
+            BookingSection(
+              title: 'Your service',
+              icon: Icons.home_repair_service_outlined,
+              highlighted: true,
+              children: [
+                Text(
+                  widget.serviceData['service_name']?.toString() ?? 'Service',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                Text(widget.providerData['business_name']?.toString() ?? ''),
+                const SizedBox(height: 12),
+                Text(
+                  'RM ${price.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    color: CustomerTheme.primary,
+                    fontWeight: FontWeight.bold,
                   ),
-                );
-                if (mounted) await _loadAddresses();
-              },
-              icon: const Icon(Icons.add_location_alt_outlined),
-              label: const Text('Add address'),
+                ),
+                const Text(
+                  'The current price and appointment will be checked when you book.',
+                ),
+              ],
             ),
-            const SizedBox(height: 20),
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              title: const Text('Appointment date'),
-              subtitle: Text(
-                '${DateFormat('EEE, d MMM yyyy').format(_date)} · Malaysia time',
-              ),
-              trailing: const Icon(Icons.calendar_month),
-              onTap: _chooseDate,
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'Available times',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 12),
-            if (_loadingSlots)
-              const LinearProgressIndicator()
-            else if (_slotsError != null) ...[
-              Text(_slotsError!),
-              TextButton(
-                onPressed: _loadSlots,
-                child: const Text('Retry availability'),
-              ),
-            ] else if (_slots.isEmpty)
-              const Text(
-                'No appointments available on this date. Choose another date.',
-              )
-            else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: _slots
-                    .map(
-                      (slot) => ChoiceChip(
-                        label: Text(slot.label),
-                        selected: _time == slot.time,
-                        onSelected: (_) => setState(() {
-                          _time = slot.time;
-                          _requestId =
-                              CustomerTransactionService.newRequestId();
-                        }),
+            BookingSection(
+              title: '1. Service address',
+              icon: Icons.location_on_outlined,
+              children: [
+                if (_loadingAddresses)
+                  const LinearProgressIndicator()
+                else if (_addressError != null) ...[
+                  Text(_addressError!),
+                  TextButton(
+                    onPressed: _loadAddresses,
+                    child: const Text('Retry addresses'),
+                  ),
+                ] else if (_addresses.isEmpty)
+                  const Text('Add a saved address before booking.')
+                else
+                  DropdownButtonFormField<String>(
+                    initialValue: _addressId,
+                    isExpanded: true,
+                    items: _addresses
+                        .map(
+                          (address) => DropdownMenuItem(
+                            value: address['address_id'] as String,
+                            child: Text(
+                              '${address['label'] ?? 'Address'}: ${address['address_line']}, ${address['city']}',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) => setState(() {
+                      _addressId = value;
+                      _requestId = CustomerTransactionService.newRequestId();
+                    }),
+                  ),
+                TextButton.icon(
+                  onPressed: () async {
+                    await Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AddAddressMapScreen(),
                       ),
-                    )
-                    .toList(),
-              ),
-            const SizedBox(height: 24),
-            TextField(
-              controller: _instructions,
-              maxLines: 3,
-              maxLength: 1000,
-              decoration: const InputDecoration(
-                labelText: 'Instructions (optional)',
-                border: OutlineInputBorder(),
-              ),
-              onChanged: (_) =>
-                  _requestId = CustomerTransactionService.newRequestId(),
+                    );
+                    if (mounted) await _loadAddresses();
+                  },
+                  icon: const Icon(Icons.add_location_alt_outlined),
+                  label: const Text('Add address'),
+                ),
+              ],
             ),
-            const SizedBox(height: 12),
-            const Text(
-              'You can track your booking and payment status in My bookings.',
+            BookingSection(
+              title: '2. Appointment',
+              icon: Icons.calendar_month_outlined,
+              children: [
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Appointment date'),
+                  subtitle: Text(
+                    '${DateFormat('EEE, d MMM yyyy').format(_date)} · Malaysia time',
+                  ),
+                  trailing: const Icon(Icons.calendar_month),
+                  onTap: _chooseDate,
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Available times',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 12),
+                if (_loadingSlots)
+                  const LinearProgressIndicator()
+                else if (_slotsError != null) ...[
+                  Text(_slotsError!),
+                  TextButton(
+                    onPressed: _loadSlots,
+                    child: const Text('Retry availability'),
+                  ),
+                ] else if (_slots.isEmpty)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('No appointments available on this date.'),
+                      TextButton.icon(
+                        onPressed: _chooseDate,
+                        icon: const Icon(Icons.event_available),
+                        label: const Text('Choose another date'),
+                      ),
+                    ],
+                  )
+                else
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _slots
+                        .map(
+                          (slot) => ChoiceChip(
+                            label: Text(slot.label),
+                            selected: _time == slot.time,
+                            onSelected: (_) => setState(() {
+                              _time = slot.time;
+                              _requestId =
+                                  CustomerTransactionService.newRequestId();
+                            }),
+                          ),
+                        )
+                        .toList(),
+                  ),
+              ],
+            ),
+            BookingSection(
+              title: '3. Extra details',
+              icon: Icons.notes_outlined,
+              children: [
+                TextField(
+                  controller: _instructions,
+                  maxLines: 3,
+                  maxLength: 1000,
+                  decoration: const InputDecoration(
+                    labelText: 'Instructions (optional)',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (_) =>
+                      _requestId = CustomerTransactionService.newRequestId(),
+                ),
+                const SizedBox(height: 12),
+                const Text(
+                  'Send your request first. Once the provider accepts, open Booking details and pay by FPX within 30 minutes.',
+                ),
+              ],
             ),
           ],
         ),

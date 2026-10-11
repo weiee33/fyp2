@@ -60,7 +60,7 @@ class CustomerSettingsScreen extends StatelessWidget {
           children: [
             AccountRow(
               label: 'Chats',
-              subtitle: 'Search, pin, delete or block a conversation',
+              subtitle: 'Search, pin or delete a conversation',
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const ChatInboxScreen()),

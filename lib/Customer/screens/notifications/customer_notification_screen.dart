@@ -358,143 +358,151 @@ class _CustomerNotificationScreenState
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
-      child: Slidable(
-        key: ValueKey(id),
-        endActionPane: ActionPane(
-          motion: const DrawerMotion(),
-          extentRatio: .5,
-          children: [
-            SlidableAction(
-              onPressed: (_) => _manage(notification, delete: false),
-              backgroundColor: CustomerTheme.primary,
-              foregroundColor: Colors.white,
-              icon: notification['is_pinned'] == true
-                  ? Icons.push_pin
-                  : Icons.push_pin_outlined,
-              label: notification['is_pinned'] == true ? 'Unpin' : 'Pin',
-            ),
-            SlidableAction(
-              onPressed: (_) => _manage(notification, delete: true),
-              backgroundColor: CustomerTheme.danger,
-              foregroundColor: Colors.white,
-              icon: Icons.delete_outline,
-              label: 'Delete',
-            ),
-          ],
-        ),
-        child: InkWell(
-          onTap: () => _handleNotificationTap(notification),
-          borderRadius: BorderRadius.circular(16),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: isRead
-                  ? Colors.white
-                  : CustomerTheme.primarySurface.withOpacity(0.5),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isRead
-                    ? CustomerTheme.borderColor
-                    : CustomerTheme.primaryLight.withOpacity(0.3),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Slidable(
+          key: ValueKey(id),
+          endActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            extentRatio: .5,
+            children: [
+              SlidableAction(
+                borderRadius: BorderRadius.circular(16),
+                onPressed: (_) => _manage(notification, delete: false),
+                backgroundColor: CustomerTheme.primary,
+                foregroundColor: Colors.white,
+                icon: notification['is_pinned'] == true
+                    ? Icons.push_pin
+                    : Icons.push_pin_outlined,
+                label: notification['is_pinned'] == true ? 'Unpin' : 'Pin',
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
+              SlidableAction(
+                borderRadius: BorderRadius.circular(16),
+                onPressed: (_) => _manage(notification, delete: true),
+                backgroundColor: CustomerTheme.danger,
+                foregroundColor: Colors.white,
+                icon: Icons.delete_outline,
+                label: 'Delete',
+              ),
+            ],
+          ),
+          child: InkWell(
+            onTap: () => _handleNotificationTap(notification),
+            borderRadius: BorderRadius.circular(16),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isRead
+                    ? Colors.white
+                    : CustomerTheme.primarySurface.withOpacity(0.5),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isRead
+                      ? CustomerTheme.borderColor
+                      : CustomerTheme.primaryLight.withOpacity(0.3),
                 ),
-              ],
-            ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Type Icon
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: _getIconColor(type).withOpacity(0.15),
-                  child: Icon(
-                    _getIcon(type),
-                    color: _getIconColor(type),
-                    size: 22,
-                  ),
-                ),
-                const SizedBox(width: 16),
-
-                // Content
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              title,
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: isRead
-                                    ? FontWeight.w600
-                                    : FontWeight.bold,
-                                color: CustomerTheme.textPrimary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          Text(
-                            createdAt == null
-                                ? ''
-                                : timeago.format(createdAt, locale: 'en_short'),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: isRead
-                                  ? CustomerTheme.textSecondary
-                                  : CustomerTheme.primary,
-                              fontWeight: isRead
-                                  ? FontWeight.normal
-                                  : FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        message,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isRead
-                              ? CustomerTheme.textSecondary
-                              : Colors.black87,
-                          height: 1.4,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-
-                if (notification['is_pinned'] == true)
-                  const Padding(
-                    padding: EdgeInsets.only(left: 8),
-                    child: Icon(Icons.push_pin, size: 16),
-                  ),
-                // Unread Indicator
-                if (!isRead) ...[
-                  const SizedBox(width: 12),
-                  Container(
-                    margin: const EdgeInsets.only(top: 6),
-                    width: 10,
-                    height: 10,
-                    decoration: const BoxDecoration(
-                      color: CustomerTheme.primary,
-                      shape: BoxShape.circle,
-                    ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.03),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
-              ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Type Icon
+                  CircleAvatar(
+                    radius: 24,
+                    backgroundColor: _getIconColor(type).withOpacity(0.15),
+                    child: Icon(
+                      _getIcon(type),
+                      color: _getIconColor(type),
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+
+                  // Content
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                title,
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: isRead
+                                      ? FontWeight.w600
+                                      : FontWeight.bold,
+                                  color: CustomerTheme.textPrimary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            Text(
+                              createdAt == null
+                                  ? ''
+                                  : timeago.format(
+                                      createdAt,
+                                      locale: 'en_short',
+                                    ),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: isRead
+                                    ? CustomerTheme.textSecondary
+                                    : CustomerTheme.primary,
+                                fontWeight: isRead
+                                    ? FontWeight.normal
+                                    : FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          message,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isRead
+                                ? CustomerTheme.textSecondary
+                                : Colors.black87,
+                            height: 1.4,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  if (notification['is_pinned'] == true)
+                    const Padding(
+                      padding: EdgeInsets.only(left: 8),
+                      child: Icon(Icons.push_pin, size: 16),
+                    ),
+                  // Unread Indicator
+                  if (!isRead) ...[
+                    const SizedBox(width: 12),
+                    Container(
+                      margin: const EdgeInsets.only(top: 6),
+                      width: 10,
+                      height: 10,
+                      decoration: const BoxDecoration(
+                        color: CustomerTheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),

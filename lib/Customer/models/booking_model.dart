@@ -14,7 +14,30 @@ class CustomerBooking {
       (data['scheduled_time']?.toString() ?? '').split('.').first;
   String get address => data['customer_address']?.toString() ?? '';
   double get amount => double.tryParse(data['total_amount'].toString()) ?? 0;
-  bool get canPay => data['can_pay'] == true;
+  DateTime? get paymentDeadline =>
+      DateTime.tryParse(data['reservation_expires_at']?.toString() ?? '');
+  bool get paymentWindowExpired =>
+      !hasReceipt &&
+      (data['reservation_expired'] == true ||
+          (paymentDeadline != null &&
+              !paymentDeadline!.isAfter(DateTime.now())));
+  bool get appointmentPassed {
+    final scheduled = DateTime.tryParse(
+      data['scheduled_datetime']?.toString() ?? '',
+    );
+    return scheduled != null && !scheduled.isAfter(DateTime.now());
+  }
+
+  bool get needsNewBooking =>
+      !hasReceipt &&
+      (status == 'Pending' || status == 'Confirmed') &&
+      (paymentWindowExpired || appointmentPassed);
+  String get displayStatus => needsNewBooking ? 'Expired' : status;
+  bool get canPay =>
+      data['can_pay'] == true &&
+      !hasReceipt &&
+      !paymentWindowExpired &&
+      !appointmentPassed;
   bool get canCancel => data['can_cancel'] == true;
   bool get canReview => data['can_review'] == true;
   bool get hasReview => data['has_review'] == true;

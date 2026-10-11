@@ -31,7 +31,6 @@ class _ConversationState extends State<ConversationScreen> {
   bool _loading = true,
       _sending = false,
       _canSend = false,
-      _blocked = false,
       _more = false,
       _olderLoading = false,
       _refreshing = false;
@@ -128,7 +127,6 @@ class _ConversationState extends State<ConversationScreen> {
           );
         _name = data['peer_name'] as String? ?? 'Chat';
         _canSend = data['can_send'] == true;
-        _blocked = data['blocked'] == true;
         if (_loading || previousNewest == null) _more = newest.length >= 40;
         _error = null;
         _loading = false;
@@ -232,51 +230,12 @@ class _ConversationState extends State<ConversationScreen> {
     }
   }
 
-  Future<void> _toggleBlock() async {
-    if (_id == null) return;
-    final action = _blocked ? 'Unblock' : 'Block';
-    if (!await CustomerDialogs.confirm(
-      context,
-      title: '$action conversation?',
-      message: _blocked
-          ? 'Both participants will be able to send messages again.'
-          : 'Neither participant can send messages until you unblock this chat. Your bookings stay unchanged.',
-    )) {
-      return;
-    }
-    try {
-      await _service.manage(_id!, _blocked ? 'unblock' : 'block');
-      await _refresh();
-      if (mounted) {
-        await CustomerDialogs.show(
-          context,
-          message: 'Conversation ${_blocked ? 'blocked' : 'unblocked'}.',
-        );
-      }
-    } catch (e) {
-      if (mounted) await CustomerDialogs.error(context, e);
-    }
-  }
-
   @override
   Widget build(BuildContext context) => Theme(
     data: CustomerTheme.lightTheme,
     child: Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: Text(_name, overflow: TextOverflow.ellipsis),
-        actions: [
-          PopupMenuButton<String>(
-            onSelected: (_) => _toggleBlock(),
-            itemBuilder: (_) => [
-              PopupMenuItem(
-                value: 'block',
-                child: Text(_blocked ? 'Unblock' : 'Block'),
-              ),
-            ],
-          ),
-        ],
-      ),
+      appBar: AppBar(title: Text(_name, overflow: TextOverflow.ellipsis)),
       body: SafeArea(
         child: Column(
           children: [
@@ -377,7 +336,7 @@ class _ConversationState extends State<ConversationScreen> {
               const Padding(
                 padding: EdgeInsets.all(12),
                 child: Text(
-                  'Messaging is unavailable. Check the block setting or refresh this conversation.',
+                  'Messaging is unavailable. Refresh this conversation or contact support.',
                 ),
               ),
             Padding(
