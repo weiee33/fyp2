@@ -320,14 +320,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     ),
                   ..._providers.map(_providerCard),
                   const SizedBox(height: 12),
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      _search.clear();
-                      _browse();
-                    },
-                    icon: const Icon(Icons.search),
-                    label: const Text('Browse all services'),
-                  ),
                 ],
               ),
             ),

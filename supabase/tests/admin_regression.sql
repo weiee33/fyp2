@@ -147,8 +147,8 @@ insert into public.reviews(review_id,booking_id,customer_id,provider_id,rating_s
  (pg_temp.fixture_id('review5'),pg_temp.fixture_id('booking_review5'),pg_temp.fixture_id('customer_profile'),pg_temp.fixture_id('provider_profile'),5,'Synthetic five-star review'),
  (pg_temp.fixture_id('review3'),pg_temp.fixture_id('booking_review3'),pg_temp.fixture_id('customer_profile'),pg_temp.fixture_id('provider_profile'),3,'Synthetic three-star review');
 insert into public.provider_certifications(certification_id,provider_id,certification_name,expiry_date,file_url,is_verified) values
- (pg_temp.fixture_id('credential_current'),pg_temp.fixture_id('provider_profile'),'Current regression credential',current_date+30,'provider-documents/'||pg_temp.fixture_id('provider_auth')::text||'/regression-current.pdf',false),
- (pg_temp.fixture_id('credential_expired'),pg_temp.fixture_id('provider_profile'),'Expired regression credential',current_date-1,'provider-documents/'||pg_temp.fixture_id('provider_auth')::text||'/regression-expired.pdf',true);
+ (pg_temp.fixture_id('credential_current'),pg_temp.fixture_id('provider_profile'),'Current regression credential',current_date+30,'certifications/'||pg_temp.fixture_id('provider_auth')::text||'/regression-current.pdf',false),
+ (pg_temp.fixture_id('credential_expired'),pg_temp.fixture_id('provider_profile'),'Expired regression credential',current_date-1,'certifications/'||pg_temp.fixture_id('provider_auth')::text||'/regression-expired.pdf',true);
 
 -- Capability boundaries include direct private-function access.
 select pg_temp.test_assert('anonymous cannot execute admin list',not has_function_privilege('anon','public.admin_list(text,text,text,integer)','EXECUTE'));

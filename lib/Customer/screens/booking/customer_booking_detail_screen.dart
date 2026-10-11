@@ -1,3 +1,8 @@
+import 'dart:async';
+import 'package:intl/intl.dart';
+import '../../widgets/booking_section.dart';
+import '../../core/customer_theme.dart';
+import '../browsing/customer_provider_detail_screen.dart';
 import '../../services/customer_notification_service.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
@@ -33,6 +38,7 @@ class _CustomerBookingDetailScreenState
   bool _loading = true;
   bool _acting = false;
   CustomerLiveUpdates? _updates;
+  Timer? _deadlineTimer;
   @override
   void initState() {
     super.initState();
@@ -43,6 +49,7 @@ class _CustomerBookingDetailScreenState
   @override
   void dispose() {
     _updates?.dispose();
+    _deadlineTimer?.cancel();
     super.dispose();
   }
 
@@ -54,7 +61,16 @@ class _CustomerBookingDetailScreenState
     });
     try {
       final booking = await _transactions.getBooking(widget.bookingId);
-      if (mounted) setState(() => _booking = booking);
+      if (mounted) {
+        setState(() => _booking = booking);
+        _deadlineTimer?.cancel();
+        final deadline = booking.paymentDeadline;
+        if (booking.canPay && deadline != null) {
+          _deadlineTimer = Timer(deadline.difference(DateTime.now()), () {
+            if (mounted) setState(() {});
+          });
+        }
+      }
       if (mounted &&
           _transactions.usesLiveBackend &&
           ModalRoute.of(context)?.isCurrent == true) {
@@ -235,7 +251,7 @@ class _CustomerBookingDetailScreenState
                 physics: const BouncingScrollPhysics(
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(16),
                 children: [
                   if (_error != null) ...[
                     Text(_error!),
@@ -246,80 +262,132 @@ class _CustomerBookingDetailScreenState
                   ],
                   if (_loading) const LinearProgressIndicator(),
                   if (booking != null) ...[
-                    Text(
-                      booking.serviceName,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    Text(booking.providerName),
-                    const SizedBox(height: 16),
-                    Wrap(
-                      spacing: 8,
+                    BookingSection(
+                      title: 'Your booking',
+                      icon: Icons.home_repair_service_outlined,
+                      highlighted: true,
                       children: [
-                        Chip(label: Text(booking.status)),
-                        Chip(label: Text(booking.paymentStatus)),
+                        Text(
+                          booking.serviceName,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(booking.providerName),
+                        const SizedBox(height: 12),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          children: [
+                            Chip(label: Text(booking.displayStatus)),
+                            Chip(label: Text(booking.paymentStatus)),
+                          ],
+                        ),
+                        Text(
+                          'Booking ${booking.shortId}',
+                          style: const TextStyle(
+                            color: CustomerTheme.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
-                    _row('Booking', booking.shortId),
-                    _row(
-                      'Appointment',
-                      '${booking.date}\n${booking.time} (Malaysia time)',
+                    BookingSection(
+                      title: _nextStepTitle(booking),
+                      icon: Icons.info_outline,
+                      children: [
+                        Text(_nextStepMessage(booking)),
+                        if (booking.canPay &&
+                            booking.paymentDeadline != null) ...[
+                          const SizedBox(height: 10),
+                          Text(
+                            'Pay by ${DateFormat('d MMM, h:mm a').format(booking.paymentDeadline!.toUtc().add(const Duration(hours: 8)))} (Malaysia time)',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              color: CustomerTheme.primary,
+                            ),
+                          ),
+                        ],
+                        if (booking.needsNewBooking) ...[
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: FilledButton.icon(
+                              onPressed: _acting || _loading
+                                  ? null
+                                  : () => _open(
+                                      CustomerProviderDetailScreen(
+                                        providerId: booking.providerId,
+                                        heroTag: 'rebook-${booking.id}',
+                                        selectedServiceId: booking
+                                            .data['service_id']
+                                            ?.toString(),
+                                      ),
+                                    ),
+                              icon: const Icon(Icons.event_available),
+                              label: const Text('Choose a new appointment'),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    _row('Address', booking.address),
-                    _row('Total', 'RM ${booking.amount.toStringAsFixed(2)}'),
-                    if ((booking.data['special_instructions']?.toString() ?? '')
-                        .isNotEmpty)
-                      _row(
-                        'Instructions',
-                        booking.data['special_instructions'].toString(),
-                      ),
-                    if (booking.data['reservation_expires_at'] != null &&
-                        booking.canPay)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        child: Text(
-                          'Complete payment before your reservation expires. Availability is checked again before checkout.',
+                    BookingSection(
+                      title: 'Appointment & location',
+                      icon: Icons.event_outlined,
+                      children: [
+                        _row(
+                          'Appointment',
+                          '${booking.date} · ${booking.time}\nMalaysia time',
                         ),
-                      ),
-                    if (booking.status == 'Pending')
-                      const Text(
-                        'Waiting for the provider to accept your requested slot. Payment becomes available after acceptance.',
-                      ),
-                    if (booking.data['reservation_expired'] == true)
-                      const Text(
-                        'This request or payment window has expired. Please choose a new available slot.',
-                      ),
+                        const Divider(height: 24),
+                        _row('Service address', booking.address),
+                        if ((booking.data['special_instructions']?.toString() ??
+                                '')
+                            .isNotEmpty) ...[
+                          const Divider(height: 24),
+                          _row(
+                            'Your instructions',
+                            booking.data['special_instructions'].toString(),
+                          ),
+                        ],
+                      ],
+                    ),
+                    BookingSection(
+                      title: 'Payment summary',
+                      icon: Icons.receipt_long_outlined,
+                      children: [
+                        Row(
+                          children: [
+                            const Expanded(child: Text('Service total')),
+                            Text(
+                              'RM ${booking.amount.toStringAsFixed(2)}',
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: CustomerTheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text('Payment status: ${booking.paymentStatus}'),
+                        if (booking.hasReceipt)
+                          OutlinedButton.icon(
+                            onPressed: _acting
+                                ? null
+                                : () => _open(
+                                    CustomerReceiptScreen(
+                                      bookingId: booking.id,
+                                      transactions: _transactions,
+                                    ),
+                                  ),
+                            icon: const Icon(Icons.receipt_long),
+                            label: const Text('View receipt'),
+                          ),
+                      ],
+                    ),
                     if (booking.hasReview)
                       const ListTile(
-                        contentPadding: EdgeInsets.zero,
                         leading: Icon(Icons.rate_review_outlined),
                         title: Text('Your review has been submitted.'),
-                      ),
-                    const SizedBox(height: 20),
-                    if (booking.canPay)
-                      FilledButton.icon(
-                        onPressed: _acting || _loading
-                            ? null
-                            : () => _open(
-                                CustomerCheckoutScreen(
-                                  bookingId: booking.id,
-                                  transactions: _transactions,
-                                ),
-                              ),
-                        icon: const Icon(Icons.payment),
-                        label: const Text('Continue to payment'),
-                      ),
-                    if (booking.hasReceipt)
-                      OutlinedButton.icon(
-                        onPressed: _acting
-                            ? null
-                            : () => _open(
-                                CustomerReceiptScreen(
-                                  bookingId: booking.id,
-                                  transactions: _transactions,
-                                ),
-                              ),
-                        icon: const Icon(Icons.receipt_long),
-                        label: const Text('View receipt'),
                       ),
                     if (booking.canReview)
                       FilledButton.icon(
@@ -336,41 +404,116 @@ class _CustomerBookingDetailScreenState
                         icon: const Icon(Icons.star_outline),
                         label: const Text('Write a review'),
                       ),
-                    if (booking.canCancel)
-                      TextButton(
-                        onPressed: _acting || _loading ? null : _cancel,
-                        child: Text(_acting ? 'Cancelling…' : 'Cancel booking'),
-                      ),
-                    for (final dispute
-                        in (booking.data['disputes'] as List? ?? []))
-                      ListTile(
-                        contentPadding: EdgeInsets.zero,
-                        title: Text(dispute['subject'].toString()),
-                        subtitle: Text(
-                          '${dispute['status']}\n${dispute['resolution'] ?? 'Awaiting administrator review.'}',
+                    BookingSection(
+                      title: 'Help with this booking',
+                      icon: Icons.support_agent,
+                      children: [
+                        for (final dispute
+                            in (booking.data['disputes'] as List? ?? []))
+                          ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            title: Text(dispute['subject'].toString()),
+                            subtitle: Text(
+                              '${dispute['status']}\n${dispute['resolution'] ?? 'Awaiting administrator review.'}',
+                            ),
+                          ),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            onPressed: _acting || _loading
+                                ? null
+                                : _requestHelp,
+                            icon: const Icon(Icons.support_agent),
+                            label: const Text('Request booking support'),
+                          ),
                         ),
-                      ),
-                    OutlinedButton.icon(
-                      onPressed: _acting || _loading ? null : _requestHelp,
-                      icon: const Icon(Icons.support_agent),
-                      label: const Text('Request booking support'),
+                        if (booking.canCancel && !booking.needsNewBooking)
+                          TextButton(
+                            onPressed: _acting || _loading ? null : _cancel,
+                            child: Text(
+                              _acting ? 'Cancelling…' : 'Cancel booking',
+                            ),
+                          ),
+                      ],
                     ),
                   ],
                 ],
               ),
             ),
+      bottomNavigationBar: booking?.canPay == true
+          ? Material(
+              color: Colors.white,
+              elevation: 6,
+              child: SafeArea(
+                top: false,
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: FilledButton.icon(
+                    onPressed: _acting || _loading
+                        ? null
+                        : () => _open(
+                            CustomerCheckoutScreen(
+                              bookingId: booking!.id,
+                              transactions: _transactions,
+                            ),
+                          ),
+                    icon: const Icon(Icons.payment),
+                    label: const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 12),
+                      child: Text('Continue to payment'),
+                    ),
+                  ),
+                ),
+              ),
+            )
+          : null,
     );
   }
 
-  Widget _row(String label, String value) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 10),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
-        const SizedBox(height: 4),
-        Text(value, style: const TextStyle(fontSize: 16)),
-      ],
-    ),
+  String _nextStepTitle(CustomerBooking booking) {
+    if (booking.hasReceipt) {
+      return booking.paymentStatus == 'Refunded'
+          ? 'Payment refunded'
+          : 'Payment received';
+    }
+    if (booking.needsNewBooking) return 'Payment is no longer available';
+    if (booking.canPay) return 'Your slot is accepted — pay by FPX';
+    if (booking.status == 'Pending') return 'Waiting for provider acceptance';
+    if (booking.status == 'Cancelled') return 'Booking cancelled';
+    return 'Booking status';
+  }
+
+  String _nextStepMessage(CustomerBooking booking) {
+    if (booking.hasReceipt) {
+      return 'View your receipt below for the verified payment record.';
+    }
+    if (booking.needsNewBooking) {
+      return 'This unpaid reservation has expired. The request or payment deadline has passed, or the appointment time is already over. Choose a new available appointment to book again.';
+    }
+    if (booking.canPay) {
+      return 'Complete secure FPX payment to keep your appointment. Use the payment button below. Availability is checked again before checkout.';
+    }
+    if (booking.status == 'Pending') {
+      return 'Your request has been sent. Once the provider accepts, you have 30 minutes to pay. We will notify you when payment is available.';
+    }
+    if (booking.status == 'Cancelled') {
+      return 'This booking is cancelled and cannot be paid.';
+    }
+    return 'Payment is not available for this booking. Refresh to check its latest status, or request booking support below.';
+  }
+
+  Widget _row(String label, String value) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: const TextStyle(
+          color: CustomerTheme.textSecondary,
+          fontSize: 12,
+        ),
+      ),
+      const SizedBox(height: 6),
+      Text(value, style: const TextStyle(fontSize: 15, height: 1.5)),
+    ],
   );
 }

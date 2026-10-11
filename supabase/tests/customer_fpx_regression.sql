@@ -14,6 +14,7 @@ select pg_temp.login_as('provider_auth','aal1');
 select public.provider_booking_reply(pg_temp.fpx_booking(),true);
 select pg_temp.test_error('provider cannot pay for customer','select public.customer_prepare_checkout(pg_temp.fpx_booking())','42501');
 select pg_temp.login_as('customer_auth','aal1');
+select pg_temp.test_assert('accepted future unpaid booking exposes payment',public.customer_booking_detail(pg_temp.fpx_booking())->>'can_pay'='true');
 insert into customer_module_ids values('fpx_attempt',(public.customer_prepare_checkout(pg_temp.fpx_booking())->>'attempt_id')::uuid);
 select pg_temp.test_assert('checkout retry reuses authoritative quote and identity',
  public.customer_prepare_checkout(pg_temp.fpx_booking())->>'attempt_id'=pg_temp.fpx_attempt()::text

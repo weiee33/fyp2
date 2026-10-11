@@ -549,7 +549,7 @@ void main() {
     expect(actions, ['pin']);
     await t.tap(find.text('OK'));
     await t.pumpAndSettle();
-    await t.tap(find.byTooltip('Chat actions'));
+    await t.drag(find.text('Local Cleaners'), const Offset(-200, 0));
     await t.pumpAndSettle();
     await t.tap(find.text('Delete').last);
     await t.pumpAndSettle();
@@ -608,37 +608,52 @@ void main() {
     expect(find.text('New reply'), findsOneWidget);
     expect(t.takeException(), isNull);
   });
-  testWidgets(
-    'blocked chats remain reachable after deleting from normal inbox',
-    (t) async {
-      pixel(t);
-      var called = false;
-      final service = ChatService(
-        rpc: (name, p) async {
-          if (name == 'chat_inbox') return [];
-          if (name == 'chat_blocked') {
-            called = true;
-            return [
-              {
-                'conversation_id': 'hidden-chat',
-                'peer_name': 'Blocked Provider',
-                'blocked': true,
-                'pinned': false,
-                'unread_count': 0,
-              },
-            ];
-          }
-          throw StateError(name);
-        },
-      );
-      await t.pumpWidget(app(ChatInboxScreen(service: service)));
-      await t.pumpAndSettle();
-      await t.tap(find.byTooltip('Blocked chats'));
-      await t.pumpAndSettle();
-      expect(called, true);
-      expect(find.text('Blocked Provider'), findsOneWidget);
-      expect(find.text('Blocked chats'), findsOneWidget);
-      expect(t.takeException(), isNull);
-    },
-  );
+  for (final customer in [true, false]) {
+    testWidgets(
+      'chat swipe cards align and blocking is absent (customer=$customer)',
+      (t) async {
+        pixel(t);
+        final actions = <String>[];
+        final service = ChatService(
+          rpc: (name, p) async {
+            if (name == 'chat_inbox')
+              return [
+                {
+                  'conversation_id': 'chat',
+                  'peer_name': 'Local Cleaners',
+                  'preview':
+                      'Your appointment is available tomorrow. Please send a booking request.',
+                  'pinned': false,
+                  'unread_count': 2,
+                },
+              ];
+            if (name == 'chat_manage') {
+              actions.add(p['p_action'] as String);
+              return null;
+            }
+            throw StateError(name);
+          },
+        );
+        await t.pumpWidget(
+          app(ChatInboxScreen(customer: customer, service: service)),
+        );
+        await t.pumpAndSettle();
+        expect(find.byTooltip('Blocked chats'), findsNothing);
+        expect(find.byType(PopupMenuButton<String>), findsNothing);
+        final card = find.text('Local Cleaners');
+        await t.drag(card, const Offset(-250, 0));
+        await t.pumpAndSettle();
+        await proof(
+          t,
+          customer ? 'customer-chat-swipe' : 'provider-chat-swipe',
+        );
+        await t.tap(find.text('Pin'));
+        await t.pumpAndSettle();
+        expect(actions, ['pin']);
+        await t.tap(find.text('OK'));
+        await t.pumpAndSettle();
+        expect(t.takeException(), isNull);
+      },
+    );
+  }
 }

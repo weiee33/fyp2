@@ -1,3 +1,4 @@
+import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../Customer/widgets/customer_refresh.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ class _InboxState extends State<ChatInboxScreen> {
   late final _service = widget.service ?? ChatService();
   final _search = TextEditingController();
   List<Map<String, dynamic>> _chats = [], _providers = [];
-  bool _loading = true, _more = false, _paging = false, _blockedOnly = false;
+  bool _loading = true, _more = false, _paging = false;
   String? _error;
   int _generation = 0;
   Timer? _debounce;
@@ -44,11 +45,8 @@ class _InboxState extends State<ChatInboxScreen> {
     final version = ++_generation, query = _search.text.trim();
     try {
       final results = await Future.wait([
-        _blockedOnly
-            ? _service.blocked(keyword: query)
-            : _service.inbox(keyword: query),
-        if (widget.customer && !_blockedOnly && query.isNotEmpty)
-          _service.search(query),
+        _service.inbox(keyword: query),
+        if (widget.customer && query.isNotEmpty) _service.search(query),
       ]);
       if (!mounted || version != _generation) return;
       setState(() {
@@ -75,15 +73,10 @@ class _InboxState extends State<ChatInboxScreen> {
     final version = _generation;
     setState(() => _paging = true);
     try {
-      final rows = await (_blockedOnly
-          ? _service.blocked(
-              keyword: _search.text.trim(),
-              offset: _chats.length,
-            )
-          : _service.inbox(
-              keyword: _search.text.trim(),
-              offset: _chats.length,
-            ));
+      final rows = await _service.inbox(
+        keyword: _search.text.trim(),
+        offset: _chats.length,
+      );
       if (mounted && version == _generation) {
         setState(() {
           final ids = _chats.map((c) => c['conversation_id']).toSet();
@@ -145,22 +138,7 @@ class _InboxState extends State<ChatInboxScreen> {
     data: CustomerTheme.lightTheme,
     child: Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title: Text(_blockedOnly ? 'Blocked chats' : 'Chats'),
-        actions: [
-          IconButton(
-            tooltip: _blockedOnly ? 'All chats' : 'Blocked chats',
-            onPressed: () {
-              setState(() {
-                _blockedOnly = !_blockedOnly;
-                _loading = true;
-              });
-              _load();
-            },
-            icon: Icon(_blockedOnly ? Icons.chat_bubble_outline : Icons.block),
-          ),
-        ],
-      ),
+      appBar: AppBar(title: const Text('Chats')),
       body: Column(
         children: [
           Padding(
@@ -209,9 +187,7 @@ class _InboxState extends State<ChatInboxScreen> {
                     Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
-                        _blockedOnly
-                            ? 'No blocked conversations.'
-                            : widget.customer
+                        widget.customer
                             ? 'No conversations yet. Search a provider by name to start chatting.'
                             : 'No conversations yet. Customers can contact you from your provider page.',
                         textAlign: TextAlign.center,
@@ -232,9 +208,7 @@ class _InboxState extends State<ChatInboxScreen> {
                         _paging ? 'Loading…' : 'Load more conversations',
                       ),
                     ),
-                  if (widget.customer &&
-                      !_blockedOnly &&
-                      _search.text.trim().isNotEmpty) ...[
+                  if (widget.customer && _search.text.trim().isNotEmpty) ...[
                     const Padding(
                       padding: EdgeInsets.all(16),
                       child: Text(
@@ -291,7 +265,7 @@ class _SwipeChatRow extends StatefulWidget {
 }
 
 class _SwipeChatState extends State<_SwipeChatRow> {
-  bool _revealed = false, _busy = false;
+  bool _busy = false;
   Future<void> _act(String action) async {
     if (_busy) return;
     setState(() => _busy = true);
@@ -299,7 +273,6 @@ class _SwipeChatState extends State<_SwipeChatRow> {
     if (mounted) {
       setState(() {
         _busy = false;
-        _revealed = false;
       });
     }
   }
@@ -309,134 +282,104 @@ class _SwipeChatState extends State<_SwipeChatRow> {
     final pinned = widget.row['pinned'] == true,
         unread = (widget.row['unread_count'] as num?)?.toInt() ?? 0;
     final pinAction = pinned ? 'unpin' : 'pin';
-    return ClipRect(
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                SizedBox(
-                  width: 76,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      shape: const RoundedRectangleBorder(),
-                    ),
-                    onPressed: _busy ? null : () => _act(pinAction),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.push_pin_outlined),
-                        Text(
-                          pinned ? 'Unpin' : 'Pin',
-                          maxLines: 1,
-                          style: const TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                SizedBox(
-                  width: 76,
-                  child: FilledButton(
-                    style: FilledButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      backgroundColor: Colors.red,
-                      shape: const RoundedRectangleBorder(),
-                    ),
-                    onPressed: _busy ? null : () => _act('delete'),
-                    child: const Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.delete_outline),
-                        Text(
-                          'Delete',
-                          maxLines: 1,
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Slidable(
+          endActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            extentRatio: .5,
+            children: [
+              SlidableAction(
+                borderRadius: BorderRadius.circular(16),
+                onPressed: _busy ? null : (_) => _act(pinAction),
+                backgroundColor: CustomerTheme.primary,
+                foregroundColor: Colors.white,
+                icon: pinned ? Icons.push_pin : Icons.push_pin_outlined,
+                label: pinned ? 'Unpin' : 'Pin',
+              ),
+              SlidableAction(
+                borderRadius: BorderRadius.circular(16),
+                onPressed: _busy ? null : (_) => _act('delete'),
+                backgroundColor: CustomerTheme.danger,
+                foregroundColor: Colors.white,
+                icon: Icons.delete_outline,
+                label: 'Delete',
+              ),
+            ],
           ),
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 180),
-            transform: Matrix4.translationValues(_revealed ? -152 : 0, 0, 0),
-            child: GestureDetector(
-              onHorizontalDragEnd: (d) {
-                if ((d.primaryVelocity ?? 0).abs() > 60) {
-                  setState(() => _revealed = d.primaryVelocity! < 0);
-                }
-              },
-              onHorizontalDragUpdate: (d) {
-                if (d.delta.dx.abs() > 3) {
-                  setState(() => _revealed = d.delta.dx < 0);
-                }
-              },
-              child: Material(
-                color: pinned ? CustomerTheme.primarySurface : Colors.white,
-                child: ListTile(
-                  onTap: _revealed
-                      ? () => setState(() => _revealed = false)
-                      : widget.onOpen,
-                  leading: CircleAvatar(
-                    backgroundColor: CustomerTheme.primarySurface,
-                    child: Icon(
-                      widget.row['blocked'] == true
-                          ? Icons.block
-                          : Icons.person_outline,
-                      color: CustomerTheme.primary,
+          child: Material(
+            color: pinned || unread > 0
+                ? CustomerTheme.primarySurface
+                : Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: CustomerTheme.borderColor),
+            ),
+            child: InkWell(
+              onTap: _busy ? null : widget.onOpen,
+              borderRadius: BorderRadius.circular(16),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    const CircleAvatar(
+                      radius: 24,
+                      backgroundColor: CustomerTheme.primarySurface,
+                      child: Icon(
+                        Icons.person_outline,
+                        color: CustomerTheme.primary,
+                      ),
                     ),
-                  ),
-                  title: Text(
-                    widget.row['peer_name'].toString(),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: unread > 0
-                          ? FontWeight.bold
-                          : FontWeight.normal,
-                    ),
-                  ),
-                  subtitle: Text(
-                    widget.row['preview']?.toString() ?? 'Start a conversation',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      if (pinned) const Icon(Icons.push_pin, size: 16),
-                      if (unread > 0)
-                        Badge(label: Text(unread > 99 ? '99+' : '$unread')),
-                      PopupMenuButton<String>(
-                        tooltip: 'Chat actions',
-                        onSelected: _act,
-                        itemBuilder: (_) => [
-                          PopupMenuItem(
-                            value: pinAction,
-                            child: Text(
-                              pinned ? 'Unpin' : 'Pin',
-                              maxLines: 1,
-                              style: const TextStyle(fontSize: 12),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.row['peer_name']?.toString() ??
+                                'Conversation',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Text('Delete'),
+                          const SizedBox(height: 6),
+                          Text(
+                            widget.row['preview']?.toString() ??
+                                'Start a conversation',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              height: 1.4,
+                              color: CustomerTheme.textSecondary,
+                            ),
                           ),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    if (pinned)
+                      const Padding(
+                        padding: EdgeInsets.only(left: 8),
+                        child: Icon(Icons.push_pin, size: 16),
+                      ),
+                    if (unread > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 8),
+                        child: Badge(
+                          label: Text(unread > 99 ? '99+' : '$unread'),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
