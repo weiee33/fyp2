@@ -19,12 +19,6 @@ Future<void> customerSignOut(BuildContext context) async {
   try {
     await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
     if (!context.mounted) return;
-    await CustomerDialogs.show(
-      context,
-      title: 'Signed out',
-      message: 'You have signed out successfully.',
-    );
-    if (!context.mounted) return;
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const PortalEntryScreen()),
@@ -106,9 +100,14 @@ class CustomerSettingsScreen extends StatelessWidget {
             ),
           ],
         ),
-        OutlinedButton(
-          onPressed: () => customerSignOut(context),
-          child: const Text('Switch account / Log out'),
+        AccountGroup(
+          children: [
+            AccountRow(
+              label: 'Logout Your Account',
+              icon: Icons.logout,
+              onTap: () => customerSignOut(context),
+            ),
+          ],
         ),
       ],
     ),

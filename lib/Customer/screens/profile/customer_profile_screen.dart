@@ -166,11 +166,6 @@ class _ProfileState extends State<CustomerProfileScreen> {
                 children: [
                   AccountGroup(
                     children: [
-                      AccountRow(
-                        label: 'My services & bookings',
-                        value: 'View all',
-                        onTap: () => _open(const CustomerBookingsScreen()),
-                      ),
                       Row(
                         children: [
                           _shortcut(

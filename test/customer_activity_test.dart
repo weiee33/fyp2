@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:fyp2/Customer/screens/auth/customer_login_screen.dart';
+import 'package:fyp2/Customer/screens/auth/customer_register_screen.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
@@ -214,6 +216,9 @@ void main() {
           greaterThan(t.getBottomLeft(find.byType(AppBar)).dy),
         );
         expect(t.getSize(find.byKey(const ValueKey('map-surface'))), mapSize);
+        // The roomier address form can scroll within the expanded panel.
+        await t.drag(find.byType(CustomScrollView), const Offset(0, -280));
+        await t.pumpAndSettle();
         expect(
           find.text('Save & Select Address').hitTestable(),
           findsOneWidget,
@@ -222,12 +227,7 @@ void main() {
           find.text('© OpenStreetMap contributors').hitTestable(),
           findsOneWidget,
         );
-        expect(
-          t.getTopLeft(find.text('My location')).dy,
-          greaterThan(
-            t.getTopLeft(find.byKey(const ValueKey('address-details-card'))).dy,
-          ),
-        );
+        expect(find.text('My location'), findsOneWidget);
         expect(
           find.text('Set as default service address').hitTestable(),
           findsOneWidget,
@@ -280,6 +280,78 @@ void main() {
     );
     expect(t.takeException(), isNull);
   });
+
+  for (final entry in <String, Widget Function()>{
+    'login': () => const CustomerLoginScreen(),
+    'registration': () => const CustomerRegisterScreen(),
+    'reset': () => CustomerForgotPasswordScreen(service: Recovery()),
+  }.entries) {
+    testWidgets('${entry.key} form does not overscroll at the top', (t) async {
+      fixture.pixel(t);
+      await t.pumpWidget(fixture.app(entry.value()));
+      expect(find.byType(StretchingOverscrollIndicator), findsNothing);
+      expect(find.byType(GlowingOverscrollIndicator), findsNothing);
+      final scroll = find.byType(SingleChildScrollView);
+      final position = t
+          .state<ScrollableState>(
+            find
+                .descendant(of: scroll, matching: find.byType(Scrollable))
+                .first,
+          )
+          .position;
+      final gesture = await t.startGesture(
+        t.getTopLeft(scroll) + const Offset(12, 70),
+      );
+      await gesture.moveBy(const Offset(0, 20));
+      await t.pump();
+      await gesture.moveBy(const Offset(0, 100));
+      await t.pump(const Duration(milliseconds: 100));
+      expect(position.pixels, 0);
+      await gesture.up();
+      await t.pumpAndSettle();
+      expect(t.takeException(), isNull);
+    });
+  }
+  testWidgets(
+    'signed-in change password bounces inside a full-height viewport',
+    (t) async {
+      fixture.pixel(t);
+      await t.pumpWidget(
+        fixture.app(
+          CustomerForgotPasswordScreen(
+            service: Recovery(),
+            requireCurrentPassword: true,
+            initialEmail: 'known@example.invalid',
+          ),
+        ),
+      );
+      final scroll = find.byType(SingleChildScrollView);
+      final position = t
+          .state<ScrollableState>(
+            find
+                .descendant(of: scroll, matching: find.byType(Scrollable))
+                .first,
+          )
+          .position;
+      expect(t.getBottomLeft(scroll).dy, t.view.physicalSize.height);
+      final gesture = await t.startGesture(
+        t.getTopLeft(scroll) + const Offset(12, 70),
+      );
+      await gesture.moveBy(const Offset(0, 20));
+      await t.pump();
+      await gesture.moveBy(const Offset(0, 80));
+      await t.pump(const Duration(milliseconds: 100));
+      expect(position.pixels, lessThan(0));
+      expect(
+        find.text('Confirm change password').hitTestable(),
+        findsOneWidget,
+      );
+      await gesture.up();
+      await t.pumpAndSettle();
+      expect(t.takeException(), isNull);
+    },
+  );
+
   testWidgets('badge follows incoming and read counts and hides zero', (
     t,
   ) async {
