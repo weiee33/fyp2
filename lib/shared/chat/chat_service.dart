@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -55,6 +56,72 @@ class ChatService {
       'p_request_id': requestId,
     }),
   );
+  Future<Map<String, dynamic>> sendPhoto(
+    String id,
+    Uint8List bytes,
+    String requestId,
+  ) async {
+    final mime = photoMime(bytes);
+    final extension = mime == 'image/jpeg'
+        ? 'jpg'
+        : mime == 'image/png'
+        ? 'png'
+        : 'webp';
+    final user = client.auth.currentUser;
+    if (user == null) throw const FormatException('Please sign in again.');
+    final path = '${user.id}/$id/$requestId.$extension';
+    try {
+      await client.storage
+          .from('chat-photos')
+          .uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(contentType: mime, upsert: false),
+          );
+    } on StorageException catch (error) {
+      // Immutable path and retained request ID make retries safe after a lost response.
+      if (error.statusCode != '409' && error.error != 'Duplicate') rethrow;
+    }
+    return Map<String, dynamic>.from(
+      await _rpc('chat_send_photo', {
+        'p_conversation_id': id,
+        'p_path': path,
+        'p_request_id': requestId,
+      }),
+    );
+  }
+
+  Future<Uint8List> photo(String path) =>
+      client.storage.from('chat-photos').download(path);
+  static String photoMime(Uint8List bytes) {
+    if (bytes.isEmpty || bytes.length > 5 * 1024 * 1024) {
+      throw const FormatException('Choose a photo smaller than 5 MB.');
+    }
+    if (bytes.length >= 3 &&
+        bytes[0] == 255 &&
+        bytes[1] == 216 &&
+        bytes[2] == 255) {
+      return 'image/jpeg';
+    }
+    if (bytes.length >= 8 &&
+        bytes[0] == 137 &&
+        bytes[1] == 80 &&
+        bytes[2] == 78 &&
+        bytes[3] == 71 &&
+        bytes[4] == 13 &&
+        bytes[5] == 10 &&
+        bytes[6] == 26 &&
+        bytes[7] == 10) {
+      return 'image/png';
+    }
+    if (bytes.length >= 12 &&
+        String.fromCharCodes(bytes.take(4)) == 'RIFF' &&
+        String.fromCharCodes(bytes.skip(8).take(4)) == 'WEBP') {
+      return 'image/webp';
+    }
+    throw const FormatException('Choose a JPEG, PNG or WebP photo.');
+  }
+
   Future<void> manage(String id, String action, {int? readThrough}) async =>
       _rpc('chat_manage', {
         'p_conversation_id': id,

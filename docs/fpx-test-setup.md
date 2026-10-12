@@ -6,7 +6,9 @@ Stripe FPX test mode was selected for FYP development. It uses simulated bank ou
 
 "Provider accepted your booking" means the appointment was accepted. It does not mean FPX accepted or collected money. The reported booking had zero checkout attempts and no payment record. "Checkout is not configured" is a server environment setup problem, before the bank page opens.
 
-## Selected sandbox and remaining manual setup
+## Setup history and instructions for a new environment
+
+**Subsequent verification, 11 October 2026:** after the user installed both secrets, booking C51D3C2B recorded an RM60 successful FPX payment with a paid test checkout. The app payment path is now exercised end to end. The earlier account/configuration findings below are historical setup context; do not replace working secrets or recreate the webhook. The selected account's default payment-method configuration still reported FPX off when re-read, so that configuration flag alone should not be used to declare this explicit FPX checkout broken.
 
 The user selected **Local Life Service Assistant sandbox**, account `acct_1UOdXqDAm2GCmCDs` (`livemode: false`, country `MY`). Keep this environment selected for every Stripe step below. The connected tools created and re-read the enabled webhook `we_1UPJU6DAm2GCmCDsIxra6aKk`, named **Local Life FPX sandbox payment confirmation**. Do not create another endpoint.
 

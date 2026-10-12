@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+
 /// Dates and times returned by the API use the service area's Malaysia time zone.
 class CustomerBooking {
   final Map<String, dynamic> data;
@@ -12,6 +14,15 @@ class CustomerBooking {
   String get date => data['booking_date']?.toString() ?? '';
   String get time =>
       (data['scheduled_time']?.toString() ?? '').split('.').first;
+  String get appointmentLabel {
+    final day = DateTime.tryParse(date);
+    final parts = time.split(':');
+    final hour = int.tryParse(parts.first);
+    final minute = parts.length > 1 ? parts[1] : '';
+    if (day == null || hour == null) return '$date · $time';
+    return '${DateFormat('EEE, d MMM yyyy').format(day)} · ${hour % 12 == 0 ? 12 : hour % 12}:$minute ${hour >= 12 ? 'PM' : 'AM'}';
+  }
+
   String get address => data['customer_address']?.toString() ?? '';
   double get amount => double.tryParse(data['total_amount'].toString()) ?? 0;
   DateTime? get paymentDeadline =>
