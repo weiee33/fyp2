@@ -58,14 +58,15 @@ export async function handleCheckout(request: Request, deps: Dependencies): Prom
     if (!userResponse.ok) throw new HttpError(401, 'Please sign in again.');
     let input: any;
     try { input = JSON.parse(await boundedBody(request, 8192)); } catch (e) { if (e instanceof HttpError) throw e; throw new HttpError(400, 'Invalid checkout request'); }
-    if (!uuid.test(input?.booking_id ?? '') || Object.keys(input).some(key => key !== 'booking_id')) throw new HttpError(400, 'Only the booking ID is accepted; prices are calculated by the server.');
+    if (!uuid.test(input?.booking_id ?? '') || Object.keys(input).some(key => !['booking_id', 'payment_option'].includes(key)) || !['fpx', 'wallet_card'].includes(input.payment_option ?? 'fpx')) throw new HttpError(400, 'Choose a valid payment option; prices are calculated by the server.');
     const stripeKey = required(deps, 'STRIPE_SECRET_KEY');
     if (!stripeKey.startsWith('sk_test_')) throw new HttpError(503, 'Bank checkout is temporarily unavailable. Please contact support or try again later.', 'checkout_setup_required');
     // Never open a bank session when its payment confirmation handler cannot authenticate callbacks.
     const webhookSecret = required(deps, 'STRIPE_WEBHOOK_SECRET');
     if (!webhookSecret.startsWith('whsec_')) throw new HttpError(503, 'Bank checkout is temporarily unavailable. Please contact support or try again later.', 'checkout_setup_required');
     const serviceKey = required(deps, 'SUPABASE_SERVICE_ROLE_KEY');
-    const attempt = await rpc(deps, 'customer_prepare_checkout', { p_booking_id: input.booking_id }, token, apiKey);
+    const channel = input.payment_option ?? 'fpx';
+    const attempt = await rpc(deps, 'customer_prepare_payment_checkout', { p_booking_id: input.booking_id, p_channel: channel }, token, apiKey);
     if (attempt.state === 'Open' && attempt.checkout_url) return json({ checkout_url: checkoutUrl(attempt.checkout_url), session_id: attempt.gateway_session_id, expires_at: attempt.expires_at, test_mode: true });
     if (!uuid.test(attempt.attempt_id) || !Number.isSafeInteger(Number(attempt.amount_sen)) || Number(attempt.amount_sen) <= 0) throw new HttpError(502, 'Invalid checkout quote');
     // Stable parameters are required when retrying a Stripe idempotency key.
@@ -78,15 +79,26 @@ export async function handleCheckout(request: Request, deps: Dependencies): Prom
       client_reference_id: attempt.attempt_id, 'metadata[attempt_id]': attempt.attempt_id, 'metadata[booking_id]': input.booking_id,
       expires_at: String(Math.floor(Date.parse(attempt.expires_at) / 1000)), success_url: returnUrl, cancel_url: returnUrl,
     });
+    // Preserve the working legacy FPX path: this sandbox's default configuration disables FPX.
+    // New card/wallet sessions use dynamic methods and Stripe-hosted card validation.
+    if (channel === 'wallet_card') {
+      form.delete('payment_method_types[0]');
+      form.set('wallet_options[link][display]', 'never');
+      form.set('adaptive_pricing[enabled]', 'false');
+      form.set('branding_settings[button_color]', '#FF6B00');
+      form.set('branding_settings[border_style]', 'rounded');
+      for (const [index, method] of ['fpx', 'alipay'].entries()) form.set(`excluded_payment_method_types[${index}]`, method);
+      form.set('integration_identifier', `local_life_${attempt.attempt_id.replaceAll('-', '').slice(-8).split('').map((c: string) => String.fromCharCode(97 + parseInt(c, 16))).join('')}`);
+    }
     const response = await deps.fetch('https://api.stripe.com/v1/checkout/sessions', { method: 'POST',
-      headers: { Authorization: `Bearer ${stripeKey}`, 'Stripe-Version': '2025-02-24.acacia', 'Idempotency-Key': `fyp-fpx-${attempt.attempt_id}`, 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: { Authorization: `Bearer ${stripeKey}`, 'Stripe-Version': channel === 'fpx' ? '2025-02-24.acacia' : '2026-08-26.dahlia', 'Idempotency-Key': channel === 'fpx' ? `fyp-fpx-${attempt.attempt_id}` : `fyp-methods-${attempt.attempt_id}`, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: form, signal: AbortSignal.timeout(20000),
     });
     if (!response.ok) {
       if ([400, 401, 402, 403, 404, 422].includes(response.status)) {
         await rpc(deps, 'gateway_reject_checkout', { p_attempt_id: attempt.attempt_id }, serviceKey, serviceKey);
       }
-      throw new HttpError(502, 'FPX checkout could not open. Check that FPX is enabled in your Stripe Malaysia test account, then retry.');
+      throw new HttpError(502, 'Checkout could not open. Please retry or contact support.');
     }
     const session = await response.json();
     const url = checkoutUrl(session.url);
@@ -140,12 +152,29 @@ export async function handleWebhook(request: Request, deps: Dependencies): Promi
     const outcome = types[event.type];
     if (!outcome) return json({ ignored: true });
     const session = event.data?.object;
+    // Other test integrations in the same account do not belong to Local Life.
+    if (!session?.metadata?.attempt_id) return json({ ignored: true });
     if (outcome === 'paid' && session?.payment_status !== 'paid') return json({ awaiting_payment: true });
     if (session?.livemode !== false || session.mode !== 'payment' || !String(session.id).startsWith('cs_test_') || !uuid.test(session.metadata?.attempt_id ?? '') || !Number.isSafeInteger(session.amount_total)) return json({ error: 'Invalid checkout event' }, 400);
     const serviceKey = required(deps, 'SUPABASE_SERVICE_ROLE_KEY');
-    const result = await rpc(deps, 'gateway_record_payment', { p_event_id: event.id, p_attempt_id: session.metadata.attempt_id,
+    let method: string | null = null;
+    if (outcome === 'paid') {
+      if (typeof session.payment_intent !== 'string' || !/^pi_[a-zA-Z0-9]+$/.test(session.payment_intent)) throw new Error('Missing payment identity');
+      const stripeKey = required(deps, 'STRIPE_SECRET_KEY');
+      if (!stripeKey.startsWith('sk_test_')) throw new Error('Live keys disabled');
+      const verified = await deps.fetch(`https://api.stripe.com/v1/payment_intents/${session.payment_intent}?expand[]=latest_charge`, {
+        headers: { Authorization: `Bearer ${stripeKey}`, 'Stripe-Version': '2025-02-24.acacia' }, signal: AbortSignal.timeout(20000),
+      });
+      if (!verified.ok) throw new Error('Payment verification unavailable');
+      const intent = await verified.json();
+      method = intent.latest_charge?.payment_method_details?.type;
+      if (intent.id !== session.payment_intent || intent.livemode !== false || intent.status !== 'succeeded' ||
+          intent.amount_received !== session.amount_total || intent.currency !== session.currency ||
+          !['fpx', 'card', 'grabpay'].includes(method ?? '')) throw new Error('Payment details mismatch');
+    }
+    const result = await rpc(deps, 'gateway_record_payment_method', { p_event_id: event.id, p_attempt_id: session.metadata.attempt_id,
       p_session_id: session.id, p_amount_sen: session.amount_total, p_currency: session.currency, p_outcome: outcome,
-      p_reference: typeof session.payment_intent === 'string' ? session.payment_intent : null }, serviceKey, serviceKey);
+      p_reference: typeof session.payment_intent === 'string' ? session.payment_intent : null, p_method: method }, serviceKey, serviceKey);
     return json(result);
   } catch (error) {
     // Database failures must return non-2xx so Stripe retries; never acknowledge a lost payment.

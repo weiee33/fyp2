@@ -34,6 +34,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
       _processing = false,
       _openedGateway = false;
   bool _foreground = true;
+  String _paymentOption = 'fpx';
   Timer? _poll, _deadline;
   int _pollsRemaining = 0;
 
@@ -90,6 +91,10 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
       if (!mounted) return;
       setState(() {
         _booking = booking;
+        final channel = booking.data['checkout_channel'];
+        if (channel == 'fpx' || channel == 'wallet_card') {
+          _paymentOption = channel as String;
+        }
         if (booking.hasReceipt) {
           _checkoutError = null;
           _setupRequired = false;
@@ -122,7 +127,10 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
       _setupRequired = false;
     });
     try {
-      final session = await _transactions.startCheckout(widget.bookingId);
+      final session = await _transactions.startCheckout(
+        widget.bookingId,
+        paymentOption: _paymentOption,
+      );
       if (!mounted) return;
       final launched =
           await (widget.launchCheckout?.call(session.url) ??
@@ -131,7 +139,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
       if (!launched) {
         setState(
           () => _checkoutError =
-              'The bank page could not open. Please try again.',
+              'The secure payment page could not open. Please try again.',
         );
       } else {
         setState(() => _openedGateway = true);
@@ -172,6 +180,8 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
         ? const Color(0xFF5F6368)
         : const Color(0xFF157347);
     final busy = _loading || _processing;
+    final methodLocked =
+        _openedGateway || booking?.data['checkout_channel'] != null;
     final accepted =
         booking != null &&
         (booking.data['accepted_at'] != null ||
@@ -190,6 +200,30 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
               padding: const EdgeInsets.all(16),
               children: [
                 if (busy) const LinearProgressIndicator(),
+                if (error != null)
+                  BookingSection(
+                    title: _setupRequired
+                        ? 'Payment unavailable'
+                        : _checkoutError != null
+                        ? 'Could not open payment'
+                        : 'Could not check payment status',
+                    icon: Icons.info_outline,
+                    highlighted: true,
+                    children: [
+                      Text(error),
+                      const SizedBox(height: 8),
+                      Text(
+                        _setupRequired
+                            ? 'No new checkout was opened. You can try again once the service is available.'
+                            : 'Your booking is not marked paid unless the payment server confirms it.',
+                      ),
+                      if (_statusError != null)
+                        TextButton(
+                          onPressed: busy ? null : _refresh,
+                          child: const Text('Refresh status'),
+                        ),
+                    ],
+                  ),
                 if (paid)
                   TweenAnimationBuilder<double>(
                     tween: Tween(begin: .7, end: 1),
@@ -227,6 +261,52 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       deadline: booking!.paymentDeadline!,
                     ),
                   ),
+                if (!paid && booking?.canPay == true)
+                  BookingSection(
+                    title: 'Payment method',
+                    icon: Icons.account_balance_wallet_outlined,
+                    children: [
+                      RadioGroup<String>(
+                        groupValue: _paymentOption,
+                        onChanged: (value) {
+                          if (!busy && !methodLocked && value != null) {
+                            setState(() => _paymentOption = value);
+                          }
+                        },
+                        child: Column(
+                          children: [
+                            RadioListTile<String>(
+                              value: 'fpx',
+                              enabled: !busy && !methodLocked,
+                              title: const Text('FPX online banking'),
+                              subtitle: const Text(
+                                'Choose your Malaysian bank',
+                              ),
+                            ),
+                            RadioListTile<String>(
+                              value: 'wallet_card',
+                              enabled: !busy && !methodLocked,
+                              title: const Text(
+                                'Debit / credit card or GrabPay',
+                              ),
+                              subtitle: const Text(
+                                'Choose on the secure Stripe page',
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Text(
+                        'Card number, expiry and CVC are validated by Stripe. Your card details are never stored in this app.',
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      if (methodLocked)
+                        const Text(
+                          'Continue the opened checkout. Its payment option is reserved until the window ends.',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                    ],
+                  ),
                 BookingSection(
                   title: 'Your payment journey',
                   icon: Icons.route_outlined,
@@ -242,12 +322,12 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                     ),
                     _step(
                       2,
-                      'Bank payment',
+                      'Secure payment',
                       paid
                           ? 'Payment recorded.'
                           : _openedGateway
-                          ? 'Complete the bank page, then return here. Opening it does not mean payment succeeded.'
-                          : 'Choose your bank on Stripe’s secure FPX page. No card number is needed.',
+                          ? 'Complete the secure payment page, then return here. Opening it does not mean payment succeeded.'
+                          : 'Choose FPX online banking, or cards and GrabPay. Payment details are entered securely on Stripe.',
                       done: paid,
                       current: accepted && !paid,
                     ),
@@ -258,37 +338,13 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                           ? 'The payment was refunded. Your updated receipt is ready.'
                           : paid
                           ? 'Verified by the payment server. Your receipt is ready.'
-                          : 'Your receipt appears only after the bank result is verified.',
+                          : 'Your receipt appears only after the payment result is verified.',
                       done: paid,
                       current: false,
                       last: true,
                     ),
                   ],
                 ),
-                if (error != null)
-                  BookingSection(
-                    title: _setupRequired
-                        ? 'Payment unavailable'
-                        : _checkoutError != null
-                        ? 'Could not open bank payment'
-                        : 'Could not check payment status',
-                    icon: Icons.info_outline,
-                    highlighted: true,
-                    children: [
-                      Text(error),
-                      const SizedBox(height: 8),
-                      Text(
-                        _setupRequired
-                            ? 'No new bank checkout was opened. You can try again once the service is available.'
-                            : 'Your booking is not marked paid unless the payment server confirms it.',
-                      ),
-                      if (_statusError != null)
-                        TextButton(
-                          onPressed: busy ? null : _refresh,
-                          child: const Text('Refresh status'),
-                        ),
-                    ],
-                  ),
                 if (booking != null) ...[
                   BookingSection(
                     accentColor: paid ? receiptColor : null,
@@ -337,11 +393,11 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                   ),
                   if (_openedGateway && !paid)
                     BookingSection(
-                      title: 'Waiting for the bank result',
+                      title: 'Waiting for the payment result',
                       icon: Icons.schedule,
                       children: [
                         const Text(
-                          'Return here after completing the bank page. We check for confirmation automatically for one minute. Closing that page alone does not confirm payment.',
+                          'Return here after completing the secure payment page. We check for confirmation automatically for one minute. Closing that page alone does not confirm payment.',
                         ),
                         const SizedBox(height: 12),
                         OutlinedButton(
@@ -364,7 +420,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       children: [
                         Text(
                           booking.needsNewBooking
-                              ? 'This unpaid reservation expired. Return to Booking details to choose a new appointment. If you already completed the bank page, check the payment status before starting another booking.'
+                              ? 'This unpaid reservation expired. Return to Booking details to choose a new appointment. If you already completed the secure payment page, check the payment status before starting another booking.'
                               : 'Return to Booking details to check the provider response and booking status.',
                         ),
                       ],
@@ -380,11 +436,11 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                   ),
                   if (!paid)
                     const BookingSection(
-                      title: 'FPX test payment',
+                      title: 'Sandbox test payment',
                       icon: Icons.science_outlined,
                       children: [
                         Text(
-                          'This project uses a simulated bank payment page. No real money is collected. Choose a test outcome on the gateway page, then return here for confirmation.',
+                          'No real money is collected. For a successful card test, use 4242 4242 4242 4242, a future expiry and any three-digit CVC. For FPX or GrabPay, follow the test authorisation page. Return here for verified confirmation.',
                         ),
                       ],
                     ),
@@ -426,7 +482,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                               ? 'Opening payment…'
                               : booking.canPay
                               ? (_openedGateway
-                                    ? 'Reopen bank payment'
+                                    ? 'Reopen secure payment'
                                     : 'Open secure payment')
                               : 'Back to booking',
                         ),

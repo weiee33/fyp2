@@ -28,7 +28,14 @@ class PaymentReceipt {
       'RM ${double.parse(payment['payment_amount'].toString()).toStringAsFixed(2)}';
   bool get refunded => payment['payment_status'] == 'Refunded';
   String get status => refunded ? 'REFUNDED' : 'PAID';
-  String get method => payment['payment_method']?.toString() ?? 'Unavailable';
+  String get method =>
+      switch (payment['gateway_method'] ?? payment['payment_method']) {
+        'card' || 'CreditCard' => 'Debit / credit card',
+        'grabpay' => 'GrabPay',
+        'fpx' || 'FPX' => 'FPX online banking',
+        'E-Wallet' => 'E-wallet',
+        _ => 'Unavailable',
+      };
   String get paidAt {
     final time = DateTime.tryParse(
       payment['payment_timestamp']?.toString() ?? '',

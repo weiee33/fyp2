@@ -11,7 +11,10 @@ const env = { SUPABASE_URL: 'https://project.invalid', SUPABASE_ANON_KEY: 'anon-
 const json = data => new Response(JSON.stringify(data), { headers: { 'Content-Type': 'application/json' } });
 const quote = { attempt_id: attempt, amount_sen: 18000, service_name: 'Cleaning', expires_at: new Date(expires * 1000).toISOString(), state: 'Creating' };
 const session = { id: 'cs_test_fixture', url: 'https://checkout.stripe.com/c/pay/cs_test_fixture', livemode: false, mode: 'payment', amount_total: 18000, currency: 'myr', expires_at: expires, payment_status: 'paid', payment_intent: 'pi_fixture', metadata: { attempt_id: attempt } };
-function deps(fetch, overrides = {}) { return { env: name => ({ ...env, ...overrides })[name], now: () => now, fetch }; }
+function deps(fetch, overrides = {}) { return { env: name => ({ ...env, ...overrides })[name], now: () => now, fetch: async (url, options) => {
+  if(url.includes('/v1/payment_intents/')) return json({id:'pi_fixture',livemode:false,status:'succeeded',amount_received:18000,currency:'myr',latest_charge:{payment_method_details:{type:'fpx'}}});
+  return fetch(url, options);
+} }; }
 function checkout(body = { booking_id: booking }, authorization = 'Bearer customer-fixture') { return new Request('https://project.invalid/checkout', { method: 'POST', headers: { Authorization: authorization }, body: JSON.stringify(body) }); }
 function signature(body, timestamp = Math.floor(now / 1000)) { return `t=${timestamp},v1=${createHmac('sha256', env.STRIPE_WEBHOOK_SECRET).update(`${timestamp}.${body}`).digest('hex')}`; }
 function event(overrides = {}) { return { id: 'evt_fixture', livemode: false, type: 'checkout.session.completed', data: { object: session }, ...overrides }; }
@@ -30,7 +33,7 @@ test('checkout uses server amount, stable idempotency parameters and signed retu
   const forms = []; let attached = 0;
   const dependencies = deps(async (url, options) => {
     if (url.endsWith('/auth/v1/user')) return json({ id: 'customer' });
-    if (url.endsWith('/customer_prepare_checkout')) return json(quote);
+    if (url.endsWith('/customer_prepare_payment_checkout')) return json(quote);
     if (url.includes('api.stripe.com')) {
       assert.equal(options.headers['Idempotency-Key'], `fyp-fpx-${attempt}`);
       const form = options.body; forms.push(form.toString());
@@ -73,8 +76,8 @@ test('checkout completion with unpaid status does not record payment', async () 
 test('verified callback forwards exact identity, amount and reference to privileged RPC', async () => {
   let calls = 0;
   const response = await handleWebhook(webhook(event()), deps(async (url, options) => {
-    calls++; assert.ok(url.endsWith('/gateway_record_payment'));
-    assert.deepEqual(JSON.parse(options.body), { p_event_id: 'evt_fixture', p_attempt_id: attempt, p_session_id: 'cs_test_fixture', p_amount_sen: 18000, p_currency: 'myr', p_outcome: 'paid', p_reference: 'pi_fixture' });
+    calls++; assert.ok(url.endsWith('/gateway_record_payment_method'));
+    assert.deepEqual(JSON.parse(options.body), { p_event_id: 'evt_fixture', p_attempt_id: attempt, p_session_id: 'cs_test_fixture', p_amount_sen: 18000, p_currency: 'myr', p_outcome: 'paid', p_reference: 'pi_fixture', p_method:'fpx' });
     return json({ recorded: true });
   }));
   assert.equal(response.status, 200); assert.equal(calls, 1);
@@ -93,7 +96,7 @@ for (const [status, release] of [[400, true], [500, false], [429, false]]) {
     let released = false;
     const response = await handleCheckout(checkout(), deps(async url => {
       if (url.endsWith('/user')) return json({ id: 'customer' });
-      if (url.endsWith('/customer_prepare_checkout')) return json(quote);
+      if (url.endsWith('/customer_prepare_payment_checkout')) return json(quote);
       if (url.includes('api.stripe.com')) return new Response('{}', { status });
       assert.ok(url.endsWith('/gateway_reject_checkout')); released = true;
       return new Response(null, { status: 204 });
@@ -124,4 +127,34 @@ test('invalid webhook configuration fails before creating an attempt', async () 
   }, { STRIPE_WEBHOOK_SECRET: 'invalid' }));
   assert.equal(response.status, 503);
   assert.equal((await response.json()).code, 'checkout_setup_required');
+});
+
+test('card and wallet checkout uses dynamic Stripe methods without card data', async () => {
+ const response=await handleCheckout(checkout({booking_id:booking,payment_option:'wallet_card'}),deps(async (url,options)=>{
+  if(url.endsWith('/user'))return json({id:'customer'});
+  if(url.endsWith('/customer_prepare_payment_checkout')){assert.equal(JSON.parse(options.body).p_channel,'wallet_card');return json({...quote,checkout_channel:'wallet_card'});}
+  if(url.includes('api.stripe.com')){
+   assert.equal(options.body.has('payment_method_types[0]'),false);
+   assert.equal(options.body.get('excluded_payment_method_types[0]'),'fpx');
+   assert.equal(options.headers['Idempotency-Key'],`fyp-methods-${attempt}`);
+   return json(session);
+  }
+  return json(null);
+ }));assert.equal(response.status,200);
+});
+for(const method of ['card','grabpay'])test(`verified ${method} is recorded from Stripe, never from client input`,async()=>{
+ const dependencies=deps(async(url,options)=>{
+  assert.equal(JSON.parse(options.body).p_method,method);return json({recorded:true});
+ });
+ const original=dependencies.fetch;
+ dependencies.fetch=async(url,options)=>url.includes('/v1/payment_intents/')?json({id:'pi_fixture',livemode:false,status:'succeeded',amount_received:18000,currency:'myr',latest_charge:{payment_method_details:{type:method}}}):original(url,options);
+ assert.equal((await handleWebhook(webhook(event()),dependencies)).status,200);
+});
+test('mismatched or unavailable verified payment details never write paid',async()=>{
+ const dependencies=deps(noNetwork);dependencies.fetch=async()=>json({id:'pi_fixture',livemode:false,status:'succeeded',amount_received:1,currency:'myr',latest_charge:{payment_method_details:{type:'card'}}});
+ assert.equal((await handleWebhook(webhook(event()),dependencies)).status,503);
+});
+test('card number and unsupported payment option injection rejected',async()=>{
+ for(const fields of [{payment_option:'cash'},{card_number:'4242424242424242'}])
+ assert.equal((await handleCheckout(checkout({booking_id:booking,...fields}),deps(async()=>json({id:'customer'})))).status,400);
 });

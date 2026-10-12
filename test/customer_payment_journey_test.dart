@@ -60,7 +60,7 @@ void main() {
       );
       await t.pumpAndSettle();
       expect(find.text('Provider acceptance'), findsOneWidget);
-      expect(find.text('Bank payment'), findsOneWidget);
+      expect(find.text('Secure payment'), findsOneWidget);
       expect(find.text('Payment confirmation'), findsOneWidget);
       await t.tap(find.text('Open secure payment'));
       await t.pumpAndSettle();
@@ -72,7 +72,7 @@ void main() {
       await t.tap(find.text('Open secure payment'));
       await t.pumpAndSettle();
       expect(find.text('Payment unavailable'), findsNothing);
-      expect(find.text('Reopen bank payment'), findsOneWidget);
+      expect(find.text('Reopen secure payment'), findsOneWidget);
       expect(find.text('View receipt'), findsNothing);
       await t.pumpWidget(const SizedBox());
     },
@@ -101,10 +101,10 @@ void main() {
     await t.tap(find.text('Open secure payment'));
     await t.pumpAndSettle();
     expect(
-      find.text('The bank page could not open. Please try again.'),
+      find.text('The secure payment page could not open. Please try again.'),
       findsOneWidget,
     );
-    expect(find.text('Reopen bank payment'), findsNothing);
+    expect(find.text('Reopen secure payment'), findsNothing);
     expect(find.text('View receipt'), findsNothing);
   });
   testWidgets('automatic checks stop after server verified payment', (t) async {

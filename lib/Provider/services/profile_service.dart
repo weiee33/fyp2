@@ -34,7 +34,7 @@ class ProfileService {
     final providerRow = await _client
         .from('provider_profiles')
         .select(
-          'provider_id,user_id,business_name,bio,years_experience,verification_status,overall_rating,total_reviews,service_radius_km,region,city',
+          'provider_id,user_id,business_name,bio,years_experience,verification_status,overall_rating,total_reviews,service_radius_km,region,city,service_latitude,service_longitude',
         )
         .eq('user_id', uid)
         .maybeSingle();
@@ -61,6 +61,8 @@ class ProfileService {
       'city',
       'region',
       'service_radius_km',
+      'service_latitude',
+      'service_longitude',
     };
 
     data.forEach((key, value) {

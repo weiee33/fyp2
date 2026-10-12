@@ -364,6 +364,43 @@ class _ConversationState extends State<ConversationScreen> {
     }
   }
 
+  void _openGallery(String path) {
+    var before = _messages.isEmpty
+        ? null
+        : (_messages.last['message_id'] as num).toInt();
+    var more = _more;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatPhotoGallery(
+          paths: _messages.reversed
+              .where((m) => m['attachment_path'] is String)
+              .map((m) => m['attachment_path'] as String)
+              .toList(),
+          initialPath: path,
+          service: _service,
+          loadEarlier: () async {
+            final paths = <String>[];
+            while (more && paths.isEmpty) {
+              final data = await _service.history(_id!, before: before);
+              final rows = ChatService.rows(data['messages']);
+              more = rows.length == 40;
+              if (rows.isNotEmpty) {
+                before = (rows.last['message_id'] as num).toInt();
+              }
+              paths.addAll(
+                rows.reversed
+                    .where((m) => m['attachment_path'] is String)
+                    .map((m) => m['attachment_path'] as String),
+              );
+            }
+            return paths;
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => Theme(
     data: CustomerTheme.lightTheme,
@@ -454,6 +491,9 @@ class _ConversationState extends State<ConversationScreen> {
                                       key: ValueKey(m['attachment_path']),
                                       path: m['attachment_path'] as String,
                                       service: _service,
+                                      onOpen: () => _openGallery(
+                                        m['attachment_path'] as String,
+                                      ),
                                     )
                                   else
                                     SelectableText(m['body'].toString()),

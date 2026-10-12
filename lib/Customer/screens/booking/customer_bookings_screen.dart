@@ -168,6 +168,27 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                         crossAxisAlignment: WrapCrossAlignment.center,
                         children: [
                           BookingPaymentStatus(booking: booking),
+                          if (booking.canReview)
+                            const Padding(
+                              padding: EdgeInsets.only(top: 8),
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.star_outline,
+                                    size: 18,
+                                    color: Color(0xFFFF6B00),
+                                  ),
+                                  SizedBox(width: 6),
+                                  Text(
+                                    'Ready to review',
+                                    style: TextStyle(
+                                      color: Color(0xFFFF6B00),
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
                           Text(
                             booking.displayStatus,
                             style: const TextStyle(
