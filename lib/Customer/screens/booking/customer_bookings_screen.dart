@@ -1,3 +1,4 @@
+import '../../widgets/booking_status.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -26,8 +27,9 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
   void initState() {
     super.initState();
     _load(reset: true);
-    if (_transactions.usesLiveBackend)
+    if (_transactions.usesLiveBackend) {
       _updates = CustomerLiveUpdates(() => _load(reset: true));
+    }
   }
 
   @override
@@ -46,12 +48,13 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
       final rows = await _transactions.getBookings(
         offset: reset ? 0 : _bookings.length,
       );
-      if (mounted)
+      if (mounted) {
         setState(() {
           if (reset) _bookings.clear();
           _bookings.addAll(rows);
           _hasMore = rows.length == 20;
         });
+      }
     } catch (error) {
       if (mounted) {
         setState(() => _error = bookingError(error));
@@ -107,13 +110,20 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
             ),
           ..._bookings.map(
             (booking) => Card(
-              child: ListTile(
-                isThreeLine: true,
-                title: Text(booking.serviceName),
-                subtitle: Text(
-                  '${booking.providerName}\n${booking.date} · ${booking.time}\n${booking.displayStatus} · ${booking.paymentStatus}',
+              color: Colors.white,
+              margin: const EdgeInsets.only(bottom: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: BorderSide(
+                  color: booking.paymentStatus == 'Success'
+                      ? const Color(0xFFB7DFC8)
+                      : booking.displayStatus == 'Expired'
+                      ? const Color(0xFFF0C2BD)
+                      : const Color(0xFFE2E5EA),
                 ),
-                trailing: const Icon(Icons.chevron_right),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
                 onTap: () async {
                   await Navigator.of(context).push(
                     MaterialPageRoute(
@@ -125,6 +135,51 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                   );
                   if (mounted) await _load(reset: true);
                 },
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              booking.serviceName,
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right, size: 20),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        booking.providerName,
+                        style: const TextStyle(color: Colors.black54),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(booking.appointmentLabel),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          BookingPaymentStatus(booking: booking),
+                          Text(
+                            booking.displayStatus,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.black54,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),

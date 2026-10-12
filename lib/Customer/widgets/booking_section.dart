@@ -6,12 +6,14 @@ class BookingSection extends StatelessWidget {
   final IconData icon;
   final List<Widget> children;
   final bool highlighted;
+  final Color? accentColor;
   const BookingSection({
     super.key,
     required this.title,
     required this.icon,
     required this.children,
     this.highlighted = false,
+    this.accentColor,
   });
   @override
   Widget build(BuildContext context) => Container(
@@ -19,12 +21,16 @@ class BookingSection extends StatelessWidget {
     margin: const EdgeInsets.only(bottom: 16),
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
-      color: highlighted ? CustomerTheme.primarySurface : Colors.white,
+      color:
+          accentColor?.withValues(alpha: .05) ??
+          (highlighted ? CustomerTheme.primarySurface : Colors.white),
       borderRadius: BorderRadius.circular(18),
       border: Border.all(
-        color: highlighted
-            ? CustomerTheme.primaryLight
-            : CustomerTheme.borderColor,
+        color:
+            accentColor?.withValues(alpha: .3) ??
+            (highlighted
+                ? CustomerTheme.primaryLight
+                : CustomerTheme.borderColor),
       ),
     ),
     child: Column(
@@ -32,7 +38,7 @@ class BookingSection extends StatelessWidget {
       children: [
         Row(
           children: [
-            Icon(icon, color: CustomerTheme.primary, size: 22),
+            Icon(icon, color: accentColor ?? CustomerTheme.primary, size: 22),
             const SizedBox(width: 10),
             Expanded(
               child: Text(

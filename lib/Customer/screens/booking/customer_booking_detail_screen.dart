@@ -1,3 +1,4 @@
+import '../../widgets/booking_status.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
 import '../../widgets/booking_section.dart';
@@ -279,7 +280,7 @@ class _CustomerBookingDetailScreenState
                           runSpacing: 4,
                           children: [
                             Chip(label: Text(booking.displayStatus)),
-                            Chip(label: Text(booking.paymentStatus)),
+                            BookingPaymentStatus(booking: booking),
                           ],
                         ),
                         Text(
@@ -292,11 +293,22 @@ class _CustomerBookingDetailScreenState
                     ),
                     BookingSection(
                       title: _nextStepTitle(booking),
-                      icon: Icons.info_outline,
+                      icon: booking.paymentStatus == 'Success'
+                          ? Icons.check_circle
+                          : booking.needsNewBooking
+                          ? Icons.cancel
+                          : Icons.info_outline,
+                      accentColor: booking.paymentStatus == 'Success'
+                          ? const Color(0xFF157347)
+                          : booking.needsNewBooking
+                          ? const Color(0xFFB42318)
+                          : null,
                       children: [
                         Text(_nextStepMessage(booking)),
                         if (booking.canPay &&
                             booking.paymentDeadline != null) ...[
+                          const SizedBox(height: 10),
+                          PaymentCountdown(deadline: booking.paymentDeadline!),
                           const SizedBox(height: 10),
                           Text(
                             'Pay by ${DateFormat('d MMM, h:mm a').format(booking.paymentDeadline!.toUtc().add(const Duration(hours: 8)))} (Malaysia time)',
@@ -330,12 +342,17 @@ class _CustomerBookingDetailScreenState
                       ],
                     ),
                     BookingSection(
+                      title: 'Your service journey',
+                      icon: Icons.route_outlined,
+                      children: [BookingProgress(booking: booking)],
+                    ),
+                    BookingSection(
                       title: 'Appointment & location',
                       icon: Icons.event_outlined,
                       children: [
                         _row(
                           'Appointment',
-                          '${booking.date} · ${booking.time}\nMalaysia time',
+                          '${booking.appointmentLabel}\nMalaysia time',
                         ),
                         const Divider(height: 24),
                         _row('Service address', booking.address),
@@ -368,7 +385,7 @@ class _CustomerBookingDetailScreenState
                           ],
                         ),
                         const SizedBox(height: 10),
-                        Text('Payment status: ${booking.paymentStatus}'),
+                        BookingPaymentStatus(booking: booking),
                         if (booking.hasReceipt)
                           OutlinedButton.icon(
                             onPressed: _acting
@@ -471,6 +488,11 @@ class _CustomerBookingDetailScreenState
   }
 
   String _nextStepTitle(CustomerBooking booking) {
+    if (booking.hasReceipt &&
+        booking.status == 'Cancelled' &&
+        booking.paymentStatus != 'Refunded') {
+      return 'Payment received · Booking cancelled';
+    }
     if (booking.hasReceipt) {
       return booking.paymentStatus == 'Refunded'
           ? 'Payment refunded'
@@ -484,6 +506,11 @@ class _CustomerBookingDetailScreenState
   }
 
   String _nextStepMessage(CustomerBooking booking) {
+    if (booking.hasReceipt &&
+        booking.status == 'Cancelled' &&
+        booking.paymentStatus != 'Refunded') {
+      return 'Your payment is recorded, but this appointment is cancelled. Check the support request below for refund review. Do not pay again.';
+    }
     if (booking.hasReceipt) {
       return 'View your receipt below for the verified payment record.';
     }

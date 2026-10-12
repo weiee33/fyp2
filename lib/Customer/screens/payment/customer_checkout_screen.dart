@@ -1,3 +1,4 @@
+import '../../widgets/booking_status.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -166,6 +167,10 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
   Widget build(BuildContext context) {
     final booking = _booking;
     final paid = booking?.hasReceipt == true;
+    final refunded = booking?.paymentStatus == 'Refunded';
+    final receiptColor = refunded
+        ? const Color(0xFF5F6368)
+        : const Color(0xFF157347);
     final busy = _loading || _processing;
     final accepted =
         booking != null &&
@@ -185,6 +190,43 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
               padding: const EdgeInsets.all(16),
               children: [
                 if (busy) const LinearProgressIndicator(),
+                if (paid)
+                  TweenAnimationBuilder<double>(
+                    tween: Tween(begin: .7, end: 1),
+                    duration: MediaQuery.disableAnimationsOf(context)
+                        ? Duration.zero
+                        : const Duration(milliseconds: 450),
+                    builder: (context, scale, child) =>
+                        Transform.scale(scale: scale, child: child),
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        children: [
+                          Icon(
+                            refunded ? Icons.undo_rounded : Icons.check_circle,
+                            size: 64,
+                            color: receiptColor,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            refunded ? 'Payment refunded' : 'Payment confirmed',
+                            style: const TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Text('Your receipt is ready below.'),
+                        ],
+                      ),
+                    ),
+                  ),
+                if (booking?.canPay == true && booking?.paymentDeadline != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: PaymentCountdown(
+                      deadline: booking!.paymentDeadline!,
+                    ),
+                  ),
                 BookingSection(
                   title: 'Your payment journey',
                   icon: Icons.route_outlined,
@@ -204,15 +246,17 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       paid
                           ? 'Payment recorded.'
                           : _openedGateway
-                          ? 'Bank page opened. Complete the test payment there.'
-                          : 'Choose a bank and authorise payment on the secure page.',
+                          ? 'Complete the bank page, then return here. Opening it does not mean payment succeeded.'
+                          : 'Choose your bank on Stripe’s secure FPX page. No card number is needed.',
                       done: paid,
                       current: accepted && !paid,
                     ),
                     _step(
                       3,
-                      'Payment confirmation',
-                      paid
+                      refunded ? 'Refund recorded' : 'Payment confirmation',
+                      refunded
+                          ? 'The payment was refunded. Your updated receipt is ready.'
+                          : paid
                           ? 'Verified by the payment server. Your receipt is ready.'
                           : 'Your receipt appears only after the bank result is verified.',
                       done: paid,
@@ -247,12 +291,15 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                   ),
                 if (booking != null) ...[
                   BookingSection(
+                    accentColor: paid ? receiptColor : null,
                     title: paid
                         ? (booking.paymentStatus == 'Refunded'
                               ? 'Payment refunded'
                               : 'Payment confirmed')
                         : 'Payment summary',
-                    icon: paid
+                    icon: refunded
+                        ? Icons.undo_rounded
+                        : paid
                         ? Icons.verified_outlined
                         : Icons.receipt_long_outlined,
                     highlighted: true,
@@ -326,7 +373,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                     title: 'Appointment',
                     icon: Icons.event_outlined,
                     children: [
-                      Text('${booking.date} · ${booking.time} (Malaysia time)'),
+                      Text('${booking.appointmentLabel} (Malaysia time)'),
                       const SizedBox(height: 10),
                       Text(booking.address),
                     ],
