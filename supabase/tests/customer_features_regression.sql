@@ -1,0 +1,58 @@
+-- Run with the shared rollback-only customer fixtures.
+reset role;
+update public.users set is_active=true where user_id in (pg_temp.fixture_id('provider_user'),pg_temp.fixture_id('customer_user'));
+update public.provider_profiles set verification_status='Verified',service_latitude=3.15,service_longitude=101.7,service_radius_km=10 where provider_id=pg_temp.fixture_id('provider_profile');
+update public.services set is_active=true,availability_status=true where service_id=pg_temp.fixture_id('service');
+update public.service_categories set is_active=true where category_id in (pg_temp.fixture_id('root_category'),pg_temp.fixture_id('child_category'));
+set local role authenticated;
+select pg_temp.login_as('customer_auth','aal1');
+select pg_temp.test_assert('coverage returns verified provider with service radius',exists(select 1 from jsonb_array_elements(public.customer_provider_coverage(3.15,101.7)) p where p->>'provider_id'=pg_temp.fixture_id('provider_profile')::text and (p->>'covers_selected')::boolean and p->>'service_radius_km'='10'));
+select pg_temp.test_assert('coverage excludes distant service areas',not exists(select 1 from jsonb_array_elements(public.customer_provider_coverage(5.4,100.3)) p where p->>'provider_id'=pg_temp.fixture_id('provider_profile')::text));
+select pg_temp.test_error('coverage rejects invalid coordinate',$$select public.customer_provider_coverage(999,101)$$,'P0001');
+select pg_temp.test_assert('coverage hides personal data',not (public.customer_provider_coverage(3.15,101.7)->0 ? 'user_id'));
+select pg_temp.test_error('customer cannot record card payments',$$select public.gateway_record_payment_method('fake',pg_temp.fpx_attempt(),'cs_test_fixture',18000,'myr','paid','pi_fake','card')$$,'42501');
+reset role;
+update public.provider_profiles set verification_status='Pending' where provider_id=pg_temp.fixture_id('provider_profile');
+set local role authenticated;
+select pg_temp.login_as('customer_auth','aal1');
+select pg_temp.test_assert('coverage hides unverified provider',not exists(select 1 from jsonb_array_elements(public.customer_provider_coverage(3.15,101.7)) p where p->>'provider_id'=pg_temp.fixture_id('provider_profile')::text));
+reset role;
+update public.provider_profiles set verification_status='Verified' where provider_id=pg_temp.fixture_id('provider_profile');
+-- A previously reviewed fixture must not be offered again.
+set local role authenticated;
+select pg_temp.login_as('customer_auth','aal1');
+select pg_temp.test_assert('review queue excludes already reviewed booking',not exists(select 1 from jsonb_array_elements(public.customer_review_queue()) b where b->>'booking_id'=pg_temp.module_booking()::text));
+insert into customer_module_ids values('card_booking',(public.customer_create_booking(pg_temp.fixture_id('service'),
+ 'eeeeeeee-0000-4000-8000-000000000011',(now() at time zone 'Asia/Kuala_Lumpur')::date+8,'09:00',null,'Medium',
+ 'eeeeeeee-0000-4000-8000-000000000088')->>'booking_id')::uuid);
+create function pg_temp.card_booking() returns uuid language sql stable as $$select id from customer_module_ids where name='card_booking'$$;
+create function pg_temp.card_attempt() returns uuid language sql stable as $$select id from customer_module_ids where name='card_attempt'$$;
+select pg_temp.login_as('provider_auth','aal1');
+select public.provider_booking_reply(pg_temp.card_booking(),true);
+select pg_temp.login_as('customer_auth','aal1');
+insert into customer_module_ids values('card_attempt',(public.customer_prepare_payment_checkout(pg_temp.card_booking(),'wallet_card')->>'attempt_id')::uuid);
+select pg_temp.test_error('changing checkout channel cannot create parallel charge',$$select public.customer_prepare_checkout(pg_temp.card_booking())$$,'P0001');
+select pg_temp.test_assert('detail exposes reserved checkout channel',public.customer_booking_detail(pg_temp.card_booking())->>'checkout_channel'='wallet_card');
+reset role;
+select public.gateway_attach_checkout(pg_temp.card_attempt(),'cs_test_card','https://checkout.stripe.com/c/pay/cs_test_card',(select expires_at from private.checkout_attempts where attempt_id=pg_temp.card_attempt()));
+select public.gateway_record_payment_method('evt_card',pg_temp.card_attempt(),'cs_test_card',18000,'myr','paid','pi_card','card');
+select pg_temp.test_assert('verified card uses correct method', (select payment_method='CreditCard' and gateway_method='card' from public.payments where booking_id=pg_temp.card_booking()));
+select public.gateway_record_payment_method('evt_card',pg_temp.card_attempt(),'cs_test_card',18000,'myr','paid','pi_card','grabpay');
+select pg_temp.test_assert('duplicate callback cannot relabel method', (select gateway_method='card' from public.payments where booking_id=pg_temp.card_booking()));
+set local role authenticated;
+select pg_temp.login_as('customer_auth','aal1');
+select pg_temp.test_assert('receipt exposes actual payment method',public.customer_booking_receipt(pg_temp.card_booking())->'payment'->>'gateway_method'='card');
+select pg_temp.test_assert('payment alone does not unlock review',not exists(select 1 from jsonb_array_elements(public.customer_review_queue()) b where b->>'booking_id'=pg_temp.card_booking()::text));
+reset role;
+update public.bookings set booking_status='Completed',completed_at=now() where booking_id=pg_temp.card_booking();
+set local role authenticated;
+select pg_temp.login_as('customer_auth','aal1');
+select pg_temp.test_assert('paid completed booking enters review queue',exists(select 1 from jsonb_array_elements(public.customer_review_queue()) b where b->>'booking_id'=pg_temp.card_booking()::text));
+select public.customer_submit_review(pg_temp.card_booking(),5,'Completed card-paid service');
+select pg_temp.test_assert('submitted booking leaves review queue',not exists(select 1 from jsonb_array_elements(public.customer_review_queue()) b where b->>'booking_id'=pg_temp.card_booking()::text));
+select pg_temp.login_as('provider_auth','aal1');
+select pg_temp.test_error('provider cannot query customer review queue',$$select public.customer_review_queue()$$,'42501');
+reset role;
+set local role anon;
+select pg_temp.test_error('anonymous cannot access coverage',$$select public.customer_provider_coverage(3.15,101.7)$$,'42501');
+reset role;

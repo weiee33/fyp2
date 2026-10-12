@@ -130,14 +130,21 @@ class CustomerTransactionService {
   }
 
   /// A browser URL is never evidence of a successful payment.
-  Future<CheckoutSession> startCheckout(String bookingId) async {
+  Future<CheckoutSession> startCheckout(
+    String bookingId, {
+    String paymentOption = 'fpx',
+  }) async {
     final data = _functionOverride != null
         ? await _functionOverride('customer-checkout', {
             'booking_id': bookingId,
+            if (paymentOption != 'fpx') 'payment_option': paymentOption,
           })
         : (await client.functions.invoke(
             'customer-checkout',
-            body: {'booking_id': bookingId},
+            body: {
+              'booking_id': bookingId,
+              if (paymentOption != 'fpx') 'payment_option': paymentOption,
+            },
           )).data;
     return CheckoutSession.fromJson(Map<String, dynamic>.from(data as Map));
   }

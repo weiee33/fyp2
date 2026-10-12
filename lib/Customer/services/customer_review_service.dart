@@ -1,11 +1,24 @@
 import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'customer_image_service.dart';
+import 'customer_transaction_service.dart';
 
 class CustomerReviewService {
-  final SupabaseClient _client;
-  CustomerReviewService({SupabaseClient? client})
-    : _client = client ?? Supabase.instance.client;
+  final SupabaseClient? _providedClient;
+  final CustomerRpc? rpc;
+  CustomerReviewService({SupabaseClient? client, this.rpc})
+    : _providedClient = client;
+  SupabaseClient get _client => _providedClient ?? Supabase.instance.client;
+  Future<dynamic> _call(String name, Map<String, dynamic> params) =>
+      rpc != null ? rpc!(name, params) : _client.rpc(name, params: params);
+  Future<List<Map<String, dynamic>>> getReadyToReview({int offset = 0}) async =>
+      List<Map<String, dynamic>>.from(
+        await _call('customer_review_queue', {
+              'p_offset': offset,
+              'p_limit': 20,
+            })
+            as List,
+      );
 
   Future<bool> verifyBookingEligibility(String bookingId) async =>
       await _client.rpc(
@@ -47,7 +60,7 @@ class CustomerReviewService {
   }
 
   Future<List<Map<String, dynamic>>> getMyReviews() async {
-    final result = await _client.rpc('customer_my_reviews');
+    final result = await _call('customer_my_reviews', {});
     return List<Map<String, dynamic>>.from(result as List);
   }
 

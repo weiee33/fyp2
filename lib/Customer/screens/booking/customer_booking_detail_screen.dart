@@ -401,6 +401,20 @@ class _CustomerBookingDetailScreenState
                           ),
                       ],
                     ),
+                    if (!booking.hasReview &&
+                        !booking.canReview &&
+                        booking.paymentStatus == 'Success')
+                      BookingSection(
+                        title: 'Review your service',
+                        icon: Icons.rate_review_outlined,
+                        children: [
+                          Text(
+                            booking.status == 'Cancelled'
+                                ? 'Reviews are available for completed services. Contact support about this cancelled booking.'
+                                : 'Your payment is confirmed. You can write a review here once the provider marks your service Completed.',
+                          ),
+                        ],
+                      ),
                     if (booking.hasReview)
                       const ListTile(
                         leading: Icon(Icons.rate_review_outlined),
@@ -518,7 +532,7 @@ class _CustomerBookingDetailScreenState
       return 'This unpaid reservation has expired. The request or payment deadline has passed, or the appointment time is already over. Choose a new available appointment to book again.';
     }
     if (booking.canPay) {
-      return 'Next: complete FPX payment to keep your appointment. Use the payment button below. Availability is checked again before checkout.';
+      return 'Next: pay by FPX, card or GrabPay to keep your appointment. Use the payment button below. Availability is checked again before checkout.';
     }
     if (booking.status == 'Pending') {
       return 'Your request has been sent. Once the provider accepts, you have 30 minutes to pay. We will notify you when payment is available.';

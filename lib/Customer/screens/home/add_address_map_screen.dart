@@ -7,14 +7,17 @@ import '../../core/customer_theme.dart';
 import '../../widgets/customer_dialogs.dart';
 import '../../services/customer_address_service.dart';
 import '../../services/customer_location_service.dart';
+import '../../services/provider_coverage_service.dart';
 
 class AddAddressMapScreen extends StatefulWidget {
   final CustomerAddressService? service;
+  final ProviderCoverageService? coverageService;
   final Future<LatLng> Function()? locate;
   final Widget Function(BuildContext, ValueChanged<LatLng>)? mapBuilder;
   const AddAddressMapScreen({
     super.key,
     this.service,
+    this.coverageService,
     this.locate,
     this.mapBuilder,
   });
@@ -41,6 +44,52 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   bool _mapReady = false;
   Timer? _debounce;
   int _version = 0;
+  int _coverageVersion = 0;
+  Timer? _coverageDebounce;
+  List<ProviderCoverage> _coverage = [];
+  ProviderCoverage? _selectedProvider;
+  bool _showCoverage = false, _coverageLoading = false;
+  String? _coverageError;
+  late final _coverageService =
+      widget.coverageService ?? ProviderCoverageService();
+  Future<void> _loadCoverage() async {
+    final version = ++_coverageVersion;
+    setState(() {
+      _coverageLoading = true;
+      _coverageError = null;
+    });
+    try {
+      final rows = await _coverageService.nearby(_currentPosition);
+      if (mounted && version == _coverageVersion) {
+        setState(() {
+          _coverage = rows;
+          if (_selectedProvider != null &&
+              !rows.any((p) => p.id == _selectedProvider!.id)) {
+            _selectedProvider = null;
+          }
+        });
+      }
+    } catch (_) {
+      if (mounted && version == _coverageVersion) {
+        setState(() => _coverageError = 'Coverage unavailable. Tap to retry.');
+      }
+    } finally {
+      if (mounted && version == _coverageVersion) {
+        setState(() => _coverageLoading = false);
+      }
+    }
+  }
+
+  void _toggleCoverage() {
+    setState(() => _showCoverage = !_showCoverage);
+    if (_showCoverage) {
+      _loadCoverage();
+    } else {
+      _coverageDebounce?.cancel();
+      _coverageVersion++;
+      _coverageLoading = false;
+    }
+  }
 
   @override
   void initState() {
@@ -53,6 +102,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _coverageDebounce?.cancel();
     _map.dispose();
     _sheet.dispose();
     for (final c in [
@@ -91,6 +141,15 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   }
 
   void _select(LatLng point, {bool move = false}) {
+    _coverageDebounce?.cancel();
+    _coverageVersion++;
+    if (_showCoverage) {
+      _coverageDebounce = Timer(
+        const Duration(milliseconds: 600),
+        _loadCoverage,
+      );
+    }
+
     final version = ++_version;
     _debounce?.cancel();
     setState(() {
@@ -122,8 +181,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       final keys = ['addressLine', 'city', 'state', 'postcode'];
       for (var i = 0; i < controllers.length; i++) {
         // Clear missing fields from the previous location, but keep edits made during lookup.
-        if (controllers[i].text == before[i])
+        if (controllers[i].text == before[i]) {
           controllers[i].text = data[keys[i]] ?? '';
+        }
       }
       setState(() => _isFetchingLocation = false);
       if ((data['addressLine'] ?? '').isEmpty) {
@@ -287,7 +347,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                           },
                           onTap: (_, point) => _select(point),
                           onPositionChanged: (camera, gesture) {
-                            if (gesture)
+                            if (gesture) {
                               _select(
                                 camera.screenOffsetToLatLng(
                                   Offset(
@@ -296,6 +356,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                   ),
                                 ),
                               );
+                            }
                           },
                           interactionOptions: const InteractionOptions(
                             flags:
@@ -312,8 +373,78 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                             userAgentPackageName: 'com.locallife.fyp2',
                             maxNativeZoom: 19,
                           ),
+                          if (_showCoverage)
+                            CircleLayer(
+                              circles: _coverage
+                                  .map(
+                                    (p) => CircleMarker(
+                                      point: p.centre,
+                                      radius: p.radiusKm * 1000,
+                                      useRadiusInMeter: true,
+                                      color:
+                                          (_selectedProvider?.id == p.id
+                                                  ? Colors.blue
+                                                  : CustomerTheme.primary)
+                                              .withValues(alpha: .10),
+                                      borderColor: _selectedProvider?.id == p.id
+                                          ? Colors.blue
+                                          : CustomerTheme.primary,
+                                      borderStrokeWidth:
+                                          _selectedProvider?.id == p.id ? 2 : 1,
+                                    ),
+                                  )
+                                  .toList(),
+                            ),
                           MarkerLayer(
                             markers: [
+                              if (_showCoverage)
+                                ..._coverage.map(
+                                  (p) => Marker(
+                                    point: p.centre,
+                                    width: 150,
+                                    height: 64,
+                                    child: Semantics(
+                                      label:
+                                          '${p.name}, ${p.radiusKm.toInt()} kilometre service radius',
+                                      button: true,
+                                      child: GestureDetector(
+                                        onTap: () => setState(
+                                          () => _selectedProvider = p,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            const Icon(
+                                              Icons.home_repair_service,
+                                              color: Colors.blue,
+                                              size: 26,
+                                            ),
+                                            Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 6,
+                                                    vertical: 3,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                              child: Text(
+                                                p.name,
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               Marker(
                                 point: _currentPosition,
                                 width: 48,
@@ -332,6 +463,86 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                         ],
                       ),
                 ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  right: 12,
+                  child: Align(
+                    alignment: Alignment.topLeft,
+                    child: FilledButton.tonalIcon(
+                      onPressed: _toggleCoverage,
+                      icon: Icon(
+                        _showCoverage
+                            ? Icons.layers_clear_outlined
+                            : Icons.layers_outlined,
+                      ),
+                      label: Text(
+                        _showCoverage
+                            ? 'Hide service areas'
+                            : 'Show service areas',
+                      ),
+                    ),
+                  ),
+                ),
+                if (_showCoverage)
+                  Positioned(
+                    top: 62,
+                    left: 12,
+                    right: 12,
+                    child: AnimatedSize(
+                      duration: MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : const Duration(milliseconds: 200),
+                      child: Material(
+                        color: Colors.white,
+                        elevation: 2,
+                        borderRadius: BorderRadius.circular(12),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (_coverageLoading)
+                                const LinearProgressIndicator(),
+                              if (_coverageError != null)
+                                InkWell(
+                                  onTap: _loadCoverage,
+                                  child: Text(_coverageError!),
+                                )
+                              else if (_selectedProvider != null) ...[
+                                Text(
+                                  _selectedProvider!.name,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Text(
+                                  '${_selectedProvider!.radiusKm.toInt()} km radius · ${_selectedProvider!.covers(_currentPosition) ? 'Selected address in range' : 'Selected address outside range'}',
+                                ),
+                                Text(
+                                  _selectedProvider!.services.join(' · '),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ] else
+                                Text(
+                                  _coverage.isEmpty
+                                      ? 'No published service areas near this address.'
+                                      : '${_coverage.length} providers nearby · Tap a blue marker',
+                                ),
+                              const Text(
+                                'Provider-declared areas. Confirm availability before booking.',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 DraggableScrollableSheet(
                   controller: _sheet,
                   initialChildSize: .55,

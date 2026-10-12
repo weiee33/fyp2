@@ -338,7 +338,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                 ),
                 const SizedBox(height: 12),
                 const Text(
-                  'Send your request first. Once the provider accepts, open Booking details and pay by FPX within 30 minutes.',
+                  'Send your request first. Once the provider accepts, open Booking details and pay by FPX, card or GrabPay within 30 minutes.',
                 ),
               ],
             ),
