@@ -58,12 +58,17 @@ class CustomerAiService {
       );
   Future<dynamic> _edge(Map<String, dynamic> body) async {
     try {
-      return invoke != null
-          ? await invoke!('customer-assistant', body)
-          : (await client.functions.invoke(
-              'customer-assistant',
-              body: body,
-            )).data;
+      final request = invoke != null
+          ? invoke!('customer-assistant', body)
+          : client.functions
+                .invoke('customer-assistant', body: body)
+                .then((response) => response.data);
+      return await request.timeout(
+        const Duration(seconds: 110),
+        onTimeout: () => throw const FormatException(
+          'The connection is taking too long. Your draft is kept; tap Retry.',
+        ),
+      );
     } on FunctionException catch (e) {
       final details = e.details;
       throw FormatException(
@@ -73,6 +78,13 @@ class CustomerAiService {
             : 'Assistant unavailable. Please retry.',
       );
     }
+  }
+
+  Future<void> rename(String id, String title) async {
+    await _call('customer_ai_rename_conversation', {
+      'p_conversation_id': id,
+      'p_title': title,
+    });
   }
 
   Future<void> delete(String id) async =>

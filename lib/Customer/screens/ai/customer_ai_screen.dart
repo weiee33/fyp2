@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:typed_data';
+import 'dart:math' as math;
+import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../core/customer_theme.dart';
@@ -44,6 +46,9 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       _retryMode = 'chat',
       _voicePrefix = '';
   Uint8List? _photo;
+  String _chatTitle = 'New chat';
+  Map<String, dynamic>? _pendingMessage;
+  bool _sending = false;
   bool _busy = false,
       _older = true,
       _listening = false,
@@ -96,8 +101,6 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
 
   Future<void> _send() async {
     if (_busy || (_text.text.trim().isEmpty && _photo == null)) return;
-    await _speech.cancel();
-    _hold = false;
     final message = _text.text.trim();
     if (message.length > 4000) {
       setState(() => _error = 'Keep your message under 4000 characters.');
@@ -110,10 +113,20 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     }
     setState(() {
       _busy = true;
+      _sending = true;
+      _pendingMessage = {
+        'role': 'user',
+        'content': message,
+        if (_photo != null) 'local_photo': _photo,
+      };
+      _text.clear();
       _error = null;
       _listening = false;
     });
+    _bottom();
     try {
+      await _speech.cancel();
+      _hold = false;
       _conversation ??= (await _service.create(_createId))['id'].toString();
       if (_photo != null && _imagePath == null) {
         _imagePath = await _service.upload(
@@ -129,10 +142,29 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
         mode: _mode,
         imagePath: _imagePath,
       );
-      final history = await _service.history(_conversation!);
+      List<Map<String, dynamic>> history;
+      try {
+        history = await _service.history(_conversation!);
+      } catch (_) {
+        // A saved reply must remain visible even if the history refresh fails.
+        history = [
+          ..._messages,
+          {
+            ...?_pendingMessage,
+            if (_imagePath != null) 'image_path': _imagePath,
+          },
+          reply,
+        ];
+      }
       if (!mounted) return;
       setState(() {
         _messages = history;
+        _pendingMessage = null;
+        if (_chatTitle == 'New chat') {
+          _chatTitle = message.isEmpty
+              ? 'Photo conversation'
+              : message.substring(0, math.min(70, message.length));
+        }
         _older = history.length == 40;
         _text.clear();
         _photo = null;
@@ -149,13 +181,23 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
         }
       }
     } catch (e) {
-      if (mounted) setState(() => _error = _message(e));
+      if (mounted) {
+        setState(() {
+          _error = _message(e);
+          _text.text = message;
+        });
+      }
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _sending = false;
+        });
+      }
     }
   }
 
-  Future<void> _selectChat(String id) async {
+  Future<void> _selectChat(String id, {String title = 'Conversation'}) async {
     if (_busy) return;
     await _speech.cancel();
     _hold = false;
@@ -169,6 +211,8 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       if (!mounted) return;
       setState(() {
         _conversation = id;
+        _chatTitle = title;
+        _pendingMessage = null;
         _messages = rows;
         _older = rows.length == 40;
         _text.clear();
@@ -213,6 +257,8 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     _hold = false;
     setState(() {
       _conversation = null;
+      _chatTitle = 'New chat';
+      _pendingMessage = null;
       _messages = [];
       _photo = null;
       _imagePath = null;
@@ -228,21 +274,56 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
 
   Future<void> _history() async {
     if (_busy) return;
-    final selected = await showModalBottomSheet<String>(
+    final selected = await showGeneralDialog<Map<String, dynamic>>(
       context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => _ChatHistory(
-        service: _service,
-        onDeleted: (id) {
-          if (mounted && id == _conversation) _newChat();
-        },
+      barrierDismissible: true,
+      barrierLabel: 'Close chat history',
+      barrierColor: Colors.black.withValues(alpha: .25),
+      transitionDuration: MediaQuery.disableAnimationsOf(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 260),
+      transitionBuilder: (_, animation, _, child) => SlideTransition(
+        position: Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero)
+            .animate(
+              CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+            ),
+        child: child,
+      ),
+      pageBuilder: (c, _, _) => Align(
+        alignment: Alignment.centerLeft,
+        child: SizedBox(
+          width: math.min(380, MediaQuery.sizeOf(c).width * .88),
+          child: Material(
+            color: const Color(0xFFFAF9F7),
+            borderRadius: const BorderRadius.horizontal(
+              right: Radius.circular(26),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: _ChatHistory(
+              service: _service,
+              currentId: _conversation,
+              onRenamed: (id, title) {
+                if (mounted && id == _conversation) {
+                  setState(() => _chatTitle = title);
+                }
+              },
+              onDeleted: (id) {
+                if (mounted && id == _conversation) _newChat();
+              },
+            ),
+          ),
+        ),
       ),
     );
-    if (!mounted) return;
-    if (selected != null) {
-      await _selectChat(selected);
+    if (!mounted || selected == null) return;
+    if (selected['new'] == true) {
+      _newChat();
+      return;
     }
+    await _selectChat(
+      selected['id'].toString(),
+      title: selected['title'].toString(),
+    );
   }
 
   Future<void> _attach() async {
@@ -467,6 +548,28 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
             child: Center(child: CircularProgressIndicator()),
           ),
   );
+  TextSpan _replyText(String text) {
+    final plain = text.replaceAllMapped(
+      RegExp(r'^(\s*)\* ', multiLine: true),
+      (m) => '${m[1]}• ',
+    );
+    final spans = <InlineSpan>[];
+    var offset = 0;
+    for (final match in RegExp(r'\*\*([^*\n]+)\*\*').allMatches(plain)) {
+      if (match.start > offset)
+        spans.add(TextSpan(text: plain.substring(offset, match.start)));
+      spans.add(
+        TextSpan(
+          text: match[1],
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+      );
+      offset = match.end;
+    }
+    spans.add(TextSpan(text: plain.substring(offset)));
+    return TextSpan(children: spans);
+  }
+
   Widget _bubble(Map<String, dynamic> row) {
     final user = row['role'] == 'user';
     final cards = (row['actions'] as List? ?? []).whereType<Map>();
@@ -475,7 +578,12 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       child: Container(
         margin: const EdgeInsets.only(bottom: 18),
         padding: const EdgeInsets.all(16),
-        constraints: const BoxConstraints(maxWidth: 620),
+        constraints: BoxConstraints(
+          maxWidth: math.min(
+            620,
+            MediaQuery.sizeOf(context).width * (user ? .83 : .91),
+          ),
+        ),
         decoration: BoxDecoration(
           color: user ? const Color(0xFFFFEBDD) : Colors.white,
           borderRadius: BorderRadius.circular(20),
@@ -495,11 +603,22 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
               ),
             ),
             const SizedBox(height: 8),
-            if (row['image_path'] != null)
+            if (row['local_photo'] is Uint8List)
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(
+                  row['local_photo'] as Uint8List,
+                  height: 130,
+                  fit: BoxFit.cover,
+                ),
+              ),
+            if (row['image_path'] != null && row['local_photo'] == null)
               _photoView(row['image_path'].toString()),
             if ((row['content'] ?? '').toString().isNotEmpty)
-              SelectableText(
-                row['content'].toString(),
+              SelectableText.rich(
+                user
+                    ? TextSpan(text: row['content'].toString())
+                    : _replyText(row['content'].toString()),
                 style: const TextStyle(height: 1.5),
               ),
             ...cards.map((raw) {
@@ -558,22 +677,284 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     );
   }
 
+  Widget _voiceButton() => Semantics(
+    label: 'Hold to speak; tap to start or stop',
+    button: true,
+    child: Tooltip(
+      message: 'Hold to speak',
+      triggerMode: TooltipTriggerMode.manual,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _busy ? null : () => _listening ? _stopVoice() : _startVoice(),
+        onLongPressStart: _busy ? null : (_) => _startVoice(),
+        onLongPressEnd: (_) => _stopVoice(),
+        onLongPressCancel: _stopVoice,
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Icon(
+            _listening ? Icons.stop_circle : Icons.graphic_eq_rounded,
+            color: _listening
+                ? CustomerTheme.primary
+                : CustomerTheme.textSecondary,
+          ),
+        ),
+      ),
+    ),
+  );
+
+  Widget _composer() => Container(
+    key: const ValueKey('ai-composer'),
+    margin: const EdgeInsets.fromLTRB(14, 8, 14, 8),
+    padding: const EdgeInsets.fromLTRB(12, 6, 8, 6),
+    decoration: BoxDecoration(
+      color: const Color(0xFFF1F0EE),
+      borderRadius: BorderRadius.circular(26),
+      border: Border.all(color: const Color(0xFFE5E2DE)),
+    ),
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (_photo != null && !_sending)
+          Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.memory(
+                  _photo!,
+                  height: 58,
+                  width: 58,
+                  fit: BoxFit.cover,
+                ),
+              ),
+              IconButton(
+                tooltip: 'Remove photo',
+                onPressed: _busy
+                    ? null
+                    : () => setState(() {
+                        _photo = null;
+                        _imagePath = null;
+                        _requestId = null;
+                      }),
+                icon: const Icon(Icons.close, size: 18),
+              ),
+            ],
+          ),
+        TextField(
+          controller: _text,
+          enabled: !_busy,
+          onChanged: (_) {
+            if (!_listening) unawaited(_speech.cancel());
+          },
+          minLines: 1,
+          maxLines: 4,
+          maxLength: 4000,
+          decoration: const InputDecoration(
+            hintText: 'Message or hold to speak',
+            counterText: '',
+            filled: false,
+            border: InputBorder.none,
+            enabledBorder: InputBorder.none,
+            focusedBorder: InputBorder.none,
+            disabledBorder: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(horizontal: 6, vertical: 12),
+          ),
+          textCapitalization: TextCapitalization.sentences,
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: PopupMenuButton<String>(
+                  tooltip: 'Assistant mode',
+                  initialValue: _mode,
+                  enabled: !_busy,
+                  onSelected: (mode) => setState(() => _mode = mode),
+                  itemBuilder: (_) => const [
+                    PopupMenuItem(value: 'chat', child: Text('Ask AI')),
+                    PopupMenuItem(value: 'assist', child: Text('Do it for me')),
+                  ],
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.auto_awesome_outlined,
+                          size: 16,
+                          color: CustomerTheme.primary,
+                        ),
+                        const SizedBox(width: 5),
+                        Flexible(
+                          child: Text(
+                            _mode == 'chat' ? 'Ask AI' : 'Do it for me',
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const Icon(Icons.keyboard_arrow_down, size: 16),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
+            IconButton(
+              tooltip: 'Attach photo',
+              onPressed: _busy ? null : _attach,
+              icon: const Icon(Icons.add_circle_outline),
+              visualDensity: VisualDensity.compact,
+            ),
+            _voiceButton(),
+            IconButton.filled(
+              tooltip: 'Send message',
+              onPressed: _busy ? null : _send,
+              icon: const Icon(Icons.arrow_upward_rounded),
+              visualDensity: VisualDensity.compact,
+            ),
+          ],
+        ),
+      ],
+    ),
+  );
+
+  Widget _welcome() => LayoutBuilder(
+    builder: (context, bounds) => SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(
+          minHeight: math.max(0, bounds.maxHeight - 48),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const AiHalo(size: 56),
+            const SizedBox(height: 24),
+            const Text(
+              'What can I help you\nwith today?',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 26,
+                height: 1.25,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Find a service. Compare providers.\nLet’s plan your next booking.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: CustomerTheme.textSecondary, height: 1.5),
+            ),
+            const SizedBox(height: 28),
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final item in const [
+                  (
+                    'Find a service',
+                    'Help me choose a service',
+                    Icons.search_rounded,
+                  ),
+                  (
+                    'Nearby providers',
+                    'Compare providers near my saved address',
+                    Icons.near_me_outlined,
+                  ),
+                  (
+                    'Help with a photo',
+                    'What service does this photo need?',
+                    Icons.image_outlined,
+                  ),
+                ])
+                  ActionChip(
+                    avatar: Icon(
+                      item.$3,
+                      size: 16,
+                      color: CustomerTheme.primary,
+                    ),
+                    label: Text(item.$1, style: const TextStyle(fontSize: 12)),
+                    backgroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFFEAE7E3)),
+                    onPressed: _busy
+                        ? null
+                        : () {
+                            _text.text = item.$2;
+                          },
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+
+  Widget _conversationList() => ListView.builder(
+    controller: _scroll,
+    padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
+    itemCount:
+        _messages.length +
+        (_older && _messages.isNotEmpty ? 1 : 0) +
+        (_pendingMessage != null ? 1 : 0) +
+        (_sending ? 1 : 0),
+    itemBuilder: (_, index) {
+      if (_older && _messages.isNotEmpty) {
+        if (index == 0) {
+          return TextButton(
+            onPressed: _busy ? null : _earlier,
+            child: const Text('Load earlier messages'),
+          );
+        }
+        index--;
+      }
+      if (index < _messages.length) return _bubble(_messages[index]);
+      index -= _messages.length;
+      if (_pendingMessage != null && index == 0) {
+        return _bubble(_pendingMessage!);
+      }
+      return const _ThinkingBubble();
+    },
+  );
+
   @override
   Widget build(BuildContext context) => Theme(
     data: CustomerTheme.lightTheme,
     child: Scaffold(
+      backgroundColor: const Color(0xFFFCFBF9),
       appBar: AppBar(
+        backgroundColor: const Color(0xFFFCFBF9),
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          tooltip: 'Close assistant',
-          icon: const Icon(Icons.keyboard_arrow_down),
-          onPressed: () => Navigator.pop(context),
+          tooltip: 'Chat history',
+          onPressed: _busy ? null : _history,
+          icon: const Icon(Icons.menu_rounded),
         ),
-        title: const Column(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Local Life AI'),
+            const Text(
+              'Local Life AI',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
+            ),
             Text(
-              'Your service companion',
-              style: TextStyle(
+              _chatTitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
                 fontSize: 11,
                 color: CustomerTheme.textSecondary,
               ),
@@ -582,187 +963,58 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
         ),
         actions: [
           IconButton(
-            tooltip: 'Chat history',
-            onPressed: _busy ? null : _history,
-            icon: const Icon(Icons.history),
-          ),
-          IconButton(
             tooltip: 'New chat',
             onPressed: _busy ? null : _newChat,
-            icon: const Icon(Icons.edit_square),
+            icon: const Icon(Icons.edit_square, size: 21),
+          ),
+          IconButton(
+            tooltip: 'Close assistant',
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.keyboard_arrow_down),
           ),
         ],
       ),
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 10, 16, 6),
-              child: SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(
-                    value: 'chat',
-                    label: Text('Ask AI'),
-                    icon: Icon(Icons.chat_bubble_outline),
-                  ),
-                  ButtonSegment(
-                    value: 'assist',
-                    label: Text('Do it for me'),
-                    icon: Icon(Icons.auto_awesome),
-                  ),
-                ],
-                selected: {_mode},
-                onSelectionChanged: _busy
-                    ? null
-                    : (v) => setState(() => _mode = v.first),
-              ),
-            ),
+            if (_busy && !_sending) const LinearProgressIndicator(minHeight: 2),
             Expanded(
-              child: _messages.isEmpty
-                  ? ListView(
-                      padding: const EdgeInsets.all(24),
-                      children: [
-                        const SizedBox(height: 28),
-                        const Center(child: AiHalo(size: 70)),
-                        const SizedBox(height: 22),
-                        Text(
-                          _mode == 'chat'
-                              ? 'How can I help?'
-                              : 'What would you like to do?',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(
-                            fontSize: 27,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        const Text(
-                          'Find the right service, compare providers or plan a booking.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: CustomerTheme.textSecondary,
-                            height: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        ...(_mode == 'chat'
-                                ? [
-                                    'Help me choose a service',
-                                    'Compare providers near my saved address',
-                                    'What service does this photo need?',
-                                  ]
-                                : [
-                                    'Help me book a service',
-                                    'Show my upcoming bookings',
-                                    'Change my default service address',
-                                  ])
-                            .map(
-                              (p) => Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: OutlinedButton(
-                                  onPressed: _busy
-                                      ? null
-                                      : () {
-                                          _text.text = p;
-                                        },
-                                  style: OutlinedButton.styleFrom(
-                                    alignment: Alignment.centerLeft,
-                                    padding: const EdgeInsets.all(16),
-                                  ),
-                                  child: Text(p),
-                                ),
-                              ),
-                            ),
-                        const SizedBox(height: 18),
-                        const Text(
-                          'Messages, attached photos and relevant app details are sent to Google Gemini. AI can make mistakes. Review action cards before confirming; payments stay with you.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: CustomerTheme.textSecondary,
-                            height: 1.5,
-                          ),
-                        ),
-                      ],
-                    )
-                  : ListView.builder(
-                      controller: _scroll,
-                      padding: const EdgeInsets.all(16),
-                      itemCount: _messages.length + (_older ? 1 : 0),
-                      itemBuilder: (_, index) {
-                        if (_older && index == 0) {
-                          return TextButton(
-                            onPressed: _busy ? null : _earlier,
-                            child: const Text('Load earlier messages'),
-                          );
-                        }
-                        return _bubble(_messages[index - (_older ? 1 : 0)]);
-                      },
-                    ),
+              child: _messages.isEmpty && _pendingMessage == null
+                  ? _welcome()
+                  : _conversationList(),
             ),
-            if (_busy)
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 16,
-                      height: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Working on your request…',
-                        style: TextStyle(fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             if (_error != null)
               Container(
-                width: double.infinity,
-                color: const Color(0xFFFFF1E8),
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  _error!,
-                  style: const TextStyle(
-                    color: Color(0xFF9A3412),
-                    fontSize: 12,
-                  ),
+                margin: const EdgeInsets.symmetric(horizontal: 14),
+                padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFEFE5),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-              ),
-            if (_photo != null)
-              Align(
-                alignment: Alignment.centerLeft,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 16, top: 8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.memory(
-                          _photo!,
-                          height: 65,
-                          width: 65,
-                          fit: BoxFit.cover,
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      size: 18,
+                      color: Color(0xFF9A3412),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _error!,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Color(0xFF9A3412),
                         ),
                       ),
-                      IconButton(
-                        tooltip: 'Remove photo',
-                        onPressed: _busy
-                            ? null
-                            : () => setState(() {
-                                _photo = null;
-                                _imagePath = null;
-                                _requestId = null;
-                              }),
-                        icon: const Icon(Icons.close),
+                    ),
+                    if (_pendingMessage != null)
+                      TextButton(
+                        onPressed: _busy ? null : _send,
+                        child: const Text('Retry'),
                       ),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             if (_listening)
@@ -770,72 +1022,142 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                 padding: EdgeInsets.only(top: 8),
                 child: Text(
                   'Listening… release to edit your words',
-                  style: TextStyle(color: CustomerTheme.primary),
+                  style: TextStyle(fontSize: 12, color: CustomerTheme.primary),
                 ),
               ),
+            _composer(),
             Padding(
-              key: const ValueKey('ai-composer'),
-              padding: const EdgeInsets.fromLTRB(8, 10, 8, 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  IconButton(
-                    tooltip: 'Attach photo',
-                    onPressed: _busy ? null : _attach,
-                    icon: const Icon(Icons.add_circle_outline),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _text,
-                      enabled: !_busy,
-                      onChanged: (_) {
-                        if (!_listening) unawaited(_speech.cancel());
-                      },
-                      minLines: 1,
-                      maxLines: 5,
-                      maxLength: 4000,
-                      decoration: InputDecoration(
-                        hintText: _mode == 'chat'
-                            ? 'Ask anything about services…'
-                            : 'Tell me what to do…',
-                        counterText: '',
-                        contentPadding: const EdgeInsets.all(13),
-                      ),
-                      textCapitalization: TextCapitalization.sentences,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+              child: GestureDetector(
+                onTap: () => showDialog<void>(
+                  context: context,
+                  builder: (c) => AlertDialog(
+                    title: const Text('Using Local Life AI'),
+                    content: const Text(
+                      'Messages, attached photos and relevant app details are sent to Google Gemini. AI can make mistakes. Review action cards before confirming; payments stay with you.',
                     ),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(c),
+                        child: const Text('Got it'),
+                      ),
+                    ],
                   ),
-                  Semantics(
-                    label: 'Hold to speak; tap to start or stop',
-                    button: true,
-                    child: Tooltip(
-                      message: 'Hold to speak',
-                      triggerMode: TooltipTriggerMode.manual,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: _busy
-                            ? null
-                            : () => _listening ? _stopVoice() : _startVoice(),
-                        onLongPressStart: _busy ? null : (_) => _startVoice(),
-                        onLongPressEnd: (_) => _stopVoice(),
-                        onLongPressCancel: () => _stopVoice(),
-                        child: SizedBox(
-                          width: 48,
-                          height: 48,
-                          child: Icon(
-                            _listening ? Icons.stop_circle : Icons.mic_none,
-                            color: _listening ? CustomerTheme.primary : null,
+                ),
+                child: const Text(
+                  'Powered by Gemini · AI can make mistakes · Privacy',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: CustomerTheme.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+class _ThinkingBubble extends StatefulWidget {
+  const _ThinkingBubble();
+  @override
+  State<_ThinkingBubble> createState() => _ThinkingBubbleState();
+}
+
+class _ThinkingBubbleState extends State<_ThinkingBubble>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animation = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  );
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _animation.stop();
+    } else {
+      _animation.repeat();
+    }
+  }
+
+  @override
+  void dispose() {
+    _animation.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    liveRegion: true,
+    label: 'AI is thinking',
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Container(
+        key: const ValueKey('ai-thinking-bubble'),
+        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.only(bottom: 18),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: const Color(0xFFEAE7E3)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Local Life AI',
+              style: TextStyle(
+                fontSize: 12,
+                color: Color(0xFF7454B8),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                AnimatedBuilder(
+                  animation: _animation,
+                  builder: (_, _) => Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: List.generate(
+                      3,
+                      (i) => Opacity(
+                        opacity:
+                            .3 +
+                            .7 *
+                                ((math.sin(
+                                          _animation.value * 2 * math.pi -
+                                              i * .8,
+                                        ) +
+                                        1) /
+                                    2),
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          margin: const EdgeInsets.only(right: 5),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFF9C7BC6),
+                            shape: BoxShape.circle,
                           ),
                         ),
                       ),
                     ),
                   ),
-                  IconButton.filled(
-                    tooltip: 'Send message',
-                    onPressed: _busy ? null : _send,
-                    icon: const Icon(Icons.arrow_upward),
+                ),
+                const SizedBox(width: 7),
+                const Text(
+                  'Thinking…',
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: CustomerTheme.textSecondary,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ),
@@ -876,15 +1198,23 @@ class AiHalo extends StatelessWidget {
 
 class _ChatHistory extends StatefulWidget {
   final CustomerAiService service;
+  final String? currentId;
   final ValueChanged<String> onDeleted;
-  const _ChatHistory({required this.service, required this.onDeleted});
+  final void Function(String, String) onRenamed;
+  const _ChatHistory({
+    required this.service,
+    required this.onDeleted,
+    required this.onRenamed,
+    this.currentId,
+  });
   @override
   State<_ChatHistory> createState() => _ChatHistoryState();
 }
 
 class _ChatHistoryState extends State<_ChatHistory> {
   final List<Map<String, dynamic>> _rows = [];
-  bool _loading = false, _more = true;
+  final _search = TextEditingController();
+  bool _loading = false;
   String? _error;
   @override
   void initState() {
@@ -892,16 +1222,31 @@ class _ChatHistoryState extends State<_ChatHistory> {
     _load();
   }
 
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
   Future<void> _load() async {
     if (_loading) return;
-    setState(() => _loading = true);
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
     try {
-      final rows = await widget.service.conversations(offset: _rows.length);
+      // Active chats are capped at 100; load all pages so search is complete.
+      final all = <Map<String, dynamic>>[];
+      for (var page = 0; page < 4; page++) {
+        final rows = await widget.service.conversations(offset: page * 30);
+        all.addAll(rows);
+        if (rows.length < 30) break;
+      }
       if (mounted) {
         setState(() {
-          _rows.addAll(rows);
-          _more = rows.length == 30;
-          _error = null;
+          _rows
+            ..clear()
+            ..addAll(all);
         });
       }
     } catch (_) {
@@ -909,6 +1254,20 @@ class _ChatHistoryState extends State<_ChatHistory> {
     } finally {
       if (mounted) setState(() => _loading = false);
     }
+  }
+
+  Future<void> _rename(Map<String, dynamic> row) async {
+    final title = await showDialog<String>(
+      context: context,
+      builder: (_) => _RenameChatDialog(
+        service: widget.service,
+        id: row['id'].toString(),
+        title: row['title'].toString(),
+      ),
+    );
+    if (title == null || !mounted) return;
+    setState(() => row['title'] = title);
+    widget.onRenamed(row['id'].toString(), title);
   }
 
   Future<void> _delete(Map<String, dynamic> row) async {
@@ -950,61 +1309,274 @@ class _ChatHistoryState extends State<_ChatHistory> {
     }
   }
 
+  String _group(Map<String, dynamic> row) {
+    final date = DateTime.tryParse(
+      row['updated_at']?.toString() ?? '',
+    )?.toLocal();
+    if (date == null) return 'Conversations';
+    final now = DateTime.now(), today = DateTime.now();
+    if (DateUtils.isSameDay(date, today)) return 'Today';
+    if (DateUtils.isSameDay(date, now.subtract(const Duration(days: 1)))) {
+      return 'Yesterday';
+    }
+    return DateFormat('MMMM yyyy').format(date);
+  }
+
   @override
-  Widget build(BuildContext context) => SafeArea(
-    child: SizedBox(
-      height: MediaQuery.sizeOf(context).height * .72,
+  Widget build(BuildContext context) {
+    final query = _search.text.trim().toLowerCase();
+    final rows = _rows
+        .where((r) => r['title'].toString().toLowerCase().contains(query))
+        .toList();
+    return SafeArea(
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(12),
-            child: Text(
-              'Your conversations',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-          ),
-          if (_loading) const LinearProgressIndicator(),
-          if (_error != null)
-            TextButton(
-              onPressed: _loading ? null : _load,
-              child: Text('$_error Retry'),
-            ),
-          Expanded(
-            child: ListView(
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
+            child: Row(
               children: [
-                if (_rows.isEmpty && !_loading)
-                  const Padding(
-                    padding: EdgeInsets.all(30),
-                    child: Text('Your chats will appear here.'),
-                  ),
-                ..._rows.map(
-                  (r) => ListTile(
-                    leading: const Icon(Icons.chat_bubble_outline),
-                    title: Text(
-                      r['title'].toString(),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onTap: _loading
-                        ? null
-                        : () => Navigator.pop(context, r['id'].toString()),
-                    trailing: IconButton(
-                      tooltip: 'Delete chat',
-                      onPressed: _loading ? null : () => _delete(r),
-                      icon: const Icon(Icons.delete_outline),
-                    ),
+                const Expanded(
+                  child: Text(
+                    'Your chats',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                   ),
                 ),
-                if (_more && _rows.isNotEmpty)
-                  TextButton(
-                    onPressed: _loading ? null : _load,
-                    child: const Text('Load more chats'),
-                  ),
+                IconButton(
+                  tooltip: 'Close chat history',
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: TextField(
+              controller: _search,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: 'Search chats',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: query.isEmpty
+                    ? null
+                    : IconButton(
+                        tooltip: 'Clear search',
+                        onPressed: () => setState(() => _search.clear()),
+                        icon: const Icon(Icons.close, size: 18),
+                      ),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(28),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            child: TextButton.icon(
+              onPressed: _loading
+                  ? null
+                  : () => Navigator.pop(context, {'new': true}),
+              icon: const Icon(Icons.edit_square, size: 18),
+              label: const Text('New chat'),
+            ),
+          ),
+          if (_loading) const LinearProgressIndicator(minHeight: 2),
+          if (_error != null)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: TextButton(
+                onPressed: _loading ? null : _load,
+                child: Text('$_error Retry'),
+              ),
+            ),
+          Expanded(
+            child: ListView.builder(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              itemCount: rows.isEmpty ? 1 : rows.length,
+              itemBuilder: (_, i) {
+                if (rows.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Text(
+                      _loading
+                          ? 'Loading conversations…'
+                          : query.isEmpty
+                          ? 'Your chats will appear here.'
+                          : 'No chats match your search.',
+                      style: const TextStyle(
+                        color: CustomerTheme.textSecondary,
+                      ),
+                    ),
+                  );
+                }
+                final row = rows[i], group = _group(rows[i]);
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (i == 0 || _group(rows[i - 1]) != group)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(12, 16, 12, 10),
+                        child: Text(
+                          group,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: CustomerTheme.textSecondary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ListTile(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      selected: widget.currentId == row['id'],
+                      selectedTileColor: const Color(0xFFECE8E3),
+                      contentPadding: const EdgeInsets.only(left: 12, right: 4),
+                      title: Text(
+                        row['title'].toString(),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      onTap: _loading
+                          ? null
+                          : () => Navigator.pop(context, row),
+                      trailing: PopupMenuButton<String>(
+                        tooltip: 'Chat options',
+                        enabled: !_loading,
+                        icon: const Icon(Icons.more_horiz, size: 20),
+                        onSelected: (value) =>
+                            value == 'rename' ? _rename(row) : _delete(row),
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(
+                            value: 'rename',
+                            child: ListTile(
+                              leading: Icon(Icons.edit_outlined),
+                              title: Text('Rename'),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: ListTile(
+                              leading: Icon(
+                                Icons.delete_outline,
+                                color: Colors.red,
+                              ),
+                              title: Text(
+                                'Delete',
+                                style: TextStyle(color: Colors.red),
+                              ),
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
+          const Padding(
+            padding: EdgeInsets.all(20),
+            child: Row(
+              children: [
+                AiHalo(size: 28),
+                SizedBox(width: 10),
+                Text(
+                  'Local Life AI',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _RenameChatDialog extends StatefulWidget {
+  final CustomerAiService service;
+  final String id, title;
+  const _RenameChatDialog({
+    required this.service,
+    required this.id,
+    required this.title,
+  });
+  @override
+  State<_RenameChatDialog> createState() => _RenameChatDialogState();
+}
+
+class _RenameChatDialogState extends State<_RenameChatDialog> {
+  late final _name = TextEditingController(text: widget.title);
+  bool _saving = false;
+  String? _error;
+  @override
+  void dispose() {
+    _name.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    final title = _name.text.trim();
+    if (title.isEmpty || title.length > 70) {
+      setState(() => _error = 'Enter a name between 1 and 70 characters.');
+      return;
+    }
+    if (_saving) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      await widget.service.rename(widget.id, title);
+      if (mounted) Navigator.pop(context, title);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = 'Could not rename this chat. Please retry.';
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => PopScope(
+    canPop: !_saving,
+    child: AlertDialog(
+      title: const Text('Rename chat'),
+      content: TextField(
+        controller: _name,
+        autofocus: true,
+        enabled: !_saving,
+        maxLength: 70,
+        onSubmitted: (_) => _save(),
+        decoration: InputDecoration(labelText: 'Chat name', errorText: _error),
+      ),
+      actions: [
+        TextButton(
+          onPressed: _saving ? null : () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        FilledButton(
+          onPressed: _saving ? null : _save,
+          child: Text(_saving ? 'Saving…' : 'Save'),
+        ),
+      ],
     ),
   );
 }

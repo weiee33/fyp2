@@ -45,114 +45,172 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
 
     return Scaffold(
       body: screens[_currentIndex],
-      bottomNavigationBar: NavigationBarTheme(
-        data: NavigationBarThemeData(
-          indicatorColor: CustomerTheme.primarySurface,
-          labelTextStyle: WidgetStateProperty.resolveWith((states) {
-            if (states.contains(WidgetState.selected)) {
-              return const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
-                color: CustomerTheme.primary,
-              );
-            }
-            return const TextStyle(
-              fontSize: 12,
-              color: CustomerTheme.textSecondary,
-            );
-          }),
-        ),
-        child: NavigationBar(
-          height: 65,
-          elevation: 8,
-          backgroundColor: Colors.white,
-          selectedIndex: _currentIndex < 2 ? _currentIndex : _currentIndex + 1,
-          onDestinationSelected: (index) {
-            if (index == 2) {
-              final reduced = MediaQuery.disableAnimationsOf(context);
-              Navigator.push(
-                context,
-                PageRouteBuilder<void>(
-                  pageBuilder: (_, _, _) => const CustomerAiScreen(),
-                  transitionDuration: reduced
-                      ? Duration.zero
-                      : const Duration(milliseconds: 350),
-                  reverseTransitionDuration: reduced
-                      ? Duration.zero
-                      : const Duration(milliseconds: 250),
-                  transitionsBuilder: (_, animation, _, child) =>
-                      SlideTransition(
-                        position:
-                            Tween<Offset>(
-                              begin: const Offset(0, 1),
-                              end: Offset.zero,
-                            ).animate(
-                              CurvedAnimation(
-                                parent: animation,
-                                curve: Curves.easeOutCubic,
-                              ),
-                            ),
-                        child: child,
+      bottomNavigationBar: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: 88,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                top: 20,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(24),
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: .05),
+                        blurRadius: 18,
+                        offset: const Offset(0, -3),
                       ),
-                ),
-              );
-              return;
-            }
-            setState(() {
-              _currentIndex = index < 2 ? index : index - 1;
-            });
-          },
-          destinations: [
-            NavigationDestination(
-              icon: Icon(Icons.explore_outlined),
-              selectedIcon: Icon(
-                Icons.explore_rounded,
-                color: CustomerTheme.primary,
-              ),
-              label: 'Explore',
-            ),
-            NavigationDestination(
-              icon: CustomerUnreadBadge(
-                kind: 'bookings',
-                enabled: widget.pages == null,
-                child: const Icon(Icons.receipt_long_outlined),
-              ),
-              selectedIcon: CustomerUnreadBadge(
-                kind: 'bookings',
-                enabled: widget.pages == null,
-                child: const Icon(
-                  Icons.receipt_long_rounded,
-                  color: CustomerTheme.primary,
+                    ],
+                  ),
                 ),
               ),
-              label: 'Bookings',
-            ),
-            const NavigationDestination(icon: AiHalo(), label: 'AI'),
-            NavigationDestination(
-              icon: CustomerUnreadBadge(
-                kind: 'notifications',
-                enabled: widget.pages == null,
-                child: const Icon(Icons.notifications_none),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _tab(0, 'Explore', Icons.explore_outlined),
+                  _tab(
+                    1,
+                    'Bookings',
+                    Icons.receipt_long_outlined,
+                    badge: 'bookings',
+                  ),
+                  Expanded(
+                    child: Semantics(
+                      button: true,
+                      label: 'Open AI assistant',
+                      child: InkWell(
+                        key: const ValueKey('raised-ai-button'),
+                        borderRadius: BorderRadius.circular(40),
+                        onTap: _openAi,
+                        child: SizedBox(
+                          height: 88,
+                          child: Column(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: const BoxDecoration(
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const AiHalo(size: 54),
+                              ),
+                              const SizedBox(height: 3),
+                              const Text(
+                                'AI',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: CustomerTheme.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  _tab(
+                    2,
+                    'Notifications',
+                    Icons.notifications_none,
+                    badge: 'notifications',
+                  ),
+                  _tab(3, 'Profile', Icons.person_outline_rounded),
+                ],
               ),
-              selectedIcon: CustomerUnreadBadge(
-                kind: 'notifications',
-                enabled: widget.pages == null,
-                child: const Icon(
-                  Icons.notifications,
-                  color: CustomerTheme.primary,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _tab(int index, String label, IconData icon, {String? badge}) {
+    final selected = _currentIndex == index;
+    final glyph = Icon(
+      icon,
+      size: 23,
+      color: selected ? CustomerTheme.primary : CustomerTheme.textSecondary,
+    );
+    return Expanded(
+      child: Semantics(
+        selected: selected,
+        button: true,
+        child: InkWell(
+          onTap: () => setState(() => _currentIndex = index),
+          borderRadius: BorderRadius.circular(20),
+          child: SizedBox(
+            height: 66,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                AnimatedContainer(
+                  duration: const Duration(milliseconds: 180),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 13,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? CustomerTheme.primarySurface
+                        : Colors.transparent,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: badge == null
+                      ? glyph
+                      : CustomerUnreadBadge(
+                          kind: badge,
+                          enabled: widget.pages == null,
+                          child: glyph,
+                        ),
                 ),
-              ),
-              label: 'Notifications',
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: selected
+                          ? CustomerTheme.primary
+                          : CustomerTheme.textSecondary,
+                      fontWeight: selected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            NavigationDestination(
-              icon: Icon(Icons.person_outline_rounded),
-              selectedIcon: Icon(
-                Icons.person_rounded,
-                color: CustomerTheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _openAi() {
+    final reduced = MediaQuery.disableAnimationsOf(context);
+    Navigator.push(
+      context,
+      PageRouteBuilder<void>(
+        pageBuilder: (_, _, _) => const CustomerAiScreen(),
+        transitionDuration: reduced
+            ? Duration.zero
+            : const Duration(milliseconds: 350),
+        reverseTransitionDuration: reduced
+            ? Duration.zero
+            : const Duration(milliseconds: 250),
+        transitionsBuilder: (_, animation, _, child) => SlideTransition(
+          position: Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+              .animate(
+                CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
               ),
-              label: 'Profile',
-            ),
-          ],
+          child: child,
         ),
       ),
     );
