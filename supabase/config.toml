@@ -15,3 +15,5 @@ verify_jwt = true
 
 [functions.customer-recovery]
 verify_jwt = true
+[functions.customer-assistant]
+verify_jwt = true
