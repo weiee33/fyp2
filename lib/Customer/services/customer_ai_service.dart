@@ -87,6 +87,11 @@ class CustomerAiService {
     });
   }
 
+  Future<Map<String, dynamic>> booking(String id) async =>
+      Map<String, dynamic>.from(
+        await _call('customer_booking_detail', {'p_booking_id': id}),
+      );
+
   Future<void> delete(String id) async =>
       _edge({'operation': 'delete', 'conversation_id': id});
   Future<Map<String, dynamic>> send({

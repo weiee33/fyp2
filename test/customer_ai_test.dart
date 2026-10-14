@@ -47,6 +47,8 @@ class FakeAi extends CustomerAiService {
   final requestIds = <String>[];
   bool fail = false, deleted = false;
   int uploads = 0, confirms = 0;
+  Map<String, dynamic> confirmation = {'status': 'done'};
+  bool canPay = false;
   String? lastPhoto;
   @override
   Future<Map<String, dynamic>> create(String id) async => {
@@ -118,8 +120,14 @@ class FakeAi extends CustomerAiService {
   @override
   Future<Map<String, dynamic>> confirm(String id) async {
     confirms++;
-    return {'status': 'done'};
+    return confirmation;
   }
+
+  @override
+  Future<Map<String, dynamic>> booking(String id) async => {
+    'booking_id': id,
+    'can_pay': canPay,
+  };
 
   @override
   Future<Uint8List> preparePhoto(Uint8List bytes) async => bytes;
@@ -321,20 +329,74 @@ void main() {
       await t.pumpAndSettle();
       expect(service.requestIds[0], service.requestIds[1]);
       expect(service.confirms, 0);
-      await t.ensureVisible(find.text('Review & confirm'));
-      await t.tap(find.text('Review & confirm'));
+      await t.ensureVisible(find.text('Review booking'));
+      await t.tap(find.text('Review booking'));
       await t.pumpAndSettle();
       expect(service.confirms, 0);
       await t.tap(find.text('Not now'));
       await t.pumpAndSettle();
       expect(service.confirms, 0);
       await capture.proof(t, 'ai-booking-card');
-      await t.tap(find.text('Review & confirm'));
+      await t.tap(find.text('Review booking'));
       await t.pumpAndSettle();
-      await t.tap(find.text('Confirm'));
+      await t.tap(find.text('Send booking request'));
       await t.pumpAndSettle();
       expect(service.confirms, 1);
-      expect(find.text('Completed'), findsOneWidget);
+      expect(find.text('View booking & payment'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'booking card submits only after review and payment checks current eligibility',
+    (t) async {
+      capture.pixel(t);
+      final service = FakeAi()
+        ..confirmation = {
+          'booking_id': 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
+          'booking_status': 'Pending',
+          'can_pay': false,
+        };
+      final opened = <String>[];
+      await t.pumpWidget(
+        capture.app(
+          CustomerAiScreen(
+            service: service,
+            speech: FakeSpeech(),
+            onNavigate: (a) async {
+              opened.add(a['screen'] as String);
+            },
+          ),
+        ),
+      );
+      await t.enterText(
+        find.byType(TextField),
+        'Book cleaning tomorrow at 2pm at Home',
+      );
+      await t.tap(find.byTooltip('Send message'));
+      await t.pumpAndSettle();
+      expect(service.confirms, 0);
+      await t.ensureVisible(find.text('Review booking'));
+      await t.tap(find.text('Review booking'));
+      await t.pumpAndSettle();
+      expect(
+        find.text(
+          'Confirm these details to send your request. You can pay after the provider accepts.',
+        ),
+        findsOneWidget,
+      );
+      await capture.proof(t, 'ai-booking-review');
+      await t.tap(find.text('Send booking request'));
+      await t.pumpAndSettle();
+      expect(service.confirms, 1);
+      expect(opened, ['booking']);
+      await t.ensureVisible(find.text('View booking & payment'));
+      await t.tap(find.text('View booking & payment'));
+      await t.pumpAndSettle();
+      expect(opened, ['booking', 'booking']);
+      service.canPay = true;
+      await t.tap(find.text('View booking & payment'));
+      await t.pumpAndSettle();
+      expect(opened, ['booking', 'booking', 'payment']);
       expect(t.takeException(), isNull);
     },
   );

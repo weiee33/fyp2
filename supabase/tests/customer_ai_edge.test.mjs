@@ -14,7 +14,10 @@ function fixture(options={}){
   if(url.endsWith('customer_ai_begin_turn'))return options.begin?options.begin():response({turn_id:rid,lease:rid,history:[{role:'user',content:'Find a cleaner'}]});
   if(url.endsWith('ai_finish_turn'))return response({id:2,role:'assistant',content:body.p_content,actions:body.p_actions});
   if(url.endsWith('ai_fail_turn'))return response(null);
-  if(url.endsWith('customer_search_services'))return response([{service_id:rid,service_name:'Cleaner',quoted_amount:90}]);
+  if(url.endsWith('customer_search_services'))return response(options.catalogue??[{service_id:rid,provider_id:rid,business_name:'Local Provider',service_name:'Cleaner',quoted_amount:90}]);
+  if(url.includes('/saved_addresses?'))return response(options.addresses??[{address_id:rid,label:'Home',city:'Kuala Lumpur',is_default:true,coordinates:'3,101'}]);
+  if(url.endsWith('customer_booking_slots'))return response(options.slots??[{scheduled_time:'14:00:00'}]);
+  if(url.endsWith('customer_provider_coverage'))return response([{provider_id:rid,covers_selected:false,distance_km:20,service_radius_km:10}]);
   if(url.endsWith('customer_ai_stage_action'))return response({id:rid,kind:'booking',title:'Request booking',summary:'Cleaner RM90',payload:{quote:90},status:'pending'});
   if(url.endsWith('customer_ai_delete_conversation'))return response([`${uid}/${cid}/${rid}.jpg`]);
   if(url.includes('/storage/v1/object/'))return response({deleted:true});
@@ -33,7 +36,7 @@ test('completed retry returns stored result and does not spend another model cal
 test('function calling uses real app RPC and retains thought signature',async()=>{
  const f=fixture({gemini:(n,b)=>{
   if(n===0)return response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'search_services',args:{keyword:'cleaning'}},thoughtSignature:'signature'}]}}]});
-  assert.equal(b.contents[1].parts[0].thoughtSignature,'signature');assert.equal(b.contents[2].parts[0].functionResponse.response.result[0].quoted_amount,90);
+  assert.equal(b.contents[1].parts[0].thoughtSignature,'signature');assert.equal(b.contents[2].parts[0].functionResponse.response.result.services[0].quoted_amount,90);
   return response({candidates:[{content:{role:'model',parts:[{text:'Cleaner costs RM90.'}]}}]});
  }});assert.equal((await handleAssistant(req(),f.deps)).status,200);assert.equal(f.calls.find(c=>c.url.endsWith('customer_search_services')).init.headers.Authorization,'Bearer customer');
 });
@@ -173,4 +176,87 @@ test('invalid fallback configuration is rejected before persisting or generating
  const f=fixture({env:{GEMINI_FALLBACK_MODEL:'https://untrusted.invalid'}});
  assert.equal((await handleAssistant(req(),f.deps)).status,503);
  assert.ok(!f.calls.some(c=>c.url.endsWith('customer_ai_begin_turn')||c.url.includes('generativelanguage')));
+});
+
+test('assist refreshes all service facts before reading stale assistant claims',async()=>{
+ const services=[{service_id:rid,business_name:'pingu',service_name:'Pipe repair'},{service_id:uid,business_name:'pingu',service_name:'Install Ceiling Light'}];
+ const f=fixture({catalogue:services,begin:()=>response({turn_id:rid,lease:rid,history:[{role:'assistant',content:'pingu only offers electrical services.'},{role:'user',content:'Book pipe repair tomorrow 2pm'}]}),gemini:(n,b)=>{
+  const system=b.systemInstruction.parts[0].text;
+  assert.match(system,/Fresh customer-scoped app data/);assert.match(system,/"service_name":"Pipe repair"/);
+  assert.match(system,/today is|Today is/);assert.match(system,/tomorrow is 2026-10-16/);
+  return response({candidates:[{content:{role:'model',parts:[{text:'I can prepare that request.'}]}}]});
+ }});f.deps.now=()=>Date.parse('2026-10-14T17:00:00Z');
+ assert.equal((await handleAssistant(req({mode:'assist'}),f.deps)).status,200);
+ assert.equal(f.calls.find(c=>c.url.endsWith('customer_search_services')).body.p_keyword,null);
+ assert.equal(f.calls.find(c=>c.url.includes('/saved_addresses?')).init.headers.Authorization,'Bearer customer');
+});
+
+test('booking options finds all named-provider services and stages the selected available slot',async()=>{
+ const services=[{service_id:rid,provider_id:rid,business_name:'pingu',service_name:'Pipe repair',quoted_amount:100},{service_id:uid,provider_id:rid,business_name:'pingu',service_name:'Install Ceiling Light',quoted_amount:60}];
+ const f=fixture({catalogue:services,gemini:(n,b)=>{
+  if(n===0)return response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'booking_options',args:{provider_name:'pingu',service_keyword:'pipe',date:'2026-10-15',time:'14:00',address_id:rid}}}]}}]});
+  if(n===1){
+   const result=b.contents.at(-1).parts[0].functionResponse.response.result;
+   assert.equal(result.services.length,2);assert.equal(result.services[0].requested_time_available,true);
+   assert.equal(result.saved_addresses[0].address_id,rid);
+   assert.equal(result.coverage.providers[0].covers_selected,false);
+   assert.match(result.coverage.coverage_policy,/not an automatic booking rejection/);
+   return response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'prepare_booking',args:{service_id:rid,address_id:rid,date:'2026-10-15',time:'14:00'}}}]}}]});
+  }
+  assert.match(b.contents.at(-1).parts[0].functionResponse.response.result.instruction,/review card is visible/);
+  return response({candidates:[{content:{role:'model',parts:[{text:'Review your booking below.'}]}}]});
+ }});
+ const r=await handleAssistant(req({mode:'assist'}),f.deps);assert.equal(r.status,200);
+ assert.equal((await r.json()).message.actions[0].kind,'booking');
+ assert.equal(f.calls.filter(c=>c.url.endsWith('customer_ai_stage_action')).length,1);
+ assert.ok(!f.calls.some(c=>/confirm_action|customer_create_booking/.test(c.url)));
+ const search=f.calls.filter(c=>c.url.endsWith('customer_search_services')).at(-1);
+ assert.equal(search.body.p_keyword,'pingu');assert.equal(search.body.p_city,null);
+});
+
+test('booking options reports unavailable requested time without substituting another',async()=>{
+ const f=fixture({slots:[{scheduled_time:'10:00:00'}],gemini:(n,b)=>{
+  if(!n)return response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'booking_options',args:{date:'2026-10-15',time:'14:00'}}}]}}]});
+  const option=b.contents.at(-1).parts[0].functionResponse.response.result.services[0];
+  assert.equal(option.requested_time_available,false);assert.deepEqual(option.available_times,['10:00']);
+  return response({candidates:[{content:{role:'model',parts:[{text:'2pm is unavailable. Would 10am work?'}]}}]});
+ }});
+ assert.equal((await handleAssistant(req({mode:'assist'}),f.deps)).status,200);
+ assert.ok(!f.calls.some(c=>c.url.endsWith('customer_ai_stage_action')));
+});
+
+test('booking planner rejects foreign address and reports missing addresses honestly',async()=>{
+ for(const foreign of [true,false]){
+  const f=fixture({addresses:[],gemini:(n,b)=>{
+   if(!n)return response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'booking_options',args:foreign?{address_id:uid}:{}}}]}}]});
+   const result=b.contents.at(-1).parts[0].functionResponse.response.result;
+   if(foreign)assert.match(result.error,/your saved addresses/);
+   else {assert.deepEqual(result.saved_addresses,[]);assert.match(result.next_step,/real service address/);}
+   return response({candidates:[{content:{role:'model',parts:[{text:'Please add your service address.'}]}}]});
+  }});
+  assert.equal((await handleAssistant(req({mode:'assist'}),f.deps)).status,200);
+  assert.ok(!f.calls.some(c=>c.url.endsWith('customer_ai_stage_action')));
+ }
+});
+
+test('empty keyword search returns labelled alternatives rather than a false no-provider conclusion',async()=>{
+ const f=fixture({gemini:(n,b)=>{
+  if(!n)return response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'search_services',args:{keyword:'plumber',city:'Wrong city'}}}]}}]});
+  const result=b.contents.at(-1).parts[0].functionResponse.response.result;
+  assert.deepEqual(result.services,[]);assert.equal(result.alternatives[0].service_name,'Cleaner');assert.equal(result.match_type,'no_exact_match');
+  return response({candidates:[{content:{role:'model',parts:[{text:'Here are broader alternatives.'}]}}]});
+ }});
+ const fetch=f.deps.fetch;f.deps.fetch=async(url,init)=>url.endsWith('customer_search_services')&&JSON.parse(init.body).p_keyword?response([]):fetch(url,init);
+ assert.equal((await handleAssistant(req(),f.deps)).status,200);
+});
+
+test('missing coordinates remain unknown instead of being treated as outside coverage',async()=>{
+ const f=fixture({addresses:[{address_id:rid,coordinates:','}],gemini:(n,b)=>{
+  if(!n)return response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'nearby_providers',args:{address_id:rid}}}]}}]});
+  const result=b.contents.at(-1).parts[0].functionResponse.response.result;
+  assert.match(result.notice,/unknown/);assert.deepEqual(result.providers,[]);
+  return response({candidates:[{content:{role:'model',parts:[{text:'The provider can confirm coverage.'}]}}]});
+ }});
+ assert.equal((await handleAssistant(req(),f.deps)).status,200);
+ assert.ok(!f.calls.some(c=>c.url.endsWith('customer_provider_coverage')));
 });
