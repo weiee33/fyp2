@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:fyp2/shared/chat/chat_inbox_screen.dart';
+import 'package:fyp2/Provider/services/booking_service.dart';
 import 'booking_map_view_screen.dart';
 
 class ScheduleScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class ScheduleScreen extends StatefulWidget {
 
 class _ScheduleScreenState extends State<ScheduleScreen> {
   final _client = Supabase.instance.client;
+  final _bookingService = BookingService();
 
   bool _loading = true;
   String? _error;
@@ -22,6 +24,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
+  static const _successGreen = Color(0xFF10B981);
 
   @override
   void initState() {
@@ -64,7 +67,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         return;
       }
 
-      // Fetch all non-cancelled bookings (past + future)
       final res = await _client
           .from('bookings')
           .select()
@@ -87,7 +89,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
-  // Check if a booking is expired
   bool _isExpired(Map<String, dynamic> b) {
     final raw = b['scheduled_datetime']?.toString();
     if (raw == null) return false;
@@ -95,20 +96,24 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final dt = DateTime.tryParse(raw)?.toLocal();
     if (dt == null) return false;
 
-    // Expired: time is before now AND status is not Completed
     final status = (b['booking_status'] ?? '').toString().toLowerCase();
     if (status == 'completed' || status == 'cancelled') return false;
 
     return dt.isBefore(DateTime.now());
   }
 
-  // Split into upcoming and expired
+  // Split into 3 groups: upcoming / expired / completed
   Map<String, List<Map<String, dynamic>>> _groupBookings() {
     final upcoming = <Map<String, dynamic>>[];
     final expired = <Map<String, dynamic>>[];
+    final completed = <Map<String, dynamic>>[];
 
     for (final b in _bookings) {
-      if (_isExpired(b)) {
+      final status = (b['booking_status'] ?? '').toString().toLowerCase();
+
+      if (status == 'completed') {
+        completed.add(b);
+      } else if (_isExpired(b)) {
         expired.add(b);
       } else {
         upcoming.add(b);
@@ -118,6 +123,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return {
       'upcoming': upcoming,
       'expired': expired,
+      'completed': completed,
     };
   }
 
@@ -145,6 +151,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final today = DateTime.now();
     return _bookings.where((b) {
       if (_isExpired(b)) return false;
+      if ((b['booking_status'] ?? '').toString().toLowerCase() == 'completed') {
+        return false;
+      }
       final raw = b['scheduled_datetime']?.toString();
       if (raw == null) return false;
       final dt = DateTime.tryParse(raw)?.toLocal();
@@ -159,6 +168,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     return _bookings.where((b) {
       if (_isExpired(b)) return false;
+      if ((b['booking_status'] ?? '').toString().toLowerCase() == 'completed') {
+        return false;
+      }
       final raw = b['scheduled_datetime']?.toString();
       if (raw == null) return false;
       final dt = DateTime.tryParse(raw)?.toLocal();
@@ -175,6 +187,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final endOfWeek = startOfWeek.add(const Duration(days: 7));
     return _bookings.where((b) {
       if (_isExpired(b)) return false;
+      if ((b['booking_status'] ?? '').toString().toLowerCase() == 'completed') {
+        return false;
+      }
       final raw = b['scheduled_datetime']?.toString();
       if (raw == null) return false;
       final dt = DateTime.tryParse(raw)?.toLocal();
@@ -325,12 +340,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final grouped = _groupBookings();
     final upcoming = grouped['upcoming'] ?? [];
     final expired = grouped['expired'] ?? [];
+    final completed = grouped['completed'] ?? [];
 
     final upcomingGrouped = _groupByDate(upcoming);
     final expiredGrouped = _groupByDate(expired);
+    final completedGrouped = _groupByDate(completed);
 
     final upcomingKeys = upcomingGrouped.keys.toList()..sort();
     final expiredKeys = expiredGrouped.keys.toList()..sort();
+    final completedKeys = completedGrouped.keys.toList()..sort();
 
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -356,7 +374,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               label: 'This Week',
               count: _countThisWeek(),
               icon: Icons.date_range,
-              color: const Color(0xFF10B981),
+              color: _successGreen,
             ),
           ],
         ),
@@ -416,6 +434,27 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ...expiredKeys.map((dateKey) {
             final items = expiredGrouped[dateKey]!;
             return _dateGroup(dateKey, items, expired: true);
+          }),
+          const SizedBox(height: 20),
+        ],
+
+        // ---- Completed Section ----
+        if (completed.isNotEmpty) ...[
+          _sectionTitle(
+            icon: Icons.check_circle,
+            title: 'Completed Schedule',
+            count: completed.length,
+            color: _successGreen,
+          ),
+          const SizedBox(height: 12),
+          ...completedKeys.map((dateKey) {
+            final items = completedGrouped[dateKey]!;
+            return _dateGroup(
+              dateKey,
+              items,
+              expired: false,
+              completed: true,
+            );
           }),
         ],
 
@@ -477,8 +516,31 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       String dateKey,
       List<Map<String, dynamic>> items, {
         required bool expired,
+        bool completed = false,
       }) {
-    final headerColor = expired ? Colors.grey.shade700 : _primaryOrange;
+    final headerColor = completed
+        ? _successGreen
+        : expired
+        ? Colors.grey.shade700
+        : _primaryOrange;
+
+    final badgeBg = completed
+        ? Colors.green.shade50
+        : expired
+        ? Colors.grey.shade100
+        : _lightOrange;
+
+    final badgeBorder = completed
+        ? Colors.green.shade200
+        : expired
+        ? Colors.grey.shade300
+        : _borderOrange;
+
+    final lineColor = completed
+        ? Colors.green.shade200
+        : expired
+        ? Colors.grey.shade300
+        : _borderOrange;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -519,11 +581,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 padding: const EdgeInsets.symmetric(
                     horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: expired ? Colors.grey.shade100 : _lightOrange,
+                  color: badgeBg,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: expired ? Colors.grey.shade300 : _borderOrange,
-                  ),
+                  border: Border.all(color: badgeBorder),
                 ),
                 child: Text(
                   '${items.length}',
@@ -536,10 +596,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: Container(
-                  height: 1,
-                  color: expired ? Colors.grey.shade300 : _borderOrange,
-                ),
+                child: Container(height: 1, color: lineColor),
               ),
             ],
           ),
@@ -770,7 +827,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ],
               ),
 
-              // ---- Expired hint ----
               if (expired) ...[
                 const SizedBox(height: 10),
                 Container(
@@ -1083,7 +1139,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Action Buttons ====================
+  // ==================== Action Buttons (Plan A) ====================
   Widget _buildActionButtons({
     required BuildContext ctx,
     required String bookingId,
@@ -1101,6 +1157,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     final buttons = <Widget>[];
 
+    // ---- Chat: any active booking ----
     if (customerId != null && !isCompleted && !isCancelled) {
       buttons.add(
         _actionButton(
@@ -1116,15 +1173,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       );
     }
 
-    // Show "Start Job" only if not expired
-    if (!expired && (isConfirmed || isPending)) {
+    // ---- Accept: Pending + not expired ----
+    if (isPending && !expired) {
       buttons.add(
         _actionButton(
-          label: 'Start Job',
-          icon: Icons.play_arrow,
-          color: const Color(0xFF3B82F6),
+          label: 'Accept Booking',
+          icon: Icons.check_circle_outline,
+          color: _successGreen,
           onTap: () async {
-            await _updateStatus(bookingId, 'In-Progress');
+            await _updateStatus(bookingId, 'Confirmed');
             if (ctx.mounted) Navigator.pop(ctx);
             _load();
           },
@@ -1132,38 +1189,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       );
     }
 
-    if (isInProgress) {
-      buttons.add(
-        _actionButton(
-          label: 'Mark as Completed',
-          icon: Icons.check_circle,
-          color: const Color(0xFF10B981),
-          onTap: () async {
-            await _updateStatus(bookingId, 'Completed');
-            if (ctx.mounted) Navigator.pop(ctx);
-            _load();
-          },
-        ),
-      );
-    }
-
-    // Show "Mark as Completed" for expired (so they can clean up old bookings)
-    if (expired && !isCompleted && !isCancelled) {
-      buttons.add(
-        _actionButton(
-          label: 'Mark as Completed',
-          icon: Icons.check_circle,
-          color: const Color(0xFF10B981),
-          onTap: () async {
-            await _updateStatus(bookingId, 'Completed');
-            if (ctx.mounted) Navigator.pop(ctx);
-            _load();
-          },
-        ),
-      );
-    }
-
-    if (!isCompleted && !isCancelled) {
+    // ---- Cancel: Pending + not expired ----
+    if (isPending && !expired) {
       buttons.add(
         _actionButton(
           label: 'Cancel Booking',
@@ -1192,7 +1219,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               ),
             );
             if (confirm != true) return;
-            await _updateStatus(bookingId, 'Cancelled');
+            await _cancelBooking(bookingId);
             if (ctx.mounted) Navigator.pop(ctx);
             _load();
           },
@@ -1200,8 +1227,71 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       );
     }
 
+    // ---- Start Job: Confirmed + not expired ----
+    if (isConfirmed && !expired) {
+      buttons.add(
+        _actionButton(
+          label: 'Start Job',
+          icon: Icons.play_arrow,
+          color: const Color(0xFF3B82F6),
+          onTap: () async {
+            await _updateStatus(bookingId, 'In-Progress');
+            if (ctx.mounted) Navigator.pop(ctx);
+            _load();
+          },
+        ),
+      );
+    }
+
+    // ---- Mark as Completed: In-Progress only ----
+    if (isInProgress) {
+      buttons.add(
+        _actionButton(
+          label: 'Mark as Completed',
+          icon: Icons.check_circle,
+          color: _successGreen,
+          onTap: () async {
+            await _updateStatus(bookingId, 'Completed');
+            if (ctx.mounted) Navigator.pop(ctx);
+            _load();
+          },
+        ),
+      );
+    }
+
+    // ---- Empty state ----
     if (buttons.isEmpty) {
-      return const SizedBox.shrink();
+      final message = isCompleted
+          ? 'This booking is completed.'
+          : isCancelled
+          ? 'This booking was cancelled.'
+          : expired
+          ? 'This booking has expired. No action is available.'
+          : 'No action is available for this booking.';
+
+      return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.info_outline,
+                size: 16, color: Colors.grey.shade600),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey.shade700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     return Column(
@@ -1271,45 +1361,52 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Update Status ====================
+  // ==================== Friendly Error Mapper ====================
+  String _friendlyError(Object e) {
+    final raw = e.toString();
+
+    if (raw.contains('Invalid service progress transition')) {
+      return 'This action is not allowed at the current booking status.';
+    }
+    if (raw.contains('Customer payment must succeed before service starts')) {
+      return 'Customer payment has not been completed yet. Please wait.';
+    }
+    if (raw.contains('This service is not scheduled to start yet')) {
+      return 'This service is not scheduled to start yet. Try again closer to the appointment time.';
+    }
+    if (raw.contains('An active verified provider account is required')) {
+      return 'Your provider account is not verified or active.';
+    }
+    if (raw.contains('Booking not found')) {
+      return 'Booking not found or does not belong to you.';
+    }
+    if (raw.contains('This booking request is no longer available')) {
+      return 'This booking can no longer be modified. It has already been accepted or the time slot has passed.';
+    }
+    if (raw.contains('Explain why the requested slot cannot be accepted')) {
+      return 'Please provide a valid reason for cancellation.';
+    }
+    return raw
+        .replaceAll('PostgrestException(message: ', '')
+        .replaceAll(', code: ', ' (')
+        .replaceAll(', details: , hint: null)', ')');
+  }
+
+  // ==================== Update Status (via BookingService) ====================
   Future<void> _updateStatus(String bookingId, String newStatus) async {
     try {
-      // 1. Get the booking (to know total_amount, provider_id)
-      final bookingRow = await _client
-          .from('bookings')
-          .select()
-          .eq('booking_id', bookingId)
-          .maybeSingle();
+      await _bookingService.updateStatus(bookingId, newStatus);
 
-      if (bookingRow == null) {
-        throw Exception('Booking not found');
-      }
-
-      // 2. Prepare update data
-      final updates = <String, dynamic>{
-        'booking_status': newStatus,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      };
-
-      final now = DateTime.now().toUtc().toIso8601String();
-
-      if (newStatus == 'In-Progress') {
-        updates['started_at'] = now;
-      } else if (newStatus == 'Completed') {
-        updates['completed_at'] = now;
-      } else if (newStatus == 'Cancelled') {
-        updates['cancelled_at'] = now;
-      }
-
-      // 3. Update the booking
-      await _client
-          .from('bookings')
-          .update(updates)
-          .eq('booking_id', bookingId);
-
-      // 4. If just marked as Completed, insert into provider_earnings
       if (newStatus == 'Completed') {
-        await _syncEarningsRecord(bookingRow);
+        final bookingRow = await _client
+            .from('bookings')
+            .select()
+            .eq('booking_id', bookingId)
+            .maybeSingle();
+
+        if (bookingRow != null) {
+          await _syncEarningsRecord(bookingRow);
+        }
       }
 
       if (!mounted) return;
@@ -1333,9 +1430,48 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update: $e'),
+          content: Text(_friendlyError(e)),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    }
+  }
+
+  // ==================== Cancel Booking (via BookingService) ====================
+  Future<void> _cancelBooking(String bookingId) async {
+    try {
+      await _bookingService.cancel(bookingId, 'Cancelled by provider');
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white, size: 20),
+              SizedBox(width: 8),
+              Text('Booking cancelled'),
+            ],
+          ),
+          backgroundColor: Colors.green.shade600,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(_friendlyError(e)),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 4),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),
@@ -1354,7 +1490,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
       if (bookingId == null || providerId == null) return;
 
-      // 1. Check if an earnings record already exists for this booking
       final existing = await _client
           .from('provider_earnings')
           .select('earnings_id')
@@ -1362,16 +1497,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           .maybeSingle();
 
       if (existing != null) {
-        // Already exists, don't insert again
         return;
       }
 
-      // 2. Compute platform fee
-      //    (net_earnings is auto-generated by the DB)
-      const platformFeePercent = 0.10; // 10% platform fee
+      const platformFeePercent = 0.10;
       final platformFee = grossAmount * platformFeePercent;
 
-      // 3. Insert earnings record (without net_earnings)
       await _client.from('provider_earnings').insert({
         'provider_id': providerId,
         'booking_id': bookingId,

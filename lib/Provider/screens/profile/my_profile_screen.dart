@@ -119,12 +119,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // 👇 pages order matches bottom nav: Profile | Services | Bookings | Schedule | Earnings
     final pages = [
       _buildProfileTab(),
       const MyServicesScreen(),
       const MyBookingsScreen(),
-      const EarningsScreen(),
       const ScheduleScreen(),
+      const EarningsScreen(),
     ];
 
     return Scaffold(
@@ -210,9 +211,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           BottomNavigationBarItem(
               icon: Icon(Icons.calendar_month), label: 'Bookings'),
           BottomNavigationBarItem(
-              icon: Icon(Icons.attach_money), label: 'Earnings'),
-          BottomNavigationBarItem(
               icon: Icon(Icons.schedule), label: 'Schedule'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.attach_money), label: 'Earnings'),
         ],
       ),
     );
