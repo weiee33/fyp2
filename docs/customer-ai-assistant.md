@@ -4,23 +4,23 @@ The centre navigation button opens the customer assistant with an upward transit
 
 ## Customer features
 
-- Create, select and delete private conversations; load earlier messages and older chats.
+- Create, rename, select and delete private conversations. The sliding history sidebar groups chats by date and searches all active chat names.
 - Attach a gallery/camera photo, preview it, and send it with an optional question. Images are re-encoded to JPEG, resized to 1600 pixels, stripped of EXIF and limited to 4 MB.
 - Hold the microphone to dictate, release to stop, then review/edit and send the words. Recognition uses the device speech service and requires microphone/speech permissions; availability depends on the device and language.
 - Ask AI compares actual published services, provider ratings/review counts, prices, available appointments and saved addresses. Nearby recommendations use published service centres/coverage, not live provider tracking.
 - Do it for me can open supported app screens automatically. Booking requests, cancellation and default-address changes show a concrete confirmation card before writing. Payment is always opened and completed by the customer.
 
-Supported navigation: services, bookings, notifications, profile, addresses, reviews, an owned booking, a verified provider and the customer's checkout. This is a bounded app assistant, not arbitrary screen control or a background voice wake-word service. Voice output and streaming model text are not implemented.
+Supported navigation: services, bookings, notifications, profile, addresses, reviews, an owned booking, a verified provider and the customer's checkout. This is a bounded app assistant, not arbitrary screen control or a background voice wake-word service. Voice output and streaming model text are not implemented. A separate animated thinking bubble appears alongside the immediately visible sent message.
 
 ## Configuration and deployment
 
 1. Create a Gemini API key in Google AI Studio: https://ai.google.dev/gemini-api/docs/api-key.
 2. Save `GEMINI_API_KEY` in Supabase Project Settings / Edge Functions / Secrets. Never put it in Flutter, Git, a screenshot or chat.
-3. Optional `GEMINI_MODEL` overrides the tested default `gemini-3.5-flash-lite`. Choose a Gemini model supporting images and function calling. See https://ai.google.dev/gemini-api/docs/models.
+3. Optional `GEMINI_MODEL` overrides the tested default `gemini-3.6-flash`. Choose a Gemini model supporting images and function calling. See https://ai.google.dev/gemini-api/docs/models.
 4. Apply migrations in order, then deploy `customer-assistant` with JWT verification enabled. It imports `_shared/customer_ai.ts` and uses the built-in Supabase URL, anon and service role environment values.
 5. Build/install the app and log in as an active verified customer. Provider/admin sessions do not have customer assistant access.
 
-This project was deployed with migrations `20261013030453_customer_gemini_assistant` and `20261013030827_customer_ai_action_history`. Their repository versions match remote migration history to avoid Supabase Preview drift. On 13 October 2026 a protected, temporary connection probe returned HTTP 200 / `READY` from Gemini using the configured secret and actual function declarations. The probe was then replaced with a JWT-protected HTTP 410 response; it no longer reads secrets or calls Gemini. The deployed assistant requires a real customer session; no customer password was accessed for setup testing.
+This project was deployed with migrations `20261013030453_customer_gemini_assistant` `20261013030827_customer_ai_action_history`, and `20261013152730_customer_ai_conversation_titles`. Their repository versions match remote migration history to avoid Supabase Preview drift. On 13 October 2026 a protected, temporary connection probe returned HTTP 200 / `READY` from Gemini using the configured secret and actual function declarations. The probe was then replaced with a JWT-protected HTTP 410 response; it no longer reads secrets or calls Gemini. The deployed assistant requires a real customer session; no customer password was accessed for setup testing.
 
 Gemini access, quota and charges follow the Google project's selected tier. App limits are abuse controls, not a guarantee of zero cost. No Google billing configuration was changed.
 
@@ -52,3 +52,14 @@ On a physical Android/iOS device, verify:
 Camera, microphone and live customer-session booking acceptance need device verification. Automated mocks and the Gemini readiness response do not substitute for those checks.
 
 Supabase's informational `rls_enabled_no_policy` notices for the four private AI tables are intentional deny-all direct access; only checked RPCs access them. See https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy. Existing warnings for admin invitation lookup and disabled leaked-password protection are unrelated to this assistant change.
+
+
+## Response reliability and interface update (13 October 2026)
+
+The former Gemini 3.5 Flash-Lite default returned upstream `503 UNAVAILABLE` and repeatedly timed out in isolated calls. Gemini 3.6 Flash answered the same assistant request in about two seconds with minimal thinking. The default was changed to that verified model; an explicit `GEMINI_MODEL` remains respected. These tests use synthetic conversation/tool fixtures and the real configured Gemini key; they do not impersonate a customer or prove a complete signed-in booking flow.
+
+The gateway has a 95-second overall model deadline and a bounded per-request timeout. The Flutter caller stops waiting after 110 seconds and retains the draft/request identity for retry. Server logs contain only failure stage, exception class and status, never keys or conversation content. The last allowed tool round requests a final answer instead of another search loop. The temporary setup probe is disabled after verification.
+
+A new ownership-checked `customer_ai_rename_conversation` RPC persists trimmed 1–70-character chat titles and rejects blank/control-character names and foreign/deleted conversations. Migration versions must continue to match the remote ledger.
+
+The navigation centre is raised above the other tabs. The assistant uses a quiet welcome layout, a rounded composer with Ask AI / Do it for me selection, a left history panel, and distinct customer/reply/thinking bubbles. Sending errors retain editable text and provide Retry. Choosing a history item or starting a new chat still replaces the current draft.

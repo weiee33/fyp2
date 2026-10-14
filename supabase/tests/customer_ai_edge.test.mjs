@@ -46,3 +46,32 @@ test('booking tool stages a card and never calls confirmation or booking writer'
 test('Gemini quota error fails lease without false assistant success',async()=>{const f=fixture({gemini:()=>response({},429)});assert.equal((await handleAssistant(req(),f.deps)).status,429);assert.ok(f.calls.some(c=>c.url.endsWith('ai_fail_turn')));assert.ok(!f.calls.some(c=>c.url.endsWith('ai_finish_turn')));});
 test('delete uses owned RPC output for storage cleanup without requiring Gemini key',async()=>{const f=fixture({env:{GEMINI_API_KEY:''}});const request=new Request('https://app.invalid',{method:'POST',headers:{Authorization:'Bearer customer'},body:JSON.stringify({operation:'delete',conversation_id:cid})});assert.equal((await handleAssistant(request,f.deps)).status,200);const cleanup=f.calls.find(c=>c.url.includes('/storage/v1/object/'));assert.deepEqual(cleanup.body.prefixes,[`${uid}/${cid}/${rid}.jpg`]);assert.ok(!f.calls.some(c=>c.url.includes('generativelanguage')));});
 test('oversized chunked body is rejected',async()=>{const f=fixture();const r=new Request('https://app.invalid',{method:'POST',headers:{Authorization:'Bearer customer'},body:'x'.repeat(15000)});assert.equal((await handleAssistant(r,f.deps)).status,413);});
+
+
+test('working default uses a bounded minimal-thinking Gemini request',async()=>{
+ const f=fixture();await handleAssistant(req(),f.deps);
+ const call=f.calls.find(c=>c.url.includes('generativelanguage'));
+ assert.match(call.url,/gemini-3\.6-flash:generateContent/);
+ assert.equal(call.body.generationConfig.thinkingConfig.thinkingLevel,'MINIMAL');
+});
+test('timeout releases lease and gives retry guidance without leaking diagnostics',async()=>{
+ const events=[];
+ const f=fixture({gemini:()=>{throw new DOMException('sensitive upstream details','TimeoutError');}});
+ f.deps.log=e=>events.push(e);
+ const r=await handleAssistant(req(),f.deps);assert.equal(r.status,503);
+ const data=await r.json();assert.match(data.error,/taking longer.*Retry/);
+ assert.ok(!JSON.stringify(data).includes('sensitive'));
+ assert.deepEqual(events,[{event:'customer_assistant_failure',stage:'gemini',error:'TimeoutError',status:503}]);
+ assert.ok(f.calls.some(c=>c.url.endsWith('ai_fail_turn')));
+});
+test('final model round requests an answer instead of another tool loop',async()=>{
+ const f=fixture({gemini:(n,b)=>{
+  if(n===4){assert.equal(b.toolConfig.functionCallingConfig.mode,'NONE');return response({candidates:[{content:{role:'model',parts:[{text:'No matching provider was found.'}]}}]});}
+  return response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'search_services',args:{keyword:'plumbing'}}}]}}]});
+ }});
+ assert.equal((await (await handleAssistant(req(),f.deps)).json()).message.content,'No matching provider was found.');
+});
+
+test('owned conversation photo path passes input validation',async()=>{
+ const f=fixture();const r=await handleAssistant(req({image_path:`${uid}/${cid}/${rid}.jpg`}),f.deps);assert.equal(r.status,200);
+});

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
@@ -35,6 +36,13 @@ class FakeSpeech extends CustomerAiSpeech {
 
 class FakeAi extends CustomerAiService {
   String? navigationScreen;
+  String chatTitle = 'Cleaning help';
+  Completer<void>? pending;
+  @override
+  Future<void> rename(String id, String title) async {
+    chatTitle = title;
+  }
+
   final messages = <Map<String, dynamic>>[];
   final requestIds = <String>[];
   bool fail = false, deleted = false;
@@ -50,7 +58,7 @@ class FakeAi extends CustomerAiService {
       deleted
       ? []
       : [
-          {'id': 'conversation', 'title': 'Cleaning help'},
+          {'id': 'conversation', 'title': chatTitle},
         ];
   @override
   Future<List<Map<String, dynamic>>> history(String id, {int? before}) async {
@@ -67,6 +75,7 @@ class FakeAi extends CustomerAiService {
     String? imagePath,
   }) async {
     requestIds.add(requestId);
+    await pending?.future;
     lastPhoto = imagePath;
     if (fail) {
       fail = false;
@@ -143,6 +152,8 @@ void main() {
           ),
         ),
       );
+      await t.tap(find.byTooltip('Assistant mode'));
+      await t.pumpAndSettle();
       await t.tap(find.text('Do it for me'));
       await t.pumpAndSettle();
       await t.enterText(find.byType(TextField), 'Open my bookings');
@@ -157,6 +168,88 @@ void main() {
       expect(t.takeException(), isNull);
     },
   );
+  testWidgets(
+    'pending reply displays sent bubble and animated assistant bubble',
+    (t) async {
+      capture.pixel(t);
+      final service = FakeAi()..pending = Completer<void>();
+      await t.pumpWidget(
+        capture.app(CustomerAiScreen(service: service, speech: FakeSpeech())),
+      );
+      await t.enterText(find.byType(TextField), 'Find a cleaner');
+      await t.tap(find.byTooltip('Send message'));
+      await t.pump(const Duration(milliseconds: 350));
+      expect(find.text('Find a cleaner'), findsOneWidget);
+      expect(find.byKey(const ValueKey('ai-thinking-bubble')), findsOneWidget);
+      expect(find.text('Thinking…'), findsOneWidget);
+      await capture.proof(t, 'ai-thinking-redesign');
+      service.pending!.complete();
+      await t.pumpAndSettle();
+      expect(find.byKey(const ValueKey('ai-thinking-bubble')), findsNothing);
+      expect(t.takeException(), isNull);
+    },
+  );
+  testWidgets('history can search rename and reopen a chat', (t) async {
+    capture.pixel(t);
+    final service = FakeAi();
+    await t.pumpWidget(
+      capture.app(CustomerAiScreen(service: service, speech: FakeSpeech())),
+    );
+    await capture.proof(t, 'ai-welcome-redesign');
+    await t.tap(find.byTooltip('Chat history'));
+    await t.pumpAndSettle();
+    await capture.proof(t, 'ai-history-redesign');
+    await t.tap(find.byTooltip('Chat options'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Rename'));
+    await t.pumpAndSettle();
+    await t.enterText(
+      find.widgetWithText(TextField, 'Cleaning help'),
+      'Weekend cleaning',
+    );
+    await t.tap(find.text('Save'));
+    await t.pumpAndSettle();
+    expect(service.chatTitle, 'Weekend cleaning');
+    await t.enterText(
+      find.widgetWithText(TextField, 'Search chats'),
+      'plumber',
+    );
+    await t.pump();
+    expect(find.text('No chats match your search.'), findsOneWidget);
+    await t.tap(find.byTooltip('Clear search'));
+    await t.pump();
+    await t.tap(find.text('Weekend cleaning'));
+    await t.pumpAndSettle();
+    expect(find.text('Weekend cleaning'), findsOneWidget);
+    expect(t.takeException(), isNull);
+  });
+  testWidgets('composer fits a narrow phone with keyboard and larger text', (
+    t,
+  ) async {
+    t.view.physicalSize = const Size(320, 568);
+    t.view.devicePixelRatio = 1;
+    addTearDown(t.view.resetPhysicalSize);
+    addTearDown(t.view.resetDevicePixelRatio);
+    await t.pumpWidget(
+      capture.app(
+        MediaQuery(
+          data: const MediaQueryData(
+            size: Size(320, 568),
+            viewInsets: EdgeInsets.only(bottom: 200),
+            textScaler: TextScaler.linear(1.4),
+          ),
+          child: CustomerAiScreen(service: FakeAi(), speech: FakeSpeech()),
+        ),
+      ),
+    );
+    await t.tap(find.byTooltip('Assistant mode'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Do it for me'));
+    await t.pumpAndSettle();
+    await t.enterText(find.byType(TextField), 'Help me book');
+    await t.pump();
+    expect(t.takeException(), isNull);
+  });
   setUpAll(() async {
     const root = String.fromEnvironment('FLUTTER_FONT_ROOT');
     if (root.isNotEmpty) {
@@ -190,6 +283,11 @@ void main() {
           ),
         ),
       );
+      expect(
+        t.getCenter(find.byType(AiHalo)).dy,
+        lessThan(t.getCenter(find.byIcon(Icons.explore_outlined)).dy),
+      );
+      await capture.proof(t, 'ai-raised-nav');
       await t.tap(find.text('Notifications'));
       await t.pumpAndSettle();
       expect(find.text('Notifications content'), findsOneWidget);
@@ -215,7 +313,10 @@ void main() {
       await t.tap(find.byTooltip('Send message'));
       await t.pumpAndSettle();
       expect(find.text('Temporary failure. Retry.'), findsOneWidget);
-      expect(find.text('Compare cleaning services'), findsOneWidget);
+      expect(
+        find.widgetWithText(TextField, 'Compare cleaning services'),
+        findsOneWidget,
+      );
       await t.tap(find.byTooltip('Send message'));
       await t.pumpAndSettle();
       expect(service.requestIds[0], service.requestIds[1]);
@@ -296,7 +397,9 @@ void main() {
       await t.tap(find.byTooltip('Chat history'));
       await t.pumpAndSettle();
       expect(find.text('Cleaning help'), findsOneWidget);
-      await t.tap(find.byTooltip('Delete chat'));
+      await t.tap(find.byTooltip('Chat options'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('Delete'));
       await t.pumpAndSettle();
       expect(service.deleted, false);
       await t.tap(find.text('Delete'));
