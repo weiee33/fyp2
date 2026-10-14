@@ -7,10 +7,10 @@ const response=(data,status=200)=>new Response(JSON.stringify(data),{status});
 function fixture(options={}){
  const calls=[];let model=0;
  const env={SUPABASE_URL:'https://db.invalid',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'service',GEMINI_API_KEY:'private-test-key',...options.env};
- return {calls,deps:{env:n=>env[n],fetch:async(url,init={})=>{
+ return {calls,deps:{env:n=>env[n],sleep:async()=>{},fetch:async(url,init={})=>{
   const body=init.body?JSON.parse(init.body):null;calls.push({url,init,body});
   if(url.endsWith('/auth/v1/user'))return response({id:uid},options.authStatus??200);
-  if(url.includes('generativelanguage'))return options.gemini?options.gemini(model++,body):response({candidates:[{content:{role:'model',parts:[{text:'How can I help you choose?'}]}}]});
+  if(url.includes('generativelanguage'))return options.gemini?options.gemini(model++,body,url):response({candidates:[{content:{role:'model',parts:[{text:'How can I help you choose?'}]}}]});
   if(url.endsWith('customer_ai_begin_turn'))return options.begin?options.begin():response({turn_id:rid,lease:rid,history:[{role:'user',content:'Find a cleaner'}]});
   if(url.endsWith('ai_finish_turn'))return response({id:2,role:'assistant',content:body.p_content,actions:body.p_actions});
   if(url.endsWith('ai_fail_turn'))return response(null);
@@ -51,17 +51,20 @@ test('oversized chunked body is rejected',async()=>{const f=fixture();const r=ne
 test('working default uses a bounded minimal-thinking Gemini request',async()=>{
  const f=fixture();await handleAssistant(req(),f.deps);
  const call=f.calls.find(c=>c.url.includes('generativelanguage'));
- assert.match(call.url,/gemini-3\.6-flash:generateContent/);
+ assert.match(call.url,/gemini-3\.1-flash-lite:generateContent/);
  assert.equal(call.body.generationConfig.thinkingConfig.thinkingLevel,'MINIMAL');
+ assert.equal(call.body.generationConfig.temperature,undefined);
 });
 test('timeout releases lease and gives retry guidance without leaking diagnostics',async()=>{
  const events=[];
  const f=fixture({gemini:()=>{throw new DOMException('sensitive upstream details','TimeoutError');}});
  f.deps.log=e=>events.push(e);
  const r=await handleAssistant(req(),f.deps);assert.equal(r.status,503);
- const data=await r.json();assert.match(data.error,/taking longer.*Retry/);
+ const data=await r.json();assert.match(data.error,/temporarily busy.*retry/);
  assert.ok(!JSON.stringify(data).includes('sensitive'));
- assert.deepEqual(events,[{event:'customer_assistant_failure',stage:'gemini',error:'TimeoutError',status:503}]);
+ assert.equal(events.filter(e=>e.event==='customer_assistant_transport').length,3);
+ assert.deepEqual(events.at(-1),{event:'customer_assistant_failure',stage:'gemini',error:'Error',status:503});
+ assert.ok(!JSON.stringify(events).includes('sensitive'));
  assert.ok(f.calls.some(c=>c.url.endsWith('ai_fail_turn')));
 });
 test('final model round requests an answer instead of another tool loop',async()=>{
@@ -74,4 +77,100 @@ test('final model round requests an answer instead of another tool loop',async()
 
 test('owned conversation photo path passes input validation',async()=>{
  const f=fixture();const r=await handleAssistant(req({image_path:`${uid}/${cid}/${rid}.jpg`}),f.deps);assert.equal(r.status,200);
+});
+
+test('503 retries generation within one turn and saves exactly one reply',async()=>{
+ const delays=[],events=[];
+ const f=fixture({gemini:n=>n<1?response({error:{status:'UNAVAILABLE',message:'private-test-key customer text'}},503):response({candidates:[{content:{role:'model',parts:[{text:'Recovered'}]}}]})});
+ f.deps.sleep=async ms=>delays.push(ms);f.deps.log=e=>events.push(e);
+ assert.equal((await handleAssistant(req(),f.deps)).status,200);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('customer_ai_begin_turn')).length,1);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('ai_finish_turn')).length,1);
+ assert.equal(f.calls.filter(c=>c.url.includes('generativelanguage')).length,2);
+ assert.ok(delays[0]>=500&&delays[0]<750);
+ assert.equal(events[0].http_status,503);assert.equal(events[0].upstream_status,'UNAVAILABLE');
+ assert.ok(!JSON.stringify(events).includes('private-test-key'));assert.ok(!JSON.stringify(events).includes('customer text'));
+});
+
+test('fallback recovers initial congestion and stays selected for tool results',async()=>{
+ const f=fixture({gemini:(n,b,url)=>{
+  if(n<2){assert.match(url,/gemini-3\.1-flash-lite:/);return response({},503);}
+  assert.match(url,/gemini-3\.6-flash:/);
+  return response({candidates:[{content:{role:'model',parts:n===2?[{functionCall:{name:'search_services',args:{keyword:'plumbing'}},thoughtSignature:'fallback-signature'}]:[{text:'Found the service.'}]}}]});
+ }});
+ assert.equal((await handleAssistant(req(),f.deps)).status,200);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('customer_search_services')).length,1);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('ai_finish_turn')).length,1);
+});
+
+test('tool continuation retries keep model and signatures without replaying tools',async()=>{
+ const f=fixture({gemini:(n,b,url)=>{
+  assert.match(url,/gemini-3\.1-flash-lite:/);
+  if(n===0)return response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'search_services',args:{}},thoughtSignature:'keep-me'}]}}]});
+  assert.equal(b.contents[1].parts[0].thoughtSignature,'keep-me');
+  return n<3?response({},503):response({candidates:[{content:{role:'model',parts:[{text:'Recovered after search'}]}}]});
+ }});
+ assert.equal((await handleAssistant(req(),f.deps)).status,200);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('customer_search_services')).length,1);
+});
+
+test('credential, quota and invalid configuration failures are not retried',async()=>{
+ for(const status of [400,401,403,404,429]){
+  const f=fixture({gemini:()=>response({error:{status:'PERMISSION_DENIED',message:'secret details'}},status)});
+  const r=await handleAssistant(req(),f.deps);assert.equal(r.status,status===429?429:503);
+  assert.equal(f.calls.filter(c=>c.url.includes('generativelanguage')).length,1);
+  assert.ok(!JSON.stringify(await r.json()).includes('secret details'));
+  assert.equal(f.calls.filter(c=>c.url.endsWith('ai_fail_turn')).length,1);
+ }
+});
+
+test('exhausted retries fail the lease without a fake answer',async()=>{
+ const f=fixture({gemini:()=>new Response('temporarily down',{status:502})});
+ assert.equal((await handleAssistant(req(),f.deps)).status,503);
+ assert.equal(f.calls.filter(c=>c.url.includes('generativelanguage')).length,3);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('ai_finish_turn')).length,0);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('ai_fail_turn')).length,1);
+});
+
+test('generation budget stops retries in time to release lease',async()=>{
+ let clock=0;const f=fixture({gemini:()=>{clock+=79000;return response({},503);}});f.deps.now=()=>clock;
+ assert.equal((await handleAssistant(req(),f.deps)).status,503);
+ assert.equal(f.calls.filter(c=>c.url.includes('generativelanguage')).length,1);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('ai_fail_turn')).length,1);
+});
+
+test('Retry-After is respected but never exceeds the turn budget',async()=>{
+ const delays=[];const f=fixture({gemini:()=>new Response('{}',{status:503,headers:{'retry-after':'120'}})});
+ f.deps.sleep=async ms=>delays.push(ms);
+ assert.equal((await handleAssistant(req(),f.deps)).status,503);
+ assert.equal(f.calls.filter(c=>c.url.includes('generativelanguage')).length,1);assert.deepEqual(delays,[]);
+});
+
+test('fallback can be disabled and custom models do not get unsupported thinking parameters',async()=>{
+ const f=fixture({env:{GEMINI_MODEL:'gemini-3.7-flash',GEMINI_FALLBACK_MODEL:''},gemini:(n,b,url)=>{
+  assert.match(url,/gemini-3\.7-flash:/);assert.equal(b.generationConfig.thinkingConfig,undefined);
+  return response({},503);
+ }});
+ assert.equal((await handleAssistant(req(),f.deps)).status,503);
+ assert.equal(f.calls.filter(c=>c.url.includes('generativelanguage')).length,3);
+});
+
+test('network interruption can recover without exposing transport details',async()=>{
+ const f=fixture({gemini:n=>{if(!n)throw new TypeError('private networking detail');return response({candidates:[{content:{role:'model',parts:[{text:'Recovered'}]}}]});}});
+ assert.equal((await handleAssistant(req(),f.deps)).status,200);
+});
+
+test('the total generation request cap applies across multiple tool rounds',async()=>{
+ const f=fixture({gemini:n=>n%2===0?response({},503):response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'search_services',args:{}}}]}}]})});
+ assert.equal((await handleAssistant(req(),f.deps)).status,503);
+ assert.equal(f.calls.filter(c=>c.url.includes('generativelanguage')).length,7);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('customer_search_services')).length,3);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('ai_finish_turn')).length,0);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('ai_fail_turn')).length,1);
+});
+
+test('invalid fallback configuration is rejected before persisting or generating',async()=>{
+ const f=fixture({env:{GEMINI_FALLBACK_MODEL:'https://untrusted.invalid'}});
+ assert.equal((await handleAssistant(req(),f.deps)).status,503);
+ assert.ok(!f.calls.some(c=>c.url.endsWith('customer_ai_begin_turn')||c.url.includes('generativelanguage')));
 });

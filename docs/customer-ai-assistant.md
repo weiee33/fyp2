@@ -16,7 +16,7 @@ Supported navigation: services, bookings, notifications, profile, addresses, rev
 
 1. Create a Gemini API key in Google AI Studio: https://ai.google.dev/gemini-api/docs/api-key.
 2. Save `GEMINI_API_KEY` in Supabase Project Settings / Edge Functions / Secrets. Never put it in Flutter, Git, a screenshot or chat.
-3. Optional `GEMINI_MODEL` overrides the tested default `gemini-3.6-flash`. Choose a Gemini model supporting images and function calling. See https://ai.google.dev/gemini-api/docs/models.
+3. Optional `GEMINI_MODEL` overrides the tested default `gemini-3.1-flash-lite`. Choose a Gemini model supporting images and function calling. `GEMINI_FALLBACK_MODEL` optionally selects a fallback (an empty value disables fallback). By default the fallback is `gemini-3.6-flash` for the default primary, or `gemini-3.1-flash-lite` for another primary. See https://ai.google.dev/gemini-api/docs/models.
 4. Apply migrations in order, then deploy `customer-assistant` with JWT verification enabled. It imports `_shared/customer_ai.ts` and uses the built-in Supabase URL, anon and service role environment values.
 5. Build/install the app and log in as an active verified customer. Provider/admin sessions do not have customer assistant access.
 
@@ -34,7 +34,7 @@ Tables live in the private schema with RLS and no client table grants. Explicit 
 
 Booking confirmation delegates to the existing authoritative booking function, preserving availability, provider eligibility, idempotency and payment rules. The action expires after 15 minutes. Price, duration and address snapshots must still match before confirmation; changed details require a new card. Retried confirmations return the existing result. History resolves current completed/expired action state instead of displaying an old pending label.
 
-Limits: 4000 characters per message, 400 messages/conversation, 100 active conversations/customer, 200 stored photos/customer, 60 model attempts/customer/24 hours, six recent turns/minute, three attempts/request, 30 action drafts/conversation/hour, five model rounds and 12 tool calls/turn. The project-wide 2000-attempt rolling guard is approximate under concurrent different customers; provider quota/budget controls remain necessary. Failed requests preserve the draft and reuse an immutable request ID for safe retries.
+Limits: 4000 characters per message, 400 messages/conversation, 100 active conversations/customer, 200 stored photos/customer, 60 turn attempts/customer/24 hours, six recent turns/minute, three customer attempts/request, 30 action drafts/conversation/hour, five model rounds and 12 tool calls/turn. Each turn attempt allows at most seven Gemini HTTP requests, including transient retries. The project-wide 2000-turn-attempt rolling guard is approximate under concurrent different customers; provider quota/budget controls remain necessary. Failed requests preserve the draft and reuse an immutable request ID for safe retries.
 
 ## Validation and device acceptance
 
@@ -58,8 +58,18 @@ Supabase's informational `rls_enabled_no_policy` notices for the four private AI
 
 The former Gemini 3.5 Flash-Lite default returned upstream `503 UNAVAILABLE` and repeatedly timed out in isolated calls. Gemini 3.6 Flash answered the same assistant request in about two seconds with minimal thinking. The default was changed to that verified model; an explicit `GEMINI_MODEL` remains respected. These tests use synthetic conversation/tool fixtures and the real configured Gemini key; they do not impersonate a customer or prove a complete signed-in booking flow.
 
-The gateway has a 95-second overall model deadline and a bounded per-request timeout. The Flutter caller stops waiting after 110 seconds and retains the draft/request identity for retry. Server logs contain only failure stage, exception class and status, never keys or conversation content. The last allowed tool round requests a final answer instead of another search loop. The temporary setup probe is disabled after verification.
+The gateway starts a 95-second request budget and reserves its final 15 seconds for persistence/failure handling. The Flutter caller stops waiting after 110 seconds and retains the draft/request identity for retry. Server logs contain only failure stage, exception class and allowlisted diagnostic codes, never keys or conversation content. The last allowed tool round requests a final answer instead of another search loop. The temporary setup probe is disabled after verification.
 
 A new ownership-checked `customer_ai_rename_conversation` RPC persists trimmed 1–70-character chat titles and rejects blank/control-character names and foreign/deleted conversations. Migration versions must continue to match the remote ledger.
 
 The navigation centre is raised above the other tabs. The assistant uses a quiet welcome layout, a rounded composer with Ask AI / Do it for me selection, a left history panel, and distinct customer/reply/thinking bubbles. Sending errors retain editable text and provide Retry. Choosing a history item or starting a new chat still replaces the current draft.
+
+## Production congestion recovery (14 October 2026)
+
+The previous model change did not provide reliable availability. A direct request from Supabase with the configured key reproduced HTTP 503 `UNAVAILABLE` / high demand on Gemini 3.6 Flash. The authenticated model-list endpoint succeeded, and 3.1 Flash-Lite answered using the same key. This incident was model congestion, not a missing secret or rejected key. The default now uses 3.1 Flash-Lite, with minimal thinking and no deprecated temperature parameter.
+
+Transient HTTP 408/500/502/503/504 errors and network timeouts retry with exponential backoff and jitter, at most three attempts per model round and seven requests per turn attempt. Each generation attempt is capped at 20 seconds and the remaining generation budget. Numeric Retry-After is respected only if it fits the deadline. Quota, authentication, authorization and request-configuration failures do not retry or switch models. Fallback is only permitted on the third attempt before the first model response is accepted; subsequent tool continuations retain their model and thought signatures. Database tool calls are never repeated as part of an HTTP retry. Error logs record model, round, attempt, HTTP status and allowlisted Google status/reason codes without copying free-form error bodies.
+
+Live validation used a newly created disposable verified customer and the deployed `customer-assistant` endpoint, real Supabase Auth/RPCs and the configured Gemini key. Greeting, actual plumbing-service search and a follow-up referencing prior conversation each returned HTTP 200 (about 11.2 s, 8.2 s and 3.2 s). Each reply appeared in customer history; replaying each request returned the same message ID with no duplicate. No bookings or payments were created. Sessions and all test data were removed after validation, and the temporary diagnostic function was disabled. This verifies the backend customer path; camera/microphone and physical-device rendering still require device checks.
+
+If an earlier message has already used all three customer retry attempts, start a new chat/message after deployment. A leaked API key must be replaced in Google AI Studio and the replacement saved as `GEMINI_API_KEY` in Supabase; never include the value in a screenshot, log, commit or support message.
