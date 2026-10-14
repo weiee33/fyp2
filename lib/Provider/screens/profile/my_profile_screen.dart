@@ -1,6 +1,6 @@
 import 'package:fyp2/shared/localization/app_language.dart';
-import '../../../shared/localization/language_screen.dart';
 import 'package:flutter/material.dart';
+import '../../../shared/localization/language_screen.dart';
 
 import '../../../shared/chat/chat_inbox_screen.dart';
 import 'package:fyp2/Provider/services/profile_service.dart';
@@ -123,12 +123,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    // 👇 pages order matches bottom nav: Profile | Services | Bookings | Schedule | Earnings
     final pages = [
       _buildProfileTab(),
       const MyServicesScreen(),
       const MyBookingsScreen(),
-      const EarningsScreen(),
       const ScheduleScreen(),
+      const EarningsScreen(),
     ];
 
     return Scaffold(
@@ -214,9 +215,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           BottomNavigationBarItem(
               icon: Icon(Icons.calendar_month), label: tr('Bookings')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.attach_money), label: tr('Earnings')),
-          BottomNavigationBarItem(
               icon: Icon(Icons.schedule), label: tr('Schedule')),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.attach_money), label: tr('Earnings')),
         ],
       ),
     );

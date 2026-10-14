@@ -22,20 +22,30 @@ class BookingService {
     return rows.isEmpty ? null : rows.single;
   }
 
+  /// Accept / Start Job / Complete.
+  /// For cancellations, use [cancel] instead.
   Future<void> updateStatus(String bookingId, String status) async {
     if (status == 'Confirmed') {
+      // Accept: provider_booking_reply with p_accept = true
       await _client.rpc(
         'provider_booking_reply',
         params: {'p_booking_id': bookingId, 'p_accept': true},
       );
-    } else {
+    } else if (status == 'In-Progress' || status == 'Completed') {
+      // Progress: Confirmed → In-Progress, In-Progress → Completed
       await _client.rpc(
         'provider_booking_progress',
         params: {'p_booking_id': bookingId, 'p_status': status},
       );
+    } else {
+      throw Exception(
+        'Unsupported status for updateStatus: $status. '
+            'Use cancel() for cancellations.',
+      );
     }
   }
 
+  /// Cancel / reject a booking.
   Future<void> cancel(String bookingId, String reason) async {
     await _client.rpc(
       'provider_booking_reply',
@@ -47,21 +57,36 @@ class BookingService {
     );
   }
 
-  final Map<String,String> _conversationIds = {};
+  final Map<String, String> _conversationIds = {};
   String? _retryBody, _retryId;
-  Future<String> _chatId(String bookingId) async => _conversationIds[bookingId] ??= await ChatService().open(bookingId: bookingId);
-  Future<List<Map<String,dynamic>>> getChatMessages(String bookingId) async {
+
+  Future<String> _chatId(String bookingId) async =>
+      _conversationIds[bookingId] ??=
+      await ChatService().open(bookingId: bookingId);
+
+  Future<List<Map<String, dynamic>>> getChatMessages(String bookingId) async {
     final chat = ChatService();
     final id = await _chatId(bookingId);
     final result = await chat.history(id);
     final rows = ChatService.rows(result['messages']);
-    if(rows.isNotEmpty) await chat.manage(id, 'read', readThrough: (rows.first['message_id'] as num).toInt());
+    if (rows.isNotEmpty) {
+      await chat.manage(
+        id,
+        'read',
+        readThrough: (rows.first['message_id'] as num).toInt(),
+      );
+    }
     return rows.reversed.map((m) => {...m, 'message': m['body']}).toList();
   }
-  Future<void> sendMessage(String bookingId,String message) async {
+
+  Future<void> sendMessage(String bookingId, String message) async {
     final body = '$bookingId:$message';
-    if(_retryBody != body) { _retryBody = body; _retryId = CustomerTransactionService.newRequestId(); }
+    if (_retryBody != body) {
+      _retryBody = body;
+      _retryId = CustomerTransactionService.newRequestId();
+    }
     await ChatService().send(await _chatId(bookingId), message, _retryId!);
-    _retryBody = null; _retryId = null;
+    _retryBody = null;
+    _retryId = null;
   }
 }
