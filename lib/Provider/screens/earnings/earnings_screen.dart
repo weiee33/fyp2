@@ -75,6 +75,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
         .toDouble();
   }
 
+  // ========== 7 Days ==========
   List<double> _getLast7Days() {
     final now = DateTime.now();
     final result = List<double>.filled(7, 0);
@@ -100,31 +101,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
     });
   }
 
-  List<double> _getCurrentMonthDays() {
-    final now = DateTime.now();
-    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
-    final result = List<double>.filled(daysInMonth, 0);
-
-    for (final row in _rows) {
-      final parsed = _parseDate(row);
-      if (parsed == null) continue;
-      if (parsed.year == now.year && parsed.month == now.month) {
-        final dayIndex = parsed.day - 1;
-        if (dayIndex >= 0 && dayIndex < daysInMonth) {
-          result[dayIndex] += _amount(row);
-        }
-      }
-    }
-    return result;
-  }
-
-  List<String> _getCurrentMonthLabels() {
-    final now = DateTime.now();
-    final daysInMonth = DateTime(now.year, now.month + 1, 0).day;
-    return List.generate(daysInMonth, (i) => '${i + 1}');
-  }
-
-  List<double> _getCurrentYearMonths() {
+  // ========== Monthly (Jan - Dec of current year) ==========
+  List<double> _getMonthlyData() {
     final now = DateTime.now();
     final result = List<double>.filled(12, 0);
 
@@ -141,12 +119,34 @@ class _EarningsScreenState extends State<EarningsScreen> {
     return result;
   }
 
-  List<String> _getCurrentYearLabels() {
-    const months = [
+  List<String> _getMonthlyLabels() {
+    return const [
       'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
       'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
     ];
-    return months;
+  }
+
+  // ========== Yearly (last 5 years) ==========
+  List<double> _getYearlyData() {
+    final currentYear = DateTime.now().year;
+    // Last 5 years including current
+    final years = List.generate(5, (i) => currentYear - 4 + i);
+    final result = List<double>.filled(5, 0);
+
+    for (final row in _rows) {
+      final parsed = _parseDate(row);
+      if (parsed == null) continue;
+      final idx = years.indexOf(parsed.year);
+      if (idx >= 0) {
+        result[idx] += _amount(row);
+      }
+    }
+    return result;
+  }
+
+  List<String> _getYearlyLabels() {
+    final currentYear = DateTime.now().year;
+    return List.generate(5, (i) => '${currentYear - 4 + i}');
   }
 
   @override
@@ -167,16 +167,19 @@ class _EarningsScreenState extends State<EarningsScreen> {
     String chartSubtitle;
     switch (_chartView) {
       case 1:
-        chartValues = _getCurrentMonthDays();
-        chartLabels = _getCurrentMonthLabels();
-        chartSubtitle = 'This Month';
+      // Monthly: Jan - Dec
+        chartValues = _getMonthlyData();
+        chartLabels = _getMonthlyLabels();
+        chartSubtitle = 'This Year (Monthly)';
         break;
       case 2:
-        chartValues = _getCurrentYearMonths();
-        chartLabels = _getCurrentYearLabels();
-        chartSubtitle = 'This Year';
+      // Yearly: last 5 years
+        chartValues = _getYearlyData();
+        chartLabels = _getYearlyLabels();
+        chartSubtitle = 'Last 5 Years';
         break;
       default:
+      // Last 7 days
         chartValues = _getLast7Days();
         chartLabels = _getLast7DayLabels();
         chartSubtitle = 'Last 7 days';
@@ -287,19 +290,15 @@ class _EarningsScreenState extends State<EarningsScreen> {
                             alignment:
                             BarChartAlignment.spaceAround,
                             maxY: maxY,
-                            barGroups:
-                            List.generate(chartValues.length, (i) {
+                            barGroups: List.generate(
+                                chartValues.length, (i) {
                               return BarChartGroupData(
                                 x: i,
                                 barRods: [
                                   BarChartRodData(
                                     toY: chartValues[i],
                                     color: _primaryOrange,
-                                    width: chartValues.length > 20
-                                        ? 6
-                                        : (chartValues.length > 8
-                                        ? 12
-                                        : 18),
+                                    width: 12,
                                     borderRadius:
                                     BorderRadius.circular(6),
                                   ),
@@ -312,9 +311,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 24,
-                                  interval: chartValues.length > 20
-                                      ? 3
-                                      : 1,
                                   getTitlesWidget: (value, meta) {
                                     final idx = value.toInt();
                                     if (idx < 0 ||

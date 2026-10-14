@@ -17,6 +17,7 @@ import 'package:fyp2/Provider/screens/notifications/notification_screen.dart';
 import 'package:fyp2/Provider/screens/ai/ai_job_matching_screen.dart';
 import 'package:fyp2/Provider/screens/ai/ai_schedule_screen.dart';
 import 'package:fyp2/shared/portal_entry_screen.dart';
+import 'package:fyp2/Provider/screens/schedule/schedule_screen.dart';
 
 class MyProfileScreen extends StatefulWidget {
   const MyProfileScreen({super.key});
@@ -123,6 +124,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       const MyServicesScreen(),
       const MyBookingsScreen(),
       const EarningsScreen(),
+      const ScheduleScreen(),
     ];
 
     return Scaffold(
@@ -209,6 +211,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               icon: Icon(Icons.calendar_month), label: 'Bookings'),
           BottomNavigationBarItem(
               icon: Icon(Icons.attach_money), label: 'Earnings'),
+          BottomNavigationBarItem(
+              icon: Icon(Icons.schedule), label: 'Schedule'),
         ],
       ),
     );
