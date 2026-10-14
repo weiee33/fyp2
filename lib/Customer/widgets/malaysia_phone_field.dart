@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -32,7 +33,7 @@ class MalaysiaPhoneField extends StatelessWidget {
     this.enabled = true,
   });
   @override
-  Widget build(BuildContext context) => TextFormField(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  TextFormField(
     controller: controller,
     enabled: enabled,
     keyboardType: TextInputType.phone,
@@ -41,10 +42,10 @@ class MalaysiaPhoneField extends StatelessWidget {
       LengthLimitingTextInputFormatter(10),
     ],
     validator: MalaysiaPhone.validate,
-    decoration: const InputDecoration(
-      labelText: 'Mobile number',
+    decoration:  InputDecoration(
+      labelText: trOrNull('Mobile number'),
       hintText: '102049818',
-      helperText: 'Malaysia · omit the first 0',
+      helperText: trOrNull('Malaysia · omit the first 0'),
       prefixIcon: SizedBox(
         width: 72,
         child: Center(
@@ -52,5 +53,5 @@ class MalaysiaPhoneField extends StatelessWidget {
         ),
       ),
     ),
-  );
+  ); }
 }

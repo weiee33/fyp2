@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/booking_service.dart';
 import 'booking_detail_screen.dart';
@@ -50,7 +51,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load bookings: $e'),
+          content: Text(tr('Failed to load bookings: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -63,10 +64,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('My Bookings'),
+        title:  Text(tr('My Bookings')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -108,7 +110,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             ),
                           ),
                           child: Text(
-                            tabs[i],
+                            tr(tabs[i]),
                             style: TextStyle(
                               color: selected
                                   ? Colors.white
@@ -150,13 +152,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _buildEmpty() {
     return ListView(
-      children: const [
+      children:  [
         SizedBox(height: 100),
         Icon(Icons.event_busy_outlined, size: 56, color: Colors.grey),
         SizedBox(height: 12),
         Center(
           child: Text(
-            'No bookings',
+            tr('No bookings'),
             style: TextStyle(
               color: Colors.grey,
               fontSize: 14,
@@ -167,7 +169,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         SizedBox(height: 4),
         Center(
           child: Text(
-            'New booking requests will appear here',
+            tr('New booking requests will appear here'),
             style: TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ),
@@ -207,7 +209,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         onTap: () {
           if (rawId.isEmpty) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Booking ID missing')),
+               SnackBar(content: Text(tr('Booking ID missing'))),
             );
             return;
           }
@@ -243,7 +245,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        '#$shortId',
+                        tr('#$shortId'),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -253,7 +255,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     ],
                   ),
                   Text(
-                    amountRaw == null ? '—' : 'RM$amountText',
+                    tr(amountRaw == null ? '—' : 'RM$amountText'),
                     style: const TextStyle(
                       color: _primaryOrange,
                       fontWeight: FontWeight.bold,
@@ -281,8 +283,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _statusBadge(status),
-                  const Text(
-                    'View detail →',
+                   Text(
+                    tr('View detail →'),
                     style: TextStyle(
                       color: _primaryOrange,
                       fontWeight: FontWeight.w600,
@@ -362,7 +364,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           Icon(icon, size: 13, color: fg),
           const SizedBox(width: 4),
           Text(
-            status,
+            tr(status),
             style: TextStyle(
               color: fg,
               fontSize: 11,

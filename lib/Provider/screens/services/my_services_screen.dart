@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/service_service.dart';
 import 'edit_service_screen.dart';
@@ -39,7 +40,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load services: $e'),
+          content: Text(tr('Failed to load services: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -54,17 +55,17 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Delete Service'),
-        content: const Text('Are you sure you want to delete this service?'),
+        title:  Text(tr('Delete Service')),
+        content:  Text(tr('Are you sure you want to delete this service?')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child:  Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child:  Text(tr('Delete')),
           ),
         ],
       ),
@@ -77,7 +78,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Service deleted'),
+          content:  Text(tr('Service deleted')),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -90,7 +91,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Delete failed: $e'),
+          content: Text(tr('Delete failed: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -103,10 +104,11 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('My Services'),
+        title:  Text(tr('My Services')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -131,8 +133,8 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                         builder: (_) => const EditServiceScreen()),
                   ).then((_) => _load()),
                   icon: const Icon(Icons.add),
-                  label: const Text(
-                    'Add New Service',
+                  label:  Text(
+                    tr('Add New Service'),
                     style: TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -152,7 +154,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
 
               // ---- Empty State ----
               if (_items.isEmpty)
-                const Padding(
+                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 48),
                   child: Column(
                     children: [
@@ -163,7 +165,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                       ),
                       SizedBox(height: 12),
                       Text(
-                        'No services yet',
+                        tr('No services yet'),
                         style: TextStyle(
                           color: Colors.grey,
                           fontSize: 14,
@@ -172,7 +174,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'Tap "Add New Service" to create your first listing',
+                        tr('Tap "Add New Service" to create your first listing'),
                         style: TextStyle(
                           color: Colors.grey,
                           fontSize: 12,
@@ -230,7 +232,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    name,
+                    tr(name),
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -240,7 +242,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    'RM$price · $duration min · $pricing',
+                    tr('RM$price · $duration min · $pricing'),
                     style: const TextStyle(
                       fontSize: 12,
                       color: Colors.grey,
@@ -253,7 +255,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
             // Actions
             IconButton(
               icon: const Icon(Icons.edit_outlined, color: _primaryOrange),
-              tooltip: 'Edit',
+              tooltip: trOrNull('Edit'),
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -262,7 +264,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
-              tooltip: 'Delete',
+              tooltip: trOrNull('Delete'),
               onPressed: () => _delete(s['service_id'].toString()),
             ),
           ],

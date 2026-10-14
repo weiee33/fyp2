@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 
 class StartCard extends StatelessWidget {
@@ -18,6 +19,7 @@ class StartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     const primaryOrange = Color(0xFFFF6B00);
     final cardColor = color ?? primaryOrange;
 
@@ -50,7 +52,7 @@ class StartCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      title,
+                      tr(title),
                       style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -59,7 +61,7 @@ class StartCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      subtitle,
+                      tr(subtitle),
                       style: const TextStyle(
                         fontSize: 12.5,
                         color: Colors.grey,

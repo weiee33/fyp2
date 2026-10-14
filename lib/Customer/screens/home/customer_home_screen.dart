@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -80,7 +81,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         () => _error =
             'Unable to load your services. Check your connection and retry.',
       );
-      CustomerDialogs.show(context, title: 'Unable to load', message: _error!);
+      CustomerDialogs.show(context, title: tr('Unable to load'), message: _error!);
     } finally {
       if (mounted && request == _requestVersion)
         setState(() => _loading = false);
@@ -116,9 +117,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
               child: Row(
                 children: [
-                  const Expanded(
+                   Expanded(
                     child: Text(
-                      'Service address',
+                      tr('Service address'),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -135,10 +136,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
                 children: [
                   if (_addresses.isEmpty)
-                    const Padding(
+                     Padding(
                       padding: EdgeInsets.all(20),
                       child: Text(
-                        'Add an address to use when making a booking.',
+                        tr('Add an address to use when making a booking.'),
                       ),
                     ),
                   ..._addresses.map(
@@ -147,7 +148,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         Icons.location_on_outlined,
                         color: CustomerTheme.primary,
                       ),
-                      title: Text(address['label'] as String? ?? 'Address'),
+                      title: Text(tr(address['label'] as String? ?? 'Address')),
                       subtitle: Text(
                         '${address['address_line']}, ${address['city']}',
                       ),
@@ -171,7 +172,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               child: OutlinedButton.icon(
                 onPressed: () => Navigator.pop(sheetContext, 'add'),
                 icon: const Icon(Icons.add_location_alt_outlined),
-                label: const Text('Add service address'),
+                label:  Text(tr('Add service address')),
               ),
             ),
           ],
@@ -194,13 +195,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       if (mounted)
         CustomerDialogs.show(
           context,
-          message: 'Unable to change your address. Please retry.',
+          message: tr('Unable to change your address. Please retry.'),
         );
     }
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Scaffold(
     backgroundColor: CustomerTheme.background,
     body: CustomerRefresh(
       onRefresh: _load,
@@ -216,8 +217,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               padding: const EdgeInsets.all(20),
               child: Column(
                 children: [
-                  Text(_error!, textAlign: TextAlign.center),
-                  TextButton(onPressed: _load, child: const Text('Retry')),
+                  Text(tr(_error!), textAlign: TextAlign.center),
+                  TextButton(onPressed: _load, child:  Text(tr('Retry'))),
                 ],
               ),
             ),
@@ -229,9 +230,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 children: [
                   Row(
                     children: [
-                      const Expanded(
+                       Expanded(
                         child: Text(
-                          'Service categories',
+                          tr('Service categories'),
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -243,13 +244,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                           _search.clear();
                           _browse();
                         },
-                        child: const Text('View all'),
+                        child:  Text(tr('View all')),
                       ),
                     ],
                   ),
                   const SizedBox(height: 8),
                   if (_categories.isEmpty)
-                    const Text('No service categories are available yet.'),
+                     Text(tr('No service categories are available yet.')),
                   LayoutBuilder(
                     builder: (_, constraints) {
                       final columns = constraints.maxWidth >= 500 ? 4 : 3;
@@ -289,7 +290,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                                           ),
                                           const SizedBox(height: 8),
                                           Text(
-                                            category['category_name'] as String,
+                                            tr(category['category_name'] as String),
                                             textAlign: TextAlign.center,
                                           ),
                                         ],
@@ -304,19 +305,19 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     },
                   ),
                   const SizedBox(height: 28),
-                  const Text(
-                    'Verified providers',
+                   Text(
+                    tr('Verified providers'),
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Ordered by customer rating',
+                   Text(
+                    tr('Ordered by customer rating'),
                     style: TextStyle(color: CustomerTheme.textSecondary),
                   ),
                   const SizedBox(height: 12),
                   if (_providers.isEmpty)
-                    const Text(
-                      'No verified providers with available services yet.',
+                     Text(
+                      tr('No verified providers with available services yet.'),
                     ),
                   ..._providers.map(_providerCard),
                   const SizedBox(height: 12),
@@ -326,7 +327,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         ],
       ),
     ),
-  );
+  ); }
 
   Widget _header() => Container(
     padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
@@ -344,12 +345,12 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Good day,',
+                   Text(
+                    tr('Good day,'),
                     style: TextStyle(color: Colors.white),
                   ),
                   Text(
-                    _name,
+                    tr(_name),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -379,7 +380,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _address,
+                    tr(_address),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Colors.white),
@@ -398,10 +399,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
           onSubmitted: (_) => _browse(),
           decoration: InputDecoration(
             counterText: '',
-            hintText: 'What service do you need?',
+            hintText: trOrNull('What service do you need?'),
             prefixIcon: const Icon(Icons.search, color: CustomerTheme.primary),
             suffixIcon: IconButton(
-              tooltip: 'Search services',
+              tooltip: trOrNull('Search services'),
               onPressed: () => _browse(),
               icon: const Icon(Icons.arrow_forward),
             ),
@@ -451,27 +452,25 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                       ),
                     ),
                     Text(
-                      provider['service_name'] as String,
+                      tr(provider['service_name'] as String),
                       style: const TextStyle(
                         color: CustomerTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      count == 0
-                          ? 'No reviews yet'
-                          : '${rating.toStringAsFixed(1)} ★ · $count reviews',
+                      tr(count == 0 ? 'No reviews yet' : '${rating.toStringAsFixed(1)} ★ · $count reviews'),
                     ),
                     Text(
-                      'From RM ${price.toStringAsFixed(2)}${provider['pricing_type'] == 'Hourly' ? '/hour' : ''}',
+                      tr('From RM ${price.toStringAsFixed(2)}${provider['pricing_type'] == 'Hourly' ? '/hour' : ''}'),
                       style: const TextStyle(
                         color: CustomerTheme.primaryDark,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'View services & book',
+                     Text(
+                      tr('View services & book'),
                       style: TextStyle(color: CustomerTheme.primaryDark),
                     ),
                   ],

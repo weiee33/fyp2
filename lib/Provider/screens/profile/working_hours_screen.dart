@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/profile_service.dart';
 
@@ -98,7 +99,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Working hours saved'),
+          content:  Text(tr('Working hours saved')),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -117,7 +118,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
       ),
@@ -126,10 +127,11 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Working Hours'),
+        title:  Text(tr('Working Hours')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -160,14 +162,14 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                         MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            days[i],
+                            tr(days[i]),
                             style: const TextStyle(
                                 fontWeight: FontWeight.bold),
                           ),
                           Row(
                             children: [
                               Text(
-                                _on[i]! ? 'ON' : 'OFF',
+                                tr(_on[i]! ? 'ON' : 'OFF'),
                                 style: TextStyle(
                                   color: _on[i]!
                                       ? _primaryOrange
@@ -202,7 +204,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              child: Text(_start[i]!.format(context)),
+                              child: Text(tr(_start[i]!.format(context))),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -219,7 +221,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                               ),
-                              child: Text(_end[i]!.format(context)),
+                              child: Text(tr(_end[i]!.format(context))),
                             ),
                           ),
                         ],
@@ -250,8 +252,8 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                     strokeWidth: 2.5,
                   ),
                 )
-                    : const Text(
-                  'Save',
+                    :  Text(
+                  tr('Save'),
                   style: TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
                 ),

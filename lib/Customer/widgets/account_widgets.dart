@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 
 class AccountGroup extends StatelessWidget {
@@ -5,7 +6,7 @@ class AccountGroup extends StatelessWidget {
   final List<Widget> children;
   const AccountGroup({super.key, this.title, required this.children});
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Padding(
     padding: const EdgeInsets.only(bottom: 14),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -14,7 +15,7 @@ class AccountGroup extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
             child: Text(
-              title!,
+              tr(title!),
               style: const TextStyle(color: Colors.black54, fontSize: 13),
             ),
           ),
@@ -33,7 +34,7 @@ class AccountGroup extends StatelessWidget {
         ),
       ],
     ),
-  );
+  ); }
 }
 
 class AccountRow extends StatelessWidget {
@@ -50,11 +51,11 @@ class AccountRow extends StatelessWidget {
     this.onTap,
   });
   @override
-  Widget build(BuildContext context) => ListTile(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  ListTile(
     onTap: onTap,
     leading: icon == null ? null : Icon(icon),
-    title: Text(label),
-    subtitle: subtitle == null ? null : Text(subtitle!),
+    title: Text(tr(label)),
+    subtitle: subtitle == null ? null : Text(tr(subtitle!)),
     trailing: value == null
         ? (onTap == null
               ? null
@@ -68,7 +69,7 @@ class AccountRow extends StatelessWidget {
               children: [
                 Flexible(
                   child: Text(
-                    value!,
+                    tr(value!),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: Colors.black54),
@@ -79,7 +80,7 @@ class AccountRow extends StatelessWidget {
               ],
             ),
           ),
-  );
+  ); }
 }
 
 String maskedEmail(String email) {

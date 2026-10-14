@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -35,11 +36,12 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: _lightOrange,
       appBar: AppBar(
         title: Text(
-          widget.title,
+          tr(widget.title),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: _primaryOrange,
@@ -113,9 +115,9 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                        const Expanded(
+                         Expanded(
                           child: Text(
-                            'Service Address',
+                            tr('Service Address'),
                             style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -144,7 +146,7 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${widget.latitude.toStringAsFixed(6)}, ${widget.longitude.toStringAsFixed(6)}',
+                          tr('${widget.latitude.toStringAsFixed(6)}, ${widget.longitude.toStringAsFixed(6)}'),
                           style: const TextStyle(
                             fontSize: 11,
                             color: Colors.grey,
@@ -167,7 +169,7 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
               heroTag: 'recenter',
               backgroundColor: Colors.white,
               foregroundColor: _primaryOrange,
-              tooltip: 'Recenter on customer location',
+              tooltip: trOrNull('Recenter on customer location'),
               onPressed: _recenter,
               child: const Icon(Icons.my_location),
             ),

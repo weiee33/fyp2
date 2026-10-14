@@ -1,3 +1,6 @@
+import 'package:fyp2/shared/localization/app_language.dart';
+import 'brand/brand_splash.dart';
+import 'localization/language_screen.dart';
 import 'package:flutter/material.dart';
 import '../Customer/screens/auth/customer_login_screen.dart';
 import '../Provider/screens/auth/login_screen.dart';
@@ -7,8 +10,10 @@ class PortalEntryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(actions: [IconButton(icon: const Icon(Icons.language_rounded), tooltip: trOrNull('Language / 语言 / Bahasa'), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen())))]),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -16,22 +21,10 @@ class PortalEntryScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFF7ED),
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFFFF6B00), width: 2),
-                ),
-                child: const Icon(
-                  Icons.home_repair_service_rounded,
-                  size: 64,
-                  color: Color(0xFFFF6B00),
-                ),
-              ),
+              const HomeServeMark(size: 96),
               const SizedBox(height: 24),
-              const Text(
-                'Local Life Service',
+               Text(
+                tr('Home Serve'),
                 style: TextStyle(
                   fontSize: 26,
                   fontWeight: FontWeight.bold,
@@ -39,15 +32,15 @@ class PortalEntryScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Select your portal to continue',
+               Text(
+                tr('Select your portal to continue'),
                 style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
               ),
               const Spacer(),
               _buildRoleCard(
                 context,
-                title: 'Consumer Portal',
-                subtitle: 'Find, book and pay trusted local services',
+                title: tr('Consumer Portal'),
+                subtitle: tr('Find, book and pay trusted local services'),
                 icon: Icons.person_rounded,
                 primaryColor: const Color(0xFFFF6B00),
                 backgroundColor: const Color(0xFFFFF7ED),
@@ -61,8 +54,8 @@ class PortalEntryScreen extends StatelessWidget {
               const SizedBox(height: 16),
               _buildRoleCard(
                 context,
-                title: 'Provider Portal',
-                subtitle: 'Manage jobs, availability, and earnings',
+                title: tr('Provider Portal'),
+                subtitle: tr('Manage jobs, availability, and earnings'),
                 icon: Icons.handyman_rounded,
                 primaryColor: const Color(0xFF1E3A8A),
                 backgroundColor: const Color(0xFFEFF6FF),
@@ -74,8 +67,8 @@ class PortalEntryScreen extends StatelessWidget {
                 },
               ),
               const Spacer(),
-              const Text(
-                'Admin governance is accessible via web dashboard only.',
+               Text(
+                tr('Admin governance is accessible via web dashboard only.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
               ),
@@ -118,7 +111,7 @@ class PortalEntryScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    title,
+                    tr(title),
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.bold,
@@ -127,7 +120,7 @@ class PortalEntryScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    subtitle,
+                    tr(subtitle),
                     style: const TextStyle(
                       fontSize: 13,
                       color: Color(0xFF4B5563),

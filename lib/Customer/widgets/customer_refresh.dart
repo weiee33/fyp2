@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 
@@ -61,7 +62,7 @@ class _CustomerRefreshState extends State<CustomerRefresh> {
   }
 
   @override
-  Widget build(BuildContext context) =>
+  Widget build(BuildContext context) { AppLanguage.watch(context); return 
       NotificationListener<ScrollNotification>(
         onNotification: _scroll,
         child: Stack(
@@ -80,5 +81,5 @@ class _CustomerRefreshState extends State<CustomerRefresh> {
               ),
           ],
         ),
-      );
+      ); }
 }

@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -88,8 +89,8 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('My Reviews')),
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Scaffold(
+    appBar: AppBar(title:  Text(tr('My Reviews'))),
     body: FutureBuilder<List<Map<String, dynamic>>>(
       future: _reviews,
       builder: (context, snapshot) {
@@ -101,8 +102,8 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Could not load your reviews.'),
-                TextButton(onPressed: _reload, child: const Text('Retry')),
+                 Text(tr('Could not load your reviews.')),
+                TextButton(onPressed: _reload, child:  Text(tr('Retry'))),
               ],
             ),
           );
@@ -117,18 +118,18 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
             padding: const EdgeInsets.all(16),
             children: [
               Text(
-                'Ready to review',
+                tr('Ready to review'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Reviews unlock after payment and after your provider marks the service Completed.',
+               Text(
+                tr('Reviews unlock after payment and after your provider marks the service Completed.'),
               ),
               const SizedBox(height: 12),
               if (_ready.isEmpty)
-                const Padding(
+                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Text('No completed services awaiting your review.'),
+                  child: Text(tr('No completed services awaiting your review.')),
                 ),
               ..._ready.map(
                 (row) => Card(
@@ -139,12 +140,10 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
                       color: CustomerTheme.primary,
                     ),
                     title: Text(
-                      row['service_name_snapshot']?.toString() ??
-                          'Completed service',
+                      tr(row['service_name_snapshot']?.toString() ?? 'Completed service'),
                     ),
                     subtitle: Text(
-                      row['provider_name_snapshot']?.toString() ??
-                          'Service provider',
+                      tr(row['provider_name_snapshot']?.toString() ?? 'Service provider'),
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () async {
@@ -168,25 +167,25 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
                   ),
                 ),
               ),
-              if (_moreError != null) Text(_moreError!),
+              if (_moreError != null) Text(tr(_moreError!)),
               if (_more)
                 TextButton(
                   onPressed: _loadingMore ? null : _loadMore,
                   child: Text(
-                    _loadingMore ? 'Loading…' : 'More completed services',
+                    tr(_loadingMore ? 'Loading…' : 'More completed services'),
                   ),
                 ),
               const SizedBox(height: 24),
               Text(
-                'Your reviews',
+                tr('Your reviews'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               ...(rows.isEmpty
                   ? [
-                      const Padding(
+                       Padding(
                         padding: EdgeInsets.all(24),
                         child: Text(
-                          'No reviews yet. Open a completed, paid booking to share your experience.',
+                          tr('No reviews yet. Open a completed, paid booking to share your experience.'),
                         ),
                       ),
                     ]
@@ -199,14 +198,13 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    row['provider_name']?.toString() ??
-                                        'Service provider',
+                                    tr(row['provider_name']?.toString() ?? 'Service provider'),
                                     style: Theme.of(
                                       context,
                                     ).textTheme.titleMedium,
                                   ),
                                   if (row['service_name'] != null)
-                                    Text(row['service_name'].toString()),
+                                    Text(tr(row['service_name'].toString())),
                                   const SizedBox(height: 8),
                                   Row(
                                     children: List.generate(
@@ -230,7 +228,7 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
                                         vertical: 8,
                                       ),
                                       child: Text(
-                                        row['review_comment'].toString(),
+                                        tr(row['review_comment'].toString()),
                                       ),
                                     ),
                                   if ((row['review_image_url']?.toString() ??
@@ -241,11 +239,7 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
                                       service: _service,
                                     ),
                                   Text(
-                                    row['moderation_status'] == 'hidden'
-                                        ? 'Hidden by moderation'
-                                        : row['is_flagged'] == true
-                                        ? 'Under moderation review'
-                                        : 'Published',
+                                    tr(row['moderation_status'] == 'hidden' ? 'Hidden by moderation' : row['is_flagged'] == true ? 'Under moderation review' : 'Published'),
                                     style: const TextStyle(
                                       color: CustomerTheme.textSecondary,
                                     ),
@@ -261,7 +255,7 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
                                             ),
                                       ),
                                     ),
-                                    child: const Text('View booking'),
+                                    child:  Text(tr('View booking')),
                                   ),
                                 ],
                               ),
@@ -274,7 +268,7 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
         );
       },
     ),
-  );
+  ); }
 }
 
 class _ReviewPhoto extends StatefulWidget {
@@ -294,14 +288,14 @@ class _ReviewPhotoState extends State<_ReviewPhoto> {
   }
 
   @override
-  Widget build(BuildContext context) => FutureBuilder<String>(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  FutureBuilder<String>(
     future: _url,
     builder: (context, snapshot) {
       if (snapshot.hasError) {
         return TextButton(
           onPressed: () =>
               setState(() => _url = widget.service.getImageUrl(widget.path)),
-          child: const Text('Retry photo'),
+          child:  Text(tr('Retry photo')),
         );
       }
       if (!snapshot.hasData) {
@@ -313,9 +307,9 @@ class _ReviewPhotoState extends State<_ReviewPhoto> {
           snapshot.data!,
           height: 160,
           fit: BoxFit.contain,
-          errorBuilder: (_, __, ___) => const Text('Photo unavailable'),
+          errorBuilder: (_, __, ___) =>  Text(tr('Photo unavailable')),
         ),
       );
     },
-  );
+  ); }
 }

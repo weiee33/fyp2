@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -107,7 +108,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             ListTile(
               leading: const Icon(Icons.photo_library,
                   color: _primaryOrange),
-              title: const Text('Choose from Gallery'),
+              title:  Text(tr('Choose from Gallery')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.gallery);
@@ -116,7 +117,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             ListTile(
               leading:
               const Icon(Icons.camera_alt, color: _primaryOrange),
-              title: const Text('Take a Photo'),
+              title:  Text(tr('Take a Photo')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.camera);
@@ -125,7 +126,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             if (_pickedImageBytes != null || _existingPhotoUrl != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Remove Photo',
+                title:  Text(tr('Remove Photo'),
                     style: TextStyle(color: Colors.red)),
                 onTap: () {
                   Navigator.pop(ctx);
@@ -173,11 +174,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content:  Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white, size: 20),
               SizedBox(width: 8),
-              Text('Profile updated successfully'),
+              Text(tr('Profile updated successfully')),
             ],
           ),
           backgroundColor: Colors.green.shade600,
@@ -207,7 +208,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -233,10 +234,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Update Profile'),
+        title:  Text(tr('Update Profile')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -258,7 +260,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                     onPressed:
                     _saving ? null : _showImageSourceSheet,
                     icon: const Icon(Icons.photo_camera_outlined),
-                    label: const Text('Change Photo'),
+                    label:  Text(tr('Change Photo')),
                     style: TextButton.styleFrom(
                       foregroundColor: _primaryOrange,
                     ),
@@ -271,8 +273,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                   controller: _fullName,
                   textInputAction: TextInputAction.next,
                   enabled: !_saving,
-                  validator: (v) =>
-                      _validateRequired(v, 'Full name'),
+                  validator: (value) => trOrNull(((v) => _validateRequired(v, 'Full name'))(value)),
                   decoration: _inputDecoration(
                     hint: 'Your full name',
                     icon: Icons.person_outline,
@@ -298,8 +299,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                   controller: _name,
                   textInputAction: TextInputAction.next,
                   enabled: !_saving,
-                  validator: (v) =>
-                      _validateRequired(v, 'Business name'),
+                  validator: (value) => trOrNull(((v) => _validateRequired(v, 'Business name'))(value)),
                   decoration: _inputDecoration(
                     hint: 'e.g. ABC Services',
                     icon: Icons.storefront_outlined,
@@ -368,9 +368,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                       ),
                     )
                         : Text(
-                      _uploadingPhoto
-                          ? 'Uploading photo...'
-                          : 'Save Changes',
+                      tr(_uploadingPhoto ? 'Uploading photo...' : 'Save Changes'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -404,9 +402,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           backgroundImage: imageProvider,
           child: imageProvider == null
               ? Text(
-            _fullName.text.isNotEmpty
-                ? _fullName.text[0].toUpperCase()
-                : 'U',
+            tr(_fullName.text.isNotEmpty ? _fullName.text[0].toUpperCase() : 'U'),
             style: const TextStyle(
               fontSize: 40,
               fontWeight: FontWeight.bold,
@@ -427,7 +423,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             child: IconButton(
               icon: const Icon(Icons.edit, color: Colors.white, size: 18),
               onPressed: _saving ? null : _showImageSourceSheet,
-              tooltip: 'Edit photo',
+              tooltip: trOrNull('Edit photo'),
               constraints: const BoxConstraints(),
               padding: const EdgeInsets.all(6),
             ),
@@ -450,7 +446,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     required IconData icon,
   }) {
     return InputDecoration(
-      hintText: hint,
+      hintText: trOrNull(hint),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,

@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -7,7 +8,7 @@ class CustomerDialogs {
   static Future<void> show(
     BuildContext context, {
     required String message,
-    String title = 'Local Life',
+    String title = 'Home Serve',
   }) async {
     final Object owner =
         context; // Identity only; no widget access after disposal.
@@ -23,12 +24,12 @@ class CustomerDialogs {
         builder: (ctx) => PopScope(
           canPop: false,
           child: AlertDialog(
-            title: Text(title),
-            content: SingleChildScrollView(child: Text(message)),
+            title: Text(tr(title)),
+            content: SingleChildScrollView(child: Text(tr(message))),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('OK'),
+                child:  Text(tr('OK')),
               ),
             ],
           ),
@@ -48,16 +49,16 @@ class CustomerDialogs {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: Text(title),
-          content: Text(message),
+          title: Text(tr(title)),
+          content: Text(tr(message)),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancel'),
+              child:  Text(tr('Cancel')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('OK'),
+              child:  Text(tr('OK')),
             ),
           ],
         ),
@@ -65,7 +66,7 @@ class CustomerDialogs {
       false;
 
   static Future<void> error(BuildContext context, Object error) =>
-      show(context, title: 'Unable to complete', message: errorMessage(error));
+      show(context, title: tr('Unable to complete'), message: errorMessage(error));
 
   static String errorMessage(Object error) {
     if (error is AuthException) return error.message;

@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_section.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -77,7 +78,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
         setState(() => _slotsError = bookingError(error));
         CustomerDialogs.show(
           context,
-          title: 'Unable to load times',
+          title: tr('Unable to load times'),
           message: bookingError(error),
         );
       }
@@ -108,7 +109,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
         setState(() => _addressError = bookingError(error));
         CustomerDialogs.show(
           context,
-          title: 'Unable to load addresses',
+          title: tr('Unable to load addresses'),
           message: bookingError(error),
         );
       }
@@ -149,9 +150,9 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
       if (!mounted) return;
       await CustomerDialogs.show(
         context,
-        title: 'Success',
+        title: tr('Success'),
         message:
-            'Your booking request was sent. Wait for the provider to accept before paying.',
+            tr('Your booking request was sent. Wait for the provider to accept before paying.'),
       );
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
@@ -172,6 +173,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final price =
         double.tryParse(
           (widget.serviceData['quoted_amount'] ??
@@ -180,7 +182,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
         ) ??
         0;
     return Scaffold(
-      appBar: AppBar(title: const Text('Book service')),
+      appBar: AppBar(title:  Text(tr('Book service'))),
       body: AbsorbPointer(
         absorbing: _saving,
         child: ListView(
@@ -190,43 +192,43 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
           padding: const EdgeInsets.all(20),
           children: [
             BookingSection(
-              title: 'Your service',
+              title: tr('Your service'),
               icon: Icons.home_repair_service_outlined,
               highlighted: true,
               children: [
                 Text(
-                  widget.serviceData['service_name']?.toString() ?? 'Service',
+                  tr(widget.serviceData['service_name']?.toString() ?? 'Service'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Text(widget.providerData['business_name']?.toString() ?? ''),
                 const SizedBox(height: 12),
                 Text(
-                  'RM ${price.toStringAsFixed(2)}',
+                  tr('RM ${price.toStringAsFixed(2)}'),
                   style: const TextStyle(
                     fontSize: 22,
                     color: CustomerTheme.primary,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const Text(
-                  'The current price and appointment will be checked when you book.',
+                 Text(
+                  tr('The current price and appointment will be checked when you book.'),
                 ),
               ],
             ),
             BookingSection(
-              title: '1. Service address',
+              title: tr('1. Service address'),
               icon: Icons.location_on_outlined,
               children: [
                 if (_loadingAddresses)
                   const LinearProgressIndicator()
                 else if (_addressError != null) ...[
-                  Text(_addressError!),
+                  Text(tr(_addressError!)),
                   TextButton(
                     onPressed: _loadAddresses,
-                    child: const Text('Retry addresses'),
+                    child:  Text(tr('Retry addresses')),
                   ),
                 ] else if (_addresses.isEmpty)
-                  const Text('Add a saved address before booking.')
+                   Text(tr('Add a saved address before booking.'))
                 else
                   DropdownButtonFormField<String>(
                     initialValue: _addressId,
@@ -258,46 +260,46 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                     if (mounted) await _loadAddresses();
                   },
                   icon: const Icon(Icons.add_location_alt_outlined),
-                  label: const Text('Add address'),
+                  label:  Text(tr('Add address')),
                 ),
               ],
             ),
             BookingSection(
-              title: '2. Appointment',
+              title: tr('2. Appointment'),
               icon: Icons.calendar_month_outlined,
               children: [
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Appointment date'),
+                  title:  Text(tr('Appointment date')),
                   subtitle: Text(
-                    '${DateFormat('EEE, d MMM yyyy').format(_date)} · Malaysia time',
+                    tr('${DateFormat('EEE, d MMM yyyy').format(_date)} · Malaysia time'),
                   ),
                   trailing: const Icon(Icons.calendar_month),
                   onTap: _chooseDate,
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Available times',
+                 Text(
+                  tr('Available times'),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 12),
                 if (_loadingSlots)
                   const LinearProgressIndicator()
                 else if (_slotsError != null) ...[
-                  Text(_slotsError!),
+                  Text(tr(_slotsError!)),
                   TextButton(
                     onPressed: _loadSlots,
-                    child: const Text('Retry availability'),
+                    child:  Text(tr('Retry availability')),
                   ),
                 ] else if (_slots.isEmpty)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('No appointments available on this date.'),
+                       Text(tr('No appointments available on this date.')),
                       TextButton.icon(
                         onPressed: _chooseDate,
                         icon: const Icon(Icons.event_available),
-                        label: const Text('Choose another date'),
+                        label:  Text(tr('Choose another date')),
                       ),
                     ],
                   )
@@ -308,7 +310,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                     children: _slots
                         .map(
                           (slot) => ChoiceChip(
-                            label: Text(slot.label),
+                            label: Text(tr(slot.label)),
                             selected: _time == slot.time,
                             onSelected: (_) => setState(() {
                               _time = slot.time;
@@ -322,23 +324,23 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
               ],
             ),
             BookingSection(
-              title: '3. Extra details',
+              title: tr('3. Extra details'),
               icon: Icons.notes_outlined,
               children: [
                 TextField(
                   controller: _instructions,
                   maxLines: 3,
                   maxLength: 1000,
-                  decoration: const InputDecoration(
-                    labelText: 'Instructions (optional)',
+                  decoration:  InputDecoration(
+                    labelText: trOrNull('Instructions (optional)'),
                     border: OutlineInputBorder(),
                   ),
                   onChanged: (_) =>
                       _requestId = CustomerTransactionService.newRequestId(),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Send your request first. Once the provider accepts, open Booking details and pay by FPX, card or GrabPay within 30 minutes.',
+                 Text(
+                  tr('Send your request first. Once the provider accepts, open Booking details and pay by FPX, card or GrabPay within 30 minutes.'),
                 ),
               ],
             ),
@@ -367,7 +369,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Create booking'),
+                  :  Text(tr('Create booking')),
             ),
           ),
         ),

@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../Customer/widgets/customer_refresh.dart';
 import 'dart:async';
@@ -109,9 +110,9 @@ class _InboxState extends State<ChatInboxScreen> {
     if (action == 'delete' &&
         !await CustomerDialogs.confirm(
           context,
-          title: 'Delete this chat?',
+          title: tr('Delete this chat?'),
           message:
-              'This clears the chat from your inbox and your visible history. The other person keeps their copy. A new message will reopen the conversation.',
+              tr('This clears the chat from your inbox and your visible history. The other person keeps their copy. A new message will reopen the conversation.'),
         )) {
       return;
     }
@@ -121,11 +122,7 @@ class _InboxState extends State<ChatInboxScreen> {
       if (mounted) {
         await CustomerDialogs.show(
           context,
-          message: action == 'delete'
-              ? 'Chat deleted from your inbox.'
-              : action == 'pin'
-              ? 'Chat pinned.'
-              : 'Chat unpinned.',
+          message: tr(action == 'delete' ? 'Chat deleted from your inbox.' : action == 'pin' ? 'Chat pinned.' : 'Chat unpinned.'),
         );
       }
     } catch (e) {
@@ -134,11 +131,11 @@ class _InboxState extends State<ChatInboxScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Theme(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Theme(
     data: CustomerTheme.lightTheme,
     child: Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(title: const Text('Chats')),
+      appBar: AppBar(title:  Text(tr('Chats'))),
       body: Column(
         children: [
           Padding(
@@ -146,12 +143,10 @@ class _InboxState extends State<ChatInboxScreen> {
             child: TextField(
               controller: _search,
               decoration: InputDecoration(
-                hintText: widget.customer
-                    ? 'Search provider name'
-                    : 'Search customer name',
+                hintText: trOrNull(widget.customer ? 'Search provider name' : 'Search customer name'),
                 prefixIcon: const Icon(Icons.search),
                 suffixIcon: IconButton(
-                  tooltip: 'Clear search',
+                  tooltip: trOrNull('Clear search'),
                   icon: const Icon(Icons.close),
                   onPressed: () {
                     _search.clear();
@@ -177,19 +172,17 @@ class _InboxState extends State<ChatInboxScreen> {
                     const Center(child: CircularProgressIndicator()),
                   if (_error != null)
                     ListTile(
-                      title: Text(_error!),
+                      title: Text(tr(_error!)),
                       trailing: TextButton(
                         onPressed: _load,
-                        child: const Text('Retry'),
+                        child:  Text(tr('Retry')),
                       ),
                     ),
                   if (!_loading && _error == null && _chats.isEmpty)
                     Padding(
                       padding: const EdgeInsets.all(24),
                       child: Text(
-                        widget.customer
-                            ? 'No conversations yet. Search a provider by name to start chatting.'
-                            : 'No conversations yet. Customers can contact you from your provider page.',
+                        tr(widget.customer ? 'No conversations yet. Search a provider by name to start chatting.' : 'No conversations yet. Customers can contact you from your provider page.'),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -205,21 +198,21 @@ class _InboxState extends State<ChatInboxScreen> {
                     TextButton(
                       onPressed: _paging ? null : _next,
                       child: Text(
-                        _paging ? 'Loading…' : 'Load more conversations',
+                        tr(_paging ? 'Loading…' : 'Load more conversations'),
                       ),
                     ),
                   if (widget.customer && _search.text.trim().isNotEmpty) ...[
-                    const Padding(
+                     Padding(
                       padding: EdgeInsets.all(16),
                       child: Text(
-                        'Find providers',
+                        tr('Find providers'),
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                     if (!_loading && _providers.isEmpty)
-                      const Padding(
+                       Padding(
                         padding: EdgeInsets.all(16),
-                        child: Text('No verified providers match this name.'),
+                        child: Text(tr('No verified providers match this name.')),
                       ),
                     for (final provider in _providers)
                       ListTile(
@@ -228,15 +221,15 @@ class _InboxState extends State<ChatInboxScreen> {
                           child: Icon(Icons.home_repair_service_outlined),
                         ),
                         title: Text(provider['business_name'].toString()),
-                        subtitle: Text(provider['city']?.toString() ?? ''),
+                        subtitle: Text(tr(provider['city']?.toString() ?? '')),
                         trailing: const Icon(Icons.chat_bubble_outline),
                         onTap: () => _open(providerId: provider['provider_id']),
                       ),
                     if (_providers.length == 30)
-                      const Padding(
+                       Padding(
                         padding: EdgeInsets.all(16),
                         child: Text(
-                          'Showing the first 30 providers. Refine the name to find a specific provider.',
+                          tr('Showing the first 30 providers. Refine the name to find a specific provider.'),
                         ),
                       ),
                   ],
@@ -247,7 +240,7 @@ class _InboxState extends State<ChatInboxScreen> {
         ],
       ),
     ),
-  );
+  ); }
 }
 
 class _SwipeChatRow extends StatefulWidget {
@@ -279,6 +272,7 @@ class _SwipeChatState extends State<_SwipeChatRow> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final pinned = widget.row['pinned'] == true,
         unread = (widget.row['unread_count'] as num?)?.toInt() ?? 0;
     final pinAction = pinned ? 'unpin' : 'pin';
@@ -297,7 +291,7 @@ class _SwipeChatState extends State<_SwipeChatRow> {
                 backgroundColor: CustomerTheme.primary,
                 foregroundColor: Colors.white,
                 icon: pinned ? Icons.push_pin : Icons.push_pin_outlined,
-                label: pinned ? 'Unpin' : 'Pin',
+                label: tr(pinned ? 'Unpin' : 'Pin'),
               ),
               SlidableAction(
                 borderRadius: BorderRadius.circular(16),
@@ -305,7 +299,7 @@ class _SwipeChatState extends State<_SwipeChatRow> {
                 backgroundColor: CustomerTheme.danger,
                 foregroundColor: Colors.white,
                 icon: Icons.delete_outline,
-                label: 'Delete',
+                label: tr('Delete'),
               ),
             ],
           ),
@@ -338,8 +332,7 @@ class _SwipeChatState extends State<_SwipeChatRow> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            widget.row['peer_name']?.toString() ??
-                                'Conversation',
+                            tr(widget.row['peer_name']?.toString() ?? 'Conversation'),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -349,8 +342,7 @@ class _SwipeChatState extends State<_SwipeChatRow> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            widget.row['preview']?.toString() ??
-                                'Start a conversation',
+                            tr(widget.row['preview']?.toString() ?? 'Start a conversation'),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
@@ -371,7 +363,7 @@ class _SwipeChatState extends State<_SwipeChatRow> {
                       Padding(
                         padding: const EdgeInsets.only(left: 8),
                         child: Badge(
-                          label: Text(unread > 99 ? '99+' : '$unread'),
+                          label: Text(tr(unread > 99 ? '99+' : '$unread')),
                         ),
                       ),
                   ],

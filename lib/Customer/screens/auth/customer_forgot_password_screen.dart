@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -60,7 +61,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
       setState(() => _busy = false);
       await CustomerDialogs.show(
         context,
-        message: 'Please correct the highlighted fields.',
+        message: tr('Please correct the highlighted fields.'),
       );
       return;
     }
@@ -81,9 +82,9 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
       setState(() => _busy = false);
       await CustomerDialogs.show(
         context,
-        title: 'Check your email',
+        title: tr('Check your email'),
         message:
-            'A verification code has been requested for your registered customer email. Check your inbox and spam folder. Your password has not changed yet.',
+            tr('A verification code has been requested for your registered customer email. Check your inbox and spam folder. Your password has not changed yet.'),
       );
     } catch (e) {
       if (mounted) {
@@ -101,7 +102,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
       setState(() => _busy = false);
       await CustomerDialogs.show(
         context,
-        message: 'Enter the complete verification code from your latest email.',
+        message: tr('Enter the complete verification code from your latest email.'),
       );
       return;
     }
@@ -124,8 +125,8 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
       setState(() => _busy = false);
       await CustomerDialogs.show(
         context,
-        title: 'Password changed',
-        message: 'Your new password is ready. Please sign in again.',
+        title: tr('Password changed'),
+        message: tr('Your new password is ready. Please sign in again.'),
       );
       if (widget.service == null) {
         // The password update already succeeded. Logout transport failure must
@@ -157,16 +158,14 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Theme(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Theme(
     data: CustomerTheme.lightTheme,
     child: PopScope(
       canPop: !_committing,
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            widget.requireCurrentPassword
-                ? 'Change password'
-                : 'Reset password',
+            tr(widget.requireCurrentPassword ? 'Change password' : 'Reset password'),
           ),
         ),
         body: ScrollConfiguration(
@@ -192,16 +191,12 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        _sent
-                            ? 'Verify your email'
-                            : 'Choose your new password',
+                        tr(_sent ? 'Verify your email' : 'Choose your new password'),
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        _sent
-                            ? 'Enter the latest code sent to ${_email.text.trim()}.'
-                            : 'We will email a code to confirm that this account belongs to you.',
+                        tr(_sent ? 'Enter the latest code sent to ${_email.text.trim()}.' : 'We will email a code to confirm that this account belongs to you.'),
                       ),
                       const SizedBox(height: 24),
                       if (!_sent) ...[
@@ -210,15 +205,10 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                           enabled: !_busy && !widget.requireCurrentPassword,
                           keyboardType: TextInputType.emailAddress,
                           autofillHints: const [AutofillHints.email],
-                          decoration: const InputDecoration(
-                            labelText: 'Email address',
+                          decoration:  InputDecoration(
+                            labelText: trOrNull('Email address'),
                           ),
-                          validator: (v) =>
-                              RegExp(
-                                r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
-                              ).hasMatch(v?.trim() ?? '')
-                              ? null
-                              : 'Enter a valid email address',
+                          validator: (value) => trOrNull(((v) => RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v?.trim() ?? '') ? null : 'Enter a valid email address')(value)),
                         ),
                         const SizedBox(height: 16),
                         if (widget.requireCurrentPassword) ...[
@@ -228,12 +218,10 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                             obscureText: true,
                             enableSuggestions: false,
                             autocorrect: false,
-                            decoration: const InputDecoration(
-                              labelText: 'Current password',
+                            decoration:  InputDecoration(
+                              labelText: trOrNull('Current password'),
                             ),
-                            validator: (v) => (v ?? '').isEmpty
-                                ? 'Enter your current password'
-                                : null,
+                            validator: (value) => trOrNull(((v) => (v ?? '').isEmpty ? 'Enter your current password' : null)(value)),
                           ),
                           const SizedBox(height: 16),
                         ],
@@ -244,10 +232,10 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                           enableSuggestions: false,
                           autocorrect: false,
                           decoration: InputDecoration(
-                            labelText: 'New password',
-                            helperText: 'Use 12–128 characters',
+                            labelText: trOrNull('New password'),
+                            helperText: trOrNull('Use 12–128 characters'),
                             suffixIcon: IconButton(
-                              tooltip: 'Show or hide password',
+                              tooltip: trOrNull('Show or hide password'),
                               onPressed: () =>
                                   setState(() => _obscure = !_obscure),
                               icon: Icon(
@@ -257,13 +245,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                               ),
                             ),
                           ),
-                          validator: (v) =>
-                              widget.requireCurrentPassword &&
-                                  v == _currentPassword.text
-                              ? 'Choose a different new password'
-                              : (v?.length ?? 0) >= 12 && v!.length <= 128
-                              ? null
-                              : 'Use 12–128 characters',
+                          validator: (value) => trOrNull(((v) => widget.requireCurrentPassword && v == _currentPassword.text ? 'Choose a different new password' : (v?.length ?? 0) >= 12 && v!.length <= 128 ? null : 'Use 12–128 characters')(value)),
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
@@ -272,17 +254,15 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                           obscureText: true,
                           enableSuggestions: false,
                           autocorrect: false,
-                          decoration: const InputDecoration(
-                            labelText: 'Confirm new password',
+                          decoration:  InputDecoration(
+                            labelText: trOrNull('Confirm new password'),
                           ),
-                          validator: (v) => v == _password.text
-                              ? null
-                              : 'Passwords must match',
+                          validator: (value) => trOrNull(((v) => v == _password.text ? null : 'Passwords must match')(value)),
                         ),
                         const SizedBox(height: 24),
                         FilledButton(
                           onPressed: _busy ? null : _request,
-                          child: const Text('Confirm change password'),
+                          child:  Text(tr('Confirm change password')),
                         ),
                       ] else ...[
                         TextField(
@@ -294,21 +274,19 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(10),
                           ],
-                          decoration: const InputDecoration(
-                            labelText: 'Email verification code',
+                          decoration:  InputDecoration(
+                            labelText: trOrNull('Email verification code'),
                           ),
                         ),
                         const SizedBox(height: 24),
                         FilledButton(
                           onPressed: _busy ? null : _verify,
-                          child: const Text('Verify & change password'),
+                          child:  Text(tr('Verify & change password')),
                         ),
                         TextButton(
                           onPressed: _busy || _seconds > 0 ? null : _request,
                           child: Text(
-                            _seconds > 0
-                                ? 'Resend code in ${_seconds}s'
-                                : 'Send a new code',
+                            tr(_seconds > 0 ? 'Resend code in ${_seconds}s' : 'Send a new code'),
                           ),
                         ),
                         TextButton(
@@ -318,7 +296,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                                   _sent = false;
                                   _code.clear();
                                 }),
-                          child: const Text('Change email or password'),
+                          child:  Text(tr('Change email or password')),
                         ),
                       ],
                       if (_busy)
@@ -332,5 +310,5 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
         ),
       ),
     ),
-  );
+  ); }
 }

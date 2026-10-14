@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'chat_photo.dart';
@@ -214,7 +215,7 @@ class _ConversationState extends State<ConversationScreen> {
     if (body.isEmpty || body.length > 2000) {
       await CustomerDialogs.show(
         context,
-        message: 'Enter a message of 1–2000 characters.',
+        message: tr('Enter a message of 1–2000 characters.'),
       );
       return;
     }
@@ -263,12 +264,12 @@ class _ConversationState extends State<ConversationScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title: const Text('Choose from gallery'),
+              title:  Text(tr('Choose from gallery')),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title: const Text('Take a photo'),
+              title:  Text(tr('Take a photo')),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
           ],
@@ -402,28 +403,28 @@ class _ConversationState extends State<ConversationScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Theme(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Theme(
     data: CustomerTheme.lightTheme,
     child: Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(title: Text(_name, overflow: TextOverflow.ellipsis)),
+      appBar: AppBar(title: Text(tr(_name), overflow: TextOverflow.ellipsis)),
       body: SafeArea(
         child: Column(
           children: [
-            const Padding(
+             Padding(
               padding: EdgeInsets.all(12),
               child: Text(
-                'Discuss a time here, then submit a booking. Pay only after the provider accepts it.',
+                tr('Discuss a time here, then submit a booking. Pay only after the provider accepts it.'),
                 style: TextStyle(fontSize: 12, color: Colors.black54),
               ),
             ),
             if (_error != null)
               MaterialBanner(
-                content: Text(_error!),
+                content: Text(tr(_error!)),
                 actions: [
                   TextButton(
                     onPressed: _id == null ? _start : _refresh,
-                    child: const Text('Retry'),
+                    child:  Text(tr('Retry')),
                   ),
                 ],
               ),
@@ -444,10 +445,10 @@ class _ConversationState extends State<ConversationScreen> {
                             : _messages.length + (_more ? 1 : 0),
                         itemBuilder: (context, index) {
                           if (_messages.isEmpty) {
-                            return const Padding(
+                            return  Padding(
                               padding: EdgeInsets.all(24),
                               child: Center(
-                                child: Text('Start the conversation.'),
+                                child: Text(tr('Start the conversation.')),
                               ),
                             );
                           }
@@ -455,9 +456,7 @@ class _ConversationState extends State<ConversationScreen> {
                             return TextButton(
                               onPressed: _olderLoading ? null : _older,
                               child: Text(
-                                _olderLoading
-                                    ? 'Loading…'
-                                    : 'Load earlier messages',
+                                tr(_olderLoading ? 'Loading…' : 'Load earlier messages'),
                               ),
                             );
                           }
@@ -500,7 +499,7 @@ class _ConversationState extends State<ConversationScreen> {
                                   const SizedBox(height: 4),
                                   if (date != null)
                                     Text(
-                                      DateFormat('d MMM, HH:mm').format(date),
+                                      tr(DateFormat('d MMM, HH:mm').format(date)),
                                       style: const TextStyle(
                                         fontSize: 10,
                                         color: Colors.black54,
@@ -515,17 +514,17 @@ class _ConversationState extends State<ConversationScreen> {
                     ),
             ),
             if (!_loading && !_canSend)
-              const Padding(
+               Padding(
                 padding: EdgeInsets.all(12),
                 child: Text(
-                  'Messaging is unavailable. Refresh this conversation or contact support.',
+                  tr('Messaging is unavailable. Refresh this conversation or contact support.'),
                 ),
               ),
             if (_photoError != null)
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
-                  _photoError!,
+                  tr(_photoError!),
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
@@ -550,11 +549,11 @@ class _ConversationState extends State<ConversationScreen> {
                       child: FilledButton.icon(
                         onPressed: _sending ? null : _sendPhoto,
                         icon: const Icon(Icons.send),
-                        label: Text(_sending ? 'Sending photo…' : 'Send photo'),
+                        label: Text(tr(_sending ? 'Sending photo…' : 'Send photo')),
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Remove selected photo',
+                      tooltip: trOrNull('Remove selected photo'),
                       onPressed: _sending
                           ? null
                           : () => setState(() {
@@ -573,7 +572,7 @@ class _ConversationState extends State<ConversationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   IconButton(
-                    tooltip: 'Attach photo',
+                    tooltip: trOrNull('Attach photo'),
                     onPressed: _canSend && !_sending && !_pickingPhoto
                         ? _choosePhoto
                         : null,
@@ -589,14 +588,14 @@ class _ConversationState extends State<ConversationScreen> {
                       minLines: 1,
                       maxLines: 4,
                       maxLength: 2000,
-                      decoration: const InputDecoration(
-                        hintText: 'Type a message',
+                      decoration:  InputDecoration(
+                        hintText: trOrNull('Type a message'),
                         counterText: '',
                       ),
                     ),
                   ),
                   IconButton(
-                    tooltip: 'Send message',
+                    tooltip: trOrNull('Send message'),
                     onPressed: _canSend && !_sending ? _send : null,
                     icon: _sending
                         ? const SizedBox(
@@ -613,5 +612,5 @@ class _ConversationState extends State<ConversationScreen> {
         ),
       ),
     ),
-  );
+  ); }
 }

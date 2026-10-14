@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../services/earnings_service.dart';
@@ -64,7 +65,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load: $e'),
+          content: Text(tr('Failed to load: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -85,6 +86,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final now = DateTime.now();
     final start = now.subtract(Duration(days: now.weekday - 1));
     final end = start.add(const Duration(days: 6));
@@ -99,7 +101,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('This Week'),
+        title:  Text(tr('This Week')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -141,9 +143,9 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                           Expanded(
                             child: Text(
-                              'Total This Week',
+                              tr('Total This Week'),
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey,
@@ -155,7 +157,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'RM${_total.toStringAsFixed(2)}',
+                        tr('RM${_total.toStringAsFixed(2)}'),
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
@@ -164,7 +166,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        rangeText,
+                        tr(rangeText),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -206,8 +208,8 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Busiest Day',
+                               Text(
+                                tr('Busiest Day'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -216,7 +218,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                _dayLabels[busiestIdx],
+                                tr(_dayLabels[busiestIdx]),
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -227,7 +229,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                           ),
                         ),
                         Text(
-                          'RM${_days[busiestIdx].toStringAsFixed(2)}',
+                          tr('RM${_days[busiestIdx].toStringAsFixed(2)}'),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
@@ -254,13 +256,13 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                       Row(
                         children: [
                           Icon(Icons.bar_chart,
                               color: _primaryOrange, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            'Daily Breakdown',
+                            tr('Daily Breakdown'),
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -270,8 +272,8 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Mon – Sun',
+                       Text(
+                        tr('Mon – Sun'),
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -322,8 +324,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                                       const EdgeInsets.only(
                                           top: 6),
                                       child: Text(
-                                        _dayLabels[i]
-                                            .substring(0, 1),
+                                        tr(_dayLabels[i].substring(0, 1)),
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: Colors.grey,
@@ -363,9 +364,9 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                             FlBorderData(show: false),
                           ),
                         )
-                            : const Center(
+                            :  Center(
                           child: Text(
-                            'No earnings this week',
+                            tr('No earnings this week'),
                             style: TextStyle(
                               color: Colors.grey,
                               fontSize: 13,

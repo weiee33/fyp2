@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../../shared/chat/chat_service.dart';
 import '../../../shared/chat/chat_screen.dart';
 import 'package:flutter/material.dart';
@@ -111,7 +112,7 @@ class _ChatScreenState extends State<ChatScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Failed to send message'),
+          content:  Text(tr('Failed to send message')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -126,16 +127,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: _lightOrange,
       appBar: AppBar(
-        title: const Text(
-          'Chat',
+        title:  Text(
+          tr('Chat'),
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
           IconButton(
-            tooltip: 'Live chat and earlier messages',
+            tooltip: trOrNull('Live chat and earlier messages'),
             icon: const Icon(Icons.forum_outlined),
             onPressed: () => Navigator.push(
               context,
@@ -170,7 +172,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    _error!,
+                    tr(_error!),
                     style: const TextStyle(color: Colors.grey),
                   ),
                   const SizedBox(height: 12),
@@ -179,7 +181,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     style: TextButton.styleFrom(
                       foregroundColor: _primaryOrange,
                     ),
-                    child: const Text('Retry'),
+                    child:  Text(tr('Retry')),
                   ),
                 ],
               ),
@@ -206,8 +208,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  const Text(
-                    'No messages yet',
+                   Text(
+                    tr('No messages yet'),
                     style: TextStyle(
                       color: Colors.black87,
                       fontSize: 15,
@@ -215,8 +217,8 @@ class _ChatScreenState extends State<ChatScreen> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
-                    'Start the conversation below',
+                   Text(
+                    tr('Start the conversation below'),
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
@@ -258,7 +260,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       textInputAction: TextInputAction.send,
                       onSubmitted: (_) => _send(),
                       decoration: InputDecoration(
-                        hintText: 'Type a message',
+                        hintText: trOrNull('Type a message'),
                         hintStyle: const TextStyle(color: Colors.grey),
                         filled: true,
                         fillColor: Colors.white,
@@ -370,7 +372,7 @@ class _ChatScreenState extends State<ChatScreen> {
             if (time.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(
-                _formatTime(time),
+                tr(_formatTime(time)),
                 style: TextStyle(
                   fontSize: 10,
                   color: isMine

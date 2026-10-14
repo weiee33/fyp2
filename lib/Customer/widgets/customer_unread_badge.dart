@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -109,11 +110,12 @@ class _BadgeState extends State<CustomerUnreadBadge> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final count = widget.enabled ? controller.counts[widget.kind] ?? 0 : 0;
     return Badge(
       isLabelVisible: count > 0,
       backgroundColor: Colors.red.shade700,
-      label: Text(count > 99 ? '99+' : '$count'),
+      label: Text(tr(count > 99 ? '99+' : '$count')),
       child: widget.child,
     );
   }
@@ -124,8 +126,8 @@ class CustomerChatButton extends StatelessWidget {
   final bool enabled;
   const CustomerChatButton({super.key, this.color, this.enabled = true});
   @override
-  Widget build(BuildContext context) => IconButton(
-    tooltip: 'Chats',
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  IconButton(
+    tooltip: trOrNull('Chats'),
     icon: CustomerUnreadBadge(
       kind: 'chats',
       enabled: enabled,
@@ -138,5 +140,5 @@ class CustomerChatButton extends StatelessWidget {
       );
       await CustomerActivityCounts.shared.refresh();
     },
-  );
+  ); }
 }

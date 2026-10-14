@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'chat_service.dart';
@@ -19,7 +20,7 @@ class ChatPhoto extends StatefulWidget {
 class _ChatPhotoState extends State<ChatPhoto> {
   late Future<Uint8List> _bytes = widget.service.photo(widget.path);
   @override
-  Widget build(BuildContext context) => FutureBuilder<Uint8List>(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  FutureBuilder<Uint8List>(
     future: _bytes,
     builder: (context, snapshot) {
       if (snapshot.hasError) {
@@ -27,7 +28,7 @@ class _ChatPhotoState extends State<ChatPhoto> {
           onPressed: () =>
               setState(() => _bytes = widget.service.photo(widget.path)),
           icon: const Icon(Icons.refresh),
-          label: const Text('Reload photo'),
+          label:  Text(tr('Reload photo')),
         );
       }
       if (!snapshot.hasData) {
@@ -38,7 +39,7 @@ class _ChatPhotoState extends State<ChatPhoto> {
         );
       }
       return Semantics(
-        label: 'Photo attachment. Tap to enlarge.',
+        label: tr('Photo attachment. Tap to enlarge.'),
         button: true,
         child: InkWell(
           onTap:
@@ -61,17 +62,17 @@ class _ChatPhotoState extends State<ChatPhoto> {
               height: 180,
               fit: BoxFit.cover,
               cacheWidth: 720,
-              errorBuilder: (_, _, _) => const SizedBox(
+              errorBuilder: (_, _, _) =>  SizedBox(
                 width: 200,
                 height: 120,
-                child: Center(child: Text('Unsupported photo')),
+                child: Center(child: Text(tr('Unsupported photo'))),
               ),
             ),
           ),
         ),
       );
     },
-  );
+  ); }
 }
 
 /// Only visible conversation attachments are supplied; downloads keep Storage RLS.
@@ -150,18 +151,18 @@ class _ChatPhotoGalleryState extends State<ChatPhotoGallery> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Scaffold(
     backgroundColor: Colors.black,
     appBar: AppBar(
       backgroundColor: Colors.black,
       foregroundColor: Colors.white,
-      title: Text('Photo ${_index + 1} of ${_paths.length}'),
+      title: Text(tr('Photo ${_index + 1} of ${_paths.length}')),
     ),
     body: Column(
       children: [
         if (_loading) const LinearProgressIndicator(),
         if (_error != null)
-          TextButton(onPressed: _earlier, child: Text('$_error Retry')),
+          TextButton(onPressed: _earlier, child: Text(tr('$_error Retry'))),
         Expanded(
           child: PageView.builder(
             controller: _pages,
@@ -196,7 +197,7 @@ class _ChatPhotoGalleryState extends State<ChatPhotoGallery> {
                           _downloads[path] = widget.service.photo(path);
                         }),
                         icon: const Icon(Icons.refresh),
-                        label: const Text('Retry photo'),
+                        label:  Text(tr('Retry photo')),
                       ),
                     );
                   }
@@ -223,7 +224,7 @@ class _ChatPhotoGalleryState extends State<ChatPhotoGallery> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
-                tooltip: 'Previous photo',
+                tooltip: trOrNull('Previous photo'),
                 onPressed: _index > 0 ? () => _move(-1) : null,
                 color: Colors.white,
                 disabledColor: Colors.white24,
@@ -231,15 +232,13 @@ class _ChatPhotoGalleryState extends State<ChatPhotoGallery> {
               ),
               Flexible(
                 child: Text(
-                  _zoomed
-                      ? 'Pinch to zoom out, then swipe'
-                      : 'Swipe to browse · Pinch to zoom',
+                  tr(_zoomed ? 'Pinch to zoom out, then swipe' : 'Swipe to browse · Pinch to zoom'),
                   style: const TextStyle(color: Colors.white70),
                   textAlign: TextAlign.center,
                 ),
               ),
               IconButton(
-                tooltip: 'Next photo',
+                tooltip: trOrNull('Next photo'),
                 onPressed: _index < _paths.length - 1 ? () => _move(1) : null,
                 color: Colors.white,
                 disabledColor: Colors.white24,
@@ -250,7 +249,7 @@ class _ChatPhotoGalleryState extends State<ChatPhotoGallery> {
         ),
       ],
     ),
-  );
+  ); }
 }
 
 class _ZoomPhoto extends StatefulWidget {
@@ -283,7 +282,7 @@ class _ZoomPhotoState extends State<_ZoomPhoto> {
   }
 
   @override
-  Widget build(BuildContext context) => SizedBox.expand(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  SizedBox.expand(
     child: InteractiveViewer(
       panEnabled: _zoomed,
       transformationController: _transform,
@@ -295,12 +294,12 @@ class _ZoomPhotoState extends State<_ZoomPhoto> {
         child: Image.memory(
           widget.bytes,
           fit: BoxFit.contain,
-          errorBuilder: (_, _, _) => const Text(
-            'Photo unavailable',
+          errorBuilder: (_, _, _) =>  Text(
+            tr('Photo unavailable'),
             style: TextStyle(color: Colors.white),
           ),
         ),
       ),
     ),
-  );
+  ); }
 }

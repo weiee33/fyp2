@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../core/customer_theme.dart';
 
@@ -16,7 +17,7 @@ class BookingSection extends StatelessWidget {
     this.accentColor,
   });
   @override
-  Widget build(BuildContext context) => Container(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Container(
     width: double.infinity,
     margin: const EdgeInsets.only(bottom: 16),
     padding: const EdgeInsets.all(18),
@@ -42,7 +43,7 @@ class BookingSection extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                title,
+                tr(title),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
@@ -55,5 +56,5 @@ class BookingSection extends StatelessWidget {
         ...children,
       ],
     ),
-  );
+  ); }
 }

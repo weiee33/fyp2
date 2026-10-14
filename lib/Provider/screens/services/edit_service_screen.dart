@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/service_service.dart';
 
@@ -109,7 +110,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
             children: [
               const Icon(Icons.check_circle, color: Colors.white, size: 20),
               const SizedBox(width: 8),
-              Text(_isEditing ? 'Service updated' : 'Service added'),
+              Text(tr(_isEditing ? 'Service updated' : 'Service added')),
             ],
           ),
           backgroundColor: Colors.green.shade600,
@@ -134,7 +135,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -169,10 +170,11 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(_isEditing ? 'Edit Service' : 'Add Service'),
+        title: Text(tr(_isEditing ? 'Edit Service' : 'Add Service')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -198,14 +200,13 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                   items: _categories
                       .map((c) => DropdownMenuItem<String>(
                     value: c['category_id'] as String,
-                    child: Text(c['category_name'] ?? ''),
+                    child: Text(tr(c['category_name'] ?? '')),
                   ))
                       .toList(),
                   onChanged: _saving
                       ? null
                       : (v) => setState(() => _categoryId = v),
-                  validator: (v) =>
-                  v == null ? 'Please select a category' : null,
+                  validator: (value) => trOrNull(((v) => v == null ? 'Please select a category' : null)(value)),
                 ),
                 const SizedBox(height: 16),
 
@@ -215,7 +216,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                   controller: _title,
                   textInputAction: TextInputAction.next,
                   enabled: !_saving,
-                  validator: (v) => _required(v, 'Service title'),
+                  validator: (value) => trOrNull(((v) => _required(v, 'Service title'))(value)),
                   decoration: _inputDecoration(
                     hint: 'e.g. Pipe Repair',
                     icon: Icons.work_outline,
@@ -229,7 +230,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                   controller: _desc,
                   maxLines: 3,
                   enabled: !_saving,
-                  validator: (v) => _required(v, 'Description'),
+                  validator: (value) => trOrNull(((v) => _required(v, 'Description'))(value)),
                   decoration: _inputDecoration(
                     hint: 'Describe your service...',
                     icon: Icons.description_outlined,
@@ -245,11 +246,11 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                     hint: 'Select pricing type',
                     icon: Icons.attach_money,
                   ),
-                  items: const [
+                  items:  [
                     DropdownMenuItem(
-                        value: 'Fixed', child: Text('Fixed')),
+                        value: 'Fixed', child: Text(tr('Fixed'))),
                     DropdownMenuItem(
-                        value: 'Hourly', child: Text('Hourly')),
+                        value: 'Hourly', child: Text(tr('Hourly'))),
                   ],
                   onChanged: _saving
                       ? null
@@ -302,11 +303,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                     )
                         : Icon(_isEditing ? Icons.save : Icons.add),
                     label: Text(
-                      _saving
-                          ? 'Saving...'
-                          : (_isEditing
-                          ? 'Save Changes'
-                          : 'Add Service'),
+                      tr(_saving ? 'Saving...' : (_isEditing ? 'Save Changes' : 'Add Service')),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -347,7 +344,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
     required IconData icon,
   }) {
     return InputDecoration(
-      hintText: hint,
+      hintText: trOrNull(hint),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,

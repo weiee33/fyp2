@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -128,7 +129,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 Icons.photo_library_rounded,
                 color: CustomerTheme.primary,
               ),
-              title: const Text('Choose from Gallery'),
+              title:  Text(tr('Choose from Gallery')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.gallery);
@@ -139,7 +140,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 Icons.camera_alt_rounded,
                 color: CustomerTheme.primary,
               ),
-              title: const Text('Take a Photo'),
+              title:  Text(tr('Take a Photo')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.camera);
@@ -154,7 +155,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
   Future<void> _submitReview() async {
     if (_isSubmitting) return;
     if (_selectedRating == 0) {
-      CustomerDialogs.show(context, message: 'Please select a star rating.');
+      CustomerDialogs.show(context, message: tr('Please select a star rating.'));
       return;
     }
 
@@ -203,13 +204,13 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 size: 64,
               ),
               const SizedBox(height: 16),
-              const Text(
-                'Review Submitted!',
+               Text(
+                tr('Review Submitted!'),
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Thank you for sharing your experience.',
+               Text(
+                tr('Thank you for sharing your experience.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: CustomerTheme.textSecondary),
               ),
@@ -222,7 +223,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                     true,
                   ); // pop screen, return true for refresh
                 },
-                child: const Text('OK'),
+                child:  Text(tr('OK')),
               ),
             ],
           ),
@@ -238,12 +239,13 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
       child: Scaffold(
         backgroundColor: CustomerTheme.background,
         appBar: AppBar(
-          title: const Text('Rate Service'),
+          title:  Text(tr('Rate Service')),
           leading: IconButton(
             icon: const Icon(Icons.close_rounded),
             onPressed: () => Navigator.pop(context),
@@ -260,10 +262,10 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(_eligibilityError!),
+                      Text(tr(_eligibilityError!)),
                       TextButton(
                         onPressed: _verifyEligibility,
-                        child: const Text('Retry'),
+                        child:  Text(tr('Retry')),
                       ),
                     ],
                   ),
@@ -286,8 +288,8 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
           children: [
             const Icon(Icons.lock_rounded, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
-            const Text(
-              'Review Locked',
+             Text(
+              tr('Review Locked'),
               style: TextStyle(
                 fontSize: 22,
                 fontWeight: FontWeight.bold,
@@ -295,8 +297,8 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Only your completed, paid bookings can be reviewed. Each booking can have one review.',
+             Text(
+              tr('Only your completed, paid bookings can be reviewed. Each booking can have one review.'),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: CustomerTheme.textSecondary,
@@ -307,7 +309,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
             const SizedBox(height: 24),
             OutlinedButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Go Back'),
+              child:  Text(tr('Go Back')),
             ),
           ],
         ),
@@ -330,14 +332,14 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 // Header
                 Center(
                   child: Text(
-                    'How was your service with',
+                    tr('How was your service with'),
                     style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                   ),
                 ),
                 const SizedBox(height: 4),
                 Center(
                   child: Text(
-                    widget.providerName,
+                    tr(widget.providerName),
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -348,7 +350,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 const SizedBox(height: 4),
                 Center(
                   child: Text(
-                    widget.serviceName,
+                    tr(widget.serviceName),
                     style: const TextStyle(
                       fontSize: 14,
                       color: CustomerTheme.textSecondary,
@@ -394,8 +396,8 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 const SizedBox(height: 32),
 
                 // Text Input
-                const Text(
-                  'Share your experience',
+                 Text(
+                  tr('Share your experience'),
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
@@ -405,15 +407,15 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                   maxLength: 2000,
                   enabled: !_isSubmitting,
                   textInputAction: TextInputAction.done,
-                  decoration: const InputDecoration(
-                    hintText: 'Were they professional? Was the issue fixed?',
+                  decoration:  InputDecoration(
+                    hintText: trOrNull('Were they professional? Was the issue fixed?'),
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 // Optional Image Upload[cite: 451, 452]
-                const Text(
-                  'Attach Photo (Optional)',
+                 Text(
+                  tr('Attach Photo (Optional)'),
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 12),
@@ -431,7 +433,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                           style: BorderStyle.solid,
                         ),
                       ),
-                      child: const Column(
+                      child:  Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
@@ -441,7 +443,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                           ),
                           SizedBox(height: 8),
                           Text(
-                            'Add photo',
+                            tr('Add photo'),
                             style: TextStyle(
                               color: CustomerTheme.primary,
                               fontWeight: FontWeight.w500,
@@ -520,7 +522,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text('Submit Review'),
+                  :  Text(tr('Submit Review')),
             ),
           ),
         ],

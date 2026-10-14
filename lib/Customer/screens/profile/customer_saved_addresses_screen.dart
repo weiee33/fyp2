@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +55,7 @@ class _CustomerSavedAddressesScreenState
         setState(() => _busy = false);
         await CustomerDialogs.show(
           context,
-          message: 'Address updated successfully.',
+          message: tr('Address updated successfully.'),
         );
       }
     } catch (e) {
@@ -71,18 +72,18 @@ class _CustomerSavedAddressesScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete saved address?'),
-        content: const Text(
-          'Existing bookings keep their service address. If this is the default, another saved address becomes the default.',
+        title:  Text(tr('Delete saved address?')),
+        content:  Text(
+          tr('Existing bookings keep their service address. If this is the default, another saved address becomes the default.'),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+            child:  Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('OK'),
+            child:  Text(tr('OK')),
           ),
         ],
       ),
@@ -92,8 +93,8 @@ class _CustomerSavedAddressesScreenState
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Saved Addresses')),
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Scaffold(
+    appBar: AppBar(title:  Text(tr('Saved Addresses'))),
     floatingActionButton: FloatingActionButton.extended(
       onPressed: _busy
           ? null
@@ -105,7 +106,7 @@ class _CustomerSavedAddressesScreenState
               if (mounted) await _reload();
             },
       icon: const Icon(Icons.add),
-      label: const Text('Add address'),
+      label:  Text(tr('Add address')),
     ),
     body: FutureBuilder<List<Map<String, dynamic>>>(
       future: _addresses,
@@ -117,8 +118,8 @@ class _CustomerSavedAddressesScreenState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Could not load your saved addresses.'),
-                TextButton(onPressed: _reload, child: const Text('Retry')),
+                 Text(tr('Could not load your saved addresses.')),
+                TextButton(onPressed: _reload, child:  Text(tr('Retry'))),
               ],
             ),
           );
@@ -133,9 +134,9 @@ class _CustomerSavedAddressesScreenState
             children: [
               if (_busy) const LinearProgressIndicator(),
               if (rows.isEmpty)
-                const Padding(
+                 Padding(
                   padding: EdgeInsets.all(24),
-                  child: Text('Add a service address before booking.'),
+                  child: Text(tr('Add a service address before booking.')),
                 ),
               ...rows.map((row) {
                 final address = ['address_line', 'city', 'state', 'postcode']
@@ -149,17 +150,17 @@ class _CustomerSavedAddressesScreenState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          row['label']?.toString() ?? 'Address',
+                          tr(row['label']?.toString() ?? 'Address'),
                           style: Theme.of(context).textTheme.titleMedium,
                         ),
                         const SizedBox(height: 8),
-                        Text(address),
+                        Text(tr(address)),
                         Wrap(
                           spacing: 8,
                           crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
                             if (row['is_default'] == true)
-                              const Chip(label: Text('Default'))
+                               Chip(label: Text(tr('Default')))
                             else
                               TextButton(
                                 onPressed: _busy
@@ -170,11 +171,11 @@ class _CustomerSavedAddressesScreenState
                                           address,
                                         ),
                                       ),
-                                child: const Text('Set as default'),
+                                child:  Text(tr('Set as default')),
                               ),
                             TextButton(
                               onPressed: _busy ? null : () => _delete(row),
-                              child: const Text('Delete'),
+                              child:  Text(tr('Delete')),
                             ),
                           ],
                         ),
@@ -188,5 +189,5 @@ class _CustomerSavedAddressesScreenState
         );
       },
     ),
-  );
+  ); }
 }

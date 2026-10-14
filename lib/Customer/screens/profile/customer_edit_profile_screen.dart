@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/account_widgets.dart';
 import '../../widgets/malaysia_phone_field.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -133,7 +134,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                 Icons.photo_library_rounded,
                 color: CustomerTheme.primary,
               ),
-              title: const Text('Choose from Gallery'),
+              title:  Text(tr('Choose from Gallery')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.gallery);
@@ -144,7 +145,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                 Icons.camera_alt_rounded,
                 color: CustomerTheme.primary,
               ),
-              title: const Text('Take a Photo'),
+              title:  Text(tr('Take a Photo')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.camera);
@@ -164,7 +165,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       setState(() => _isSaving = false);
       await CustomerDialogs.show(
         context,
-        message: 'Please enter your name and a valid Malaysian mobile number.',
+        message: tr('Please enter your name and a valid Malaysian mobile number.'),
       );
       return;
     }
@@ -196,7 +197,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       setState(() => _isSaving = false);
       await CustomerDialogs.show(
         context,
-        message: 'Profile updated successfully',
+        message: tr('Profile updated successfully'),
       );
       if (!mounted) return;
       setState(() => _dirty = false);
@@ -208,7 +209,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       setState(() => _isSaving = false);
       await CustomerDialogs.show(
         context,
-        message: 'Failed to update profile: $e',
+        message: tr('Failed to update profile: $e'),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -228,7 +229,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: Text('Edit $field'),
+        title: Text(tr('Edit $field')),
         content: Form(
           key: form,
           child: field == 'Phone'
@@ -238,23 +239,20 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                   autofocus: true,
                   maxLength: field == 'Bio' ? 300 : 100,
                   maxLines: field == 'Bio' ? 4 : 1,
-                  validator: (v) =>
-                      field == 'Name' && (v?.trim().isEmpty ?? true)
-                      ? 'Name is required'
-                      : null,
+                  validator: (value) => trOrNull(((v) => field == 'Name' && (v?.trim().isEmpty ?? true) ? 'Name is required' : null)(value)),
                 ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
+            child:  Text(tr('Cancel')),
           ),
           FilledButton(
             onPressed: () {
               if (form.currentState!.validate())
                 Navigator.pop(ctx, controller.text.trim());
             },
-            child: const Text('OK'),
+            child:  Text(tr('OK')),
           ),
         ],
       ),
@@ -281,12 +279,12 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
     final value = await showDialog<String>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title: const Text('Gender'),
+        title:  Text(tr('Gender')),
         children: [
           for (final label in ['Female', 'Male', 'Prefer not to say'])
             SimpleDialogOption(
               onPressed: () => Navigator.pop(ctx, label),
-              child: Text(label),
+              child: Text(tr(label)),
             ),
         ],
       ),
@@ -316,14 +314,14 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => PopScope(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  PopScope(
     canPop: !_dirty && !_isSaving,
     onPopInvokedWithResult: (didPop, result) async {
       if (didPop || _isSaving) return;
       if (await CustomerDialogs.confirm(
             context,
-            title: 'Discard changes?',
-            message: 'Your unsaved profile changes will be lost.',
+            title: tr('Discard changes?'),
+            message: tr('Your unsaved profile changes will be lost.'),
           ) &&
           mounted) {
         setState(() => _dirty = false);
@@ -335,11 +333,11 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
     child: Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title:  Text(tr('Edit Profile')),
         actions: [
           TextButton(
             onPressed: _isSaving ? null : _saveProfile,
-            child: const Text('Save'),
+            child:  Text(tr('Save')),
           ),
         ],
       ),
@@ -379,11 +377,11 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                                     : null,
                               ),
                               const SizedBox(height: 8),
-                              const Row(
+                               Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(Icons.edit_outlined, size: 18),
-                                  Text(' Edit photo'),
+                                  Text(tr(' Edit photo')),
                                 ],
                               ),
                             ],
@@ -396,12 +394,12 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                 AccountGroup(
                   children: [
                     AccountRow(
-                      label: 'Name',
+                      label: tr('Name'),
                       value: _nameController.text,
                       onTap: () => _edit('Name'),
                     ),
                     AccountRow(
-                      label: 'Bio',
+                      label: tr('Bio'),
                       value: _bio.isEmpty ? 'Set now' : _bio,
                       onTap: () => _edit('Bio'),
                     ),
@@ -410,12 +408,12 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                 AccountGroup(
                   children: [
                     AccountRow(
-                      label: 'Gender',
+                      label: tr('Gender'),
                       value: _gender ?? 'Set now',
                       onTap: _pickGender,
                     ),
                     AccountRow(
-                      label: 'Birthday',
+                      label: tr('Birthday'),
                       value: _birthday ?? 'Set now',
                       onTap: _pickBirthday,
                     ),
@@ -424,34 +422,34 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                 AccountGroup(
                   children: [
                     AccountRow(
-                      label: 'Phone',
+                      label: tr('Phone'),
                       value: maskedPhone('+60${_phoneController.text}'),
                       onTap: () => _edit('Phone'),
                     ),
                     AccountRow(
-                      label: 'Email',
+                      label: tr('Email'),
                       value: maskedEmail(
                         widget.profileData?['email']?.toString() ?? '',
                       ),
-                      subtitle: 'Verified sign-in email',
+                      subtitle: tr('Verified sign-in email'),
                     ),
                   ],
                 ),
                 AccountGroup(
-                  title: 'Service preferences',
+                  title: tr('Service preferences'),
                   children: [
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Choose services you frequently need.'),
+                           Text(tr('Choose services you frequently need.')),
                           const SizedBox(height: 12),
                           if (_preferencesError != null) ...[
-                            Text(_preferencesError!),
+                            Text(tr(_preferencesError!)),
                             TextButton(
                               onPressed: _loadPreferences,
-                              child: const Text('Retry categories'),
+                              child:  Text(tr('Retry categories')),
                             ),
                           ],
                           Wrap(
@@ -459,7 +457,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                             children: _availablePreferences
                                 .map(
                                   (pref) => FilterChip(
-                                    label: Text(pref),
+                                    label: Text(tr(pref)),
                                     selected: _selectedPreferences.contains(
                                       pref,
                                     ),
@@ -480,15 +478,15 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                     ),
                   ],
                 ),
-                const Padding(
+                 Padding(
                   padding: EdgeInsets.all(12),
                   child: Text(
-                    'Your birthday and gender are optional and are not shown to providers.',
+                    tr('Your birthday and gender are optional and are not shown to providers.'),
                     style: TextStyle(color: Colors.black54, fontSize: 12),
                   ),
                 ),
               ],
             ),
     ),
-  );
+  ); }
 }

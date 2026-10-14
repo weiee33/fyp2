@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -66,7 +67,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.message),
+          content: Text(tr(e.message)),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -78,7 +79,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Login Error: $e'),
+          content: Text(tr('Login Error: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -94,6 +95,7 @@ class _LoginScreenState extends State<LoginScreen> {
   // ========== UI ==========
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -104,8 +106,8 @@ class _LoginScreenState extends State<LoginScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => Navigator.maybePop(context),
         ),
-        title: const Text(
-          'Provider Login',
+        title:  Text(
+          tr('Provider Login'),
           style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.w600,
@@ -141,9 +143,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
 
                 // ---- Title ----
-                const Center(
+                 Center(
                   child: Text(
-                    'Welcome to Local Life',
+                    tr('Welcome to Home Serve'),
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -154,9 +156,9 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 6),
 
                 // ---- Subtitle ----
-                const Center(
+                 Center(
                   child: Text(
-                    'Sign in to offer your services',
+                    tr('Sign in to offer your services'),
                     style: TextStyle(
                       color: Colors.grey,
                       fontSize: 14,
@@ -166,8 +168,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 32),
 
                 // ---- Email ----
-                const Text(
-                  'Email Address',
+                 Text(
+                  tr('Email Address'),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
@@ -188,8 +190,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 16),
 
                 // ---- Password ----
-                const Text(
-                  'Password',
+                 Text(
+                  tr('Password'),
                   style: TextStyle(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
@@ -243,8 +245,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         color: Colors.white,
                       ),
                     )
-                        : const Text(
-                      'Login',
+                        :  Text(
+                      tr('Login'),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -258,8 +260,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'New here? ',
+                     Text(
+                      tr('New here? '),
                       style: TextStyle(color: Colors.grey, fontSize: 14),
                     ),
                     TextButton(
@@ -276,8 +278,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         minimumSize: const Size(0, 0),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text(
-                        'Create Account',
+                      child:  Text(
+                        tr('Create Account'),
                         style: TextStyle(
                           color: _primaryColor,
                           fontWeight: FontWeight.bold,
@@ -303,7 +305,7 @@ class _LoginScreenState extends State<LoginScreen> {
     Widget? suffixIcon,
   }) {
     return InputDecoration(
-      hintText: hint,
+      hintText: trOrNull(hint),
       hintStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey),
       suffixIcon: suffixIcon,

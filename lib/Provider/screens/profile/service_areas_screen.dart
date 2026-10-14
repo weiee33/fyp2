@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/profile_service.dart';
 import 'package:latlong2/latlong.dart';
@@ -90,11 +91,11 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content:  Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white, size: 20),
               SizedBox(width: 8),
-              Text('Service areas saved'),
+              Text(tr('Service areas saved')),
             ],
           ),
           backgroundColor: Colors.green.shade600,
@@ -119,7 +120,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -147,10 +148,11 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Service Areas'),
+        title:  Text(tr('Service Areas')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -190,12 +192,12 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                                 ),
                               ),
                               const SizedBox(width: 12),
-                              const Expanded(
+                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Where do you work?',
+                                      tr('Where do you work?'),
                                       style: TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 15,
@@ -204,7 +206,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                                     ),
                                     SizedBox(height: 2),
                                     Text(
-                                      'Set your region, city, and travel radius',
+                                      tr('Set your region, city, and travel radius'),
                                       style: TextStyle(
                                         color: Colors.grey,
                                         fontSize: 12,
@@ -229,7 +231,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                         ),
                         items: _regions
                             .map(
-                              (r) => DropdownMenuItem(value: r, child: Text(r)),
+                              (r) => DropdownMenuItem(value: r, child: Text(tr(r))),
                             )
                             .toList(),
                         onChanged: _saving
@@ -267,10 +269,10 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                      const Padding(
+                       Padding(
                         padding: EdgeInsets.only(left: 4),
                         child: Text(
-                          'How far are you willing to travel from your service centre?',
+                          tr('How far are you willing to travel from your service centre?'),
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey,
@@ -287,14 +289,10 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                             color: _primaryOrange,
                           ),
                           title: Text(
-                            _centre == null
-                                ? 'Publish your service area'
-                                : 'Service centre selected',
+                            tr(_centre == null ? 'Publish your service area' : 'Service centre selected'),
                           ),
                           subtitle: Text(
-                            _centre == null
-                                ? 'Choose a public map pin so customers can see your coverage.'
-                                : '${_centre!.latitude.toStringAsFixed(4)}, ${_centre!.longitude.toStringAsFixed(4)} · Tap to change',
+                            tr(_centre == null ? 'Choose a public map pin so customers can see your coverage.' : '${_centre!.latitude.toStringAsFixed(4)}, ${_centre!.longitude.toStringAsFixed(4)} · Tap to change'),
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: _saving
@@ -326,7 +324,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                           onPressed: _saving
                               ? null
                               : () => setState(() => _centre = null),
-                          child: const Text('Remove public map pin'),
+                          child:  Text(tr('Remove public map pin')),
                         ),
                       const SizedBox(height: 16),
                       // ---- Save Button ----
@@ -345,7 +343,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                                 )
                               : const Icon(Icons.save_outlined),
                           label: Text(
-                            _saving ? 'Saving...' : 'Save',
+                            tr(_saving ? 'Saving...' : 'Save'),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -383,7 +381,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
     required IconData icon,
   }) {
     return InputDecoration(
-      hintText: hint,
+      hintText: trOrNull(hint),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,

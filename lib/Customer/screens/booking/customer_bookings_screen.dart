@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_status.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
@@ -60,7 +61,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
         setState(() => _error = bookingError(error));
         CustomerDialogs.show(
           context,
-          title: 'Unable to complete',
+          title: tr('Unable to complete'),
           message: bookingError(error),
         );
       }
@@ -70,9 +71,9 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Scaffold(
     appBar: AppBar(
-      title: const Text('My bookings'),
+      title:  Text(tr('My bookings')),
       actions: [CustomerChatButton(enabled: _transactions.usesLiveBackend)],
     ),
     body: CustomerRefresh(
@@ -91,20 +92,20 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   children: [
-                    Text(_error!),
+                    Text(tr(_error!)),
                     TextButton(
                       onPressed: () => _load(reset: _bookings.isEmpty),
-                      child: const Text('Try again'),
+                      child:  Text(tr('Try again')),
                     ),
                   ],
                 ),
               ),
             ),
           if (!_loading && _error == null && _bookings.isEmpty)
-            const Padding(
+             Padding(
               padding: EdgeInsets.all(32),
               child: Text(
-                'No bookings yet. Find a service from Home to get started.',
+                tr('No bookings yet. Find a service from Home to get started.'),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -160,7 +161,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                         style: const TextStyle(color: Colors.black54),
                       ),
                       const SizedBox(height: 12),
-                      Text(booking.appointmentLabel),
+                      Text(tr(booking.appointmentLabel)),
                       const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
@@ -169,7 +170,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                         children: [
                           BookingPaymentStatus(booking: booking),
                           if (booking.canReview)
-                            const Padding(
+                             Padding(
                               padding: EdgeInsets.only(top: 8),
                               child: Row(
                                 children: [
@@ -180,7 +181,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                                   ),
                                   SizedBox(width: 6),
                                   Text(
-                                    'Ready to review',
+                                    tr('Ready to review'),
                                     style: TextStyle(
                                       color: Color(0xFFFF6B00),
                                       fontWeight: FontWeight.w600,
@@ -190,7 +191,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                               ),
                             ),
                           Text(
-                            booking.displayStatus,
+                            tr(booking.displayStatus),
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.black54,
@@ -207,10 +208,10 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
           if (_bookings.isNotEmpty && _hasMore)
             TextButton(
               onPressed: _loading ? null : _load,
-              child: Text(_loading ? 'Loading…' : 'Load more'),
+              child: Text(tr(_loading ? 'Loading…' : 'Load more')),
             ),
         ],
       ),
     ),
-  );
+  ); }
 }

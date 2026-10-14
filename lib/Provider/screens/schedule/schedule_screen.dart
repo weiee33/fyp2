@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -185,11 +186,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: _lightOrange,
       appBar: AppBar(
-        title: const Text(
-          'Schedule',
+        title:  Text(
+          tr('Schedule'),
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: _primaryOrange,
@@ -235,9 +237,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const Center(
+         Center(
           child: Text(
-            'Failed to load schedule',
+            tr('Failed to load schedule'),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -248,7 +250,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         const SizedBox(height: 6),
         Center(
           child: Text(
-            _error ?? 'Unknown error',
+            tr(_error ?? 'Unknown error'),
             style: const TextStyle(fontSize: 12, color: Colors.grey),
             textAlign: TextAlign.center,
             maxLines: 4,
@@ -260,7 +262,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           child: ElevatedButton.icon(
             onPressed: _load,
             icon: const Icon(Icons.refresh),
-            label: const Text('Retry'),
+            label:  Text(tr('Retry')),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primaryOrange,
               foregroundColor: Colors.white,
@@ -298,9 +300,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
         const SizedBox(height: 16),
-        const Center(
+         Center(
           child: Text(
-            'No scheduled bookings',
+            tr('No scheduled bookings'),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -309,9 +311,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
         const SizedBox(height: 6),
-        const Center(
+         Center(
           child: Text(
-            'Your appointments will appear here',
+            tr('Your appointments will appear here'),
             style: TextStyle(fontSize: 13, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
@@ -339,21 +341,21 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         Row(
           children: [
             _statCard(
-              label: 'Today',
+              label: tr('Today'),
               count: _countToday(),
               icon: Icons.today,
               color: _primaryOrange,
             ),
             const SizedBox(width: 10),
             _statCard(
-              label: 'Tomorrow',
+              label: tr('Tomorrow'),
               count: _countTomorrow(),
               icon: Icons.event,
               color: const Color(0xFF3B82F6),
             ),
             const SizedBox(width: 10),
             _statCard(
-              label: 'This Week',
+              label: tr('This Week'),
               count: _countThisWeek(),
               icon: Icons.date_range,
               color: const Color(0xFF10B981),
@@ -366,7 +368,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         if (upcoming.isNotEmpty) ...[
           _sectionTitle(
             icon: Icons.schedule,
-            title: 'Upcoming Schedule',
+            title: tr('Upcoming Schedule'),
             count: upcoming.length,
             color: _primaryOrange,
           ),
@@ -382,7 +384,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         if (expired.isNotEmpty) ...[
           _sectionTitle(
             icon: Icons.warning_amber_rounded,
-            title: 'Expired Schedule',
+            title: tr('Expired Schedule'),
             count: expired.length,
             color: Colors.grey.shade700,
           ),
@@ -401,7 +403,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    'Please contact the customer to discuss these past appointments.',
+                    tr('Please contact the customer to discuss these past appointments.'),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange.shade800,
@@ -445,7 +447,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         Icon(icon, size: 18, color: color),
         const SizedBox(width: 6),
         Text(
-          title,
+          tr(title),
           style: const TextStyle(
             fontSize: 15,
             fontWeight: FontWeight.bold,
@@ -460,7 +462,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
-            '$count',
+            tr('$count'),
             style: TextStyle(
               fontSize: 11,
               fontWeight: FontWeight.bold,
@@ -504,7 +506,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     ),
                     const SizedBox(width: 5),
                     Text(
-                      _formatHeader(dateKey),
+                      tr(_formatHeader(dateKey)),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
@@ -526,7 +528,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   ),
                 ),
                 child: Text(
-                  '${items.length}',
+                  tr('${items.length}'),
                   style: TextStyle(
                     color: headerColor,
                     fontSize: 11,
@@ -577,7 +579,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             Icon(icon, color: color, size: 20),
             const SizedBox(height: 6),
             Text(
-              '$count',
+              tr('$count'),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -586,7 +588,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             ),
             const SizedBox(height: 2),
             Text(
-              label,
+              tr(label),
               style: const TextStyle(
                 fontSize: 11,
                 color: Colors.grey,
@@ -647,7 +649,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     child: Column(
                       children: [
                         Text(
-                          _formatTime(scheduledAt),
+                          tr(_formatTime(scheduledAt)),
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
@@ -656,7 +658,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         ),
                         if (duration != null)
                           Text(
-                            '${duration}m',
+                            tr('${duration}m'),
                             style: TextStyle(
                               fontSize: 10,
                               color: expired
@@ -666,7 +668,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           )
                         else
                           Text(
-                            'hrs',
+                            tr('hrs'),
                             style: TextStyle(
                               fontSize: 10,
                               color: expired
@@ -683,7 +685,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          serviceName,
+                          tr(serviceName),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -708,7 +710,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  address,
+                                  tr(address),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: expired
@@ -735,7 +737,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  instructions,
+                                  tr(instructions),
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: expired
@@ -753,7 +755,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         if (amount != null) ...[
                           const SizedBox(height: 4),
                           Text(
-                            'RM ${(amount as num).toStringAsFixed(2)}',
+                            tr('RM ${(amount as num).toStringAsFixed(2)}'),
                             style: TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
@@ -791,7 +793,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          'Please contact the customer to discuss.',
+                          tr('Please contact the customer to discuss.'),
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.orange.shade800,
@@ -824,7 +826,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               size: 11, color: Colors.grey.shade700),
           const SizedBox(width: 4),
           Text(
-            'EXPIRED',
+            tr('EXPIRED'),
             style: TextStyle(
               fontSize: 10,
               color: Colors.grey.shade700,
@@ -890,7 +892,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  expired ? 'Expired Booking' : 'Booking Details',
+                  tr(expired ? 'Expired Booking' : 'Booking Details'),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -920,7 +922,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            'This appointment has passed. Please contact the customer to discuss.',
+                            tr('This appointment has passed. Please contact the customer to discuss.'),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.orange.shade800,
@@ -981,7 +983,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             TextButton(
               onPressed: () => Navigator.pop(ctx),
               style: TextButton.styleFrom(foregroundColor: _primaryOrange),
-              child: const Text('Close'),
+              child:  Text(tr('Close')),
             ),
           ],
         ),
@@ -1021,8 +1023,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Customer Location',
+                 Text(
+                  tr('Customer Location'),
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -1031,16 +1033,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  lat != null && lng != null
-                      ? '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}'
-                      : coordinates,
+                  tr(lat != null && lng != null ? '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}' : coordinates),
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
                 const SizedBox(height: 4),
                 GestureDetector(
                   onTap: () => _openMap(lat, lng, address),
-                  child: const Text(
-                    'View on Map →',
+                  child:  Text(
+                    tr('View on Map →'),
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
@@ -1061,8 +1061,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (lat == null || lng == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('No coordinates available for this booking'),
+         SnackBar(
+          content: Text(tr('No coordinates available for this booking')),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1104,7 +1104,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (customerId != null && !isCompleted && !isCancelled) {
       buttons.add(
         _actionButton(
-          label: 'Chat with Customer',
+          label: tr('Chat with Customer'),
           icon: Icons.chat_bubble_outline,
           color: _primaryOrange,
           outlined: true,
@@ -1120,7 +1120,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (!expired && (isConfirmed || isPending)) {
       buttons.add(
         _actionButton(
-          label: 'Start Job',
+          label: tr('Start Job'),
           icon: Icons.play_arrow,
           color: const Color(0xFF3B82F6),
           onTap: () async {
@@ -1135,7 +1135,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (isInProgress) {
       buttons.add(
         _actionButton(
-          label: 'Mark as Completed',
+          label: tr('Mark as Completed'),
           icon: Icons.check_circle,
           color: const Color(0xFF10B981),
           onTap: () async {
@@ -1151,7 +1151,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (expired && !isCompleted && !isCancelled) {
       buttons.add(
         _actionButton(
-          label: 'Mark as Completed',
+          label: tr('Mark as Completed'),
           icon: Icons.check_circle,
           color: const Color(0xFF10B981),
           onTap: () async {
@@ -1166,7 +1166,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (!isCompleted && !isCancelled) {
       buttons.add(
         _actionButton(
-          label: 'Cancel Booking',
+          label: tr('Cancel Booking'),
           icon: Icons.cancel_outlined,
           color: Colors.red.shade600,
           outlined: true,
@@ -1174,19 +1174,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             final confirm = await showDialog<bool>(
               context: ctx,
               builder: (c) => AlertDialog(
-                title: const Text('Cancel Booking'),
-                content: const Text(
-                  'Are you sure you want to cancel this booking?',
+                title:  Text(tr('Cancel Booking')),
+                content:  Text(
+                  tr('Are you sure you want to cancel this booking?'),
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(c, false),
-                    child: const Text('No'),
+                    child:  Text(tr('No')),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(c, true),
                     style: TextButton.styleFrom(foregroundColor: Colors.red),
-                    child: const Text('Yes, Cancel'),
+                    child:  Text(tr('Yes, Cancel')),
                   ),
                 ],
               ),
@@ -1229,7 +1229,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           onPressed: onTap,
           icon: Icon(icon, size: 18),
           label: Text(
-            label,
+            tr(label),
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.bold,
@@ -1253,7 +1253,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         onPressed: onTap,
         icon: Icon(icon, size: 18),
         label: Text(
-          label,
+          tr(label),
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
@@ -1319,7 +1319,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             children: [
               const Icon(Icons.check_circle, color: Colors.white, size: 20),
               const SizedBox(width: 8),
-              Text('Booking marked as $newStatus'),
+              Text(tr('Booking marked as $newStatus')),
             ],
           ),
           backgroundColor: Colors.green.shade600,
@@ -1333,7 +1333,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to update: $e'),
+          content: Text(tr('Failed to update: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -1406,7 +1406,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           SizedBox(
             width: 90,
             child: Text(
-              label,
+              tr(label),
               style: const TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
@@ -1416,7 +1416,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
           Expanded(
             child: Text(
-              value,
+              tr(value),
               style: const TextStyle(
                 fontSize: 13,
                 color: Colors.black87,
@@ -1474,7 +1474,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           Icon(icon, size: 11, color: fg),
           const SizedBox(width: 4),
           Text(
-            status.toUpperCase(),
+            tr(status.toUpperCase()),
             style: TextStyle(
               fontSize: 10,
               color: fg,

@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -49,7 +50,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load earnings: $e'),
+          content: Text(tr('Failed to load earnings: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -151,6 +152,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     if (_loading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -193,7 +195,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Earnings'),
+        title:  Text(tr('Earnings')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -216,25 +218,25 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _statCard(
-                    label: 'Today',
+                    label: tr('Today'),
                     value: 'RM${today.toStringAsFixed(0)}',
                     icon: Icons.today,
                     color: const Color(0xFF3B82F6),
                   ),
                   _statCard(
-                    label: 'This Week',
+                    label: tr('This Week'),
                     value: 'RM${week.toStringAsFixed(0)}',
                     icon: Icons.date_range,
                     color: const Color(0xFF10B981),
                   ),
                   _statCard(
-                    label: 'This Month',
+                    label: tr('This Month'),
                     value: 'RM${month.toStringAsFixed(0)}',
                     icon: Icons.calendar_month,
                     color: const Color(0xFF8B5CF6),
                   ),
                   _statCard(
-                    label: 'Pending',
+                    label: tr('Pending'),
                     value: 'RM${pending.toStringAsFixed(0)}',
                     icon: Icons.hourglass_bottom,
                     color: const Color(0xFFF59E0B),
@@ -256,13 +258,13 @@ class _EarningsScreenState extends State<EarningsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                       Row(
                         children: [
                           Icon(Icons.show_chart,
                               color: _primaryOrange, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            'Earnings Trend',
+                            tr('Earnings Trend'),
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -273,7 +275,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        chartSubtitle,
+                        tr(chartSubtitle),
                         style: const TextStyle(
                             fontSize: 12, color: Colors.grey),
                       ),
@@ -321,7 +323,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                                       padding: const EdgeInsets.only(
                                           top: 6),
                                       child: Text(
-                                        chartLabels[idx],
+                                        tr(chartLabels[idx]),
                                         style: const TextStyle(
                                           fontSize: 10,
                                           color: Colors.grey,
@@ -359,9 +361,9 @@ class _EarningsScreenState extends State<EarningsScreen> {
                             FlBorderData(show: false),
                           ),
                         )
-                            : const Center(
+                            :  Center(
                           child: Text(
-                            'No earnings data yet',
+                            tr('No earnings data yet'),
                             style: TextStyle(
                               color: Colors.grey,
                               fontSize: 13,
@@ -376,8 +378,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
               const SizedBox(height: 20),
 
               // ---- Menu ----
-              const Text(
-                'Details',
+               Text(
+                tr('Details'),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -387,8 +389,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
               const SizedBox(height: 12),
 
               _menuTile(
-                title: 'Daily Earnings',
-                subtitle: 'View earnings by day',
+                title: tr('Daily Earnings'),
+                subtitle: tr('View earnings by day'),
                 icon: Icons.calendar_today_outlined,
                 color: const Color(0xFF3B82F6),
                 onTap: () => Navigator.push(
@@ -398,8 +400,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 ),
               ),
               _menuTile(
-                title: 'Weekly Earnings',
-                subtitle: 'View earnings by week',
+                title: tr('Weekly Earnings'),
+                subtitle: tr('View earnings by week'),
                 icon: Icons.date_range_outlined,
                 color: const Color(0xFF10B981),
                 onTap: () => Navigator.push(
@@ -409,8 +411,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 ),
               ),
               _menuTile(
-                title: 'Monthly Earnings',
-                subtitle: 'View earnings by month',
+                title: tr('Monthly Earnings'),
+                subtitle: tr('View earnings by month'),
                 icon: Icons.calendar_month_outlined,
                 color: const Color(0xFF8B5CF6),
                 onTap: () => Navigator.push(
@@ -420,8 +422,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 ),
               ),
               _menuTile(
-                title: 'Performance',
-                subtitle: 'View your performance metrics',
+                title: tr('Performance'),
+                subtitle: tr('View your performance metrics'),
                 icon: Icons.insights_outlined,
                 color: const Color(0xFFF59E0B),
                 onTap: () => Navigator.push(
@@ -470,7 +472,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
           ),
           child: Center(
             child: Text(
-              label,
+              tr(label),
               style: TextStyle(
                 color: selected ? Colors.white : _primaryOrange,
                 fontSize: 12,
@@ -515,7 +517,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    label,
+                    tr(label),
                     style: const TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
@@ -528,7 +530,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              value,
+              tr(value),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -566,11 +568,11 @@ class _EarningsScreenState extends State<EarningsScreen> {
           child: Icon(icon, color: color, size: 22),
         ),
         title: Text(
-          title,
+          tr(title),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          subtitle,
+          tr(subtitle),
           style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.grey),

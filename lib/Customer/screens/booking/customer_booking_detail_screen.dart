@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_status.dart';
 import 'dart:async';
 import 'package:intl/intl.dart';
@@ -87,7 +88,7 @@ class _CustomerBookingDetailScreenState
         setState(() => _error = bookingError(error));
         CustomerDialogs.show(
           context,
-          title: 'Unable to complete',
+          title: tr('Unable to complete'),
           message: bookingError(error),
         );
       }
@@ -101,21 +102,21 @@ class _CustomerBookingDetailScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: const Text('Cancel booking?'),
+        title:  Text(tr('Cancel booking?')),
         content: TextField(
           controller: reason,
           maxLength: 500,
           maxLines: 3,
-          decoration: const InputDecoration(labelText: 'Reason (optional)'),
+          decoration:  InputDecoration(labelText: trOrNull('Reason (optional)')),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
+            child:  Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('OK'),
+            child:  Text(tr('OK')),
           ),
         ],
       ),
@@ -133,7 +134,7 @@ class _CustomerBookingDetailScreenState
           _booking = booking;
           _acting = false;
         });
-        await CustomerDialogs.show(context, message: 'Booking cancelled.');
+        await CustomerDialogs.show(context, message: tr('Booking cancelled.'));
       }
     } catch (error) {
       if (mounted) CustomerDialogs.show(context, message: bookingError(error));
@@ -154,7 +155,7 @@ class _CustomerBookingDetailScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Request booking support'),
+        title:  Text(tr('Request booking support')),
         content: SingleChildScrollView(
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
@@ -167,22 +168,18 @@ class _CustomerBookingDetailScreenState
                 TextFormField(
                   controller: subject,
                   maxLength: 150,
-                  decoration: const InputDecoration(labelText: 'Subject'),
-                  validator: (value) => (value?.trim().length ?? 0) >= 3
-                      ? null
-                      : 'Enter at least 3 characters',
+                  decoration:  InputDecoration(labelText: trOrNull('Subject')),
+                  validator: (value) => trOrNull(((value) => (value?.trim().length ?? 0) >= 3 ? null : 'Enter at least 3 characters')(value)),
                 ),
                 TextFormField(
                   controller: description,
                   minLines: 3,
                   maxLines: 6,
                   maxLength: 4000,
-                  decoration: const InputDecoration(
-                    labelText: 'Describe the problem',
+                  decoration:  InputDecoration(
+                    labelText: trOrNull('Describe the problem'),
                   ),
-                  validator: (value) => (value?.trim().length ?? 0) >= 10
-                      ? null
-                      : 'Enter at least 10 characters',
+                  validator: (value) => trOrNull(((value) => (value?.trim().length ?? 0) >= 10 ? null : 'Enter at least 10 characters')(value)),
                 ),
               ],
             ),
@@ -191,13 +188,13 @@ class _CustomerBookingDetailScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child:  Text(tr('Cancel')),
           ),
           FilledButton(
             onPressed: () {
               if (form.currentState!.validate()) Navigator.pop(ctx, true);
             },
-            child: const Text('OK'),
+            child:  Text(tr('OK')),
           ),
         ],
       ),
@@ -214,7 +211,7 @@ class _CustomerBookingDetailScreenState
         setState(() => _acting = false);
         await CustomerDialogs.show(
           context,
-          message: 'Your support request has been submitted.',
+          message: tr('Your support request has been submitted.'),
         );
       }
       if (mounted) await _load();
@@ -227,13 +224,14 @@ class _CustomerBookingDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final booking = _booking;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Booking details'),
+        title:  Text(tr('Booking details')),
         actions: [
           IconButton(
-            tooltip: 'Chat with provider',
+            tooltip: trOrNull('Chat with provider'),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
@@ -255,16 +253,16 @@ class _CustomerBookingDetailScreenState
                 padding: const EdgeInsets.all(16),
                 children: [
                   if (_error != null) ...[
-                    Text(_error!),
+                    Text(tr(_error!)),
                     TextButton(
                       onPressed: _load,
-                      child: const Text('Try again'),
+                      child:  Text(tr('Try again')),
                     ),
                   ],
                   if (_loading) const LinearProgressIndicator(),
                   if (booking != null) ...[
                     BookingSection(
-                      title: 'Your booking',
+                      title: tr('Your booking'),
                       icon: Icons.home_repair_service_outlined,
                       highlighted: true,
                       children: [
@@ -279,12 +277,12 @@ class _CustomerBookingDetailScreenState
                           spacing: 8,
                           runSpacing: 4,
                           children: [
-                            Chip(label: Text(booking.displayStatus)),
+                            Chip(label: Text(tr(booking.displayStatus))),
                             BookingPaymentStatus(booking: booking),
                           ],
                         ),
                         Text(
-                          'Booking ${booking.shortId}',
+                          tr('Booking ${booking.shortId}'),
                           style: const TextStyle(
                             color: CustomerTheme.textSecondary,
                           ),
@@ -304,14 +302,14 @@ class _CustomerBookingDetailScreenState
                           ? const Color(0xFFB42318)
                           : null,
                       children: [
-                        Text(_nextStepMessage(booking)),
+                        Text(tr(_nextStepMessage(booking))),
                         if (booking.canPay &&
                             booking.paymentDeadline != null) ...[
                           const SizedBox(height: 10),
                           PaymentCountdown(deadline: booking.paymentDeadline!),
                           const SizedBox(height: 10),
                           Text(
-                            'Pay by ${DateFormat('d MMM, h:mm a').format(booking.paymentDeadline!.toUtc().add(const Duration(hours: 8)))} (Malaysia time)',
+                            tr('Pay by ${DateFormat('d MMM, h:mm a').format(booking.paymentDeadline!.toUtc().add(const Duration(hours: 8)))} (Malaysia time)'),
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               color: CustomerTheme.primary,
@@ -335,19 +333,19 @@ class _CustomerBookingDetailScreenState
                                       ),
                                     ),
                               icon: const Icon(Icons.event_available),
-                              label: const Text('Choose a new appointment'),
+                              label:  Text(tr('Choose a new appointment')),
                             ),
                           ),
                         ],
                       ],
                     ),
                     BookingSection(
-                      title: 'Your service journey',
+                      title: tr('Your service journey'),
                       icon: Icons.route_outlined,
                       children: [BookingProgress(booking: booking)],
                     ),
                     BookingSection(
-                      title: 'Appointment & location',
+                      title: tr('Appointment & location'),
                       icon: Icons.event_outlined,
                       children: [
                         _row(
@@ -368,14 +366,14 @@ class _CustomerBookingDetailScreenState
                       ],
                     ),
                     BookingSection(
-                      title: 'Payment summary',
+                      title: tr('Payment summary'),
                       icon: Icons.receipt_long_outlined,
                       children: [
                         Row(
                           children: [
-                            const Expanded(child: Text('Service total')),
+                             Expanded(child: Text(tr('Service total'))),
                             Text(
-                              'RM ${booking.amount.toStringAsFixed(2)}',
+                              tr('RM ${booking.amount.toStringAsFixed(2)}'),
                               style: const TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -397,7 +395,7 @@ class _CustomerBookingDetailScreenState
                                     ),
                                   ),
                             icon: const Icon(Icons.receipt_long),
-                            label: const Text('View receipt'),
+                            label:  Text(tr('View receipt')),
                           ),
                       ],
                     ),
@@ -405,20 +403,18 @@ class _CustomerBookingDetailScreenState
                         !booking.canReview &&
                         booking.paymentStatus == 'Success')
                       BookingSection(
-                        title: 'Review your service',
+                        title: tr('Review your service'),
                         icon: Icons.rate_review_outlined,
                         children: [
                           Text(
-                            booking.status == 'Cancelled'
-                                ? 'Reviews are available for completed services. Contact support about this cancelled booking.'
-                                : 'Your payment is confirmed. You can write a review here once the provider marks your service Completed.',
+                            tr(booking.status == 'Cancelled' ? 'Reviews are available for completed services. Contact support about this cancelled booking.' : 'Your payment is confirmed. You can write a review here once the provider marks your service Completed.'),
                           ),
                         ],
                       ),
                     if (booking.hasReview)
-                      const ListTile(
+                       ListTile(
                         leading: Icon(Icons.rate_review_outlined),
-                        title: Text('Your review has been submitted.'),
+                        title: Text(tr('Your review has been submitted.')),
                       ),
                     if (booking.canReview)
                       FilledButton.icon(
@@ -433,19 +429,19 @@ class _CustomerBookingDetailScreenState
                                 ),
                               ),
                         icon: const Icon(Icons.star_outline),
-                        label: const Text('Write a review'),
+                        label:  Text(tr('Write a review')),
                       ),
                     BookingSection(
-                      title: 'Help with this booking',
+                      title: tr('Help with this booking'),
                       icon: Icons.support_agent,
                       children: [
                         for (final dispute
                             in (booking.data['disputes'] as List? ?? []))
                           ListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: Text(dispute['subject'].toString()),
+                            title: Text(tr(dispute['subject'].toString())),
                             subtitle: Text(
-                              '${dispute['status']}\n${dispute['resolution'] ?? 'Awaiting administrator review.'}',
+                              tr('${dispute['status']}\n${dispute['resolution'] ?? 'Awaiting administrator review.'}'),
                             ),
                           ),
                         SizedBox(
@@ -455,14 +451,14 @@ class _CustomerBookingDetailScreenState
                                 ? null
                                 : _requestHelp,
                             icon: const Icon(Icons.support_agent),
-                            label: const Text('Request booking support'),
+                            label:  Text(tr('Request booking support')),
                           ),
                         ),
                         if (booking.canCancel && !booking.needsNewBooking)
                           TextButton(
                             onPressed: _acting || _loading ? null : _cancel,
                             child: Text(
-                              _acting ? 'Cancelling…' : 'Cancel booking',
+                              tr(_acting ? 'Cancelling…' : 'Cancel booking'),
                             ),
                           ),
                       ],
@@ -489,9 +485,9 @@ class _CustomerBookingDetailScreenState
                             ),
                           ),
                     icon: const Icon(Icons.payment),
-                    label: const Padding(
+                    label:  Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
-                      child: Text('Continue to payment'),
+                      child: Text(tr('Continue to payment')),
                     ),
                   ),
                 ),
@@ -547,14 +543,14 @@ class _CustomerBookingDetailScreenState
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
       Text(
-        label,
+        tr(label),
         style: const TextStyle(
           color: CustomerTheme.textSecondary,
           fontSize: 12,
         ),
       ),
       const SizedBox(height: 6),
-      Text(value, style: const TextStyle(fontSize: 15, height: 1.5)),
+      Text(tr(value), style: const TextStyle(fontSize: 15, height: 1.5)),
     ],
   );
 }

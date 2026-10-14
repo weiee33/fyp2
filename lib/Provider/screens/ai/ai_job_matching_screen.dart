@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/profile_service.dart';
 
@@ -45,7 +46,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to compute matches: $e'),
+          content: Text(tr('Failed to compute matches: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -138,7 +139,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   void _onAccept(Map<String, dynamic> m) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Accepted: ${m['category']}'),
+        content: Text(tr('Accepted: ${m['category']}')),
         backgroundColor: Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
       ),
@@ -151,7 +152,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Removed: ${m['category']}'),
+        content: Text(tr('Removed: ${m['category']}')),
         backgroundColor: Colors.grey.shade700,
         behavior: SnackBarBehavior.floating,
       ),
@@ -160,10 +161,11 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('AI Job Matching'),
+        title:  Text(tr('AI Job Matching')),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -201,9 +203,9 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      const Expanded(
+                       Expanded(
                         child: Text(
-                          'Based on your skills and certifications, we recommend these service categories for you.',
+                          tr('Based on your skills and certifications, we recommend these service categories for you.'),
                           style: TextStyle(
                             fontSize: 13,
                             color: Colors.black87,
@@ -218,11 +220,11 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
               const SizedBox(height: 20),
 
               if (_matches.isEmpty)
-                const Padding(
+                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 48),
                   child: Center(
                     child: Text(
-                      'No recommendations available',
+                      tr('No recommendations available'),
                       style: TextStyle(color: Colors.grey),
                     ),
                   ),
@@ -262,7 +264,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    m['category'].toString(),
+                    tr(m['category'].toString()),
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -277,7 +279,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '$matchPercent% match',
+                    tr('$matchPercent% match'),
                     style: TextStyle(
                       color: matchColor,
                       fontSize: 12,
@@ -291,7 +293,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
             // Meta
             Text(
-              'Jobs available: ${m['jobsAvailable']} · Avg. earnings: RM${m['avgEarning']}',
+              tr('Jobs available: ${m['jobsAvailable']} · Avg. earnings: RM${m['avgEarning']}'),
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 8),
@@ -309,9 +311,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    hasSkill
-                        ? 'You have: ${m['requiredSkill']} certificate'
-                        : 'Missing: ${m['requiredSkill']} certification',
+                    tr(hasSkill ? 'You have: ${m['requiredSkill']} certificate' : 'Missing: ${m['requiredSkill']} certification'),
                     style: TextStyle(
                       fontSize: 12,
                       color: hasSkill
@@ -338,7 +338,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Accept'),
+                    child:  Text(tr('Accept')),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -353,7 +353,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Not Interested'),
+                    child:  Text(tr('Not Interested')),
                   ),
                 ),
               ],

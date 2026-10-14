@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'customer_forgot_password_screen.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -34,7 +35,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     if (_formKey.currentState?.validate() != true) {
       await CustomerDialogs.show(
         context,
-        message: 'Please correct the highlighted fields.',
+        message: tr('Please correct the highlighted fields.'),
       );
       return;
     }
@@ -68,6 +69,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
       child: Scaffold(
@@ -76,7 +78,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
-          title: const Text('Customer Login'),
+          title:  Text(tr('Customer Login')),
         ),
         body: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
@@ -98,9 +100,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Center(
+                     Center(
                       child: Text(
-                        'Welcome to Local Life',
+                        tr('Welcome to Home Serve'),
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -109,9 +111,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Center(
+                     Center(
                       child: Text(
-                        'Sign in to book household repair & cleaning',
+                        tr('Sign in to book household repair & cleaning'),
                         style: TextStyle(
                           color: CustomerTheme.textSecondary,
                           fontSize: 14,
@@ -119,8 +121,8 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                    const Text(
-                      'Email Address',
+                     Text(
+                      tr('Email Address'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 6),
@@ -128,17 +130,15 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       enabled: !_loading,
-                      validator: (v) => (v == null || !v.contains('@'))
-                          ? 'Valid email required'
-                          : null,
-                      decoration: const InputDecoration(
-                        hintText: 'name@example.com',
+                      validator: (value) => trOrNull(((v) => (v == null || !v.contains('@')) ? 'Valid email required' : null)(value)),
+                      decoration:  InputDecoration(
+                        hintText: trOrNull('name@example.com'),
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Password',
+                     Text(
+                      tr('Password'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 6),
@@ -146,9 +146,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       enabled: !_loading,
-                      validator: (v) => (v == null || v.length < 6)
-                          ? 'Password must be 6+ characters'
-                          : null,
+                      validator: (value) => trOrNull(((v) => (v == null || v.length < 6) ? 'Password must be 6+ characters' : null)(value)),
                       decoration: InputDecoration(
                         hintText: '••••••••',
                         prefixIcon: const Icon(Icons.lock_outline),
@@ -177,7 +175,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                   ),
                                 ),
                               ),
-                        child: const Text('Forgot password?'),
+                        child:  Text(tr('Forgot password?')),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -192,14 +190,14 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : const Text('Login'),
+                          :  Text(tr('Login')),
                     ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Text(
-                          "New here? ",
+                         Text(
+                          tr("New here? "),
                           style: TextStyle(color: CustomerTheme.textSecondary),
                         ),
                         TextButton(
@@ -214,8 +212,8 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                     ),
                                   );
                                 },
-                          child: const Text(
-                            'Create Account',
+                          child:  Text(
+                            tr('Create Account'),
                             style: TextStyle(
                               color: CustomerTheme.primary,
                               fontWeight: FontWeight.bold,

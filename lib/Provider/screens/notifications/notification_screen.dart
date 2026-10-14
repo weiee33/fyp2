@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/notification_service.dart';
 import 'notification_detail_screen.dart';
@@ -88,7 +89,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -101,7 +102,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _showSuccess(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -125,12 +126,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final list = _filtered;
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title:  Text(tr('Notifications')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -198,7 +200,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           ),
         ),
         child: Text(
-          label,
+          tr(label),
           style: TextStyle(
             color: selected ? Colors.white : _primaryOrange,
             fontWeight: FontWeight.w600,
@@ -268,7 +270,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              n['title']?.toString() ?? 'Notification',
+                              tr(n['title']?.toString() ?? 'Notification'),
                               style: TextStyle(
                                 fontWeight: isRead
                                     ? FontWeight.w500
@@ -292,7 +294,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        n['message']?.toString() ?? '',
+                        tr(n['message']?.toString() ?? ''),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -302,7 +304,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _formatTime(n['created_at']?.toString()),
+                        tr(_formatTime(n['created_at']?.toString())),
                         style: const TextStyle(
                           fontSize: 11,
                           color: Colors.grey,
@@ -320,7 +322,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildEmpty() {
-    return const Center(
+    return  Center(
       child: Padding(
         padding: EdgeInsets.all(32),
         child: Column(
@@ -330,7 +332,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 size: 56, color: Colors.grey),
             SizedBox(height: 12),
             Text(
-              'No notifications',
+              tr('No notifications'),
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 14,
@@ -339,7 +341,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
             SizedBox(height: 4),
             Text(
-              'Updates about bookings, payments and messages will appear here',
+              tr('Updates about bookings, payments and messages will appear here'),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),

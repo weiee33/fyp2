@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../services/earnings_service.dart';
@@ -80,7 +81,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load: $e'),
+          content: Text(tr('Failed to load: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -93,6 +94,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final now = DateTime.now();
     final monthName = _monthName(now.month);
 
@@ -105,7 +107,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('This Month'),
+        title:  Text(tr('This Month')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -147,9 +149,9 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          const Expanded(
+                           Expanded(
                             child: Text(
-                              'Total This Month',
+                              tr('Total This Month'),
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey,
@@ -161,7 +163,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'RM${_total.toStringAsFixed(2)}',
+                        tr('RM${_total.toStringAsFixed(2)}'),
                         style: const TextStyle(
                           fontSize: 36,
                           fontWeight: FontWeight.bold,
@@ -170,7 +172,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '$monthName ${now.year}',
+                        tr('$monthName ${now.year}'),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -196,13 +198,13 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Row(
+                         Row(
                           children: [
                             Icon(Icons.pie_chart_outline,
                                 color: _primaryOrange, size: 20),
                             SizedBox(width: 8),
                             Text(
-                              'Service Popularity',
+                              tr('Service Popularity'),
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -212,8 +214,8 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        const Text(
-                          'Earnings by service category',
+                         Text(
+                          tr('Earnings by service category'),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey,
@@ -235,7 +237,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                                       : 0;
                                   return PieChartSectionData(
                                     value: e.value,
-                                    title: '${pct.toStringAsFixed(0)}%',
+                                    title: tr('${pct.toStringAsFixed(0)}%'),
                                     color: _palette[i % _palette.length],
                                     radius: 60,
                                     titleStyle: const TextStyle(
@@ -273,7 +275,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                                   const SizedBox(width: 10),
                                   Expanded(
                                     child: Text(
-                                      e.key,
+                                      tr(e.key),
                                       style: const TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w500,
@@ -282,7 +284,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                                     ),
                                   ),
                                   Text(
-                                    'RM${e.value.toStringAsFixed(2)}',
+                                    tr('RM${e.value.toStringAsFixed(2)}'),
                                     style: const TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.bold,
@@ -314,13 +316,13 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                       Row(
                         children: [
                           Icon(Icons.show_chart,
                               color: _primaryOrange, size: 20),
                           SizedBox(width: 8),
                           Text(
-                            'Weekly Trend',
+                            tr('Weekly Trend'),
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -330,8 +332,8 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                         ],
                       ),
                       const SizedBox(height: 4),
-                      const Text(
-                        'Earnings per week this month',
+                       Text(
+                        tr('Earnings per week this month'),
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -372,7 +374,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                                       const EdgeInsets.only(
                                           top: 6),
                                       child: Text(
-                                        'Wk ${i + 1}',
+                                        tr('Wk ${i + 1}'),
                                         style: const TextStyle(
                                           fontSize: 11,
                                           color: Colors.grey,
@@ -431,9 +433,9 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
                             ],
                           ),
                         )
-                            : const Center(
+                            :  Center(
                           child: Text(
-                            'No earnings this month',
+                            tr('No earnings this month'),
                             style: TextStyle(
                               color: Colors.grey,
                               fontSize: 13,

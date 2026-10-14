@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import '../../services/profile_service.dart';
@@ -110,11 +111,11 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content:  Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white, size: 20),
               SizedBox(width: 8),
-              Text('Certification updated'),
+              Text(tr('Certification updated')),
             ],
           ),
           backgroundColor: Colors.green.shade600,
@@ -139,7 +140,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -156,10 +157,11 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Edit Certification'),
+        title:  Text(tr('Edit Certification')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -177,7 +179,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                   controller: _name,
                   textInputAction: TextInputAction.next,
                   enabled: !_submitting,
-                  validator: (v) => _required(v, 'Certification name'),
+                  validator: (value) => trOrNull(((v) => _required(v, 'Certification name'))(value)),
                   decoration: _inputDecoration(
                     hint: 'e.g. First Aid Certificate',
                     icon: Icons.workspace_premium_outlined,
@@ -189,7 +191,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                   controller: _issuer,
                   textInputAction: TextInputAction.next,
                   enabled: !_submitting,
-                  validator: (v) => _required(v, 'Issuer'),
+                  validator: (value) => trOrNull(((v) => _required(v, 'Issuer'))(value)),
                   decoration: _inputDecoration(
                     hint: 'e.g. Red Crescent',
                     icon: Icons.business_outlined,
@@ -218,11 +220,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                     color: _primaryOrange,
                   ),
                   label: Text(
-                    _file == null
-                        ? (_existingFileUrl != null
-                        ? 'Keep existing file'
-                        : 'Choose File')
-                        : _file!.name,
+                    tr(_file == null ? (_existingFileUrl != null ? 'Keep existing file' : 'Choose File') : _file!.name),
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: _primaryOrange),
                   ),
@@ -250,7 +248,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                     )
                         : const Icon(Icons.save),
                     label: Text(
-                      _submitting ? 'Saving...' : 'Save Changes',
+                      tr(_submitting ? 'Saving...' : 'Save Changes'),
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
@@ -289,7 +287,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
     required IconData icon,
   }) {
     return InputDecoration(
-      hintText: hint,
+      hintText: trOrNull(hint),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,

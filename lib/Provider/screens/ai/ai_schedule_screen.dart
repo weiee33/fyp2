@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/booking_service.dart';
 
@@ -47,7 +48,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to build schedule: $e'),
+          content: Text(tr('Failed to build schedule: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -134,10 +135,11 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('AI Smart Schedule'),
+        title:  Text(tr('AI Smart Schedule')),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -153,7 +155,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
             children: [
               // Date header
               Text(
-                _formatDate(DateTime.now()),
+                tr(_formatDate(DateTime.now())),
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
@@ -172,25 +174,25 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _statCard(
-                    label: 'Total Jobs',
+                    label: tr('Total Jobs'),
                     value: '${_schedule.length}',
                     icon: Icons.work_outline,
                     color: _primaryColor,
                   ),
                   _statCard(
-                    label: 'Total Distance',
+                    label: tr('Total Distance'),
                     value: '${_totalDistanceKm.toStringAsFixed(0)} km',
                     icon: Icons.route_outlined,
                     color: const Color(0xFF10B981),
                   ),
                   _statCard(
-                    label: 'Travel Time',
+                    label: tr('Travel Time'),
                     value: _formatTime(_totalTravelMin),
                     icon: Icons.timer_outlined,
                     color: const Color(0xFF8B5CF6),
                   ),
                   _statCard(
-                    label: 'Est. Earnings',
+                    label: tr('Est. Earnings'),
                     value:
                     'RM${_estimatedEarnings.toStringAsFixed(0)}',
                     icon: Icons.attach_money,
@@ -200,8 +202,8 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
               ),
               const SizedBox(height: 20),
 
-              const Text(
-                'Optimized Route',
+               Text(
+                tr('Optimized Route'),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -211,11 +213,11 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
               const SizedBox(height: 12),
 
               if (_schedule.isEmpty)
-                const Padding(
+                 Padding(
                   padding: EdgeInsets.symmetric(vertical: 32),
                   child: Center(
                     child: Text(
-                      'No confirmed bookings today',
+                      tr('No confirmed bookings today'),
                       style: TextStyle(color: Colors.grey),
                     ),
                   ),
@@ -263,7 +265,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
               ),
               alignment: Alignment.center,
               child: Text(
-                '$step',
+                tr('$step'),
                 style: const TextStyle(
                   color: _primaryColor,
                   fontWeight: FontWeight.bold,
@@ -279,7 +281,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    svc,
+                    tr(svc),
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
@@ -287,7 +289,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    cust,
+                    tr(cust),
                     style: const TextStyle(
                         fontSize: 12, color: Colors.grey),
                   ),
@@ -299,7 +301,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          address,
+                          tr(address),
                           style: const TextStyle(
                               fontSize: 12, color: Colors.grey),
                           overflow: TextOverflow.ellipsis,
@@ -314,7 +316,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                           size: 13, color: Colors.grey),
                       const SizedBox(width: 4),
                       Text(
-                        '$duration min',
+                        tr('$duration min'),
                         style: const TextStyle(
                             fontSize: 12, color: Colors.grey),
                       ),
@@ -322,7 +324,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                       const Icon(Icons.attach_money,
                           size: 13, color: Colors.grey),
                       Text(
-                        'RM${amount.toStringAsFixed(0)}',
+                        tr('RM${amount.toStringAsFixed(0)}'),
                         style: const TextStyle(
                           fontSize: 12,
                           color: _primaryColor,
@@ -371,7 +373,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    label,
+                    tr(label),
                     style: const TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
@@ -384,7 +386,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              value,
+              tr(value),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

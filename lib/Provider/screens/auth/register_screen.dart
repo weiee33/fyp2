@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -86,7 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (res.user != null && (res.user!.identities?.isEmpty ?? false)) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text('This email is already registered.'),
+            content:  Text(tr('This email is already registered.')),
             backgroundColor: Colors.red.shade600,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -109,7 +110,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Auth Error: ${e.message}'),
+          content: Text(tr('Auth Error: ${e.message}')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -126,7 +127,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessage),
+          content: Text(tr(errorMessage)),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -142,10 +143,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   // ========== UI ==========
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Create Account'),
+        title:  Text(tr('Create Account')),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -161,7 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 8),
 
                 // ---- Full Name ----
-                const Text('Full Name',
+                 Text(tr('Full Name'),
                     style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -177,7 +179,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 20),
 
                 // ---- Email ----
-                const Text('Email',
+                 Text(tr('Email'),
                     style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -194,7 +196,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 20),
 
                 // ---- Phone Number ----
-                const Text('Phone Number',
+                 Text(tr('Phone Number'),
                     style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -211,7 +213,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const SizedBox(height: 20),
 
                 // ---- Password ----
-                const Text('Password',
+                 Text(tr('Password'),
                     style: TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 8),
                 TextFormField(
@@ -260,8 +262,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         color: Colors.white,
                       ),
                     )
-                        : const Text(
-                      'Register & Verify',
+                        :  Text(
+                      tr('Register & Verify'),
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -275,7 +277,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text('Already have an account? ',
+                     Text(tr('Already have an account? '),
                         style: TextStyle(color: Colors.grey)),
                     TextButton(
                       onPressed:
@@ -285,8 +287,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         minimumSize: const Size(0, 0),
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text(
-                        'Login',
+                      child:  Text(
+                        tr('Login'),
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: _primaryColor,
@@ -310,7 +312,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     Widget? suffixIcon,
   }) {
     return InputDecoration(
-      hintText: hint,
+      hintText: trOrNull(hint),
       hintStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey),
       suffixIcon: suffixIcon,

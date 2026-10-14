@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -30,7 +31,7 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
     if (!RegExp(r'^\d{6,10}$').hasMatch(code)) {
       await CustomerDialogs.show(
         context,
-        message: 'Please enter the complete code',
+        message: tr('Please enter the complete code'),
       );
       return;
     }
@@ -42,8 +43,8 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
       if (!mounted) return;
       await CustomerDialogs.show(
         context,
-        title: 'Success',
-        message: 'Your email is verified. Your account is ready.',
+        title: tr('Success'),
+        message: tr('Your email is verified. Your account is ready.'),
       );
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
@@ -55,11 +56,11 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
       if (!mounted) return;
       await CustomerDialogs.show(
         context,
-        message: 'Verification Failed: ${e.message}',
+        message: tr('Verification Failed: ${e.message}'),
       );
     } catch (e) {
       if (!mounted) return;
-      await CustomerDialogs.show(context, message: 'Error: $e');
+      await CustomerDialogs.show(context, message: tr('Error: $e'));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -72,11 +73,11 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
       if (!mounted) return;
       await CustomerDialogs.show(
         context,
-        message: 'A new OTP has been dispatched to your email.',
+        message: tr('A new OTP has been dispatched to your email.'),
       );
     } catch (e) {
       if (!mounted) return;
-      await CustomerDialogs.show(context, message: 'Failed to resend: $e');
+      await CustomerDialogs.show(context, message: tr('Failed to resend: $e'));
     } finally {
       if (mounted) setState(() => _resending = false);
     }
@@ -84,10 +85,11 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Verify Account')),
+        appBar: AppBar(title:  Text(tr('Verify Account'))),
         body: ListView(
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
@@ -101,14 +103,14 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
               color: CustomerTheme.primary,
             ),
             const SizedBox(height: 16),
-            const Text(
-              'Enter Verification Code',
+             Text(
+              tr('Enter Verification Code'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'A verification code was sent to:\n${widget.email}',
+              tr('A verification code was sent to:\n${widget.email}'),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: CustomerTheme.textSecondary,
@@ -143,7 +145,7 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
                         strokeWidth: 2,
                       ),
                     )
-                  : const Text('Verify & Proceed'),
+                  :  Text(tr('Verify & Proceed')),
             ),
             const SizedBox(height: 12),
             TextButton(
@@ -154,8 +156,8 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
                       width: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text(
-                      'Resend Code',
+                  :  Text(
+                      tr('Resend Code'),
                       style: TextStyle(color: CustomerTheme.primary),
                     ),
             ),

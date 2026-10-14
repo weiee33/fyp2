@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  shared_preferences: ^2.5.5
   supabase_flutter: ^2.5.0
   firebase_core: ^3.3.0
   firebase_messaging: ^15.0.4
@@ -21,7 +24,7 @@ dependencies:
   # Compatible image/archive pair for the pinned Flutter 3.38 / Dart 3.10 SDK.
   image: 4.5.4
   web: 1.1.1
-  intl: ^0.19.0
+  intl: ^0.20.2
   fl_chart: ^0.68.0
   provider: ^6.1.2
   cupertino_icons: ^1.0.8
@@ -41,6 +44,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/brand/
+    - assets/l10n/
     - assets/fonts/roboto-regular.ttf
     - assets/fonts/roboto-bold.ttf
     - assets/fonts/roboto_license.txt

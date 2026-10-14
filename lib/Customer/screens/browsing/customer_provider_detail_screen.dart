@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
 import '../../../shared/chat/chat_screen.dart';
@@ -53,7 +54,7 @@ class _CustomerProviderDetailScreenState
     } catch (_) {
       if (!mounted || request != _requestVersion) return;
       setState(() => _error = 'Unable to load this provider. Please retry.');
-      CustomerDialogs.show(context, title: 'Unable to load', message: _error!);
+      CustomerDialogs.show(context, title: tr('Unable to load'), message: _error!);
     } finally {
       if (mounted && request == _requestVersion)
         setState(() => _loading = false);
@@ -67,6 +68,7 @@ class _CustomerProviderDetailScreenState
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final provider = _provider;
     final services = _rows('services');
     // Preserve the service selected in search rather than silently changing it.
@@ -81,10 +83,10 @@ class _CustomerProviderDetailScreenState
     return Scaffold(
       backgroundColor: CustomerTheme.background,
       appBar: AppBar(
-        title: const Text('Provider details'),
+        title:  Text(tr('Provider details')),
         actions: [
           IconButton(
-            tooltip: 'Chat with provider',
+            tooltip: trOrNull('Chat with provider'),
             onPressed: _provider == null
                 ? null
                 : () => Navigator.push(
@@ -110,14 +112,14 @@ class _CustomerProviderDetailScreenState
             if (_error != null) ...[
               Padding(
                 padding: const EdgeInsets.all(24),
-                child: Text(_error!, textAlign: TextAlign.center),
+                child: Text(tr(_error!), textAlign: TextAlign.center),
               ),
-              TextButton(onPressed: _fetch, child: const Text('Retry')),
+              TextButton(onPressed: _fetch, child:  Text(tr('Retry'))),
             ] else if (provider == null && !_loading)
-              const Padding(
+               Padding(
                 padding: EdgeInsets.symmetric(vertical: 48),
                 child: Text(
-                  'This provider is no longer available. Return to search to find another service.',
+                  tr('This provider is no longer available. Return to search to find another service.'),
                   textAlign: TextAlign.center,
                 ),
               )
@@ -141,32 +143,28 @@ class _CustomerProviderDetailScreenState
                 ),
               ),
               const SizedBox(height: 8),
-              const Row(
+               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.verified, color: CustomerTheme.success, size: 18),
                   SizedBox(width: 6),
                   Text(
-                    'Verified provider',
+                    tr('Verified provider'),
                     style: TextStyle(color: CustomerTheme.success),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
-                reviewCount == 0
-                    ? 'No reviews yet'
-                    : '${rating.toStringAsFixed(1)} ★ · $reviewCount reviews',
+                tr(reviewCount == 0 ? 'No reviews yet' : '${rating.toStringAsFixed(1)} ★ · $reviewCount reviews'),
                 textAlign: TextAlign.center,
               ),
               if (provider['city'] != null)
-                Text(provider['city'].toString(), textAlign: TextAlign.center),
+                Text(tr(provider['city'].toString()), textAlign: TextAlign.center),
               const SizedBox(height: 24),
               const _Heading('About'),
               Text(
-                (provider['bio'] as String?)?.trim().isNotEmpty == true
-                    ? provider['bio'] as String
-                    : 'No description provided.',
+                tr((provider['bio'] as String?)?.trim().isNotEmpty == true ? provider['bio'] as String : 'No description provided.'),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -176,13 +174,13 @@ class _CustomerProviderDetailScreenState
                   if (provider['years_experience'] != null)
                     Chip(
                       label: Text(
-                        '${provider['years_experience']} years of experience',
+                        tr('${provider['years_experience']} years of experience'),
                       ),
                     ),
                   if (provider['service_radius_km'] != null)
                     Chip(
                       label: Text(
-                        'Service radius: ${provider['service_radius_km']} km',
+                        tr('Service radius: ${provider['service_radius_km']} km'),
                       ),
                     ),
                 ],
@@ -197,28 +195,26 @@ class _CustomerProviderDetailScreenState
                       Icons.workspace_premium,
                       color: CustomerTheme.success,
                     ),
-                    title: Text(c['certification_name'] as String),
-                    subtitle: c['issuer'] == null
-                        ? null
-                        : Text(c['issuer'].toString()),
+                    title: Text(tr(c['certification_name'] as String)),
+                    subtitle: c['issuer'] == null ? null : Text(tr(c['issuer'].toString())),
                   ),
                 ),
               ],
               const SizedBox(height: 24),
               const _Heading('Available services'),
               if (services.isEmpty)
-                const Text('No bookable services are currently available.'),
+                 Text(tr('No bookable services are currently available.')),
               if (widget.selectedServiceId != null && selected < 0)
-                const Padding(
+                 Padding(
                   padding: EdgeInsets.only(bottom: 12),
                   child: Text(
-                    'The service you selected is no longer available.',
+                    tr('The service you selected is no longer available.'),
                   ),
                 ),
               ...services.map((s) => _serviceCard(s, provider)),
               const SizedBox(height: 24),
               const _Heading('Recent customer reviews'),
-              if (reviews.isEmpty) const Text('No reviews yet.'),
+              if (reviews.isEmpty)  Text(tr('No reviews yet.')),
               ...reviews.map(
                 (review) => Card(
                   child: Padding(
@@ -230,20 +226,19 @@ class _CustomerProviderDetailScreenState
                           children: [
                             Expanded(
                               child: Text(
-                                review['customer_name'] as String? ??
-                                    'Verified customer',
+                                tr(review['customer_name'] as String? ?? 'Verified customer'),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                             ),
-                            Text('${review['rating_score']} ★'),
+                            Text(tr('${review['rating_score']} ★')),
                           ],
                         ),
                         if ((review['review_comment'] as String?)?.isNotEmpty ==
                             true) ...[
                           const SizedBox(height: 8),
-                          Text(review['review_comment'] as String),
+                          Text(tr(review['review_comment'] as String)),
                         ],
                       ],
                     ),
@@ -252,7 +247,7 @@ class _CustomerProviderDetailScreenState
               ),
               if (reviewCount > reviews.length)
                 Text(
-                  'Showing the latest ${reviews.length} of $reviewCount reviews.',
+                  tr('Showing the latest ${reviews.length} of $reviewCount reviews.'),
                 ),
             ],
           ],
@@ -275,22 +270,22 @@ class _CustomerProviderDetailScreenState
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              service['service_name'] as String,
+              tr(service['service_name'] as String),
               style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              'RM ${price.toStringAsFixed(2)}${hourly ? '/hour' : ''}',
+              tr('RM ${price.toStringAsFixed(2)}${hourly ? '/hour' : ''}'),
               style: const TextStyle(
                 color: CustomerTheme.primaryDark,
                 fontWeight: FontWeight.bold,
               ),
             ),
             if (service['estimated_duration'] != null)
-              Text('${service['estimated_duration']} minutes'),
+              Text(tr('${service['estimated_duration']} minutes')),
             if ((service['description'] as String?)?.isNotEmpty == true) ...[
               const SizedBox(height: 8),
-              Text(service['description'] as String),
+              Text(tr(service['description'] as String)),
             ],
             const SizedBox(height: 16),
             ElevatedButton(
@@ -308,7 +303,7 @@ class _CustomerProviderDetailScreenState
                       );
                       if (mounted) await _fetch();
                     },
-              child: const Text('Choose date & book'),
+              child:  Text(tr('Choose date & book')),
             ),
           ],
         ),
@@ -321,13 +316,13 @@ class _Heading extends StatelessWidget {
   final String text;
   const _Heading(this.text);
   @override
-  Widget build(BuildContext context) => Padding(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Padding(
     padding: const EdgeInsets.only(bottom: 10),
     child: Text(
       text,
       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     ),
-  );
+  ); }
 }
 
 /// A failed/empty image is never allowed to break discovery navigation.
@@ -337,6 +332,7 @@ class ProviderAvatar extends StatelessWidget {
   const ProviderAvatar({super.key, this.photoUrl, this.size = 48});
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final fallback = ColoredBox(
       color: CustomerTheme.primarySurface,
       child: Icon(Icons.handyman, color: CustomerTheme.primary, size: size / 2),

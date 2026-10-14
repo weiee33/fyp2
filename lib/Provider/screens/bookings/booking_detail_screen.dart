@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/booking_service.dart';
 import '../../../Customer/services/customer_transaction_service.dart'
@@ -52,7 +53,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       if (mounted)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(bookingError(error)),
+            content: Text(tr(bookingError(error))),
             backgroundColor: Colors.red.shade600,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -76,8 +77,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
-        title: const Text(
-          'Decline booking request',
+        title:  Text(
+          tr('Decline booking request'),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         content: Form(
@@ -88,19 +89,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             maxLines: 4,
             minLines: 3,
             autovalidateMode: AutovalidateMode.onUserInteraction,
-            validator: (value) {
-              final text = value?.trim() ?? '';
-              if (text.isEmpty) return 'Reason is required';
-              if (text.length < 3) {
-                return 'Reason must be at least 3 characters';
-              }
-              if (text.length > 500) {
-                return 'Reason must not exceed 500 characters';
-              }
-              return null;
-            },
+            validator: (value) => trOrNull(((value) {final text = value?.trim() ?? ''; if (text.isEmpty) return 'Reason is required'; if (text.length < 3) {return 'Reason must be at least 3 characters';} if (text.length > 500) {return 'Reason must not exceed 500 characters';} return null;})(value)),
             decoration: InputDecoration(
-              hintText: 'Please provide a reason...',
+              hintText: trOrNull('Please provide a reason...'),
               hintStyle: const TextStyle(color: Colors.grey),
               filled: true,
               fillColor: Colors.white,
@@ -136,7 +127,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             style: TextButton.styleFrom(
               foregroundColor: Colors.grey.shade700,
             ),
-            child: const Text('Close'),
+            child:  Text(tr('Close')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -155,7 +146,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 vertical: 12,
               ),
             ),
-            child: const Text('Confirm'),
+            child:  Text(tr('Confirm')),
           ),
         ],
       ),
@@ -173,7 +164,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         if (mounted)
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(bookingError(error)),
+              content: Text(tr(bookingError(error))),
               backgroundColor: Colors.red.shade600,
               behavior: SnackBarBehavior.floating,
             ),
@@ -211,7 +202,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        status ?? '-',
+        tr(status ?? '-'),
         style: TextStyle(
           color: color,
           fontSize: 12,
@@ -223,10 +214,11 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Booking Detail'),
+        title:  Text(tr('Booking Detail')),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -242,7 +234,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           : _b == null
           ? Center(
         child: Text(
-          _error ?? 'Booking not found',
+          tr(_error ?? 'Booking not found'),
           style: const TextStyle(color: Colors.grey),
         ),
       )
@@ -266,7 +258,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        _error!,
+                        tr(_error!),
                         style: const TextStyle(
                           color: Colors.red,
                           fontSize: 13,
@@ -294,8 +286,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       mainAxisAlignment:
                       MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          'Booking Info',
+                         Text(
+                          tr('Booking Info'),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -354,9 +346,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       size: 20,
                     ),
                     const SizedBox(width: 10),
-                    const Expanded(
+                     Expanded(
                       child: Text(
-                        'Slot accepted. Waiting for the customer to complete FPX payment.',
+                        tr('Slot accepted. Waiting for the customer to complete FPX payment.'),
                         style: TextStyle(
                           fontSize: 13,
                           color: Colors.black87,
@@ -392,8 +384,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                         crossAxisAlignment:
                         CrossAxisAlignment.start,
                         children: [
-                          const Text(
-                            'Special Instructions',
+                           Text(
+                            tr('Special Instructions'),
                             style: TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 13,
@@ -435,7 +427,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     ElevatedButton.icon(
                       onPressed: () => _update('Confirmed'),
                       icon: const Icon(Icons.check, size: 18),
-                      label: const Text('Accept'),
+                      label:  Text(tr('Accept')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primaryColor,
                         foregroundColor: Colors.white,
@@ -452,7 +444,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     OutlinedButton.icon(
                       onPressed: _cancel,
                       icon: const Icon(Icons.close, size: 18),
-                      label: const Text('Decline'),
+                      label:  Text(tr('Decline')),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: _primaryColor,
                         side: const BorderSide(
@@ -471,7 +463,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     ElevatedButton.icon(
                       onPressed: () => _update('In-Progress'),
                       icon: const Icon(Icons.play_arrow, size: 18),
-                      label: const Text('Start Service'),
+                      label:  Text(tr('Start Service')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primaryColor,
                         foregroundColor: Colors.white,
@@ -488,7 +480,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     ElevatedButton.icon(
                       onPressed: () => _update('Completed'),
                       icon: const Icon(Icons.done_all, size: 18),
-                      label: const Text('Complete Service'),
+                      label:  Text(tr('Complete Service')),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: _primaryColor,
                         foregroundColor: Colors.white,
@@ -517,7 +509,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         SizedBox(
           width: 90,
           child: Text(
-            label,
+            tr(label),
             style: const TextStyle(
               color: Colors.grey,
               fontSize: 13,
@@ -526,7 +518,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         ),
         Expanded(
           child: Text(
-            value,
+            tr(value),
             style: const TextStyle(
               fontWeight: FontWeight.w600,
               fontSize: 13,

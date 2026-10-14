@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -52,18 +53,18 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Service area centre')),
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Scaffold(
+    appBar: AppBar(title:  Text(tr('Service area centre'))),
     body: Column(
       children: [
-        const Padding(
+         Padding(
           padding: EdgeInsets.all(16),
           child: Text(
-            'Tap your business or service-area centre. This pin and your service radius will be visible to customers.',
+            tr('Tap your business or service-area centre. This pin and your service radius will be visible to customers.'),
           ),
         ),
         if (_error != null)
-          Padding(padding: const EdgeInsets.all(8), child: Text(_error!)),
+          Padding(padding: const EdgeInsets.all(8), child: Text(tr(_error!))),
         Expanded(
           child: FlutterMap(
             mapController: _map,
@@ -135,14 +136,12 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
             child: Column(
               children: [
                 Text(
-                  _point == null
-                      ? 'Select a pin to continue'
-                      : '${widget.radiusKm.toInt()} km from ${_point!.latitude.toStringAsFixed(4)}, ${_point!.longitude.toStringAsFixed(4)}',
+                  tr(_point == null ? 'Select a pin to continue' : '${widget.radiusKm.toInt()} km from ${_point!.latitude.toStringAsFixed(4)}, ${_point!.longitude.toStringAsFixed(4)}'),
                 ),
                 TextButton.icon(
                   onPressed: _locating ? null : _locate,
                   icon: const Icon(Icons.my_location),
-                  label: Text(_locating ? 'Locating…' : 'Use my location'),
+                  label: Text(tr(_locating ? 'Locating…' : 'Use my location')),
                 ),
                 SizedBox(
                   width: double.infinity,
@@ -150,7 +149,7 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
                     onPressed: _point == null
                         ? null
                         : () => Navigator.pop(context, _point),
-                    child: const Text('Use this service centre'),
+                    child:  Text(tr('Use this service centre')),
                   ),
                 ),
               ],
@@ -159,5 +158,5 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
         ),
       ],
     ),
-  );
+  ); }
 }

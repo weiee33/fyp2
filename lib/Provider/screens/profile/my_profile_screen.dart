@@ -1,3 +1,5 @@
+import 'package:fyp2/shared/localization/app_language.dart';
+import '../../../shared/localization/language_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../../shared/chat/chat_inbox_screen.dart';
@@ -60,7 +62,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load profile: $e'),
+          content: Text(tr('Failed to load profile: $e')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -72,17 +74,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Log Out'),
-        content: const Text('Are you sure you want to log out?'),
+        title:  Text(tr('Log Out')),
+        content:  Text(tr('Are you sure you want to log out?')),
         actions: [
+          IconButton(icon: const Icon(Icons.language_rounded), tooltip: trOrNull('Language / 语言 / Bahasa'), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen()))),
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child:  Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Log Out'),
+            child:  Text(tr('Log Out')),
           ),
         ],
       ),
@@ -119,6 +122,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final pages = [
       _buildProfileTab(),
       const MyServicesScreen(),
@@ -136,15 +140,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Text(
-          'Profile',
+        title:  Text(
+          tr('Profile'),
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
           // ---- Chat Icon ----
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline),
-            tooltip: 'Chats',
+            tooltip: trOrNull('Chats'),
             onPressed: _openChats,
           ),
 
@@ -159,7 +163,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    tooltip: 'Notifications',
+                    tooltip: trOrNull('Notifications'),
                     onPressed: _openNotifications,
                   ),
                   if (unread > 0)
@@ -177,7 +181,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           minHeight: 18,
                         ),
                         child: Text(
-                          unread > 9 ? '9+' : '$unread',
+                          tr(unread > 9 ? '9+' : '$unread'),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 10,
@@ -204,15 +208,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: _primaryOrange,
         unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Services'),
+        items:  [
+          BottomNavigationBarItem(icon: Icon(Icons.person), label: tr('Profile')),
+          BottomNavigationBarItem(icon: Icon(Icons.work), label: tr('Services')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month), label: 'Bookings'),
+              icon: Icon(Icons.calendar_month), label: tr('Bookings')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.attach_money), label: 'Earnings'),
+              icon: Icon(Icons.attach_money), label: tr('Earnings')),
           BottomNavigationBarItem(
-              icon: Icon(Icons.schedule), label: 'Schedule'),
+              icon: Icon(Icons.schedule), label: tr('Schedule')),
         ],
       ),
     );
@@ -254,7 +258,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
                       child: photoUrl.isEmpty
                           ? Text(
-                        initial,
+                        tr(initial),
                         style: const TextStyle(
                           fontSize: 26,
                           fontWeight: FontWeight.bold,
@@ -269,7 +273,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            name,
+                            tr(name),
                             style: const TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -278,7 +282,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            bio,
+                            tr(bio),
                             style: const TextStyle(
                               color: Colors.grey,
                               fontSize: 13,
@@ -293,7 +297,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                   color: Colors.orange, size: 16),
                               const SizedBox(width: 4),
                               Text(
-                                '$rating · $years years',
+                                tr('$rating · $years years'),
                                 style: const TextStyle(
                                   color: Colors.orange,
                                   fontSize: 13,
@@ -310,7 +314,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       icon: const Icon(Icons.logout),
                       color: Colors.red.shade400,
                       onPressed: _logout,
-                      tooltip: 'Log Out',
+                      tooltip: trOrNull('Log Out'),
                     ),
                   ],
                 ),
@@ -377,12 +381,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Row(
+                      content:  Row(
                         children: [
                           Icon(Icons.check_circle,
                               color: Colors.white, size: 20),
                           SizedBox(width: 8),
-                          Text('Submitted for verification'),
+                          Text(tr('Submitted for verification')),
                         ],
                       ),
                       backgroundColor: Colors.green.shade600,
@@ -395,8 +399,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   _load();
                 },
                 icon: const Icon(Icons.verified_outlined),
-                label: const Text(
-                  'Submit for Verification',
+                label:  Text(
+                  tr('Submit for Verification'),
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -455,7 +459,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           Icon(icon, size: 14, color: fg),
           const SizedBox(width: 4),
           Text(
-            status,
+            tr(status),
             style: TextStyle(
               color: fg,
               fontSize: 12,
@@ -478,7 +482,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     child: ListTile(
       leading: Icon(icon, color: _primaryOrange),
       title: Text(
-        label,
+        tr(label),
         style: const TextStyle(fontWeight: FontWeight.w500),
       ),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),

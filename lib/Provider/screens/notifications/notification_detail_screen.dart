@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../../shared/chat/chat_screen.dart';
 import 'package:flutter/material.dart';
 import '../bookings/booking_detail_screen.dart';
@@ -13,6 +14,7 @@ class NotificationDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final bookingId = data['booking_id']?.toString();
     final chatLink = data['deep_link']?.toString() ?? '';
     final type = data['notification_type']?.toString() ?? '';
@@ -22,7 +24,7 @@ class NotificationDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Notification Detail'),
+        title:  Text(tr('Notification Detail')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -33,7 +35,7 @@ class NotificationDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (RegExp(r'^chat/[0-9a-fA-F-]{36}$').hasMatch(chatLink)) FilledButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ConversationScreen(conversationId: chatLink.substring(5)))), icon: const Icon(Icons.chat_bubble_outline), label: const Text('Open conversation')),
+              if (RegExp(r'^chat/[0-9a-fA-F-]{36}$').hasMatch(chatLink)) FilledButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ConversationScreen(conversationId: chatLink.substring(5)))), icon: const Icon(Icons.chat_bubble_outline), label:  Text(tr('Open conversation'))),
               // ---- Header Card ----
               Card(
                 elevation: 2,
@@ -61,7 +63,7 @@ class NotificationDetailScreen extends StatelessWidget {
                             Icon(icon, size: 14, color: color),
                             const SizedBox(width: 6),
                             Text(
-                              type.isEmpty ? 'Notification' : type,
+                              tr(type.isEmpty ? 'Notification' : type),
                               style: TextStyle(
                                 color: color,
                                 fontSize: 11,
@@ -75,7 +77,7 @@ class NotificationDetailScreen extends StatelessWidget {
 
                       // Title
                       Text(
-                        data['title']?.toString() ?? 'Notification',
+                        tr(data['title']?.toString() ?? 'Notification'),
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -86,7 +88,7 @@ class NotificationDetailScreen extends StatelessWidget {
 
                       // Timestamp
                       Text(
-                        _formatTime(data['created_at']?.toString()),
+                        tr(_formatTime(data['created_at']?.toString())),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -99,8 +101,8 @@ class NotificationDetailScreen extends StatelessWidget {
                       const SizedBox(height: 20),
 
                       // Message
-                      const Text(
-                        'Message',
+                       Text(
+                        tr('Message'),
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
@@ -109,7 +111,7 @@ class NotificationDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        data['message']?.toString() ?? '',
+                        tr(data['message']?.toString() ?? ''),
                         style: const TextStyle(
                           fontSize: 15,
                           height: 1.5,
@@ -152,8 +154,8 @@ class NotificationDetailScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Related Booking',
+                               Text(
+                                tr('Related Booking'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -162,7 +164,7 @@ class NotificationDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '#${bookingId.length >= 8 ? bookingId.substring(0, 8) : bookingId}',
+                                tr('#${bookingId.length >= 8 ? bookingId.substring(0, 8) : bookingId}'),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
@@ -193,8 +195,8 @@ class NotificationDetailScreen extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.arrow_forward),
-                    label: const Text(
-                      'View Booking',
+                    label:  Text(
+                      tr('View Booking'),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,

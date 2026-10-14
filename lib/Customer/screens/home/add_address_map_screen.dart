@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -190,7 +191,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
         await CustomerDialogs.show(
           context,
           message:
-              'No address was found for this pin. Please enter the address details.',
+              tr('No address was found for this pin. Please enter the address details.'),
         );
       }
     } catch (e) {
@@ -218,7 +219,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
         await CustomerDialogs.show(
           context,
           message:
-              'Address not found in Malaysia. Try a nearby street or building.',
+              tr('Address not found in Malaysia. Try a nearby street or building.'),
         );
       } else {
         _select(
@@ -245,7 +246,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       await CustomerDialogs.show(
         context,
         message:
-            'Please enter the address, city, state and a five-digit Malaysian postcode.',
+            tr('Please enter the address, city, state and a five-digit Malaysian postcode.'),
       );
       return;
     }
@@ -265,8 +266,8 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       setState(() => _isSaving = false);
       await CustomerDialogs.show(
         context,
-        title: 'Success',
-        message: 'Address saved successfully.',
+        title: tr('Success'),
+        message: tr('Address saved successfully.'),
       );
       if (mounted) Navigator.pop(context, address);
     } catch (e) {
@@ -310,17 +311,17 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
     maxLines: label == 'Address Line / Unit No.' ? 3 : 1,
     keyboardType: numeric ? TextInputType.number : TextInputType.streetAddress,
     decoration: InputDecoration(
-      labelText: label,
+      labelText: trOrNull(label),
       floatingLabelBehavior: FloatingLabelBehavior.always,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
   );
 
   @override
-  Widget build(BuildContext context) => Theme(
+  Widget build(BuildContext context) { AppLanguage.watch(context); return  Theme(
     data: CustomerTheme.lightTheme,
     child: Scaffold(
-      appBar: AppBar(title: const Text('Add Service Location')),
+      appBar: AppBar(title:  Text(tr('Add Service Location'))),
       body: SafeArea(
         top: false,
         child: LayoutBuilder(
@@ -405,7 +406,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                     height: 64,
                                     child: Semantics(
                                       label:
-                                          '${p.name}, ${p.radiusKm.toInt()} kilometre service radius',
+                                          tr('${p.name}, ${p.radiusKm.toInt()} kilometre service radius'),
                                       button: true,
                                       child: GestureDetector(
                                         onTap: () => setState(
@@ -430,7 +431,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                                     BorderRadius.circular(8),
                                               ),
                                               child: Text(
-                                                p.name,
+                                                tr(p.name),
                                                 maxLines: 1,
                                                 overflow: TextOverflow.ellipsis,
                                                 style: const TextStyle(
@@ -477,9 +478,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                             : Icons.layers_outlined,
                       ),
                       label: Text(
-                        _showCoverage
-                            ? 'Hide service areas'
-                            : 'Show service areas',
+                        tr(_showCoverage ? 'Hide service areas' : 'Show service areas'),
                       ),
                     ),
                   ),
@@ -507,31 +506,29 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                               if (_coverageError != null)
                                 InkWell(
                                   onTap: _loadCoverage,
-                                  child: Text(_coverageError!),
+                                  child: Text(tr(_coverageError!)),
                                 )
                               else if (_selectedProvider != null) ...[
                                 Text(
-                                  _selectedProvider!.name,
+                                  tr(_selectedProvider!.name),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                                 Text(
-                                  '${_selectedProvider!.radiusKm.toInt()} km radius · ${_selectedProvider!.covers(_currentPosition) ? 'Selected address in range' : 'Selected address outside range'}',
+                                  tr('${_selectedProvider!.radiusKm.toInt()} km radius · ${_selectedProvider!.covers(_currentPosition) ? 'Selected address in range' : 'Selected address outside range'}'),
                                 ),
                                 Text(
-                                  _selectedProvider!.services.join(' · '),
+                                  tr(_selectedProvider!.services.join(' · ')),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ] else
                                 Text(
-                                  _coverage.isEmpty
-                                      ? 'No published service areas near this address.'
-                                      : '${_coverage.length} providers nearby · Tap a blue marker',
+                                  tr(_coverage.isEmpty ? 'No published service areas near this address.' : '${_coverage.length} providers nearby · Tap a blue marker'),
                                 ),
-                              const Text(
-                                'Provider-declared areas. Confirm availability before booking.',
+                               Text(
+                                tr('Provider-declared areas. Confirm availability before booking.'),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: Colors.black54,
@@ -572,7 +569,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                               child: Column(
                                 children: [
                                   Semantics(
-                                    label: 'Drag to resize address panel',
+                                    label: tr('Drag to resize address panel'),
                                     child: SizedBox(
                                       key: const ValueKey(
                                         'address-sheet-handle',
@@ -606,7 +603,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                       textInputAction: TextInputAction.search,
                                       onSubmitted: (_) => _search(),
                                       decoration: InputDecoration(
-                                        hintText: 'Search street or building',
+                                        hintText: trOrNull('Search street or building'),
                                         isDense: true,
                                         contentPadding:
                                             const EdgeInsets.symmetric(
@@ -614,7 +611,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                             ),
                                         prefixIcon: const Icon(Icons.search),
                                         suffixIcon: IconButton(
-                                          tooltip: 'Search address',
+                                          tooltip: trOrNull('Search address'),
                                           onPressed: _search,
                                           icon: const Icon(Icons.arrow_forward),
                                         ),
@@ -636,8 +633,8 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                           'https://www.openstreetmap.org/copyright',
                                         ),
                                       ),
-                                      child: const Text(
-                                        '© OpenStreetMap contributors',
+                                      child:  Text(
+                                        tr('© OpenStreetMap contributors'),
                                         style: TextStyle(
                                           fontSize: 10,
                                           color: Colors.black54,
@@ -656,9 +653,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                             children: [
                               Row(
                                 children: [
-                                  const Expanded(
+                                   Expanded(
                                     child: Text(
-                                      'Address Details',
+                                      tr('Address Details'),
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -672,17 +669,17 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                       size: 18,
                                     ),
                                     label: Text(
-                                      _locating ? 'Locating…' : 'My location',
+                                      tr(_locating ? 'Locating…' : 'My location'),
                                     ),
                                   ),
                                 ],
                               ),
                               if (_isFetchingLocation || _locating)
                                 const LinearProgressIndicator(),
-                              const Padding(
+                               Padding(
                                 padding: EdgeInsets.only(top: 4, bottom: 16),
                                 child: Text(
-                                  'Add your unit or floor number if needed.',
+                                  tr('Add your unit or floor number if needed.'),
                                   style: TextStyle(fontSize: 12),
                                 ),
                               ),
@@ -692,7 +689,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                 children: ['Home', 'Office', 'Other']
                                     .map(
                                       (label) => ChoiceChip(
-                                        label: Text(label),
+                                        label: Text(tr(label)),
                                         selected: _selectedLabel == label,
                                         selectedColor:
                                             CustomerTheme.primarySurface,
@@ -730,8 +727,8 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                               SwitchListTile(
                                 contentPadding: EdgeInsets.zero,
                                 activeThumbColor: CustomerTheme.primary,
-                                title: const Text(
-                                  'Set as default service address',
+                                title:  Text(
+                                  tr('Set as default service address'),
                                   style: TextStyle(fontSize: 14),
                                 ),
                                 value: _isDefault,
@@ -756,7 +753,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                           strokeWidth: 2,
                                         ),
                                       )
-                                    : const Text('Save & Select Address'),
+                                    :  Text(tr('Save & Select Address')),
                               ),
                             ],
                           ),
@@ -771,7 +768,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
         ),
       ),
     ),
-  );
+  ); }
 }
 
 class _AddressSearchHeader extends SliverPersistentHeaderDelegate {
@@ -787,7 +784,7 @@ class _AddressSearchHeader extends SliverPersistentHeaderDelegate {
     BuildContext context,
     double shrinkOffset,
     bool overlapsContent,
-  ) => child;
+  ) { AppLanguage.watch(context); return  child; }
   @override
   bool shouldRebuild(covariant _AddressSearchHeader oldDelegate) =>
       oldDelegate.height != height || oldDelegate.child != child;

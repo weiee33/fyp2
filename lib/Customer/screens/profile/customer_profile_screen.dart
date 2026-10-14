@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
 import 'package:flutter/material.dart';
@@ -70,7 +71,7 @@ class _ProfileState extends State<CustomerProfileScreen> {
               Icon(icon, size: 28, color: CustomerTheme.primary),
             const SizedBox(height: 10),
             Text(
-              label,
+              tr(label),
               textAlign: TextAlign.center,
               style: const TextStyle(fontSize: 12),
             ),
@@ -81,6 +82,7 @@ class _ProfileState extends State<CustomerProfileScreen> {
   );
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final photo = _profile?['profile_photo_url']?.toString() ?? '';
     return Scaffold(
       backgroundColor: const Color(0xFFF5F5F5),
@@ -106,7 +108,7 @@ class _ProfileState extends State<CustomerProfileScreen> {
                             onTap: _profile == null ? null : _edit,
                             child: Semantics(
                               button: true,
-                              label: 'Edit profile photo and personal details',
+                              label: tr('Edit profile photo and personal details'),
                               child: CircleAvatar(
                                 radius: 34,
                                 backgroundColor: Colors.white,
@@ -154,10 +156,10 @@ class _ProfileState extends State<CustomerProfileScreen> {
               const LinearProgressIndicator(),
             if (_error != null)
               ListTile(
-                title: Text(_error!),
+                title: Text(tr(_error!)),
                 trailing: TextButton(
                   onPressed: _load,
-                  child: const Text('Retry'),
+                  child:  Text(tr('Retry')),
                 ),
               ),
             Padding(
@@ -188,18 +190,18 @@ class _ProfileState extends State<CustomerProfileScreen> {
                     ],
                   ),
                   AccountGroup(
-                    title: 'Manage my account',
+                    title: tr('Manage my account'),
                     children: [
                       AccountRow(
-                        label: 'My Addresses',
-                        subtitle: 'Where your service takes place',
+                        label: tr('My Addresses'),
+                        subtitle: tr('Where your service takes place'),
                         icon: Icons.location_on_outlined,
                         onTap: () =>
                             _open(const CustomerSavedAddressesScreen()),
                       ),
                       AccountRow(
-                        label: 'Profile & Preferences',
-                        subtitle: 'Personal details and preferred services',
+                        label: tr('Profile & Preferences'),
+                        subtitle: tr('Personal details and preferred services'),
                         icon: Icons.person_outline,
                         onTap: _profile == null ? null : _edit,
                       ),
@@ -208,7 +210,7 @@ class _ProfileState extends State<CustomerProfileScreen> {
                   AccountGroup(
                     children: [
                       AccountRow(
-                        label: 'Settings & Help',
+                        label: tr('Settings & Help'),
                         icon: Icons.settings_outlined,
                         onTap: () => _open(const CustomerSettingsScreen()),
                       ),
