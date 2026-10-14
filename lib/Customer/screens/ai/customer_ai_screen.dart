@@ -443,12 +443,30 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
 
   Future<void> _confirm(Map<String, dynamic> action) async {
     if (_busy) return;
+    final booking = action['kind'] == 'booking';
     final ok = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title: Text(action['title']?.toString() ?? 'Confirm action'),
+        title: Text(
+          booking
+              ? 'Review booking'
+              : action['title']?.toString() ?? 'Confirm action',
+        ),
         content: SingleChildScrollView(
-          child: Text(action['summary']?.toString() ?? ''),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(action['summary']?.toString() ?? ''),
+              if (booking) ...[
+                const SizedBox(height: 16),
+                const Text(
+                  'Confirm these details to send your request. You can pay after the provider accepts.',
+                  style: TextStyle(fontWeight: FontWeight.w600),
+                ),
+              ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -457,7 +475,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
-            child: const Text('Confirm'),
+            child: Text(booking ? 'Send booking request' : 'Confirm'),
           ),
         ],
       ),
@@ -468,15 +486,47 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       final result = await _service.confirm(action['id'].toString());
       if (!mounted) return;
       setState(() => _doneActions.add(action['id'].toString()));
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Action completed.')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            booking
+                ? 'Booking request sent. Payment opens after provider acceptance.'
+                : 'Action completed.',
+          ),
+        ),
+      );
       if (result['booking_id'] != null) {
         await _navigate({
           'screen': 'booking',
           'record_id': result['booking_id'],
         });
       }
+    } catch (e) {
+      if (mounted) setState(() => _error = _message(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _openBooking(Map<String, dynamic> action) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      // Completed action confirmation is idempotent and returns its original
+      // booking ID. Fetch current eligibility instead of using that old snapshot.
+      final result = await _service.confirm(action['id'].toString());
+      final id = result['booking_id']?.toString();
+      if (id == null) {
+        throw const FormatException(
+          'This booking could not be opened. Please check My bookings.',
+        );
+      }
+      final booking = await _service.booking(id);
+      if (!mounted) return;
+      await _navigate({
+        'screen': booking['can_pay'] == true ? 'payment' : 'booking',
+        'record_id': id,
+      });
     } catch (e) {
       if (mounted) setState(() => _error = _message(e));
     } finally {
@@ -556,8 +606,9 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     final spans = <InlineSpan>[];
     var offset = 0;
     for (final match in RegExp(r'\*\*([^*\n]+)\*\*').allMatches(plain)) {
-      if (match.start > offset)
+      if (match.start > offset) {
         spans.add(TextSpan(text: plain.substring(offset, match.start)));
+      }
       spans.add(
         TextSpan(
           text: match[1],
@@ -625,6 +676,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
               final a = Map<String, dynamic>.from(raw);
               final done =
                   _doneActions.contains(a['id']) || a['status'] == 'done';
+              final booking = a['kind'] == 'booking';
               final expires = DateTime.tryParse(
                 a['expires_at']?.toString() ?? '',
               );
@@ -643,7 +695,11 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      a['title']?.toString() ?? 'Continue',
+                      booking
+                          ? (done
+                                ? 'Booking request sent'
+                                : 'Your booking review')
+                          : a['title']?.toString() ?? 'Continue',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     if (a['summary'] != null)
@@ -651,19 +707,31 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                         padding: const EdgeInsets.symmetric(vertical: 8),
                         child: Text(a['summary'].toString()),
                       ),
+                    if (booking)
+                      const Padding(
+                        padding: EdgeInsets.only(bottom: 12),
+                        child: Text(
+                          'Review & send → Provider accepts → You pay',
+                          style: TextStyle(fontSize: 12, height: 1.5),
+                        ),
+                      ),
                     FilledButton.tonal(
-                      onPressed: _busy || done || expired
+                      onPressed: _busy || (done && !booking) || expired
                           ? null
-                          : () => a['kind'] == 'navigate'
+                          : () => done && booking
+                                ? _openBooking(a)
+                                : a['kind'] == 'navigate'
                                 ? _navigate(a)
                                 : _confirm(a),
                       child: Text(
                         done
-                            ? 'Completed'
+                            ? (booking ? 'View booking & payment' : 'Completed')
                             : expired
                             ? 'Expired — ask for a new card'
                             : a['kind'] == 'navigate'
                             ? 'Open'
+                            : booking
+                            ? 'Review booking'
                             : 'Review & confirm',
                       ),
                     ),
