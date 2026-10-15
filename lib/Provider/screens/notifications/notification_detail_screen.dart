@@ -24,7 +24,7 @@ class NotificationDetailScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title:  Text(tr('Notification Detail')),
+        title: Text(tr('Notification Detail')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -35,7 +35,19 @@ class NotificationDetailScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              if (RegExp(r'^chat/[0-9a-fA-F-]{36}$').hasMatch(chatLink)) FilledButton.icon(onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ConversationScreen(conversationId: chatLink.substring(5)))), icon: const Icon(Icons.chat_bubble_outline), label:  Text(tr('Open conversation'))),
+              if (RegExp(r'^chat/[0-9a-fA-F-]{36}$').hasMatch(chatLink))
+                FilledButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ConversationScreen(
+                        conversationId: chatLink.substring(5),
+                      ),
+                    ),
+                  ),
+                  icon: const Icon(Icons.chat_bubble_outline),
+                  label: Text(tr('Open conversation')),
+                ),
               // ---- Header Card ----
               Card(
                 elevation: 2,
@@ -52,7 +64,9 @@ class NotificationDetailScreen extends StatelessWidget {
                       // Type badge
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 4),
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
                         decoration: BoxDecoration(
                           color: color.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
@@ -101,7 +115,7 @@ class NotificationDetailScreen extends StatelessWidget {
                       const SizedBox(height: 20),
 
                       // Message
-                       Text(
+                      Text(
                         tr('Message'),
                         style: TextStyle(
                           fontSize: 12,
@@ -154,7 +168,7 @@ class NotificationDetailScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                               Text(
+                              Text(
                                 tr('Related Booking'),
                                 style: TextStyle(
                                   fontSize: 12,
@@ -164,7 +178,9 @@ class NotificationDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                tr('#${bookingId.length >= 8 ? bookingId.substring(0, 8) : bookingId}'),
+                                tr(
+                                  '#${bookingId.length >= 8 ? bookingId.substring(0, 8) : bookingId}',
+                                ),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
@@ -195,7 +211,7 @@ class NotificationDetailScreen extends StatelessWidget {
                       );
                     },
                     icon: const Icon(Icons.arrow_forward),
-                    label:  Text(
+                    label: Text(
                       tr('View Booking'),
                       style: TextStyle(
                         fontSize: 15,
@@ -255,9 +271,9 @@ class NotificationDetailScreen extends StatelessWidget {
     if (d == null) return '';
     final diff = DateTime.now().difference(d);
     if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-    if (diff.inHours < 24) return '${diff.inHours} hours ago';
-    if (diff.inDays < 7) return '${diff.inDays} days ago';
+    if (diff.inMinutes < 60) return tr("{0} min ago", [diff.inMinutes]);
+    if (diff.inHours < 24) return tr("{0} hours ago", [diff.inHours]);
+    if (diff.inDays < 7) return tr("{0} days ago", [diff.inDays]);
     return '${d.day}/${d.month}/${d.year}';
   }
 }

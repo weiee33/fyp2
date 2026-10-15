@@ -62,24 +62,26 @@ class _CustomerRefreshState extends State<CustomerRefresh> {
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return 
-      NotificationListener<ScrollNotification>(
-        onNotification: _scroll,
-        child: Stack(
-          children: [
-            RefreshIndicator(
-              color: widget.color,
-              onRefresh: _refresh,
-              child: widget.child,
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return NotificationListener<ScrollNotification>(
+      onNotification: _scroll,
+      child: Stack(
+        children: [
+          RefreshIndicator(
+            color: widget.color,
+            onRefresh: _refresh,
+            child: widget.child,
+          ),
+          if (_refreshing && _bottom)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: LinearProgressIndicator(color: widget.color),
             ),
-            if (_refreshing && _bottom)
-              Positioned(
-                left: 0,
-                right: 0,
-                bottom: 0,
-                child: LinearProgressIndicator(color: widget.color),
-              ),
-          ],
-        ),
-      ); }
+        ],
+      ),
+    );
+  }
 }

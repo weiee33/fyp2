@@ -42,8 +42,12 @@ class PaymentReceipt {
       payment['payment_timestamp']?.toString() ?? '',
     );
     return time == null
-        ? 'Unavailable'
-        : '${DateFormat('d MMM yyyy, h:mm a').format(time.toUtc().add(const Duration(hours: 8)))} MYT';
+        ? tr('Unavailable')
+        : tr("{0} MYT", [
+            DateFormat.yMMMd().add_jm().format(
+              time.toUtc().add(const Duration(hours: 8)),
+            ),
+          ]);
   }
 
   String get filename =>
@@ -53,11 +57,11 @@ class PaymentReceipt {
     ('Booking reference', booking.id),
     ('Payment reference', reference),
     ('Payment recorded', paidAt),
-    ('Payment method', method),
+    ('Payment method', tr(method)),
     ('Provider', booking.providerName),
     ('Appointment (Malaysia time)', booking.appointmentLabel),
     ('Service address', booking.address),
-    ('Booking status', booking.displayStatus),
+    ('Booking status', tr(booking.displayStatus)),
   ];
 }
 
@@ -68,8 +72,11 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
   final bold = pw.Font.ttf(
     await rootBundle.load('assets/fonts/roboto-bold.ttf'),
   );
+  final chinese = pw.Font.ttf(
+    await rootBundle.load('assets/fonts/noto-sans-sc-regular.ttf'),
+  );
   final doc = pw.Document(
-    title: tr('Home Serve payment receipt ${receipt.number}'),
+    title: tr("Home Serve payment receipt {0}", [receipt.number]),
     author: 'Home Serve',
   );
   const orange = PdfColor.fromInt(0xFFFF6B00);
@@ -78,7 +85,11 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(42),
-      theme: pw.ThemeData.withFont(base: regular, bold: bold),
+      theme: pw.ThemeData.withFont(
+        base: regular,
+        bold: bold,
+        fontFallback: [chinese],
+      ),
       footer: (context) => pw.Column(
         children: [
           pw.Divider(color: PdfColors.grey300),
@@ -88,7 +99,10 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
           ),
           pw.SizedBox(height: 5),
           pw.Text(
-            tr('Home Serve  |  Page ${context.pageNumber} of ${context.pagesCount}'),
+            tr("Home Serve  |  Page {0} of {1}", [
+              context.pageNumber,
+              context.pagesCount,
+            ]),
             style: const pw.TextStyle(fontSize: 9),
           ),
         ],
@@ -127,7 +141,7 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
                 ),
               ),
               pw.Text(
-                tr(receipt.amount),
+                receipt.amount,
                 style: pw.TextStyle(
                   fontSize: 24,
                   fontWeight: pw.FontWeight.bold,
@@ -143,7 +157,7 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
         ),
         pw.SizedBox(height: 6),
         pw.Text(
-          tr(receipt.booking.serviceName),
+          receipt.booking.serviceName,
           style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
         ),
         pw.SizedBox(height: 18),
@@ -165,7 +179,7 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
                 ),
                 pw.Expanded(
                   child: pw.Text(
-                    tr(row.$2),
+                    row.$2,
                     style: const pw.TextStyle(fontSize: 11),
                   ),
                 ),
@@ -175,12 +189,18 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
         pw.Divider(color: PdfColors.grey300),
         pw.SizedBox(height: 10),
         pw.Text(
-          tr(receipt.refunded ? 'This payment is recorded as refunded. The original payment details are retained for your records.' : 'This receipt reflects the payment confirmed by the server. Keep the payment reference when contacting support.'),
+          tr(
+            receipt.refunded
+                ? 'This payment is recorded as refunded. The original payment details are retained for your records.'
+                : 'This receipt reflects the payment confirmed by the server. Keep the payment reference when contacting support.',
+          ),
           style: const pw.TextStyle(fontSize: 10, lineSpacing: 3),
         ),
         pw.SizedBox(height: 10),
         pw.Text(
-          tr('This is a sandbox demonstration receipt, not a tax invoice or evidence of a real bank transfer.'),
+          tr(
+            'This is a sandbox demonstration receipt, not a tax invoice or evidence of a real bank transfer.',
+          ),
           style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
         ),
       ],

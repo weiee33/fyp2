@@ -13,7 +13,18 @@ class PortalEntryScreen extends StatelessWidget {
     AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: AppBar(actions: [IconButton(icon: const Icon(Icons.language_rounded), tooltip: trOrNull('Language / 语言 / Bahasa'), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguageScreen())))]),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.language_rounded),
+            tooltip: trOrNull('Language / 语言 / Bahasa'),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LanguageScreen()),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
@@ -23,7 +34,7 @@ class PortalEntryScreen extends StatelessWidget {
               const Spacer(),
               const HomeServeMark(size: 96),
               const SizedBox(height: 24),
-               Text(
+              Text(
                 tr('Home Serve'),
                 style: TextStyle(
                   fontSize: 26,
@@ -32,7 +43,7 @@ class PortalEntryScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-               Text(
+              Text(
                 tr('Select your portal to continue'),
                 style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
               ),
@@ -47,7 +58,9 @@ class PortalEntryScreen extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const CustomerLoginScreen()),
+                    MaterialPageRoute(
+                      builder: (_) => const CustomerLoginScreen(),
+                    ),
                   );
                 },
               ),
@@ -67,7 +80,7 @@ class PortalEntryScreen extends StatelessWidget {
                 },
               ),
               const Spacer(),
-               Text(
+              Text(
                 tr('Admin governance is accessible via web dashboard only.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 12, color: Color(0xFF9CA3AF)),
@@ -80,14 +93,14 @@ class PortalEntryScreen extends StatelessWidget {
   }
 
   Widget _buildRoleCard(
-      BuildContext context, {
-        required String title,
-        required String subtitle,
-        required IconData icon,
-        required Color primaryColor,
-        required Color backgroundColor,
-        required VoidCallback onTap,
-      }) {
+    BuildContext context, {
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color primaryColor,
+    required Color backgroundColor,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -129,7 +142,11 @@ class PortalEntryScreen extends StatelessWidget {
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios_rounded, size: 18, color: primaryColor),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 18,
+              color: primaryColor,
+            ),
           ],
         ),
       ),

@@ -10,7 +10,8 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(const LocalLifeApp());
+    await tester.pumpWidget(LocalLifeApp(initialize: () async {}));
+    await tester.pumpAndSettle();
     expect(find.text('Consumer Portal'), findsOneWidget);
     expect(find.text('Provider Portal'), findsOneWidget);
     expect(find.text('Admin Portal'), findsNothing);

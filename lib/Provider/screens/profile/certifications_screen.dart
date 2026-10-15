@@ -26,8 +26,8 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
 
   // 🎨 Orange + White theme
   static const _primaryOrange = Color(0xFFF97316); // Orange
-  static const _lightOrange = Color(0xFFFFF7ED);   // Light orange tint
-  static const _borderOrange = Color(0xFFFFE0CC);  // Soft orange border
+  static const _lightOrange = Color(0xFFFFF7ED); // Light orange tint
+  static const _borderOrange = Color(0xFFFFE0CC); // Soft orange border
 
   @override
   void initState() {
@@ -55,7 +55,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showError('Failed to load certifications: $e');
+      _showError(tr("Failed to load certifications: {0}", [e]));
     }
   }
 
@@ -70,7 +70,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
         setState(() => _file = res.files.first);
       }
     } catch (e) {
-      _showError('Failed to pick file: $e');
+      _showError(tr("Failed to pick file: {0}", [e]));
     }
   }
 
@@ -96,7 +96,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     );
     if (picked != null) {
       _expiry.text =
-      '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
     }
   }
 
@@ -133,7 +133,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      _showError('Failed to add: $e');
+      _showError(tr("Failed to add: {0}", [e]));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -143,26 +143,22 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title:  Text(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
           tr('Delete Certification'),
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        content:  Text(tr('Are you sure?')),
+        content: Text(tr('Are you sure?')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.grey.shade700,
-            ),
-            child:  Text(tr('Cancel')),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
+            child: Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child:  Text(tr('Delete')),
+            child: Text(tr('Delete')),
           ),
         ],
       ),
@@ -177,7 +173,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       await _load();
     } catch (e) {
       if (!mounted) return;
-      _showError('Delete failed: $e');
+      _showError(tr("Delete failed: {0}", [e]));
     }
   }
 
@@ -199,9 +195,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
         content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -218,15 +212,14 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
         ),
         backgroundColor: Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
   String? _required(String? v, String label) {
-    if (v == null || v.trim().isEmpty) return '$label is required';
+    if (v == null || v.trim().isEmpty)
+      return tr("{0} is required", [tr(label)]);
     return null;
   }
 
@@ -236,257 +229,276 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title:  Text(tr('Certifications')),
+        title: Text(tr('Certifications')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
       body: _loading
           ? const Center(
-        // 🎨 Orange spinner
-        child: CircularProgressIndicator(color: _primaryOrange),
-      )
+              // 🎨 Orange spinner
+              child: CircularProgressIndicator(color: _primaryOrange),
+            )
           : SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // ---- Add Form ----
-            Card(
-              elevation: 2,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: _borderOrange),
-              ),
-              child: Padding(
+              child: ListView(
                 padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                       Text(
-                        tr('Add New Certification'),
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: _primaryOrange,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _label('Certification Name'),
-                      TextFormField(
-                        controller: _name,
-                        textInputAction: TextInputAction.next,
-                        enabled: !_submitting,
-                        validator: (value) => trOrNull(((v) => _required(v, 'Certification name'))(value)),
-                        decoration: _inputDecoration(
-                          hint: 'e.g. First Aid Certificate',
-                          icon: Icons.workspace_premium_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      _label('Issuer'),
-                      TextFormField(
-                        controller: _issuer,
-                        textInputAction: TextInputAction.next,
-                        enabled: !_submitting,
-                        validator: (value) => trOrNull(((v) => _required(v, 'Issuer'))(value)),
-                        decoration: _inputDecoration(
-                          hint: 'e.g. Red Crescent',
-                          icon: Icons.business_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      _label('Expiry Date'),
-                      TextFormField(
-                        controller: _expiry,
-                        readOnly: true,
-                        enabled: !_submitting,
-                        onTap: _pickExpiryDate,
-                        decoration: _inputDecoration(
-                          hint: 'Tap to select date',
-                          icon: Icons.calendar_today_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      _label('Certificate File (Optional)'),
-                      OutlinedButton.icon(
-                        onPressed: _submitting ? null : _pickFile,
-                        icon: Icon(
-                          _file == null
-                              ? Icons.upload_file_outlined
-                              : Icons.check_circle_outline,
-                          color: _primaryOrange,
-                        ),
-                        label: Text(
-                          tr(_file == null ? 'Choose File' : _file!.name),
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(
-                              color: _primaryOrange),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              vertical: 14),
-                          side: const BorderSide(
-                              color: _primaryOrange),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        height: 48,
-                        child: ElevatedButton.icon(
-                          onPressed: _submitting ? null : _add,
-                          icon: _submitting
-                              ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
+                children: [
+                  // ---- Add Form ----
+                  Card(
+                    elevation: 2,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: _borderOrange),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              tr('Add New Certification'),
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: _primaryOrange,
+                              ),
                             ),
-                          )
-                              : const Icon(Icons.add),
-                          label: Text(
-                            tr(_submitting ? 'Adding...' : 'Add Certification'),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
+                            const SizedBox(height: 16),
+                            _label('Certification Name'),
+                            TextFormField(
+                              controller: _name,
+                              textInputAction: TextInputAction.next,
+                              enabled: !_submitting,
+                              validator: (value) => trOrNull(
+                                ((v) =>
+                                    _required(v, 'Certification name'))(value),
+                              ),
+                              decoration: _inputDecoration(
+                                hint: 'e.g. First Aid Certificate',
+                                icon: Icons.workspace_premium_outlined,
+                              ),
                             ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _primaryOrange,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                            const SizedBox(height: 14),
+                            _label('Issuer'),
+                            TextFormField(
+                              controller: _issuer,
+                              textInputAction: TextInputAction.next,
+                              enabled: !_submitting,
+                              validator: (value) => trOrNull(
+                                ((v) => _required(v, 'Issuer'))(value),
+                              ),
+                              decoration: _inputDecoration(
+                                hint: 'e.g. Red Crescent',
+                                icon: Icons.business_outlined,
+                              ),
                             ),
-                          ),
+                            const SizedBox(height: 14),
+                            _label('Expiry Date'),
+                            TextFormField(
+                              controller: _expiry,
+                              readOnly: true,
+                              enabled: !_submitting,
+                              onTap: _pickExpiryDate,
+                              decoration: _inputDecoration(
+                                hint: 'Tap to select date',
+                                icon: Icons.calendar_today_outlined,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            _label('Certificate File (Optional)'),
+                            OutlinedButton.icon(
+                              onPressed: _submitting ? null : _pickFile,
+                              icon: Icon(
+                                _file == null
+                                    ? Icons.upload_file_outlined
+                                    : Icons.check_circle_outline,
+                                color: _primaryOrange,
+                              ),
+                              label: Text(
+                                tr(_file == null ? 'Choose File' : _file!.name),
+                                overflow: TextOverflow.ellipsis,
+                                style: const TextStyle(color: _primaryOrange),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                side: const BorderSide(color: _primaryOrange),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              height: 48,
+                              child: ElevatedButton.icon(
+                                onPressed: _submitting ? null : _add,
+                                icon: _submitting
+                                    ? const SizedBox(
+                                        height: 18,
+                                        width: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          color: Colors.white,
+                                        ),
+                                      )
+                                    : const Icon(Icons.add),
+                                label: Text(
+                                  tr(
+                                    _submitting
+                                        ? 'Adding...'
+                                        : 'Add Certification',
+                                  ),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: _primaryOrange,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ],
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 24),
+
+                  // ---- List ----
+                  Text(
+                    tr('My Certifications'),
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: _primaryOrange,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  if (_items.isEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 32),
+                      child: Center(
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.folder_open_outlined,
+                              size: 48,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              tr('No certifications yet'),
+                              style: TextStyle(color: Colors.grey),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                  else
+                    ..._items.map((c) {
+                      final id = c['certification_id']?.toString() ?? '';
+                      final name = c['certification_name'] ?? '-';
+                      final issuer = c['issuer'] ?? '-';
+                      final expiry = c['expiry_date']?.toString();
+                      final fileUrl = c['file_url']?.toString();
+
+                      return Card(
+                        elevation: 1,
+                        color: Colors.white,
+                        margin: const EdgeInsets.only(bottom: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          side: const BorderSide(color: _borderOrange),
+                        ),
+                        child: ListTile(
+                          leading: const CircleAvatar(
+                            backgroundColor: _lightOrange,
+                            child: Icon(
+                              Icons.workspace_premium,
+                              color: _primaryOrange,
+                            ),
+                          ),
+                          title: Text(
+                            name,
+                            style: const TextStyle(fontWeight: FontWeight.w600),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(issuer),
+                              if (expiry != null && expiry.isNotEmpty)
+                                Text(
+                                  tr("Expires: {0}", [expiry]),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (fileUrl != null && fileUrl.isNotEmpty)
+                                IconButton(
+                                  icon: const Icon(
+                                    Icons.file_present,
+                                    color: _primaryOrange,
+                                  ),
+                                  tooltip: trOrNull('View File'),
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          tr("File URL: {0}", [fileUrl]),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.edit_outlined,
+                                  color: _primaryOrange,
+                                ),
+                                tooltip: trOrNull('Edit'),
+                                onPressed: () => _openEdit(c),
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  color: Colors.red,
+                                ),
+                                tooltip: trOrNull('Delete'),
+                                onPressed: id.isEmpty
+                                    ? null
+                                    : () => _delete(id),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }),
+                ],
               ),
             ),
-            const SizedBox(height: 24),
-
-            // ---- List ----
-             Text(
-              tr('My Certifications'),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: _primaryOrange,
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (_items.isEmpty)
-               Padding(
-                padding: EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.folder_open_outlined,
-                          size: 48, color: Colors.grey),
-                      SizedBox(height: 8),
-                      Text(
-                        tr('No certifications yet'),
-                        style: TextStyle(color: Colors.grey),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              ..._items.map((c) {
-                final id = c['certification_id']?.toString() ?? '';
-                final name = c['certification_name'] ?? '-';
-                final issuer = c['issuer'] ?? '-';
-                final expiry = c['expiry_date']?.toString();
-                final fileUrl = c['file_url']?.toString();
-
-                return Card(
-                  elevation: 1,
-                  color: Colors.white,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: _borderOrange),
-                  ),
-                  child: ListTile(
-                    leading: const CircleAvatar(
-                      backgroundColor: _lightOrange,
-                      child: Icon(Icons.workspace_premium,
-                          color: _primaryOrange),
-                    ),
-                    title: Text(
-                      tr(name),
-                      style: const TextStyle(
-                          fontWeight: FontWeight.w600),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(tr(issuer)),
-                        if (expiry != null && expiry.isNotEmpty)
-                          Text(
-                            tr('Expires: $expiry'),
-                            style: const TextStyle(
-                                fontSize: 12, color: Colors.grey),
-                          ),
-                      ],
-                    ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (fileUrl != null && fileUrl.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(Icons.file_present,
-                                color: _primaryOrange),
-                            tooltip: trOrNull('View File'),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(
-                                SnackBar(
-                                    content:
-                                    Text(tr('File URL: $fileUrl'))),
-                              );
-                            },
-                          ),
-                        IconButton(
-                          icon: const Icon(Icons.edit_outlined,
-                              color: _primaryOrange),
-                          tooltip: trOrNull('Edit'),
-                          onPressed: () => _openEdit(c),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete_outline,
-                              color: Colors.red),
-                          tooltip: trOrNull('Delete'),
-                          onPressed:
-                          id.isEmpty ? null : () => _delete(id),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-          ],
-        ),
-      ),
     );
   }
 
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(
-      text,
-      style: const TextStyle(
-        fontWeight: FontWeight.w600,
-        fontSize: 13,
-      ),
+      tr(text),
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
     ),
   );
 
@@ -500,8 +512,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,
-      contentPadding:
-      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,

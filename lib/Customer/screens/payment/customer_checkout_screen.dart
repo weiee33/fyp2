@@ -195,7 +195,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
             paid);
     final error = _checkoutError ?? _statusError;
     return Scaffold(
-      appBar: AppBar(title:  Text(tr('Payment'))),
+      appBar: AppBar(title: Text(tr('Payment'))),
       body: booking == null && _loading
           ? const Center(child: CircularProgressIndicator())
           : ListView(
@@ -204,19 +204,29 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                 if (busy) const LinearProgressIndicator(),
                 if (error != null)
                   BookingSection(
-                    title: tr(_setupRequired ? 'Payment unavailable' : _checkoutError != null ? 'Could not open payment' : 'Could not check payment status'),
+                    title: tr(
+                      _setupRequired
+                          ? 'Payment unavailable'
+                          : _checkoutError != null
+                          ? 'Could not open payment'
+                          : 'Could not check payment status',
+                    ),
                     icon: Icons.info_outline,
                     highlighted: true,
                     children: [
                       Text(tr(error)),
                       const SizedBox(height: 8),
                       Text(
-                        tr(_setupRequired ? 'No new checkout was opened. You can try again once the service is available.' : 'Your booking is not marked paid unless the payment server confirms it.'),
+                        tr(
+                          _setupRequired
+                              ? 'No new checkout was opened. You can try again once the service is available.'
+                              : 'Your booking is not marked paid unless the payment server confirms it.',
+                        ),
                       ),
                       if (_statusError != null)
                         TextButton(
                           onPressed: busy ? null : _refresh,
-                          child:  Text(tr('Refresh status')),
+                          child: Text(tr('Refresh status')),
                         ),
                     ],
                   ),
@@ -239,13 +249,17 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            tr(refunded ? 'Payment refunded' : 'Payment confirmed'),
+                            tr(
+                              refunded
+                                  ? 'Payment refunded'
+                                  : 'Payment confirmed',
+                            ),
                             style: const TextStyle(
                               fontSize: 22,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                           Text(tr('Your receipt is ready below.')),
+                          Text(tr('Your receipt is ready below.')),
                         ],
                       ),
                     ),
@@ -274,31 +288,31 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                             RadioListTile<String>(
                               value: 'fpx',
                               enabled: !busy && !methodLocked,
-                              title:  Text(tr('FPX online banking')),
-                              subtitle:  Text(
-                                tr('Choose your Malaysian bank'),
-                              ),
+                              title: Text(tr('FPX online banking')),
+                              subtitle: Text(tr('Choose your Malaysian bank')),
                             ),
                             RadioListTile<String>(
                               value: 'wallet_card',
                               enabled: !busy && !methodLocked,
-                              title:  Text(
-                                tr('Debit / credit card or GrabPay'),
-                              ),
-                              subtitle:  Text(
+                              title: Text(tr('Debit / credit card or GrabPay')),
+                              subtitle: Text(
                                 tr('Choose on the secure Stripe page'),
                               ),
                             ),
                           ],
                         ),
                       ),
-                       Text(
-                        tr('Card number, expiry and CVC are validated by Stripe. Your card details are never stored in this app.'),
+                      Text(
+                        tr(
+                          'Card number, expiry and CVC are validated by Stripe. Your card details are never stored in this app.',
+                        ),
                         style: TextStyle(fontSize: 12),
                       ),
                       if (methodLocked)
-                         Text(
-                          tr('Continue the opened checkout. Its payment option is reserved until the window ends.'),
+                        Text(
+                          tr(
+                            'Continue the opened checkout. Its payment option is reserved until the window ends.',
+                          ),
                           style: TextStyle(fontSize: 12),
                         ),
                     ],
@@ -344,7 +358,13 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                 if (booking != null) ...[
                   BookingSection(
                     accentColor: paid ? receiptColor : null,
-                    title: tr(paid ? (booking.paymentStatus == 'Refunded' ? 'Payment refunded' : 'Payment confirmed') : 'Payment summary'),
+                    title: tr(
+                      paid
+                          ? (booking.paymentStatus == 'Refunded'
+                                ? 'Payment refunded'
+                                : 'Payment confirmed')
+                          : 'Payment summary',
+                    ),
                     icon: refunded
                         ? Icons.undo_rounded
                         : paid
@@ -361,7 +381,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                           Expanded(child: Text(tr('Total'))),
+                          Expanded(child: Text(tr('Total'))),
                           Text(
                             tr('RM ${booking.amount.toStringAsFixed(2)}'),
                             style: const TextStyle(
@@ -373,12 +393,18 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Text(tr('Payment status: ${booking.paymentStatus}')),
+                      Text(tr("Payment status: {0}", [booking.paymentStatus])),
                       if (booking.canPay && booking.paymentDeadline != null)
                         Padding(
                           padding: const EdgeInsets.only(top: 10),
                           child: Text(
-                            tr('Pay by ${DateFormat('d MMM, h:mm a').format(booking.paymentDeadline!.toUtc().add(const Duration(hours: 8)))} (Malaysia time)'),
+                            tr("Pay by {0} (Malaysia time)", [
+                              DateFormat.MMMd().add_jm().format(
+                                booking.paymentDeadline!.toUtc().add(
+                                  const Duration(hours: 8),
+                                ),
+                              ),
+                            ]),
                           ),
                         ),
                     ],
@@ -388,8 +414,10 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       title: tr('Waiting for the payment result'),
                       icon: Icons.schedule,
                       children: [
-                         Text(
-                          tr('Return here after completing the secure payment page. We check for confirmation automatically for one minute. Closing that page alone does not confirm payment.'),
+                        Text(
+                          tr(
+                            'Return here after completing the secure payment page. We check for confirmation automatically for one minute. Closing that page alone does not confirm payment.',
+                          ),
                         ),
                         const SizedBox(height: 12),
                         OutlinedButton(
@@ -399,17 +427,25 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                                   _pollsRemaining = 12;
                                   _refresh();
                                 },
-                          child:  Text(tr('Check payment status')),
+                          child: Text(tr('Check payment status')),
                         ),
                       ],
                     ),
                   if (!paid && !booking.canPay)
                     BookingSection(
-                      title: tr(booking.needsNewBooking ? 'Payment window ended' : 'Payment not available yet'),
+                      title: tr(
+                        booking.needsNewBooking
+                            ? 'Payment window ended'
+                            : 'Payment not available yet',
+                      ),
                       icon: Icons.event_busy_outlined,
                       children: [
                         Text(
-                          tr(booking.needsNewBooking ? 'This unpaid reservation expired. Return to Booking details to choose a new appointment. If you already completed the secure payment page, check the payment status before starting another booking.' : 'Return to Booking details to check the provider response and booking status.'),
+                          tr(
+                            booking.needsNewBooking
+                                ? 'This unpaid reservation expired. Return to Booking details to choose a new appointment. If you already completed the secure payment page, check the payment status before starting another booking.'
+                                : 'Return to Booking details to check the provider response and booking status.',
+                          ),
                         ),
                       ],
                     ),
@@ -417,18 +453,22 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                     title: tr('Appointment'),
                     icon: Icons.event_outlined,
                     children: [
-                      Text(tr('${booking.appointmentLabel} (Malaysia time)')),
+                      Text(
+                        tr("{0} (Malaysia time)", [booking.appointmentLabel]),
+                      ),
                       const SizedBox(height: 10),
                       Text(booking.address),
                     ],
                   ),
                   if (!paid)
-                     BookingSection(
+                    BookingSection(
                       title: tr('Sandbox test payment'),
                       icon: Icons.science_outlined,
                       children: [
                         Text(
-                          tr('No real money is collected. For a successful card test, use 4242 4242 4242 4242, a future expiry and any three-digit CVC. For FPX or GrabPay, follow the test authorisation page. Return here for verified confirmation.'),
+                          tr(
+                            'No real money is collected. For a successful card test, use 4242 4242 4242 4242, a future expiry and any three-digit CVC. For FPX or GrabPay, follow the test authorisation page. Return here for verified confirmation.',
+                          ),
                         ),
                       ],
                     ),
@@ -464,7 +504,17 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       label: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Text(
-                          tr(paid ? 'View receipt' : _processing ? 'Opening payment…' : booking.canPay ? (_openedGateway ? 'Reopen secure payment' : 'Open secure payment') : 'Back to booking'),
+                          tr(
+                            paid
+                                ? 'View receipt'
+                                : _processing
+                                ? 'Opening payment…'
+                                : booking.canPay
+                                ? (_openedGateway
+                                      ? 'Reopen secure payment'
+                                      : 'Open secure payment')
+                                : 'Back to booking',
+                          ),
                         ),
                       ),
                     ),
@@ -508,7 +558,10 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(tr(title), style: const TextStyle(fontWeight: FontWeight.w600)),
+              Text(
+                tr(title),
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
               const SizedBox(height: 4),
               Text(
                 tr(subtitle),

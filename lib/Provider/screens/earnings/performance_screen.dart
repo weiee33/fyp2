@@ -35,7 +35,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Failed to load performance: $e')),
+          content: Text(tr("Failed to load performance: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -61,9 +61,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final rating = (_profile?['overall_rating'] ?? 0).toDouble();
@@ -80,7 +78,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title:  Text(tr('Performance')),
+        title: Text(tr('Performance')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -101,7 +99,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                     Text(
+                    Text(
                       tr('Overall Rating'),
                       style: TextStyle(
                         fontSize: 14,
@@ -126,10 +124,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                           padding: EdgeInsets.only(bottom: 8, left: 4),
                           child: Text(
                             '/ 5.0',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
+                            style: TextStyle(fontSize: 16, color: Colors.grey),
                           ),
                         ),
                       ],
@@ -148,7 +143,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      tr('$totalReviews reviews'),
+                      tr("{0} reviews", [totalReviews]),
                       style: const TextStyle(color: Colors.grey, fontSize: 13),
                     ),
                   ],
@@ -170,7 +165,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                     Row(
+                    Row(
                       children: [
                         Icon(Icons.bar_chart, color: _primaryOrange, size: 20),
                         SizedBox(width: 8),
@@ -185,7 +180,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                       ],
                     ),
                     const SizedBox(height: 4),
-                     Text(
+                    Text(
                       tr('How customers rated your service'),
                       style: TextStyle(fontSize: 12, color: Colors.grey),
                     ),
@@ -298,7 +293,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
             const SizedBox(height: 12),
             _metricCard(
               label: tr('Avg. Response Time'),
-              value: '$responseTime min',
+              value: tr("{0} min", [responseTime]),
               icon: Icons.timer_outlined,
               color: _primaryOrange,
               fullWidth: true,
@@ -313,12 +308,9 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
                   _showReviewsSheet(context);
                 },
                 icon: const Icon(Icons.rate_review_outlined),
-                label:  Text(
+                label: Text(
                   tr('View Reviews'),
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _primaryOrange,
@@ -419,7 +411,7 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
               ),
             ),
             const SizedBox(height: 12),
-             Text(
+            Text(
               tr('Customer Reviews'),
               style: TextStyle(
                 fontSize: 18,
@@ -431,65 +423,74 @@ class _PerformanceScreenState extends State<PerformanceScreen> {
             const Divider(height: 1),
             Expanded(
               child: _reviews.isEmpty
-                  ?  Center(
-                child: Text(
-                  tr('No reviews yet'),
-                  style: TextStyle(color: Colors.grey),
-                ),
-              )
+                  ? Center(
+                      child: Text(
+                        tr('No reviews yet'),
+                        style: TextStyle(color: Colors.grey),
+                      ),
+                    )
                   : ListView.builder(
-                controller: controller,
-                padding: const EdgeInsets.all(16),
-                itemCount: _reviews.length,
-                itemBuilder: (_, i) {
-                  final r = _reviews[i];
-                  final name =
-                      r['customer_profiles']?['users']?['full_name'] ??
-                          'Customer';
-                  final score = r['rating_score'] ?? 0;
-                  final comment = r['review_comment'] ?? '';
-                  return Card(
-                    elevation: 1,
-                    color: Colors.white,
-                    margin: const EdgeInsets.only(bottom: 10),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      side: const BorderSide(color: _borderOrange),
-                    ),
-                    child: ListTile(
-                      leading: CircleAvatar(
-                        backgroundColor: _lightOrange,
-                        child: Text(
-                          tr(name.toString().isNotEmpty ? name.toString()[0].toUpperCase() : 'C'),
-                          style: const TextStyle(
-                            color: _primaryOrange,
-                            fontWeight: FontWeight.bold,
+                      controller: controller,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: _reviews.length,
+                      itemBuilder: (_, i) {
+                        final r = _reviews[i];
+                        final name =
+                            r['customer_profiles']?['users']?['full_name'] ??
+                            'Customer';
+                        final score = r['rating_score'] ?? 0;
+                        final comment = r['review_comment'] ?? '';
+                        return Card(
+                          elevation: 1,
+                          color: Colors.white,
+                          margin: const EdgeInsets.only(bottom: 10),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: _borderOrange),
                           ),
-                        ),
-                      ),
-                      title: Row(
-                        children: [
-                          Text(
-                            tr(name.toString()),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
+                          child: ListTile(
+                            leading: CircleAvatar(
+                              backgroundColor: _lightOrange,
+                              child: Text(
+                                tr(
+                                  name.toString().isNotEmpty
+                                      ? name.toString()[0].toUpperCase()
+                                      : 'C',
+                                ),
+                                style: const TextStyle(
+                                  color: _primaryOrange,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            tr('$score ★'),
-                            style: const TextStyle(
-                              color: Colors.orange,
-                              fontWeight: FontWeight.bold,
+                            title: Row(
+                              children: [
+                                Text(
+                                  tr(name.toString()),
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  tr('$score ★'),
+                                  style: const TextStyle(
+                                    color: Colors.orange,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
                             ),
+                            subtitle: comment.toString().isEmpty
+                                ? null
+                                : Padding(
+                                    padding: const EdgeInsets.only(top: 4),
+                                    child: Text(comment.toString()),
+                                  ),
                           ),
-                        ],
-                      ),
-                      subtitle: comment.toString().isEmpty ? null : Padding(padding: const EdgeInsets.only(top: 4), child: Text(tr(comment.toString()))),
+                        );
+                      },
                     ),
-                  );
-                },
-              ),
             ),
           ],
         ),

@@ -6,7 +6,6 @@ import '../../../shared/chat/chat_screen.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import '../../core/customer_theme.dart';
 import '../../services/customer_notification_service.dart';
 import '../../services/customer_live_updates.dart';
@@ -95,8 +94,9 @@ class _CustomerNotificationScreenState
           !await CustomerDialogs.confirm(
             context,
             title: tr('Delete notification?'),
-            message:
-                tr('Remove this notification from your list? Your booking is unchanged.'),
+            message: tr(
+              'Remove this notification from your list? Your booking is unchanged.',
+            ),
           ))
         return;
       if (delete) {
@@ -109,7 +109,13 @@ class _CustomerNotificationScreenState
       if (!mounted) return;
       await CustomerDialogs.show(
         context,
-        message: tr(delete ? 'Notification deleted.' : row['is_pinned'] == true ? 'Notification unpinned.' : 'Notification pinned.'),
+        message: tr(
+          delete
+              ? 'Notification deleted.'
+              : row['is_pinned'] == true
+              ? 'Notification unpinned.'
+              : 'Notification pinned.',
+        ),
       );
     } catch (e) {
       if (mounted) await CustomerDialogs.error(context, e);
@@ -170,7 +176,7 @@ class _CustomerNotificationScreenState
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child:  Text(tr('OK')),
+              child: Text(tr('OK')),
             ),
           ],
         ),
@@ -214,7 +220,7 @@ class _CustomerNotificationScreenState
                 pinned: true,
                 backgroundColor: Colors.white,
                 elevation: 2,
-                title:  Text(
+                title: Text(
                   tr('Notifications'),
                   style: TextStyle(color: CustomerTheme.textPrimary),
                 ),
@@ -248,7 +254,7 @@ class _CustomerNotificationScreenState
                         Text(tr(_loadError!)),
                         TextButton(
                           onPressed: _fetchNotifications,
-                          child:  Text(tr('Retry')),
+                          child: Text(tr('Retry')),
                         ),
                       ],
                     ),
@@ -269,7 +275,9 @@ class _CustomerNotificationScreenState
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          tr('No ${_activeFilter == 'All' ? '' : _activeFilter} notifications yet.'),
+                          tr("No {0} notifications yet.", [
+                            _activeFilter == 'All' ? '' : tr(_activeFilter),
+                          ]),
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 16,
@@ -446,7 +454,7 @@ class _CustomerNotificationScreenState
                               ),
                             ),
                             Text(
-                              tr(createdAt == null ? '' : timeago.format(createdAt, locale: 'en_short')),
+                              createdAt == null ? '' : relativeTime(createdAt),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isRead

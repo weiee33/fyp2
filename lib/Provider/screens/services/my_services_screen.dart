@@ -40,7 +40,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Failed to load services: $e')),
+          content: Text(tr("Failed to load services: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -55,17 +55,17 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title:  Text(tr('Delete Service')),
-        content:  Text(tr('Are you sure you want to delete this service?')),
+        title: Text(tr('Delete Service')),
+        content: Text(tr('Are you sure you want to delete this service?')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child:  Text(tr('Cancel')),
+            child: Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child:  Text(tr('Delete')),
+            child: Text(tr('Delete')),
           ),
         ],
       ),
@@ -78,7 +78,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:  Text(tr('Service deleted')),
+          content: Text(tr('Service deleted')),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -91,7 +91,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Delete failed: $e')),
+          content: Text(tr("Delete failed: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -108,7 +108,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title:  Text(tr('My Services')),
+        title: Text(tr('My Services')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -117,84 +117,87 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _load,
-          color: _primaryOrange,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // ---- Add New Service Button ----
-              SizedBox(
-                height: 50,
-                child: ElevatedButton.icon(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const EditServiceScreen()),
-                  ).then((_) => _load()),
-                  icon: const Icon(Icons.add),
-                  label:  Text(
-                    tr('Add New Service'),
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
+              child: RefreshIndicator(
+                onRefresh: _load,
+                color: _primaryOrange,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    // ---- Add New Service Button ----
+                    SizedBox(
+                      height: 50,
+                      child: ElevatedButton.icon(
+                        onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const EditServiceScreen(),
+                          ),
+                        ).then((_) => _load()),
+                        icon: const Icon(Icons.add),
+                        label: Text(
+                          tr('Add New Service'),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: _primaryOrange,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: _primaryOrange,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 2,
-                  ),
+                    const SizedBox(height: 20),
+
+                    // ---- Empty State ----
+                    if (_items.isEmpty)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 48),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.work_off_outlined,
+                              size: 56,
+                              color: Colors.grey,
+                            ),
+                            SizedBox(height: 12),
+                            Text(
+                              tr('No services yet'),
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            SizedBox(height: 4),
+                            Text(
+                              tr(
+                                'Tap "Add New Service" to create your first listing',
+                              ),
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    else
+                      // ---- Service List ----
+                      ..._items.map((s) => _serviceCard(s)),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // ---- Empty State ----
-              if (_items.isEmpty)
-                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 48),
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.work_off_outlined,
-                        size: 56,
-                        color: Colors.grey,
-                      ),
-                      SizedBox(height: 12),
-                      Text(
-                        tr('No services yet'),
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        tr('Tap "Add New Service" to create your first listing'),
-                        style: TextStyle(
-                          color: Colors.grey,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              else
-              // ---- Service List ----
-                ..._items.map((s) => _serviceCard(s)),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
   Widget _serviceCard(Map<String, dynamic> s) {
-    final name = s['service_name']?.toString() ?? 'Service';
+    final name = s['service_name']?.toString() ?? tr('Service');
     final price = s['base_price']?.toString() ?? '0';
     final duration = s['estimated_duration']?.toString() ?? '60';
     final pricing = s['pricing_type']?.toString() ?? 'Fixed';
@@ -232,7 +235,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    tr(name),
+                    name,
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
@@ -242,11 +245,8 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    tr('RM$price · $duration min · $pricing'),
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey,
-                    ),
+                    tr("RM{0} · {1} min · {2}", [price, duration, tr(pricing)]),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                 ],
               ),
@@ -259,7 +259,8 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                    builder: (_) => EditServiceScreen(existing: s)),
+                  builder: (_) => EditServiceScreen(existing: s),
+                ),
               ).then((_) => _load()),
             ),
             IconButton(

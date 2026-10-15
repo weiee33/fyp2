@@ -83,13 +83,13 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
     AppLanguage.watch(context);
     final receipt = _receipt;
     return Scaffold(
-      appBar: AppBar(title:  Text(tr('Payment receipt'))),
+      appBar: AppBar(title: Text(tr('Payment receipt'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (_error != null) ...[
             Text(tr(_error!)),
-            TextButton(onPressed: _load, child:  Text(tr('Try again'))),
+            TextButton(onPressed: _load, child: Text(tr('Try again'))),
           ] else if (receipt == null)
             const Center(child: CircularProgressIndicator())
           else ...[
@@ -103,7 +103,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Row(
+                  Row(
                     children: [
                       Icon(
                         Icons.receipt_long,
@@ -122,7 +122,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                   Text(
+                  Text(
                     tr('PAYMENT RECEIPT'),
                     style: TextStyle(
                       fontSize: 12,
@@ -132,7 +132,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    tr(receipt.amount),
+                    receipt.amount,
                     style: const TextStyle(
                       fontSize: 34,
                       fontWeight: FontWeight.bold,
@@ -162,14 +162,14 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                   ),
                   const Divider(height: 32),
                   Text(
-                    tr(receipt.booking.serviceName),
+                    receipt.booking.serviceName,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                   const SizedBox(height: 6),
-                  Text(tr(receipt.booking.providerName)),
+                  Text(receipt.booking.providerName),
                   const Divider(height: 32),
                   for (final row in receipt.details.where(
                     (row) => row.$1 != 'Provider',
@@ -195,25 +195,29 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                       ),
                     ),
                   const Divider(),
-                   Text(
+                  Text(
                     tr('SANDBOX TEST RECEIPT'),
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                   const SizedBox(height: 6),
-                   Text(
-                    tr('No real money transferred. This demonstration receipt is not a tax invoice.'),
+                  Text(
+                    tr(
+                      'No real money transferred. This demonstration receipt is not a tax invoice.',
+                    ),
                     style: TextStyle(fontSize: 12, color: Colors.black54),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-             BookingSection(
+            BookingSection(
               title: tr('Keep your payment record'),
               icon: Icons.verified_user_outlined,
               children: [
                 Text(
-                  tr('Download a PDF copy for your records. Include the payment reference when requesting booking support.'),
+                  tr(
+                    'Download a PDF copy for your records. Include the payment reference when requesting booking support.',
+                  ),
                 ),
               ],
             ),

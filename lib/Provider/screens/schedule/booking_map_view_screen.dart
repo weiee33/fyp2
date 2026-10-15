@@ -41,7 +41,7 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
       backgroundColor: _lightOrange,
       appBar: AppBar(
         title: Text(
-          tr(widget.title),
+          widget.title,
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: _primaryOrange,
@@ -62,8 +62,7 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate:
-                'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'com.example.fyp2',
               ),
               MarkerLayer(
@@ -115,7 +114,7 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
                           ),
                         ),
                         const SizedBox(width: 10),
-                         Expanded(
+                        Expanded(
                           child: Text(
                             tr('Service Address'),
                             style: TextStyle(
@@ -146,7 +145,9 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          tr('${widget.latitude.toStringAsFixed(6)}, ${widget.longitude.toStringAsFixed(6)}'),
+                          tr(
+                            '${widget.latitude.toStringAsFixed(6)}, ${widget.longitude.toStringAsFixed(6)}',
+                          ),
                           style: const TextStyle(
                             fontSize: 11,
                             color: Colors.grey,

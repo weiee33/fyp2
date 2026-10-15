@@ -1625,7 +1625,7 @@
   ],
   "Just now": [
     "刚刚",
-    "Sebentar tadi"
+    "Baru sahaja"
   ],
   "Keep chat": [
     "保留聊天",
@@ -3957,7 +3957,7 @@
   ],
   "{0} min ago": [
     "{0}分钟前",
-    "{0} minit lalu"
+    "{0} min lalu"
   ],
   "{0} minutes": [
     "{0}分钟",
@@ -4014,5 +4014,349 @@
   "{0}m": [
     "{0}分钟",
     "{0}m"
+  ],
+  " Edit photo": [
+    " 编辑照片",
+    " Edit foto"
+  ],
+  "/hour": [
+    "/小时",
+    "/jam"
+  ],
+  "Accept Booking": [
+    "接受预约",
+    "Terima tempahan"
+  ],
+  "Completed Schedule": [
+    "已完成的日程",
+    "Jadual selesai"
+  ],
+  "Selected address in range": [
+    "所选地址在服务范围内",
+    "Alamat dipilih dalam kawasan liputan"
+  ],
+  "Selected address outside range": [
+    "所选地址不在服务范围内",
+    "Alamat dipilih di luar kawasan liputan"
+  ],
+  "An active verified provider account is required": [
+    "需要已验证且有效的服务商账户",
+    "Akaun penyedia yang aktif dan disahkan diperlukan"
+  ],
+  "Customer payment must succeed before service starts": [
+    "客户须先成功付款才能开始服务",
+    "Pelanggan mesti berjaya membayar sebelum perkhidmatan bermula"
+  ],
+  "This service is not scheduled to start yet": [
+    "尚未到达服务开始时间",
+    "Masa perkhidmatan ini belum bermula"
+  ],
+  "This booking request is no longer available": [
+    "此预约请求已失效",
+    "Permintaan tempahan ini tidak lagi tersedia"
+  ],
+  "Invalid service progress transition": [
+    "无法变更为此服务状态",
+    "Perubahan status perkhidmatan tidak sah"
+  ],
+  "Explain why the requested slot cannot be accepted": [
+    "请说明无法接受此时段的原因",
+    "Jelaskan mengapa slot diminta tidak dapat diterima"
+  ],
+  "Cancelled by provider": [
+    "服务商已取消",
+    "Dibatalkan oleh penyedia"
+  ],
+  "Booking not found or does not belong to you.": [
+    "找不到预约，或此预约不属于您。",
+    "Tempahan tidak ditemui atau bukan milik anda."
+  ],
+  "Customer payment has not been completed yet. Please wait.": [
+    "客户尚未完成付款，请稍候。",
+    "Pelanggan belum selesai membayar. Sila tunggu."
+  ],
+  "No action is available for this booking.": [
+    "此预约目前没有可用操作。",
+    "Tiada tindakan tersedia untuk tempahan ini."
+  ],
+  "Please provide a valid reason for cancellation.": [
+    "请填写有效的取消原因。",
+    "Sila berikan sebab pembatalan yang sah."
+  ],
+  "This action is not allowed at the current booking status.": [
+    "当前预约状态不允许此操作。",
+    "Tindakan ini tidak dibenarkan pada status tempahan semasa."
+  ],
+  "This booking can no longer be modified. It has already been accepted or the time slot has passed.": [
+    "此预约已被接受或时段已过，无法再修改。",
+    "Tempahan ini tidak boleh diubah lagi. Ia telah diterima atau slot masa telah berlalu."
+  ],
+  "This booking has expired. No action is available.": [
+    "此预约已过期，无法操作。",
+    "Tempahan ini telah tamat tempoh. Tiada tindakan tersedia."
+  ],
+  "This booking is completed.": [
+    "此预约已完成。",
+    "Tempahan ini telah selesai."
+  ],
+  "This booking was cancelled.": [
+    "此预约已取消。",
+    "Tempahan ini telah dibatalkan."
+  ],
+  "This service is not scheduled to start yet. Try again closer to the appointment time.": [
+    "尚未到达服务时间，请在临近预约时间时重试。",
+    "Masa perkhidmatan belum bermula. Cuba lagi apabila hampir waktu janji temu."
+  ],
+  "Your provider account is not verified or active.": [
+    "您的服务商账户尚未验证或未启用。",
+    "Akaun penyedia anda belum disahkan atau tidak aktif."
+  ],
+  "e.g. 10": [
+    "例如：10",
+    "cth. 10"
+  ],
+  "e.g. 100": [
+    "例如：100",
+    "cth. 100"
+  ],
+  "e.g. 5": [
+    "例如：5",
+    "cth. 5"
+  ],
+  "e.g. 90": [
+    "例如：90",
+    "cth. 90"
+  ],
+  "e.g. ABC Services": [
+    "例如：ABC 服务公司",
+    "cth. ABC Services"
+  ],
+  "e.g. First Aid Certificate": [
+    "例如：急救证书",
+    "cth. Sijil Pertolongan Cemas"
+  ],
+  "e.g. Kuala Lumpur": [
+    "例如：吉隆坡",
+    "cth. Kuala Lumpur"
+  ],
+  "e.g. Pipe Repair": [
+    "例如：水管维修",
+    "cth. Pembaikan Paip"
+  ],
+  "e.g. Red Crescent": [
+    "例如：红新月会",
+    "cth. Bulan Sabit Merah"
+  ],
+  "{0} hr ago": [
+    "{0}小时前",
+    "{0} jam lalu"
+  ],
+  "Provider acceptance is required. Payment is handled by you.": [
+    "需等待服务商接受预约。付款由您自行完成。",
+    "Penerimaan penyedia diperlukan. Anda sendiri menguruskan pembayaran."
+  ],
+  "Instructions: {0}": [
+    "备注：{0}",
+    "Arahan: {0}"
+  ],
+  "Cancel {0}?": [
+    "取消{0}？",
+    "Batalkan {0}?"
+  ],
+  "Reason: {0}": [
+    "原因：{0}",
+    "Sebab: {0}"
+  ],
+  "Paid bookings follow the existing support/refund process; cancellation is not a refund confirmation.": [
+    "已付款预约将按现行客服及退款流程处理；取消预约不代表退款已确认。",
+    "Tempahan berbayar mengikuti proses sokongan/bayaran balik sedia ada; pembatalan bukan pengesahan bayaran balik."
+  ],
+  "Booking requested": [
+    "已提交预约",
+    "Tempahan diminta"
+  ],
+  "Your requested slot is awaiting provider acceptance. Payment becomes available after acceptance.": [
+    "您请求的时段正在等待服务商接受。接受后即可付款。",
+    "Slot yang diminta menunggu penerimaan penyedia. Pembayaran tersedia selepas diterima."
+  ],
+  "New booking request": [
+    "新预约请求",
+    "Permintaan tempahan baharu"
+  ],
+  "Review and accept or decline the requested slot before the customer pays.": [
+    "请在客户付款前审核并接受或拒绝请求的时段。",
+    "Semak dan terima atau tolak slot diminta sebelum pelanggan membayar."
+  ],
+  "Your slot was accepted": [
+    "您的时段已被接受",
+    "Slot anda telah diterima"
+  ],
+  "The provider accepted your slot. Complete FPX payment within 30 minutes to retain it.": [
+    "服务商已接受您的时段。请在30分钟内完成FPX付款以保留时段。",
+    "Penyedia telah menerima slot anda. Selesaikan pembayaran FPX dalam 30 minit untuk mengekalkannya."
+  ],
+  "Booking declined": [
+    "预约已被拒绝",
+    "Tempahan ditolak"
+  ],
+  "Your booking was cancelled. Any collected payment remains recorded; a paid cancellation is sent to administrators for refund review.": [
+    "您的预约已取消。已收款记录将被保留；已付款的取消请求会交由管理员审核退款。",
+    "Tempahan anda dibatalkan. Bayaran diterima kekal direkodkan; pembatalan berbayar dihantar kepada pentadbir untuk semakan bayaran balik."
+  ],
+  "Customer cancelled a booking": [
+    "客户已取消预约",
+    "Pelanggan membatalkan tempahan"
+  ],
+  "Dispute submitted": [
+    "申诉已提交",
+    "Pertikaian dihantar"
+  ],
+  "Your dispute is recorded for administrator review.": [
+    "您的申诉已记录，等待管理员审核。",
+    "Pertikaian anda direkodkan untuk semakan pentadbir."
+  ],
+  "Review submitted": [
+    "评价已提交",
+    "Ulasan dihantar"
+  ],
+  "Thank you. Your verified booking review has been saved.": [
+    "谢谢，您对已验证预约的评价已保存。",
+    "Terima kasih. Ulasan tempahan disahkan anda telah disimpan."
+  ],
+  "Service Completed": [
+    "服务已完成",
+    "Perkhidmatan selesai"
+  ],
+  "Service In-Progress": [
+    "服务进行中",
+    "Perkhidmatan sedang berlangsung"
+  ],
+  "The provider marked your service completed. You can now leave a verified review or raise a dispute.": [
+    "服务商已将服务标记为完成。您现在可以发表评价或提出申诉。",
+    "Penyedia menandakan perkhidmatan anda selesai. Anda kini boleh memberi ulasan disahkan atau mengemukakan pertikaian."
+  ],
+  "The provider has started your service.": [
+    "服务商已开始提供服务。",
+    "Penyedia telah memulakan perkhidmatan anda."
+  ],
+  "Payment received; review required": [
+    "已收款，需审核",
+    "Bayaran diterima; semakan diperlukan"
+  ],
+  "Your payment is recorded but the appointment is unavailable. A refund review has been opened.": [
+    "付款已记录，但预约不可用。已开启退款审核。",
+    "Bayaran anda direkodkan tetapi janji temu tidak tersedia. Semakan bayaran balik telah dibuka."
+  ],
+  "FPX payment verified": [
+    "FPX付款已验证",
+    "Pembayaran FPX disahkan"
+  ],
+  "Your payment was verified. Your accepted appointment is now paid, and its receipt is available.": [
+    "付款已验证，已接受的预约现已付款，收据可供查看。",
+    "Bayaran anda disahkan. Janji temu diterima kini telah dibayar dan resit tersedia."
+  ],
+  "Customer payment verified": [
+    "客户付款已验证",
+    "Pembayaran pelanggan disahkan"
+  ],
+  "The accepted booking is now paid. View the booking for the scheduled service details.": [
+    "已接受的预约现已付款。请查看预约了解服务安排详情。",
+    "Tempahan diterima kini telah dibayar. Lihat tempahan untuk butiran perkhidmatan dijadualkan."
+  ],
+  "Gemini is temporarily busy. Your message is saved; please retry shortly.": [
+    "Gemini暂时繁忙。您的消息已保存，请稍后重试。",
+    "Gemini sibuk buat sementara. Mesej anda disimpan; sila cuba lagi sebentar lagi."
+  ],
+  "Gemini has reached its usage limit. Please try again later.": [
+    "Gemini已达到使用限额，请稍后重试。",
+    "Gemini telah mencapai had penggunaan. Sila cuba lagi kemudian."
+  ],
+  "The AI key was rejected by Google. The project owner needs to check the Gemini key and its API restrictions.": [
+    "Google拒绝了AI密钥。项目负责人需检查Gemini密钥及API限制。",
+    "Kunci AI ditolak oleh Google. Pemilik projek perlu menyemak kunci Gemini dan sekatan APInya."
+  ],
+  "The configured AI model is unavailable for this project. The project owner needs to check GEMINI_MODEL.": [
+    "配置的AI模型不适用于此项目。项目负责人需检查GEMINI_MODEL。",
+    "Model AI dikonfigurasi tidak tersedia untuk projek ini. Pemilik projek perlu menyemak GEMINI_MODEL."
+  ],
+  "Google rejected the AI request configuration. Please contact support.": [
+    "Google拒绝了AI请求配置，请联系客服。",
+    "Google menolak konfigurasi permintaan AI. Sila hubungi sokongan."
+  ],
+  "The assistant is temporarily unavailable.": [
+    "助手暂时不可用。",
+    "Pembantu tidak tersedia buat sementara."
+  ],
+  "A reply is already being prepared. Please retry shortly.": [
+    "正在生成回复，请稍后重试。",
+    "Balasan sedang disediakan. Sila cuba lagi sebentar lagi."
+  ],
+  "The requested app data could not be loaded. Please retry.": [
+    "无法加载请求的应用数据，请重试。",
+    "Data aplikasi diminta tidak dapat dimuatkan. Sila cuba lagi."
+  ],
+  "This record is unavailable for your account.": [
+    "您的账户无法访问此记录。",
+    "Rekod ini tidak tersedia untuk akaun anda."
+  ],
+  "The AI is taking longer than expected. Your message is saved; tap Retry.": [
+    "AI处理时间较长。您的消息已保存，请点击重试。",
+    "AI mengambil masa lebih lama. Mesej anda disimpan; ketik Cuba lagi."
+  ],
+  "The assistant connection was interrupted. Your message is saved; tap Retry.": [
+    "助手连接已中断。您的消息已保存，请点击重试。",
+    "Sambungan pembantu terputus. Mesej anda disimpan; ketik Cuba lagi."
+  ],
+  "The AI could not answer this request. Try rephrasing it.": [
+    "AI无法回答此请求，请换一种说法。",
+    "AI tidak dapat menjawab permintaan ini. Cuba ungkapkan semula."
+  ],
+  "This request needs too many steps. Please narrow it down.": [
+    "此请求需要太多步骤，请缩小范围。",
+    "Permintaan ini memerlukan terlalu banyak langkah. Sila kecilkan skopnya."
+  ],
+  "AI setup is not finished. The project owner needs to save GEMINI_API_KEY in Supabase.": [
+    "AI设置尚未完成。项目负责人需在Supabase保存GEMINI_API_KEY。",
+    "Persediaan AI belum selesai. Pemilik projek perlu menyimpan GEMINI_API_KEY dalam Supabase."
+  ],
+  "The AI model setting is invalid.": [
+    "AI模型设置无效。",
+    "Tetapan model AI tidak sah."
+  ],
+  "Chat removed. Photo cleanup is pending; retry Delete to finish.": [
+    "对话已删除，照片清理尚未完成。请再次点击删除以完成清理。",
+    "Sembang dipadam. Pembersihan foto tertangguh; cuba Padam lagi untuk selesai."
+  ],
+  "The photo could not be loaded. Attach it again.": [
+    "无法加载照片，请重新添加。",
+    "Foto tidak dapat dimuatkan. Lampirkannya semula."
+  ],
+  "Saved addresses could not be loaded.": [
+    "无法加载已保存的地址。",
+    "Alamat tersimpan tidak dapat dimuatkan."
+  ],
+  "Choose one of your saved addresses.": [
+    "请选择已保存的地址。",
+    "Pilih salah satu alamat tersimpan anda."
+  ],
+  "Too many steps. Please narrow your request.": [
+    "步骤过多，请缩小请求范围。",
+    "Terlalu banyak langkah. Sila kecilkan skop permintaan anda."
+  ],
+  "{0} transaction": [
+    "{0}笔交易",
+    "{0} transaksi"
+  ],
+  "{0} transactions": [
+    "{0}笔交易",
+    "{0} transaksi"
+  ],
+  "(Malaysia time)": [
+    "（马来西亚时间）",
+    "(waktu Malaysia)"
+  ],
+  "hrs": [
+    "小时",
+    "jam"
   ]
 }

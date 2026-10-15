@@ -1,0 +1,5 @@
+"NSSpeechRecognitionUsageDescription" = "Convert your spoken assistant message into editable text.";
+"NSMicrophoneUsageDescription" = "Listen only while you use the assistant microphone.";
+"NSCameraUsageDescription" = "Take a photo to share in your service conversation.";
+"NSPhotoLibraryUsageDescription" = "Choose a photo to share with your service provider or customer.";
+"NSLocationWhenInUseUsageDescription" = "Use your location to prefill your service address when you open the address picker.";

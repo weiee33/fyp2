@@ -105,7 +105,10 @@ class _PaymentCountdownState extends State<PaymentCountdown> {
         .clamp(0, 86400);
     final label = seconds == 0
         ? 'Payment window ended'
-        : 'Time to pay: ${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
+        : tr("Time to pay: {0}:{1}", [
+            (seconds ~/ 60).toString().padLeft(2, '0'),
+            (seconds % 60).toString().padLeft(2, '0'),
+          ]);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -151,7 +154,7 @@ class BookingProgress extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-         Text(
+        Text(
           tr('Booking progress'),
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
@@ -181,7 +184,15 @@ class BookingProgress extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    tr(['Requested', 'Provider accepted', 'Payment received', 'Service in progress', 'Service completed'][i]),
+                    tr(
+                      [
+                        'Requested',
+                        'Provider accepted',
+                        'Payment received',
+                        'Service in progress',
+                        'Service completed',
+                      ][i],
+                    ),
                     style: TextStyle(
                       color: i <= stage ? Colors.black87 : Colors.black45,
                     ),
@@ -192,7 +203,7 @@ class BookingProgress extends StatelessWidget {
           ),
         if (stopped)
           Text(
-            tr('Booking ${booking.displayStatus.toLowerCase()}.'),
+            tr("Booking {0}.", [tr(booking.displayStatus)]),
             style: const TextStyle(
               color: Color(0xFFB42318),
               fontWeight: FontWeight.w600,

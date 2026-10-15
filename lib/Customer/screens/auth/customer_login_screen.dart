@@ -78,7 +78,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
             icon: const Icon(Icons.arrow_back),
             onPressed: () => Navigator.pop(context),
           ),
-          title:  Text(tr('Customer Login')),
+          title: Text(tr('Customer Login')),
         ),
         body: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
@@ -100,7 +100,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                     Center(
+                    Center(
                       child: Text(
                         tr('Welcome to Home Serve'),
                         style: TextStyle(
@@ -111,7 +111,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                     Center(
+                    Center(
                       child: Text(
                         tr('Sign in to book household repair & cleaning'),
                         style: TextStyle(
@@ -121,7 +121,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 32),
-                     Text(
+                    Text(
                       tr('Email Address'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
@@ -130,14 +130,18 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
                       enabled: !_loading,
-                      validator: (value) => trOrNull(((v) => (v == null || !v.contains('@')) ? 'Valid email required' : null)(value)),
-                      decoration:  InputDecoration(
+                      validator: (value) => trOrNull(
+                        ((v) => (v == null || !v.contains('@'))
+                            ? 'Valid email required'
+                            : null)(value),
+                      ),
+                      decoration: InputDecoration(
                         hintText: trOrNull('name@example.com'),
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                     ),
                     const SizedBox(height: 16),
-                     Text(
+                    Text(
                       tr('Password'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
@@ -146,7 +150,11 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                       controller: _passwordController,
                       obscureText: _obscurePassword,
                       enabled: !_loading,
-                      validator: (value) => trOrNull(((v) => (v == null || v.length < 6) ? 'Password must be 6+ characters' : null)(value)),
+                      validator: (value) => trOrNull(
+                        ((v) => (v == null || v.length < 6)
+                            ? 'Password must be 6+ characters'
+                            : null)(value),
+                      ),
                       decoration: InputDecoration(
                         hintText: '••••••••',
                         prefixIcon: const Icon(Icons.lock_outline),
@@ -175,7 +183,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                   ),
                                 ),
                               ),
-                        child:  Text(tr('Forgot password?')),
+                        child: Text(tr('Forgot password?')),
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -190,13 +198,13 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          :  Text(tr('Login')),
+                          : Text(tr('Login')),
                     ),
                     const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                         Text(
+                        Text(
                           tr("New here? "),
                           style: TextStyle(color: CustomerTheme.textSecondary),
                         ),
@@ -212,7 +220,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                     ),
                                   );
                                 },
-                          child:  Text(
+                          child: Text(
                             tr('Create Account'),
                             style: TextStyle(
                               color: CustomerTheme.primary,

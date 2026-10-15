@@ -67,7 +67,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError('Failed to load: $e');
+      _showError(tr("Failed to load: {0}", [e]));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -91,7 +91,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:  Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white, size: 20),
               SizedBox(width: 8),
@@ -111,7 +111,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError('Save failed: $e');
+      _showError(tr("Save failed: {0}", [e]));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -152,7 +152,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title:  Text(tr('Service Areas')),
+        title: Text(tr('Service Areas')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -192,7 +192,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                                 ),
                               ),
                               const SizedBox(width: 12),
-                               Expanded(
+                              Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -206,7 +206,9 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                                     ),
                                     SizedBox(height: 2),
                                     Text(
-                                      tr('Set your region, city, and travel radius'),
+                                      tr(
+                                        'Set your region, city, and travel radius',
+                                      ),
                                       style: TextStyle(
                                         color: Colors.grey,
                                         fontSize: 12,
@@ -231,7 +233,10 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                         ),
                         items: _regions
                             .map(
-                              (r) => DropdownMenuItem(value: r, child: Text(tr(r))),
+                              (r) => DropdownMenuItem(
+                                value: r,
+                                child: Text(tr(r)),
+                              ),
                             )
                             .toList(),
                         onChanged: _saving
@@ -246,7 +251,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                         controller: _city,
                         textInputAction: TextInputAction.next,
                         enabled: !_saving,
-                        validator: _validateCity,
+                        validator: (value) => trOrNull(_validateCity(value)),
                         decoration: _inputDecoration(
                           hint: 'e.g. Kuala Lumpur',
                           icon: Icons.location_city_outlined,
@@ -261,7 +266,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                         keyboardType: TextInputType.number,
                         textInputAction: TextInputAction.done,
                         enabled: !_saving,
-                        validator: _validateRadius,
+                        validator: (value) => trOrNull(_validateRadius(value)),
                         onFieldSubmitted: (_) => _save(),
                         decoration: _inputDecoration(
                           hint: 'e.g. 10',
@@ -269,10 +274,12 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                         ),
                       ),
                       const SizedBox(height: 8),
-                       Padding(
+                      Padding(
                         padding: EdgeInsets.only(left: 4),
                         child: Text(
-                          tr('How far are you willing to travel from your service centre?'),
+                          tr(
+                            'How far are you willing to travel from your service centre?',
+                          ),
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.grey,
@@ -289,10 +296,21 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                             color: _primaryOrange,
                           ),
                           title: Text(
-                            tr(_centre == null ? 'Publish your service area' : 'Service centre selected'),
+                            tr(
+                              _centre == null
+                                  ? 'Publish your service area'
+                                  : 'Service centre selected',
+                            ),
                           ),
                           subtitle: Text(
-                            tr(_centre == null ? 'Choose a public map pin so customers can see your coverage.' : '${_centre!.latitude.toStringAsFixed(4)}, ${_centre!.longitude.toStringAsFixed(4)} · Tap to change'),
+                            tr(
+                              _centre == null
+                                  ? 'Choose a public map pin so customers can see your coverage.'
+                                  : tr("{0}, {1} · Tap to change", [
+                                      _centre!.latitude.toStringAsFixed(4),
+                                      _centre!.longitude.toStringAsFixed(4),
+                                    ]),
+                            ),
                           ),
                           trailing: const Icon(Icons.chevron_right),
                           onTap: _saving
@@ -324,7 +342,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                           onPressed: _saving
                               ? null
                               : () => setState(() => _centre = null),
-                          child:  Text(tr('Remove public map pin')),
+                          child: Text(tr('Remove public map pin')),
                         ),
                       const SizedBox(height: 16),
                       // ---- Save Button ----
@@ -371,7 +389,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(
-      text,
+      tr(text),
       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
     ),
   );

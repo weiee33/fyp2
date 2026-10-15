@@ -91,7 +91,11 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
         () => _error =
             'Unable to load services. Check your connection and retry.',
       );
-      CustomerDialogs.show(context, title: tr('Unable to load'), message: _error!);
+      CustomerDialogs.show(
+        context,
+        title: tr('Unable to load'),
+        message: _error!,
+      );
     } finally {
       if (mounted && request == _requestVersion)
         setState(() => _loading = false);
@@ -128,121 +132,132 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  Scaffold(
-    backgroundColor: CustomerTheme.background,
-    appBar: AppBar(title: Text(tr(_category ?? 'All services'))),
-    body: Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 4, 8, 8),
-          child: Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _search,
-                  maxLength: 120,
-                  textInputAction: TextInputAction.search,
-                  onSubmitted: (_) => _fetch(),
-                  decoration: InputDecoration(
-                    counterText: '',
-                    hintText: trOrNull('Search services or providers'),
-                    prefixIcon: const Icon(Icons.search),
-                    suffixIcon: IconButton(
-                      tooltip: trOrNull('Search services'),
-                      onPressed: () => _fetch(),
-                      icon: const Icon(Icons.arrow_forward),
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Scaffold(
+      backgroundColor: CustomerTheme.background,
+      appBar: AppBar(title: Text(tr(_category ?? 'All services'))),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 4, 8, 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _search,
+                    maxLength: 120,
+                    textInputAction: TextInputAction.search,
+                    onSubmitted: (_) => _fetch(),
+                    decoration: InputDecoration(
+                      counterText: '',
+                      hintText: trOrNull('Search services or providers'),
+                      prefixIcon: const Icon(Icons.search),
+                      suffixIcon: IconButton(
+                        tooltip: trOrNull('Search services'),
+                        onPressed: () => _fetch(),
+                        icon: const Icon(Icons.arrow_forward),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              IconButton(
-                tooltip: trOrNull('Filter services'),
-                onPressed: _showFilters,
-                icon: const Icon(Icons.tune),
-              ),
-            ],
-          ),
-        ),
-        if (_category != null ||
-            _maxPrice != null ||
-            _minRating != null ||
-            _city != null)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Wrap(
-              spacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                if (_category != null) Chip(label: Text(tr(_category!))),
-                if (_city != null) Chip(label: Text(tr(_city!))),
-                if (_maxPrice != null)
-                  Chip(
-                    label: Text(tr('Up to RM ${_maxPrice!.toStringAsFixed(2)}')),
-                  ),
-                if (_minRating != null)
-                  Chip(label: Text(tr('${_minRating!.toStringAsFixed(0)}+ stars'))),
-                TextButton(
-                  onPressed: _clearFilters,
-                  child:  Text(tr('Clear filters')),
+                IconButton(
+                  tooltip: trOrNull('Filter services'),
+                  onPressed: _showFilters,
+                  icon: const Icon(Icons.tune),
                 ),
               ],
             ),
           ),
-        Expanded(
-          child: CustomerRefresh(
-            onRefresh: _fetch,
-            child: ListView(
-              key: const PageStorageKey('service-results'),
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              padding: const EdgeInsets.all(16),
-              children: [
-                if (_loading && _services.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.all(48),
-                    child: Center(child: CircularProgressIndicator()),
-                  ),
-                if (!_loading && _error == null && _services.isEmpty) ...[
-                  const SizedBox(height: 56),
-                  const Icon(
-                    Icons.search_off,
-                    size: 56,
-                    color: CustomerTheme.textSecondary,
-                  ),
-                  const SizedBox(height: 16),
-                   Text(
-                    tr('No services match your search.'),
-                    textAlign: TextAlign.center,
-                  ),
-                   Text(
-                    tr('Try a different keyword, city or price range.'),
-                    textAlign: TextAlign.center,
-                  ),
+          if (_category != null ||
+              _maxPrice != null ||
+              _minRating != null ||
+              _city != null)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Wrap(
+                spacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  if (_category != null) Chip(label: Text(tr(_category!))),
+                  if (_city != null) Chip(label: Text(_city!)),
+                  if (_maxPrice != null)
+                    Chip(
+                      label: Text(
+                        tr("Up to RM {0}", [_maxPrice!.toStringAsFixed(2)]),
+                      ),
+                    ),
+                  if (_minRating != null)
+                    Chip(
+                      label: Text(
+                        tr("{0}+ stars", [_minRating!.toStringAsFixed(0)]),
+                      ),
+                    ),
                   TextButton(
                     onPressed: _clearFilters,
-                    child:  Text(tr('Show all services')),
+                    child: Text(tr('Clear filters')),
                   ),
                 ],
-                ..._services.map(_serviceCard),
-                if (_error != null) ...[
-                  Text(tr(_error!), textAlign: TextAlign.center),
-                  TextButton(
-                    onPressed: () => _fetch(more: _services.isNotEmpty),
-                    child:  Text(tr('Retry')),
-                  ),
-                ] else if (_hasMore)
-                  OutlinedButton(
-                    onPressed: _loading ? null : () => _fetch(more: true),
-                    child: Text(tr(_loading ? 'Loading…' : 'Load more services')),
-                  ),
-              ],
+              ),
+            ),
+          Expanded(
+            child: CustomerRefresh(
+              onRefresh: _fetch,
+              child: ListView(
+                key: const PageStorageKey('service-results'),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: const EdgeInsets.all(16),
+                children: [
+                  if (_loading && _services.isEmpty)
+                    const Padding(
+                      padding: EdgeInsets.all(48),
+                      child: Center(child: CircularProgressIndicator()),
+                    ),
+                  if (!_loading && _error == null && _services.isEmpty) ...[
+                    const SizedBox(height: 56),
+                    const Icon(
+                      Icons.search_off,
+                      size: 56,
+                      color: CustomerTheme.textSecondary,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      tr('No services match your search.'),
+                      textAlign: TextAlign.center,
+                    ),
+                    Text(
+                      tr('Try a different keyword, city or price range.'),
+                      textAlign: TextAlign.center,
+                    ),
+                    TextButton(
+                      onPressed: _clearFilters,
+                      child: Text(tr('Show all services')),
+                    ),
+                  ],
+                  ..._services.map(_serviceCard),
+                  if (_error != null) ...[
+                    Text(tr(_error!), textAlign: TextAlign.center),
+                    TextButton(
+                      onPressed: () => _fetch(more: _services.isNotEmpty),
+                      child: Text(tr('Retry')),
+                    ),
+                  ] else if (_hasMore)
+                    OutlinedButton(
+                      onPressed: _loading ? null : () => _fetch(more: true),
+                      child: Text(
+                        tr(_loading ? 'Loading…' : 'Load more services'),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
-    ),
-  ); }
+        ],
+      ),
+    );
+  }
 
   Widget _serviceCard(ServiceItem service) {
     final hero = 'service-avatar-${service.serviceId}';
@@ -283,13 +298,13 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
                       ),
                     ),
                     Text(
-                      tr(service.businessName),
+                      service.businessName,
                       style: const TextStyle(
                         color: CustomerTheme.textSecondary,
                       ),
                     ),
                     if (service.city?.isNotEmpty == true)
-                      Text(tr(service.city!), style: const TextStyle(fontSize: 12)),
+                      Text(service.city!, style: const TextStyle(fontSize: 12)),
                     const SizedBox(height: 8),
                     Text(
                       tr(service.ratingLabel),
@@ -305,7 +320,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
                     ),
                     if (service.durationMinutes != null)
                       Text(
-                        tr('${service.durationMinutes} minutes'),
+                        tr("{0} minutes", [service.durationMinutes]),
                         style: const TextStyle(fontSize: 12),
                       ),
                   ],
@@ -360,83 +375,96 @@ class _FilterSheetState extends State<_FilterSheet> {
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  SingleChildScrollView(
-    physics: const BouncingScrollPhysics(
-      parent: AlwaysScrollableScrollPhysics(),
-    ),
-    padding: EdgeInsets.fromLTRB(
-      20,
-      20,
-      20,
-      MediaQuery.viewInsetsOf(context).bottom + 24,
-    ),
-    child: Form(
-      key: _form,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-           Text(
-            tr('Filter services'),
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 20),
-          TextFormField(
-            controller: _city,
-            maxLength: 80,
-            decoration:  InputDecoration(
-              labelText: trOrNull('Provider city'),
-              hintText: trOrNull('Any city'),
-            ),
-          ),
-          TextFormField(
-            controller: _price,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration:  InputDecoration(
-              labelText: trOrNull('Maximum listed price (RM)'),
-              helperText: trOrNull('Hourly services show their hourly rate.'),
-            ),
-            validator: (value) => trOrNull(((value) {if (value == null || value.trim().isEmpty) return null; final number = double.tryParse(value.trim()); return number == null || !number.isFinite || number < 0 ? 'Enter a valid price of zero or more.' : null;})(value)),
-          ),
-          const SizedBox(height: 20),
-           Text(tr('Minimum rating')),
-          Wrap(
-            spacing: 8,
-            children: [
-              ChoiceChip(
-                label:  Text(tr('Any')),
-                selected: _rating == null,
-                onSelected: (_) => setState(() => _rating = null),
-              ),
-              for (final rating in [1.0, 2.0, 3.0, 4.0, 5.0])
-                ChoiceChip(
-                  label: Text(tr('${rating.toInt()}+ ★')),
-                  selected: _rating == rating,
-                  onSelected: (_) => setState(() => _rating = rating),
-                ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              if (!_form.currentState!.validate()) return;
-              Navigator.pop(
-                context,
-                _ServiceFilters(
-                  city: _city.text.trim().isEmpty ? null : _city.text.trim(),
-                  maxPrice: double.tryParse(_price.text.trim()),
-                  minRating: _rating,
-                ),
-              );
-            },
-            child:  Text(tr('Apply filters')),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, const _ServiceFilters()),
-            child:  Text(tr('Reset filters')),
-          ),
-        ],
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return SingleChildScrollView(
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
       ),
-    ),
-  ); }
+      padding: EdgeInsets.fromLTRB(
+        20,
+        20,
+        20,
+        MediaQuery.viewInsetsOf(context).bottom + 24,
+      ),
+      child: Form(
+        key: _form,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              tr('Filter services'),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
+              controller: _city,
+              maxLength: 80,
+              decoration: InputDecoration(
+                labelText: trOrNull('Provider city'),
+                hintText: trOrNull('Any city'),
+              ),
+            ),
+            TextFormField(
+              controller: _price,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              decoration: InputDecoration(
+                labelText: trOrNull('Maximum listed price (RM)'),
+                helperText: trOrNull('Hourly services show their hourly rate.'),
+              ),
+              validator: (value) => trOrNull(
+                ((value) {
+                  if (value == null || value.trim().isEmpty) return null;
+                  final number = double.tryParse(value.trim());
+                  return number == null || !number.isFinite || number < 0
+                      ? 'Enter a valid price of zero or more.'
+                      : null;
+                })(value),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Text(tr('Minimum rating')),
+            Wrap(
+              spacing: 8,
+              children: [
+                ChoiceChip(
+                  label: Text(tr('Any')),
+                  selected: _rating == null,
+                  onSelected: (_) => setState(() => _rating = null),
+                ),
+                for (final rating in [1.0, 2.0, 3.0, 4.0, 5.0])
+                  ChoiceChip(
+                    label: Text(tr('${rating.toInt()}+ ★')),
+                    selected: _rating == rating,
+                    onSelected: (_) => setState(() => _rating = rating),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () {
+                if (!_form.currentState!.validate()) return;
+                Navigator.pop(
+                  context,
+                  _ServiceFilters(
+                    city: _city.text.trim().isEmpty ? null : _city.text.trim(),
+                    maxPrice: double.tryParse(_price.text.trim()),
+                    minRating: _rating,
+                  ),
+                );
+              },
+              child: Text(tr('Apply filters')),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(context, const _ServiceFilters()),
+              child: Text(tr('Reset filters')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

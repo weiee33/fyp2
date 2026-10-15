@@ -6,10 +6,7 @@ import '../../services/profile_service.dart';
 class EditCertificationScreen extends StatefulWidget {
   final Map<String, dynamic> certification;
 
-  const EditCertificationScreen({
-    super.key,
-    required this.certification,
-  });
+  const EditCertificationScreen({super.key, required this.certification});
 
   @override
   State<EditCertificationScreen> createState() =>
@@ -62,7 +59,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
         setState(() => _file = res.files.first);
       }
     } catch (e) {
-      _showError('Failed to pick file: $e');
+      _showError(tr("Failed to pick file: {0}", [e]));
     }
   }
 
@@ -75,7 +72,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
     );
     if (picked != null) {
       _expiry.text =
-      '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
     }
   }
 
@@ -111,7 +108,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:  Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white, size: 20),
               SizedBox(width: 8),
@@ -131,7 +128,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError('Update failed: $e');
+      _showError(tr("Update failed: {0}", [e]));
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -143,15 +140,14 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
         content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
   String? _required(String? v, String label) {
-    if (v == null || v.trim().isEmpty) return '$label is required';
+    if (v == null || v.trim().isEmpty)
+      return tr("{0} is required", [tr(label)]);
     return null;
   }
 
@@ -161,7 +157,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title:  Text(tr('Edit Certification')),
+        title: Text(tr('Edit Certification')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -179,7 +175,9 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                   controller: _name,
                   textInputAction: TextInputAction.next,
                   enabled: !_submitting,
-                  validator: (value) => trOrNull(((v) => _required(v, 'Certification name'))(value)),
+                  validator: (value) => trOrNull(
+                    ((v) => _required(v, 'Certification name'))(value),
+                  ),
                   decoration: _inputDecoration(
                     hint: 'e.g. First Aid Certificate',
                     icon: Icons.workspace_premium_outlined,
@@ -191,7 +189,8 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                   controller: _issuer,
                   textInputAction: TextInputAction.next,
                   enabled: !_submitting,
-                  validator: (value) => trOrNull(((v) => _required(v, 'Issuer'))(value)),
+                  validator: (value) =>
+                      trOrNull(((v) => _required(v, 'Issuer'))(value)),
                   decoration: _inputDecoration(
                     hint: 'e.g. Red Crescent',
                     icon: Icons.business_outlined,
@@ -220,7 +219,13 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                     color: _primaryOrange,
                   ),
                   label: Text(
-                    tr(_file == null ? (_existingFileUrl != null ? 'Keep existing file' : 'Choose File') : _file!.name),
+                    tr(
+                      _file == null
+                          ? (_existingFileUrl != null
+                                ? 'Keep existing file'
+                                : 'Choose File')
+                          : _file!.name,
+                    ),
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(color: _primaryOrange),
                   ),
@@ -239,13 +244,13 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                     onPressed: _submitting ? null : _save,
                     icon: _submitting
                         ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
                         : const Icon(Icons.save),
                     label: Text(
                       tr(_submitting ? 'Saving...' : 'Save Changes'),
@@ -274,11 +279,8 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(
-      text,
-      style: const TextStyle(
-        fontWeight: FontWeight.w600,
-        fontSize: 13,
-      ),
+      tr(text),
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
     ),
   );
 

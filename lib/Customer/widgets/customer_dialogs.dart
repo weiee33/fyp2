@@ -29,7 +29,7 @@ class CustomerDialogs {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child:  Text(tr('OK')),
+                child: Text(tr('OK')),
               ),
             ],
           ),
@@ -54,19 +54,22 @@ class CustomerDialogs {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child:  Text(tr('Cancel')),
+              child: Text(tr('Cancel')),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child:  Text(tr('OK')),
+              child: Text(tr('OK')),
             ),
           ],
         ),
       ) ??
       false;
 
-  static Future<void> error(BuildContext context, Object error) =>
-      show(context, title: tr('Unable to complete'), message: errorMessage(error));
+  static Future<void> error(BuildContext context, Object error) => show(
+    context,
+    title: tr('Unable to complete'),
+    message: errorMessage(error),
+  );
 
   static String errorMessage(Object error) {
     if (error is AuthException) return error.message;

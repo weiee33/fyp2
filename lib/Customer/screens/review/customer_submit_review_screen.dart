@@ -129,7 +129,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 Icons.photo_library_rounded,
                 color: CustomerTheme.primary,
               ),
-              title:  Text(tr('Choose from Gallery')),
+              title: Text(tr('Choose from Gallery')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.gallery);
@@ -140,7 +140,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 Icons.camera_alt_rounded,
                 color: CustomerTheme.primary,
               ),
-              title:  Text(tr('Take a Photo')),
+              title: Text(tr('Take a Photo')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.camera);
@@ -155,7 +155,10 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
   Future<void> _submitReview() async {
     if (_isSubmitting) return;
     if (_selectedRating == 0) {
-      CustomerDialogs.show(context, message: tr('Please select a star rating.'));
+      CustomerDialogs.show(
+        context,
+        message: tr('Please select a star rating.'),
+      );
       return;
     }
 
@@ -204,12 +207,12 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 size: 64,
               ),
               const SizedBox(height: 16),
-               Text(
+              Text(
                 tr('Review Submitted!'),
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
-               Text(
+              Text(
                 tr('Thank you for sharing your experience.'),
                 textAlign: TextAlign.center,
                 style: TextStyle(color: CustomerTheme.textSecondary),
@@ -223,7 +226,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                     true,
                   ); // pop screen, return true for refresh
                 },
-                child:  Text(tr('OK')),
+                child: Text(tr('OK')),
               ),
             ],
           ),
@@ -245,7 +248,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
       child: Scaffold(
         backgroundColor: CustomerTheme.background,
         appBar: AppBar(
-          title:  Text(tr('Rate Service')),
+          title: Text(tr('Rate Service')),
           leading: IconButton(
             icon: const Icon(Icons.close_rounded),
             onPressed: () => Navigator.pop(context),
@@ -265,7 +268,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                       Text(tr(_eligibilityError!)),
                       TextButton(
                         onPressed: _verifyEligibility,
-                        child:  Text(tr('Retry')),
+                        child: Text(tr('Retry')),
                       ),
                     ],
                   ),
@@ -288,7 +291,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
           children: [
             const Icon(Icons.lock_rounded, size: 64, color: Colors.grey),
             const SizedBox(height: 16),
-             Text(
+            Text(
               tr('Review Locked'),
               style: TextStyle(
                 fontSize: 22,
@@ -297,8 +300,10 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
               ),
             ),
             const SizedBox(height: 8),
-             Text(
-              tr('Only your completed, paid bookings can be reviewed. Each booking can have one review.'),
+            Text(
+              tr(
+                'Only your completed, paid bookings can be reviewed. Each booking can have one review.',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: CustomerTheme.textSecondary,
@@ -309,7 +314,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
             const SizedBox(height: 24),
             OutlinedButton(
               onPressed: () => Navigator.pop(context),
-              child:  Text(tr('Go Back')),
+              child: Text(tr('Go Back')),
             ),
           ],
         ),
@@ -339,7 +344,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 const SizedBox(height: 4),
                 Center(
                   child: Text(
-                    tr(widget.providerName),
+                    widget.providerName,
                     style: const TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,
@@ -350,7 +355,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 const SizedBox(height: 4),
                 Center(
                   child: Text(
-                    tr(widget.serviceName),
+                    widget.serviceName,
                     style: const TextStyle(
                       fontSize: 14,
                       color: CustomerTheme.textSecondary,
@@ -396,7 +401,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                 const SizedBox(height: 32),
 
                 // Text Input
-                 Text(
+                Text(
                   tr('Share your experience'),
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
@@ -407,14 +412,16 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                   maxLength: 2000,
                   enabled: !_isSubmitting,
                   textInputAction: TextInputAction.done,
-                  decoration:  InputDecoration(
-                    hintText: trOrNull('Were they professional? Was the issue fixed?'),
+                  decoration: InputDecoration(
+                    hintText: trOrNull(
+                      'Were they professional? Was the issue fixed?',
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),
 
                 // Optional Image Upload[cite: 451, 452]
-                 Text(
+                Text(
                   tr('Attach Photo (Optional)'),
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
@@ -433,7 +440,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                           style: BorderStyle.solid,
                         ),
                       ),
-                      child:  Column(
+                      child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Icon(
@@ -522,7 +529,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
                         strokeWidth: 2,
                       ),
                     )
-                  :  Text(tr('Submit Review')),
+                  : Text(tr('Submit Review')),
             ),
           ),
         ],

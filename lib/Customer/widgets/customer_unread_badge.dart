@@ -126,19 +126,22 @@ class CustomerChatButton extends StatelessWidget {
   final bool enabled;
   const CustomerChatButton({super.key, this.color, this.enabled = true});
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  IconButton(
-    tooltip: trOrNull('Chats'),
-    icon: CustomerUnreadBadge(
-      kind: 'chats',
-      enabled: enabled,
-      child: Icon(Icons.chat_bubble_outline, color: color),
-    ),
-    onPressed: () async {
-      await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ChatInboxScreen()),
-      );
-      await CustomerActivityCounts.shared.refresh();
-    },
-  ); }
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return IconButton(
+      tooltip: trOrNull('Chats'),
+      icon: CustomerUnreadBadge(
+        kind: 'chats',
+        enabled: enabled,
+        child: Icon(Icons.chat_bubble_outline, color: color),
+      ),
+      onPressed: () async {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ChatInboxScreen()),
+        );
+        await CustomerActivityCounts.shared.refresh();
+      },
+    );
+  }
 }

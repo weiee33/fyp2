@@ -60,8 +60,9 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
       if (res.user != null && (res.user!.identities?.isEmpty ?? false)) {
         await CustomerDialogs.show(
           context,
-          message:
-              tr('This email is already registered. Please sign in or reset your password.'),
+          message: tr(
+            'This email is already registered. Please sign in or reset your password.',
+          ),
         );
         return;
       }
@@ -69,7 +70,11 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
       await CustomerDialogs.show(
         context,
         title: tr('Registration received'),
-        message: tr(res.session == null ? 'Check your email for the verification code to activate your account.' : 'Your account is ready.'),
+        message: tr(
+          res.session == null
+              ? 'Check your email for the verification code to activate your account.'
+              : 'Your account is ready.',
+        ),
       );
       if (!mounted) return;
       Navigator.pushReplacement(
@@ -82,7 +87,10 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
       );
     } on AuthException catch (e) {
       if (!mounted) return;
-      await CustomerDialogs.show(context, message: tr('Auth Error: ${e.message}'));
+      await CustomerDialogs.show(
+        context,
+        message: tr("Auth Error: {0}", [e.message]),
+      );
     } catch (e) {
       if (!mounted) return;
       await CustomerDialogs.error(context, e);
@@ -97,7 +105,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
     return Theme(
       data: CustomerTheme.lightTheme,
       child: Scaffold(
-        appBar: AppBar(title:  Text(tr('Create Customer Account'))),
+        appBar: AppBar(title: Text(tr('Create Customer Account'))),
         body: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
           child: SafeArea(
@@ -109,21 +117,25 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                     Text(
+                    Text(
                       tr('Full Name'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _nameController,
-                      validator: (value) => trOrNull(((v) => (v == null || v.trim().isEmpty) ? 'Name is required' : null)(value)),
-                      decoration:  InputDecoration(
+                      validator: (value) => trOrNull(
+                        ((v) => (v == null || v.trim().isEmpty)
+                            ? 'Name is required'
+                            : null)(value),
+                      ),
+                      decoration: InputDecoration(
                         hintText: trOrNull('Sarah Tan'),
                         prefixIcon: Icon(Icons.person_outline),
                       ),
                     ),
                     const SizedBox(height: 16),
-                     Text(
+                    Text(
                       tr('Email Address'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
@@ -131,14 +143,18 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                     TextFormField(
                       controller: _emailController,
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) => trOrNull(((v) => (v == null || !v.contains('@')) ? 'Valid email required' : null)(value)),
-                      decoration:  InputDecoration(
+                      validator: (value) => trOrNull(
+                        ((v) => (v == null || !v.contains('@'))
+                            ? 'Valid email required'
+                            : null)(value),
+                      ),
+                      decoration: InputDecoration(
                         hintText: trOrNull('user@example.com'),
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
                     ),
                     const SizedBox(height: 16),
-                     Text(
+                    Text(
                       tr('Phone Number'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
@@ -148,7 +164,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                       enabled: !_loading,
                     ),
                     const SizedBox(height: 16),
-                     Text(
+                    Text(
                       tr('Password'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
@@ -156,7 +172,11 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                     TextFormField(
                       controller: _passwordController,
                       obscureText: _obscurePassword,
-                      validator: (value) => trOrNull(((v) => (v == null || v.length < 6) ? 'Must be 6+ characters' : null)(value)),
+                      validator: (value) => trOrNull(
+                        ((v) => (v == null || v.length < 6)
+                            ? 'Must be 6+ characters'
+                            : null)(value),
+                      ),
                       decoration: InputDecoration(
                         hintText: '••••••••',
                         prefixIcon: const Icon(Icons.lock_outline),
@@ -184,7 +204,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          :  Text(tr('Register & Verify')),
+                          : Text(tr('Register & Verify')),
                     ),
                   ],
                 ),

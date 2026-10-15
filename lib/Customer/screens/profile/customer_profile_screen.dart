@@ -108,7 +108,9 @@ class _ProfileState extends State<CustomerProfileScreen> {
                             onTap: _profile == null ? null : _edit,
                             child: Semantics(
                               button: true,
-                              label: tr('Edit profile photo and personal details'),
+                              label: tr(
+                                'Edit profile photo and personal details',
+                              ),
                               child: CircleAvatar(
                                 radius: 34,
                                 backgroundColor: Colors.white,
@@ -159,7 +161,7 @@ class _ProfileState extends State<CustomerProfileScreen> {
                 title: Text(tr(_error!)),
                 trailing: TextButton(
                   onPressed: _load,
-                  child:  Text(tr('Retry')),
+                  child: Text(tr('Retry')),
                 ),
               ),
             Padding(

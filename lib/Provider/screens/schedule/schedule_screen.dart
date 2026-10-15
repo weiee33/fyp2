@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -121,20 +122,18 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       }
     }
 
-    return {
-      'upcoming': upcoming,
-      'expired': expired,
-      'completed': completed,
-    };
+    return {'upcoming': upcoming, 'expired': expired, 'completed': completed};
   }
 
   Map<String, List<Map<String, dynamic>>> _groupByDate(
-      List<Map<String, dynamic>> list) {
+    List<Map<String, dynamic>> list,
+  ) {
     final map = <String, List<Map<String, dynamic>>>{};
     for (final b in list) {
-      final raw = b['scheduled_datetime']?.toString() ??
+      final raw =
+          b['scheduled_datetime']?.toString() ??
           (b['booking_date']?.toString() != null &&
-              b['scheduled_time']?.toString() != null
+                  b['scheduled_time']?.toString() != null
               ? '${b['booking_date']}T${b['scheduled_time']}'
               : null) ??
           b['created_at']?.toString();
@@ -205,7 +204,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return Scaffold(
       backgroundColor: _lightOrange,
       appBar: AppBar(
-        title:  Text(
+        title: Text(
           tr('Schedule'),
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
@@ -216,17 +215,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       ),
       body: _loading
           ? const Center(
-        child: CircularProgressIndicator(color: _primaryOrange),
-      )
+              child: CircularProgressIndicator(color: _primaryOrange),
+            )
           : RefreshIndicator(
-        onRefresh: _load,
-        color: _primaryOrange,
-        child: _error != null
-            ? _errorState()
-            : _bookings.isEmpty
-            ? _emptyState()
-            : _buildContent(),
-      ),
+              onRefresh: _load,
+              color: _primaryOrange,
+              child: _error != null
+                  ? _errorState()
+                  : _bookings.isEmpty
+                  ? _emptyState()
+                  : _buildContent(),
+            ),
     );
   }
 
@@ -252,7 +251,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
         const SizedBox(height: 16),
-         Center(
+        Center(
           child: Text(
             tr('Failed to load schedule'),
             style: TextStyle(
@@ -277,15 +276,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           child: ElevatedButton.icon(
             onPressed: _load,
             icon: const Icon(Icons.refresh),
-            label:  Text(tr('Retry')),
+            label: Text(tr('Retry')),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primaryOrange,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
-              padding:
-              const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
           ),
         ),
@@ -315,7 +313,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
         const SizedBox(height: 16),
-         Center(
+        Center(
           child: Text(
             tr('No scheduled bookings'),
             style: TextStyle(
@@ -326,7 +324,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
         ),
         const SizedBox(height: 6),
-         Center(
+        Center(
           child: Text(
             tr('Your appointments will appear here'),
             style: TextStyle(fontSize: 13, color: Colors.grey),
@@ -416,12 +414,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.info_outline,
-                    size: 16, color: Colors.orange.shade700),
+                Icon(
+                  Icons.info_outline,
+                  size: 16,
+                  color: Colors.orange.shade700,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    tr('Please contact the customer to discuss these past appointments.'),
+                    tr(
+                      'Please contact the customer to discuss these past appointments.',
+                    ),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange.shade800,
@@ -451,12 +454,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           const SizedBox(height: 12),
           ...completedKeys.map((dateKey) {
             final items = completedGrouped[dateKey]!;
-            return _dateGroup(
-              dateKey,
-              items,
-              expired: false,
-              completed: true,
-            );
+            return _dateGroup(dateKey, items, expired: false, completed: true);
           }),
         ],
 
@@ -515,11 +513,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   // ==================== Date Group ====================
   Widget _dateGroup(
-      String dateKey,
-      List<Map<String, dynamic>> items, {
-        required bool expired,
-        bool completed = false,
-      }) {
+    String dateKey,
+    List<Map<String, dynamic>> items, {
+    required bool expired,
+    bool completed = false,
+  }) {
     final headerColor = completed
         ? _successGreen
         : expired
@@ -553,7 +551,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: 10, vertical: 4),
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: headerColor,
                   borderRadius: BorderRadius.circular(20),
@@ -580,8 +580,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               ),
               const SizedBox(width: 8),
               Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
                   color: badgeBg,
                   borderRadius: BorderRadius.circular(20),
@@ -597,9 +596,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(
-                child: Container(height: 1, color: lineColor),
-              ),
+              Expanded(child: Container(height: 1, color: lineColor)),
             ],
           ),
         ),
@@ -715,7 +712,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         ),
                         if (duration != null)
                           Text(
-                            tr('${duration}m'),
+                            tr("{0}m", [duration]),
                             style: TextStyle(
                               fontSize: 10,
                               color: expired
@@ -742,7 +739,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          tr(serviceName),
+                          serviceName,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -767,7 +764,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  tr(address),
+                                  address,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: expired
@@ -794,7 +791,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  tr(instructions),
+                                  instructions,
                                   style: TextStyle(
                                     fontSize: 12,
                                     color: expired
@@ -833,7 +830,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
                     borderRadius: BorderRadius.circular(8),
@@ -878,8 +877,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.warning_amber_rounded,
-              size: 11, color: Colors.grey.shade700),
+          Icon(
+            Icons.warning_amber_rounded,
+            size: 11,
+            color: Colors.grey.shade700,
+          ),
           const SizedBox(width: 4),
           Text(
             tr('EXPIRED'),
@@ -973,12 +975,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline,
-                            size: 16, color: Colors.orange.shade700),
+                        Icon(
+                          Icons.info_outline,
+                          size: 16,
+                          color: Colors.orange.shade700,
+                        ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            tr('This appointment has passed. Please contact the customer to discuss.'),
+                            tr(
+                              'This appointment has passed. Please contact the customer to discuss.',
+                            ),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.orange.shade800,
@@ -992,15 +999,18 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ],
                 _detailRow('Customer', customerName, Icons.person_outline),
                 _detailRow('Service', serviceName, Icons.build_outlined),
-                _detailRow('Status', status, Icons.info_outline),
+                _detailRow('Status', tr(status), Icons.info_outline),
                 _detailRow(
                   'Date & Time',
                   _formatFullDateTime(scheduledAt),
                   Icons.access_time,
                 ),
                 if (duration != null)
-                  _detailRow('Duration', '$duration minutes',
-                      Icons.timer_outlined),
+                  _detailRow(
+                    'Duration',
+                    tr("{0} minutes", [duration]),
+                    Icons.timer_outlined,
+                  ),
                 if (amount != null)
                   _detailRow(
                     'Total',
@@ -1010,7 +1020,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 _detailRow('Address', address, Icons.location_on_outlined),
                 if (instructions.isNotEmpty)
                   _detailRow(
-                      'Instructions', instructions, Icons.notes_outlined),
+                    'Instructions',
+                    instructions,
+                    Icons.notes_outlined,
+                  ),
                 if (bookingId.isNotEmpty)
                   _detailRow(
                     'Booking ID',
@@ -1039,7 +1052,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             TextButton(
               onPressed: () => Navigator.pop(ctx),
               style: TextButton.styleFrom(foregroundColor: _primaryOrange),
-              child:  Text(tr('Close')),
+              child: Text(tr('Close')),
             ),
           ],
         ),
@@ -1079,7 +1092,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 Text(
+                Text(
                   tr('Customer Location'),
                   style: TextStyle(
                     fontSize: 12,
@@ -1089,13 +1102,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  tr(lat != null && lng != null ? '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}' : coordinates),
+                  tr(
+                    lat != null && lng != null
+                        ? '${lat.toStringAsFixed(4)}, ${lng.toStringAsFixed(4)}'
+                        : coordinates,
+                  ),
                   style: const TextStyle(fontSize: 11, color: Colors.grey),
                 ),
                 const SizedBox(height: 4),
                 GestureDetector(
                   onTap: () => _openMap(lat, lng, address),
-                  child:  Text(
+                  child: Text(
                     tr('View on Map →'),
                     style: TextStyle(
                       fontSize: 12,
@@ -1117,7 +1134,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (lat == null || lng == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(
+        SnackBar(
           content: Text(tr('No coordinates available for this booking')),
           behavior: SnackBarBehavior.floating,
         ),
@@ -1201,19 +1218,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             final confirm = await showDialog<bool>(
               context: ctx,
               builder: (c) => AlertDialog(
-                title:  Text(tr('Cancel Booking')),
-                content:  Text(
+                title: Text(tr('Cancel Booking')),
+                content: Text(
                   tr('Are you sure you want to cancel this booking?'),
                 ),
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(c, false),
-                    child:  Text(tr('No')),
+                    child: Text(tr('No')),
                   ),
                   TextButton(
                     onPressed: () => Navigator.pop(c, true),
                     style: TextButton.styleFrom(foregroundColor: Colors.red),
-                    child:  Text(tr('Yes, Cancel')),
+                    child: Text(tr('Yes, Cancel')),
                   ),
                 ],
               ),
@@ -1277,16 +1294,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         ),
         child: Row(
           children: [
-            Icon(Icons.info_outline,
-                size: 16, color: Colors.grey.shade600),
+            Icon(Icons.info_outline, size: 16, color: Colors.grey.shade600),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 tr(message),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey.shade700,
-                ),
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
               ),
             ),
           ],
@@ -1296,10 +1309,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
     return Column(
       children: buttons
-          .map((b) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: b,
-      ))
+          .map(
+            (b) => Padding(padding: const EdgeInsets.only(bottom: 8), child: b),
+          )
           .toList(),
     );
   }
@@ -1320,10 +1332,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           icon: Icon(icon, size: 18),
           label: Text(
             tr(label),
-            style: const TextStyle(
-              fontSize: 13,
-              fontWeight: FontWeight.bold,
-            ),
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
           ),
           style: OutlinedButton.styleFrom(
             foregroundColor: color,
@@ -1344,10 +1353,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         icon: Icon(icon, size: 18),
         label: Text(
           tr(label),
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-          ),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
         ),
         style: ElevatedButton.styleFrom(
           backgroundColor: color,
@@ -1416,7 +1422,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             children: [
               const Icon(Icons.check_circle, color: Colors.white, size: 20),
               const SizedBox(width: 8),
-              Text(tr('Booking marked as $newStatus')),
+              Text(tr("Booking marked as {0}", [newStatus])),
             ],
           ),
           backgroundColor: Colors.green.shade600,
@@ -1450,7 +1456,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:  Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white, size: 20),
               SizedBox(width: 8),
@@ -1512,7 +1518,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         'created_at': DateTime.now().toUtc().toIso8601String(),
       });
     } catch (e) {
-      debugPrint('Failed to sync earnings record: $e');
+      debugPrint(tr("Failed to sync earnings record: {0}", [e]));
     }
   }
 
@@ -1520,9 +1526,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   void _openChat(String bookingId) {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const ChatInboxScreen(customer: false),
-      ),
+      MaterialPageRoute(builder: (_) => const ChatInboxScreen(customer: false)),
     );
   }
 
@@ -1547,7 +1551,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           ),
           Expanded(
             child: Text(
-              tr(value),
+              value,
               style: const TextStyle(
                 fontSize: 13,
                 color: Colors.black87,
@@ -1631,11 +1635,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       if (diff == 1) return 'Tomorrow';
       if (diff == -1) return 'Yesterday';
 
-      const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-      ];
-      return '${dt.day} ${months[dt.month - 1]} ${dt.year}';
+      return DateFormat.yMMMd().format(dt);
     } catch (_) {
       return dateKey;
     }
@@ -1645,14 +1645,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (raw == null) return '--';
     try {
       final dt = DateTime.parse(raw).toLocal();
-      const months = [
-        'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
-      ];
-      final day = dt.day.toString().padLeft(2, '0');
-      final h = dt.hour.toString().padLeft(2, '0');
-      final m = dt.minute.toString().padLeft(2, '0');
-      return '$day ${months[dt.month - 1]} ${dt.year}, $h:$m';
+      return DateFormat.yMMMd().add_Hm().format(dt);
     } catch (_) {
       return '--';
     }

@@ -22,6 +22,7 @@ class CustomerTheme {
     return ThemeData(
       useMaterial3: true,
       fontFamily: 'Roboto',
+      fontFamilyFallback: const ['HomeServeCJK'],
       primaryColor: primary,
       scaffoldBackgroundColor: background,
       cardColor: cardColor,
@@ -39,6 +40,7 @@ class CustomerTheme {
         centerTitle: true,
         titleTextStyle: TextStyle(
           fontFamily: 'Roboto',
+          fontFamilyFallback: ['HomeServeCJK'],
           color: textPrimary,
           fontSize: 18,
           fontWeight: FontWeight.bold,
@@ -54,6 +56,7 @@ class CustomerTheme {
           ),
           textStyle: const TextStyle(
             fontFamily: 'Roboto',
+            fontFamilyFallback: ['HomeServeCJK'],
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),

@@ -337,12 +337,12 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title:  Text(tr('Choose from gallery')),
+              title: Text(tr('Choose from gallery')),
               onTap: () => Navigator.pop(c, ImageSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title:  Text(tr('Take a photo')),
+              title: Text(tr('Take a photo')),
               onTap: () => Navigator.pop(c, ImageSource.camera),
             ),
           ],
@@ -449,18 +449,24 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       context: context,
       builder: (c) => AlertDialog(
         title: Text(
-          tr(booking ? 'Review booking' : action['title']?.toString() ?? 'Confirm action'),
+          tr(
+            booking
+                ? 'Review booking'
+                : action['title']?.toString() ?? 'Confirm action',
+          ),
         ),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(tr(action['summary']?.toString() ?? '')),
+              Text(actionSummary(action)),
               if (booking) ...[
                 const SizedBox(height: 16),
-                 Text(
-                  tr('Confirm these details to send your request. You can pay after the provider accepts.'),
+                Text(
+                  tr(
+                    'Confirm these details to send your request. You can pay after the provider accepts.',
+                  ),
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
               ],
@@ -470,7 +476,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child:  Text(tr('Not now')),
+            child: Text(tr('Not now')),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(c, true),
@@ -488,7 +494,11 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            tr(booking ? 'Booking request sent. Payment opens after provider acceptance.' : 'Action completed.'),
+            tr(
+              booking
+                  ? 'Booking request sent. Payment opens after provider acceptance.'
+                  : 'Action completed.',
+            ),
           ),
         ),
       );
@@ -581,14 +591,14 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                 s.data!,
                 height: 160,
                 fit: BoxFit.cover,
-                errorBuilder: (_, _, _) =>  Text(tr('Photo unavailable')),
+                errorBuilder: (_, _, _) => Text(tr('Photo unavailable')),
               ),
             ),
           )
         : s.hasError
         ? TextButton(
             onPressed: () => setState(() => _photoCache.remove(path)),
-            child:  Text(tr('Retry photo')),
+            child: Text(tr('Retry photo')),
           )
         : const SizedBox(
             height: 50,
@@ -692,16 +702,22 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      tr(booking ? (done ? 'Booking request sent' : 'Your booking review') : a['title']?.toString() ?? 'Continue'),
+                      tr(
+                        booking
+                            ? (done
+                                  ? 'Booking request sent'
+                                  : 'Your booking review')
+                            : a['title']?.toString() ?? 'Continue',
+                      ),
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     if (a['summary'] != null)
                       Padding(
                         padding: const EdgeInsets.symmetric(vertical: 8),
-                        child: Text(tr(a['summary'].toString())),
+                        child: Text(actionSummary(a)),
                       ),
                     if (booking)
-                       Padding(
+                      Padding(
                         padding: EdgeInsets.only(bottom: 12),
                         child: Text(
                           tr('Review & send → Provider accepts → You pay'),
@@ -717,7 +733,19 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                                 ? _navigate(a)
                                 : _confirm(a),
                       child: Text(
-                        tr(done ? (booking ? 'View booking & payment' : 'Completed') : expired ? 'Expired — ask for a new card' : a['kind'] == 'navigate' ? 'Open' : booking ? 'Review booking' : 'Review & confirm'),
+                        tr(
+                          done
+                              ? (booking
+                                    ? 'View booking & payment'
+                                    : 'Completed')
+                              : expired
+                              ? 'Expired — ask for a new card'
+                              : a['kind'] == 'navigate'
+                              ? 'Open'
+                              : booking
+                              ? 'Review booking'
+                              : 'Review & confirm',
+                        ),
                       ),
                     ),
                   ],
@@ -802,7 +830,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
           minLines: 1,
           maxLines: 4,
           maxLength: 4000,
-          decoration:  InputDecoration(
+          decoration: InputDecoration(
             hintText: trOrNull('Message or hold to speak'),
             counterText: '',
             filled: false,
@@ -824,9 +852,12 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                   initialValue: _mode,
                   enabled: !_busy,
                   onSelected: (mode) => setState(() => _mode = mode),
-                  itemBuilder: (_) =>  [
+                  itemBuilder: (_) => [
                     PopupMenuItem(value: 'chat', child: Text(tr('Ask AI'))),
-                    PopupMenuItem(value: 'assist', child: Text(tr('Do it for me'))),
+                    PopupMenuItem(
+                      value: 'assist',
+                      child: Text(tr('Do it for me')),
+                    ),
                   ],
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -895,7 +926,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
           children: [
             const AiHalo(size: 56),
             const SizedBox(height: 24),
-             Text(
+            Text(
               tr('What can I help you\nwith today?'),
               textAlign: TextAlign.center,
               style: TextStyle(
@@ -905,8 +936,10 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
               ),
             ),
             const SizedBox(height: 12),
-             Text(
-              tr('Find a service. Compare providers.\nLet’s plan your next booking.'),
+            Text(
+              tr(
+                'Find a service. Compare providers.\nLet’s plan your next booking.',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(color: CustomerTheme.textSecondary, height: 1.5),
             ),
@@ -939,13 +972,16 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                       size: 16,
                       color: CustomerTheme.primary,
                     ),
-                    label: Text(tr(item.$1), style: const TextStyle(fontSize: 12)),
+                    label: Text(
+                      tr(item.$1),
+                      style: const TextStyle(fontSize: 12),
+                    ),
                     backgroundColor: Colors.white,
                     side: const BorderSide(color: Color(0xFFEAE7E3)),
                     onPressed: _busy
                         ? null
                         : () {
-                            _text.text = item.$2;
+                            _text.text = tr(item.$2);
                           },
                   ),
               ],
@@ -969,7 +1005,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
         if (index == 0) {
           return TextButton(
             onPressed: _busy ? null : _earlier,
-            child:  Text(tr('Load earlier messages')),
+            child: Text(tr('Load earlier messages')),
           );
         }
         index--;
@@ -984,134 +1020,143 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
   );
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  Theme(
-    data: CustomerTheme.lightTheme,
-    child: Scaffold(
-      backgroundColor: const Color(0xFFFCFBF9),
-      appBar: AppBar(
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Theme(
+      data: CustomerTheme.lightTheme,
+      child: Scaffold(
         backgroundColor: const Color(0xFFFCFBF9),
-        surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          tooltip: trOrNull('Chat history'),
-          onPressed: _busy ? null : _history,
-          icon: const Icon(Icons.menu_rounded),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-             Text(
-              tr('Home Serve AI'),
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
-            ),
-            Text(
-              tr(_chatTitle),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11,
-                color: CustomerTheme.textSecondary,
+        appBar: AppBar(
+          backgroundColor: const Color(0xFFFCFBF9),
+          surfaceTintColor: Colors.transparent,
+          leading: IconButton(
+            tooltip: trOrNull('Chat history'),
+            onPressed: _busy ? null : _history,
+            icon: const Icon(Icons.menu_rounded),
+          ),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                tr('Home Serve AI'),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
+              Text(
+                _chatTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: CustomerTheme.textSecondary,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            IconButton(
+              tooltip: trOrNull('New chat'),
+              onPressed: _busy ? null : _newChat,
+              icon: const Icon(Icons.edit_square, size: 21),
+            ),
+            IconButton(
+              tooltip: trOrNull('Close assistant'),
+              onPressed: () => Navigator.pop(context),
+              icon: const Icon(Icons.keyboard_arrow_down),
             ),
           ],
         ),
-        actions: [
-          IconButton(
-            tooltip: trOrNull('New chat'),
-            onPressed: _busy ? null : _newChat,
-            icon: const Icon(Icons.edit_square, size: 21),
-          ),
-          IconButton(
-            tooltip: trOrNull('Close assistant'),
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.keyboard_arrow_down),
-          ),
-        ],
-      ),
-      body: SafeArea(
-        top: false,
-        child: Column(
-          children: [
-            if (_busy && !_sending) const LinearProgressIndicator(minHeight: 2),
-            Expanded(
-              child: _messages.isEmpty && _pendingMessage == null
-                  ? _welcome()
-                  : _conversationList(),
-            ),
-            if (_error != null)
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 14),
-                padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFEFE5),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.info_outline,
-                      size: 18,
-                      color: Color(0xFF9A3412),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        tr(_error!),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF9A3412),
+        body: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              if (_busy && !_sending)
+                const LinearProgressIndicator(minHeight: 2),
+              Expanded(
+                child: _messages.isEmpty && _pendingMessage == null
+                    ? _welcome()
+                    : _conversationList(),
+              ),
+              if (_error != null)
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 14),
+                  padding: const EdgeInsets.fromLTRB(12, 8, 6, 8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFEFE5),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.info_outline,
+                        size: 18,
+                        color: Color(0xFF9A3412),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          tr(_error!),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFF9A3412),
+                          ),
                         ),
                       ),
-                    ),
-                    if (_pendingMessage != null)
-                      TextButton(
-                        onPressed: _busy ? null : _send,
-                        child:  Text(tr('Retry')),
-                      ),
-                  ],
-                ),
-              ),
-            if (_listening)
-               Padding(
-                padding: EdgeInsets.only(top: 8),
-                child: Text(
-                  tr('Listening… release to edit your words'),
-                  style: TextStyle(fontSize: 12, color: CustomerTheme.primary),
-                ),
-              ),
-            _composer(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
-              child: GestureDetector(
-                onTap: () => showDialog<void>(
-                  context: context,
-                  builder: (c) => AlertDialog(
-                    title:  Text(tr('Using Home Serve AI')),
-                    content:  Text(
-                      tr('Messages, attached photos and relevant app details are sent to Google Gemini. AI can make mistakes. Review action cards before confirming; payments stay with you.'),
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(c),
-                        child:  Text(tr('Got it')),
-                      ),
+                      if (_pendingMessage != null)
+                        TextButton(
+                          onPressed: _busy ? null : _send,
+                          child: Text(tr('Retry')),
+                        ),
                     ],
                   ),
                 ),
-                child:  Text(
-                  tr('Powered by Gemini · AI can make mistakes · Privacy'),
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: CustomerTheme.textSecondary,
+              if (_listening)
+                Padding(
+                  padding: EdgeInsets.only(top: 8),
+                  child: Text(
+                    tr('Listening… release to edit your words'),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: CustomerTheme.primary,
+                    ),
+                  ),
+                ),
+              _composer(),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: GestureDetector(
+                  onTap: () => showDialog<void>(
+                    context: context,
+                    builder: (c) => AlertDialog(
+                      title: Text(tr('Using Home Serve AI')),
+                      content: Text(
+                        tr(
+                          'Messages, attached photos and relevant app details are sent to Google Gemini. AI can make mistakes. Review action cards before confirming; payments stay with you.',
+                        ),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(c),
+                          child: Text(tr('Got it')),
+                        ),
+                      ],
+                    ),
+                  ),
+                  child: Text(
+                    tr('Powered by Gemini · AI can make mistakes · Privacy'),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: CustomerTheme.textSecondary,
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  ); }
+    );
+  }
 }
 
 class _ThinkingBubble extends StatefulWidget {
@@ -1143,110 +1188,116 @@ class _ThinkingBubbleState extends State<_ThinkingBubble>
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  Semantics(
-    liveRegion: true,
-    label: tr('AI is thinking'),
-    child: Align(
-      alignment: Alignment.centerLeft,
-      child: Container(
-        key: const ValueKey('ai-thinking-bubble'),
-        padding: const EdgeInsets.all(16),
-        margin: const EdgeInsets.only(bottom: 18),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: const Color(0xFFEAE7E3)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-             Text(
-              tr('Home Serve AI'),
-              style: TextStyle(
-                fontSize: 12,
-                color: Color(0xFF7454B8),
-                fontWeight: FontWeight.w600,
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Semantics(
+      liveRegion: true,
+      label: tr('AI is thinking'),
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Container(
+          key: const ValueKey('ai-thinking-bubble'),
+          padding: const EdgeInsets.all(16),
+          margin: const EdgeInsets.only(bottom: 18),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: const Color(0xFFEAE7E3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                tr('Home Serve AI'),
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF7454B8),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedBuilder(
-                  animation: _animation,
-                  builder: (_, _) => Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: List.generate(
-                      3,
-                      (i) => Opacity(
-                        opacity:
-                            .3 +
-                            .7 *
-                                ((math.sin(
-                                          _animation.value * 2 * math.pi -
-                                              i * .8,
-                                        ) +
-                                        1) /
-                                    2),
-                        child: Container(
-                          width: 6,
-                          height: 6,
-                          margin: const EdgeInsets.only(right: 5),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF9C7BC6),
-                            shape: BoxShape.circle,
+              const SizedBox(height: 12),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedBuilder(
+                    animation: _animation,
+                    builder: (_, _) => Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: List.generate(
+                        3,
+                        (i) => Opacity(
+                          opacity:
+                              .3 +
+                              .7 *
+                                  ((math.sin(
+                                            _animation.value * 2 * math.pi -
+                                                i * .8,
+                                          ) +
+                                          1) /
+                                      2),
+                          child: Container(
+                            width: 6,
+                            height: 6,
+                            margin: const EdgeInsets.only(right: 5),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF9C7BC6),
+                              shape: BoxShape.circle,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 7),
-                 Text(
-                  tr('Thinking…'),
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: CustomerTheme.textSecondary,
+                  const SizedBox(width: 7),
+                  Text(
+                    tr('Thinking…'),
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: CustomerTheme.textSecondary,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
-    ),
-  ); }
+    );
+  }
 }
 
 class AiHalo extends StatelessWidget {
   final double size;
   const AiHalo({super.key, this.size = 40});
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  Container(
-    width: size,
-    height: size,
-    decoration: BoxDecoration(
-      shape: BoxShape.circle,
-      gradient: const LinearGradient(
-        colors: [Color(0xFFFF9752), Color(0xFFAA78D6)],
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: const Color(0xFFAA78D6).withValues(alpha: .22),
-          blurRadius: 14,
-          spreadRadius: 3,
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFF9752), Color(0xFFAA78D6)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-      ],
-    ),
-    child: Icon(
-      Icons.auto_awesome_rounded,
-      color: Colors.white,
-      size: size * .56,
-    ),
-  ); }
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFAA78D6).withValues(alpha: .22),
+            blurRadius: 14,
+            spreadRadius: 3,
+          ),
+        ],
+      ),
+      child: Icon(
+        Icons.auto_awesome_rounded,
+        color: Colors.white,
+        size: size * .56,
+      ),
+    );
+  }
 }
 
 class _ChatHistory extends StatefulWidget {
@@ -1327,18 +1378,20 @@ class _ChatHistoryState extends State<_ChatHistory> {
     final yes = await showDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
-        title:  Text(tr('Delete this chat?')),
-        content:  Text(
-          tr('Its conversation history and attached photos will be removed. Bookings already submitted are kept.'),
+        title: Text(tr('Delete this chat?')),
+        content: Text(
+          tr(
+            'Its conversation history and attached photos will be removed. Bookings already submitted are kept.',
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(c, false),
-            child:  Text(tr('Keep chat')),
+            child: Text(tr('Keep chat')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(c, true),
-            child:  Text(tr('Delete')),
+            child: Text(tr('Delete')),
           ),
         ],
       ),
@@ -1390,7 +1443,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
             padding: const EdgeInsets.fromLTRB(20, 12, 8, 8),
             child: Row(
               children: [
-                 Expanded(
+                Expanded(
                   child: Text(
                     tr('Your chats'),
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
@@ -1439,7 +1492,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
                   ? null
                   : () => Navigator.pop(context, {'new': true}),
               icon: const Icon(Icons.edit_square, size: 18),
-              label:  Text(tr('New chat')),
+              label: Text(tr('New chat')),
             ),
           ),
           if (_loading) const LinearProgressIndicator(minHeight: 2),
@@ -1448,7 +1501,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
               padding: const EdgeInsets.all(12),
               child: TextButton(
                 onPressed: _loading ? null : _load,
-                child: Text(tr('$_error Retry')),
+                child: Text(tr("{0} Retry", [_error])),
               ),
             ),
           Expanded(
@@ -1460,7 +1513,13 @@ class _ChatHistoryState extends State<_ChatHistory> {
                   return Padding(
                     padding: const EdgeInsets.all(20),
                     child: Text(
-                      tr(_loading ? 'Loading conversations…' : query.isEmpty ? 'Your chats will appear here.' : 'No chats match your search.'),
+                      tr(
+                        _loading
+                            ? 'Loading conversations…'
+                            : query.isEmpty
+                            ? 'Your chats will appear here.'
+                            : 'No chats match your search.',
+                      ),
                       style: const TextStyle(
                         color: CustomerTheme.textSecondary,
                       ),
@@ -1491,7 +1550,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
                       selectedTileColor: const Color(0xFFECE8E3),
                       contentPadding: const EdgeInsets.only(left: 12, right: 4),
                       title: Text(
-                        tr(row['title'].toString()),
+                        row['title'].toString(),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: const TextStyle(
@@ -1508,7 +1567,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
                         icon: const Icon(Icons.more_horiz, size: 20),
                         onSelected: (value) =>
                             value == 'rename' ? _rename(row) : _delete(row),
-                        itemBuilder: (_) =>  [
+                        itemBuilder: (_) => [
                           PopupMenuItem(
                             value: 'rename',
                             child: ListTile(
@@ -1539,7 +1598,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
               },
             ),
           ),
-           Padding(
+          Padding(
             padding: EdgeInsets.all(20),
             child: Row(
               children: [
@@ -1605,28 +1664,34 @@ class _RenameChatDialogState extends State<_RenameChatDialog> {
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  PopScope(
-    canPop: !_saving,
-    child: AlertDialog(
-      title:  Text(tr('Rename chat')),
-      content: TextField(
-        controller: _name,
-        autofocus: true,
-        enabled: !_saving,
-        maxLength: 70,
-        onSubmitted: (_) => _save(),
-        decoration: InputDecoration(labelText: trOrNull('Chat name'), errorText: trOrNull(_error)),
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return PopScope(
+      canPop: !_saving,
+      child: AlertDialog(
+        title: Text(tr('Rename chat')),
+        content: TextField(
+          controller: _name,
+          autofocus: true,
+          enabled: !_saving,
+          maxLength: 70,
+          onSubmitted: (_) => _save(),
+          decoration: InputDecoration(
+            labelText: trOrNull('Chat name'),
+            errorText: trOrNull(_error),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: _saving ? null : () => Navigator.pop(context),
+            child: Text(tr('Cancel')),
+          ),
+          FilledButton(
+            onPressed: _saving ? null : _save,
+            child: Text(tr(_saving ? 'Saving…' : 'Save')),
+          ),
+        ],
       ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.pop(context),
-          child:  Text(tr('Cancel')),
-        ),
-        FilledButton(
-          onPressed: _saving ? null : _save,
-          child: Text(tr(_saving ? 'Saving…' : 'Save')),
-        ),
-      ],
-    ),
-  ); }
+    );
+  }
 }

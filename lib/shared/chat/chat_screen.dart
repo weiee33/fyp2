@@ -264,12 +264,12 @@ class _ConversationState extends State<ConversationScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library_outlined),
-              title:  Text(tr('Choose from gallery')),
+              title: Text(tr('Choose from gallery')),
               onTap: () => Navigator.pop(ctx, ImageSource.gallery),
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt_outlined),
-              title:  Text(tr('Take a photo')),
+              title: Text(tr('Take a photo')),
               onTap: () => Navigator.pop(ctx, ImageSource.camera),
             ),
           ],
@@ -403,214 +403,234 @@ class _ConversationState extends State<ConversationScreen> {
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  Theme(
-    data: CustomerTheme.lightTheme,
-    child: Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(title: Text(tr(_name), overflow: TextOverflow.ellipsis)),
-      body: SafeArea(
-        child: Column(
-          children: [
-             Padding(
-              padding: EdgeInsets.all(12),
-              child: Text(
-                tr('Discuss a time here, then submit a booking. Pay only after the provider accepts it.'),
-                style: TextStyle(fontSize: 12, color: Colors.black54),
-              ),
-            ),
-            if (_error != null)
-              MaterialBanner(
-                content: Text(tr(_error!)),
-                actions: [
-                  TextButton(
-                    onPressed: _id == null ? _start : _refresh,
-                    child:  Text(tr('Retry')),
-                  ),
-                ],
-              ),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : CustomerRefresh(
-                      onRefresh: _id == null ? _start : _refresh,
-                      child: ListView.builder(
-                        physics: const BouncingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        ),
-                        controller: _scroll,
-                        reverse: true,
-                        padding: const EdgeInsets.all(12),
-                        itemCount: _messages.isEmpty
-                            ? 1
-                            : _messages.length + (_more ? 1 : 0),
-                        itemBuilder: (context, index) {
-                          if (_messages.isEmpty) {
-                            return  Padding(
-                              padding: EdgeInsets.all(24),
-                              child: Center(
-                                child: Text(tr('Start the conversation.')),
-                              ),
-                            );
-                          }
-                          if (index == _messages.length) {
-                            return TextButton(
-                              onPressed: _olderLoading ? null : _older,
-                              child: Text(
-                                tr(_olderLoading ? 'Loading…' : 'Load earlier messages'),
-                              ),
-                            );
-                          }
-                          final m = _messages[index],
-                              mine = m['is_mine'] == true;
-                          final date = DateTime.tryParse(
-                            m['created_at'].toString(),
-                          )?.toLocal();
-                          return Align(
-                            alignment: mine
-                                ? Alignment.centerRight
-                                : Alignment.centerLeft,
-                            child: Container(
-                              constraints: BoxConstraints(
-                                maxWidth:
-                                    MediaQuery.sizeOf(context).width * .78,
-                              ),
-                              margin: const EdgeInsets.only(bottom: 10),
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: mine
-                                    ? CustomerTheme.primarySurface
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  if (m['attachment_path'] is String)
-                                    ChatPhoto(
-                                      key: ValueKey(m['attachment_path']),
-                                      path: m['attachment_path'] as String,
-                                      service: _service,
-                                      onOpen: () => _openGallery(
-                                        m['attachment_path'] as String,
-                                      ),
-                                    )
-                                  else
-                                    SelectableText(m['body'].toString()),
-                                  const SizedBox(height: 4),
-                                  if (date != null)
-                                    Text(
-                                      tr(DateFormat('d MMM, HH:mm').format(date)),
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                        color: Colors.black54,
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-            ),
-            if (!_loading && !_canSend)
-               Padding(
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Theme(
+      data: CustomerTheme.lightTheme,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        appBar: AppBar(title: Text(_name, overflow: TextOverflow.ellipsis)),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Padding(
                 padding: EdgeInsets.all(12),
                 child: Text(
-                  tr('Messaging is unavailable. Refresh this conversation or contact support.'),
+                  tr(
+                    'Discuss a time here, then submit a booking. Pay only after the provider accepts it.',
+                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
                 ),
               ),
-            if (_photoError != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Text(
-                  tr(_photoError!),
-                  style: const TextStyle(color: Colors.red),
+              if (_error != null)
+                MaterialBanner(
+                  content: Text(tr(_error!)),
+                  actions: [
+                    TextButton(
+                      onPressed: _id == null ? _start : _refresh,
+                      child: Text(tr('Retry')),
+                    ),
+                  ],
                 ),
+              Expanded(
+                child: _loading
+                    ? const Center(child: CircularProgressIndicator())
+                    : CustomerRefresh(
+                        onRefresh: _id == null ? _start : _refresh,
+                        child: ListView.builder(
+                          physics: const BouncingScrollPhysics(
+                            parent: AlwaysScrollableScrollPhysics(),
+                          ),
+                          controller: _scroll,
+                          reverse: true,
+                          padding: const EdgeInsets.all(12),
+                          itemCount: _messages.isEmpty
+                              ? 1
+                              : _messages.length + (_more ? 1 : 0),
+                          itemBuilder: (context, index) {
+                            if (_messages.isEmpty) {
+                              return Padding(
+                                padding: EdgeInsets.all(24),
+                                child: Center(
+                                  child: Text(tr('Start the conversation.')),
+                                ),
+                              );
+                            }
+                            if (index == _messages.length) {
+                              return TextButton(
+                                onPressed: _olderLoading ? null : _older,
+                                child: Text(
+                                  tr(
+                                    _olderLoading
+                                        ? 'Loading…'
+                                        : 'Load earlier messages',
+                                  ),
+                                ),
+                              );
+                            }
+                            final m = _messages[index],
+                                mine = m['is_mine'] == true;
+                            final date = DateTime.tryParse(
+                              m['created_at'].toString(),
+                            )?.toLocal();
+                            return Align(
+                              alignment: mine
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: Container(
+                                constraints: BoxConstraints(
+                                  maxWidth:
+                                      MediaQuery.sizeOf(context).width * .78,
+                                ),
+                                margin: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: mine
+                                      ? CustomerTheme.primarySurface
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    if (m['attachment_path'] is String)
+                                      ChatPhoto(
+                                        key: ValueKey(m['attachment_path']),
+                                        path: m['attachment_path'] as String,
+                                        service: _service,
+                                        onOpen: () => _openGallery(
+                                          m['attachment_path'] as String,
+                                        ),
+                                      )
+                                    else
+                                      SelectableText(m['body'].toString()),
+                                    const SizedBox(height: 4),
+                                    if (date != null)
+                                      Text(
+                                        tr(
+                                          DateFormat(
+                                            'd MMM, HH:mm',
+                                          ).format(date),
+                                        ),
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
               ),
-            if (_pendingPhoto != null)
+              if (!_loading && !_canSend)
+                Padding(
+                  padding: EdgeInsets.all(12),
+                  child: Text(
+                    tr(
+                      'Messaging is unavailable. Refresh this conversation or contact support.',
+                    ),
+                  ),
+                ),
+              if (_photoError != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Text(
+                    tr(_photoError!),
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                ),
+              if (_pendingPhoto != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: Image.memory(
+                          _pendingPhoto!,
+                          width: 64,
+                          height: 64,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, _, _) =>
+                              const Icon(Icons.broken_image_outlined),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _sending ? null : _sendPhoto,
+                          icon: const Icon(Icons.send),
+                          label: Text(
+                            tr(_sending ? 'Sending photo…' : 'Send photo'),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: trOrNull('Remove selected photo'),
+                        onPressed: _sending
+                            ? null
+                            : () => setState(() {
+                                _pendingPhoto = null;
+                                _photoRequestId = null;
+                                _photoError = null;
+                              }),
+                        icon: const Icon(Icons.close),
+                      ),
+                    ],
+                  ),
+                ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(12),
                 child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10),
-                      child: Image.memory(
-                        _pendingPhoto!,
-                        width: 64,
-                        height: 64,
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) =>
-                            const Icon(Icons.broken_image_outlined),
+                    IconButton(
+                      tooltip: trOrNull('Attach photo'),
+                      onPressed: _canSend && !_sending && !_pickingPhoto
+                          ? _choosePhoto
+                          : null,
+                      icon: const Icon(
+                        Icons.add_circle_outline,
+                        color: CustomerTheme.primary,
                       ),
                     ),
-                    const SizedBox(width: 12),
                     Expanded(
-                      child: FilledButton.icon(
-                        onPressed: _sending ? null : _sendPhoto,
-                        icon: const Icon(Icons.send),
-                        label: Text(tr(_sending ? 'Sending photo…' : 'Send photo')),
+                      child: TextField(
+                        controller: _text,
+                        enabled: _canSend && !_sending,
+                        minLines: 1,
+                        maxLines: 4,
+                        maxLength: 2000,
+                        decoration: InputDecoration(
+                          hintText: trOrNull('Type a message'),
+                          counterText: '',
+                        ),
                       ),
                     ),
                     IconButton(
-                      tooltip: trOrNull('Remove selected photo'),
-                      onPressed: _sending
-                          ? null
-                          : () => setState(() {
-                              _pendingPhoto = null;
-                              _photoRequestId = null;
-                              _photoError = null;
-                            }),
-                      icon: const Icon(Icons.close),
+                      tooltip: trOrNull('Send message'),
+                      onPressed: _canSend && !_sending ? _send : null,
+                      icon: _sending
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(
+                              Icons.send,
+                              color: CustomerTheme.primary,
+                            ),
                     ),
                   ],
                 ),
               ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  IconButton(
-                    tooltip: trOrNull('Attach photo'),
-                    onPressed: _canSend && !_sending && !_pickingPhoto
-                        ? _choosePhoto
-                        : null,
-                    icon: const Icon(
-                      Icons.add_circle_outline,
-                      color: CustomerTheme.primary,
-                    ),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _text,
-                      enabled: _canSend && !_sending,
-                      minLines: 1,
-                      maxLines: 4,
-                      maxLength: 2000,
-                      decoration:  InputDecoration(
-                        hintText: trOrNull('Type a message'),
-                        counterText: '',
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    tooltip: trOrNull('Send message'),
-                    onPressed: _canSend && !_sending ? _send : null,
-                    icon: _sending
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.send, color: CustomerTheme.primary),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  ); }
+    );
+  }
 }

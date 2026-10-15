@@ -81,7 +81,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         () => _error =
             'Unable to load your services. Check your connection and retry.',
       );
-      CustomerDialogs.show(context, title: tr('Unable to load'), message: _error!);
+      CustomerDialogs.show(
+        context,
+        title: tr('Unable to load'),
+        message: _error!,
+      );
     } finally {
       if (mounted && request == _requestVersion)
         setState(() => _loading = false);
@@ -117,7 +121,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
               child: Row(
                 children: [
-                   Expanded(
+                  Expanded(
                     child: Text(
                       tr('Service address'),
                       style: TextStyle(
@@ -136,7 +140,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ),
                 children: [
                   if (_addresses.isEmpty)
-                     Padding(
+                    Padding(
                       padding: EdgeInsets.all(20),
                       child: Text(
                         tr('Add an address to use when making a booking.'),
@@ -172,7 +176,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               child: OutlinedButton.icon(
                 onPressed: () => Navigator.pop(sheetContext, 'add'),
                 icon: const Icon(Icons.add_location_alt_outlined),
-                label:  Text(tr('Add service address')),
+                label: Text(tr('Add service address')),
               ),
             ),
           ],
@@ -201,133 +205,145 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  Scaffold(
-    backgroundColor: CustomerTheme.background,
-    body: CustomerRefresh(
-      onRefresh: _load,
-      child: ListView(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-        children: [
-          _header(),
-          if (_loading) const LinearProgressIndicator(),
-          if (_error != null)
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Text(tr(_error!), textAlign: TextAlign.center),
-                  TextButton(onPressed: _load, child:  Text(tr('Retry'))),
-                ],
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Scaffold(
+      backgroundColor: CustomerTheme.background,
+      body: CustomerRefresh(
+        onRefresh: _load,
+        child: ListView(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+          children: [
+            _header(),
+            if (_loading) const LinearProgressIndicator(),
+            if (_error != null)
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Text(tr(_error!), textAlign: TextAlign.center),
+                    TextButton(onPressed: _load, child: Text(tr('Retry'))),
+                  ],
+                ),
               ),
-            ),
-          if (!_loading && _error == null)
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Row(
-                    children: [
-                       Expanded(
-                        child: Text(
-                          tr('Service categories'),
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+            if (!_loading && _error == null)
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            tr('Service categories'),
+                            style: TextStyle(
+                              fontSize: 20,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          _search.clear();
-                          _browse();
-                        },
-                        child:  Text(tr('View all')),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  if (_categories.isEmpty)
-                     Text(tr('No service categories are available yet.')),
-                  LayoutBuilder(
-                    builder: (_, constraints) {
-                      final columns = constraints.maxWidth >= 500 ? 4 : 3;
-                      final width =
-                          (constraints.maxWidth - (columns - 1) * 8) / columns;
-                      return Wrap(
-                        spacing: 8,
-                        runSpacing: 12,
-                        children: _categories
-                            .map(
-                              (category) => SizedBox(
-                                width: width,
-                                child: Card(
-                                  margin: EdgeInsets.zero,
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(12),
-                                    onTap: () => _browse(
-                                      category:
-                                          category['category_name'] as String,
-                                      categoryId:
-                                          category['category_id'] as String,
-                                    ),
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 14,
+                        TextButton(
+                          onPressed: () {
+                            _search.clear();
+                            _browse();
+                          },
+                          child: Text(tr('View all')),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    if (_categories.isEmpty)
+                      Text(tr('No service categories are available yet.')),
+                    LayoutBuilder(
+                      builder: (_, constraints) {
+                        final columns = constraints.maxWidth >= 500 ? 4 : 3;
+                        final width =
+                            (constraints.maxWidth - (columns - 1) * 8) /
+                            columns;
+                        return Wrap(
+                          spacing: 8,
+                          runSpacing: 12,
+                          children: _categories
+                              .map(
+                                (category) => SizedBox(
+                                  width: width,
+                                  child: Card(
+                                    margin: EdgeInsets.zero,
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(12),
+                                      onTap: () => _browse(
+                                        category:
+                                            category['category_name'] as String,
+                                        categoryId:
+                                            category['category_id'] as String,
                                       ),
-                                      child: Column(
-                                        children: [
-                                          Icon(
-                                            _categoryIcon(
-                                              category['category_name']
-                                                  as String,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 14,
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Icon(
+                                              _categoryIcon(
+                                                category['category_name']
+                                                    as String,
+                                              ),
+                                              color: CustomerTheme.primary,
+                                              size: 32,
                                             ),
-                                            color: CustomerTheme.primary,
-                                            size: 32,
-                                          ),
-                                          const SizedBox(height: 8),
-                                          Text(
-                                            tr(category['category_name'] as String),
-                                            textAlign: TextAlign.center,
-                                          ),
-                                        ],
+                                            const SizedBox(height: 8),
+                                            Text(
+                                              tr(
+                                                category['category_name']
+                                                    as String,
+                                              ),
+                                              textAlign: TextAlign.center,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
-                              ),
-                            )
-                            .toList(),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 28),
-                   Text(
-                    tr('Verified providers'),
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 4),
-                   Text(
-                    tr('Ordered by customer rating'),
-                    style: TextStyle(color: CustomerTheme.textSecondary),
-                  ),
-                  const SizedBox(height: 12),
-                  if (_providers.isEmpty)
-                     Text(
-                      tr('No verified providers with available services yet.'),
+                              )
+                              .toList(),
+                        );
+                      },
                     ),
-                  ..._providers.map(_providerCard),
-                  const SizedBox(height: 12),
-                ],
+                    const SizedBox(height: 28),
+                    Text(
+                      tr('Verified providers'),
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tr('Ordered by customer rating'),
+                      style: TextStyle(color: CustomerTheme.textSecondary),
+                    ),
+                    const SizedBox(height: 12),
+                    if (_providers.isEmpty)
+                      Text(
+                        tr(
+                          'No verified providers with available services yet.',
+                        ),
+                      ),
+                    ..._providers.map(_providerCard),
+                    const SizedBox(height: 12),
+                  ],
+                ),
               ),
-            ),
-        ],
+          ],
+        ),
       ),
-    ),
-  ); }
+    );
+  }
 
   Widget _header() => Container(
     padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
@@ -345,12 +361,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                   Text(
-                    tr('Good day,'),
-                    style: TextStyle(color: Colors.white),
-                  ),
+                  Text(tr('Good day,'), style: TextStyle(color: Colors.white)),
                   Text(
-                    tr(_name),
+                    _name,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
@@ -452,24 +465,34 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                       ),
                     ),
                     Text(
-                      tr(provider['service_name'] as String),
+                      provider['service_name'] as String,
                       style: const TextStyle(
                         color: CustomerTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      tr(count == 0 ? 'No reviews yet' : '${rating.toStringAsFixed(1)} ★ · $count reviews'),
+                      tr(
+                        count == 0
+                            ? 'No reviews yet'
+                            : tr("{0} ★ · {1} reviews", [
+                                rating.toStringAsFixed(1),
+                                count,
+                              ]),
+                      ),
                     ),
                     Text(
-                      tr('From RM ${price.toStringAsFixed(2)}${provider['pricing_type'] == 'Hourly' ? '/hour' : ''}'),
+                      tr("From RM {0}{1}", [
+                        price.toStringAsFixed(2),
+                        provider['pricing_type'] == 'Hourly' ? tr('/hour') : '',
+                      ]),
                       style: const TextStyle(
                         color: CustomerTheme.primaryDark,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 8),
-                     Text(
+                    Text(
                       tr('View services & book'),
                       style: TextStyle(color: CustomerTheme.primaryDark),
                     ),

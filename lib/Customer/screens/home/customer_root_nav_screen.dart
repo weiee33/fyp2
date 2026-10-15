@@ -102,7 +102,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                                 child: const AiHalo(size: 54),
                               ),
                               const SizedBox(height: 3),
-                               Text(
+                              Text(
                                 tr('AI'),
                                 style: TextStyle(
                                   fontSize: 12,

@@ -72,18 +72,20 @@ class _CustomerSavedAddressesScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title:  Text(tr('Delete saved address?')),
-        content:  Text(
-          tr('Existing bookings keep their service address. If this is the default, another saved address becomes the default.'),
+        title: Text(tr('Delete saved address?')),
+        content: Text(
+          tr(
+            'Existing bookings keep their service address. If this is the default, another saved address becomes the default.',
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child:  Text(tr('Cancel')),
+            child: Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child:  Text(tr('OK')),
+            child: Text(tr('OK')),
           ),
         ],
       ),
@@ -93,101 +95,106 @@ class _CustomerSavedAddressesScreenState
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  Scaffold(
-    appBar: AppBar(title:  Text(tr('Saved Addresses'))),
-    floatingActionButton: FloatingActionButton.extended(
-      onPressed: _busy
-          ? null
-          : () async {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const AddAddressMapScreen()),
-              );
-              if (mounted) await _reload();
-            },
-      icon: const Icon(Icons.add),
-      label:  Text(tr('Add address')),
-    ),
-    body: FutureBuilder<List<Map<String, dynamic>>>(
-      future: _addresses,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting)
-          return const Center(child: CircularProgressIndicator());
-        if (snapshot.hasError)
-          return Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Scaffold(
+      appBar: AppBar(title: Text(tr('Saved Addresses'))),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _busy
+            ? null
+            : () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const AddAddressMapScreen(),
+                  ),
+                );
+                if (mounted) await _reload();
+              },
+        icon: const Icon(Icons.add),
+        label: Text(tr('Add address')),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _addresses,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting)
+            return const Center(child: CircularProgressIndicator());
+          if (snapshot.hasError)
+            return Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(tr('Could not load your saved addresses.')),
+                  TextButton(onPressed: _reload, child: Text(tr('Retry'))),
+                ],
+              ),
+            );
+          final rows = snapshot.data ?? [];
+          return CustomerRefresh(
+            onRefresh: _reload,
+            child: ListView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
               children: [
-                 Text(tr('Could not load your saved addresses.')),
-                TextButton(onPressed: _reload, child:  Text(tr('Retry'))),
+                if (_busy) const LinearProgressIndicator(),
+                if (rows.isEmpty)
+                  Padding(
+                    padding: EdgeInsets.all(24),
+                    child: Text(tr('Add a service address before booking.')),
+                  ),
+                ...rows.map((row) {
+                  final address = ['address_line', 'city', 'state', 'postcode']
+                      .map((key) => row[key]?.toString() ?? '')
+                      .where((part) => part.isNotEmpty)
+                      .join(', ');
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            tr(row['label']?.toString() ?? 'Address'),
+                            style: Theme.of(context).textTheme.titleMedium,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(address),
+                          Wrap(
+                            spacing: 8,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              if (row['is_default'] == true)
+                                Chip(label: Text(tr('Default')))
+                              else
+                                TextButton(
+                                  onPressed: _busy
+                                      ? null
+                                      : () => _change(
+                                          () => _service.setDefaultAddress(
+                                            row['address_id'].toString(),
+                                            address,
+                                          ),
+                                        ),
+                                  child: Text(tr('Set as default')),
+                                ),
+                              TextButton(
+                                onPressed: _busy ? null : () => _delete(row),
+                                child: Text(tr('Delete')),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
               ],
             ),
           );
-        final rows = snapshot.data ?? [];
-        return CustomerRefresh(
-          onRefresh: _reload,
-          child: ListView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-            children: [
-              if (_busy) const LinearProgressIndicator(),
-              if (rows.isEmpty)
-                 Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Text(tr('Add a service address before booking.')),
-                ),
-              ...rows.map((row) {
-                final address = ['address_line', 'city', 'state', 'postcode']
-                    .map((key) => row[key]?.toString() ?? '')
-                    .where((part) => part.isNotEmpty)
-                    .join(', ');
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          tr(row['label']?.toString() ?? 'Address'),
-                          style: Theme.of(context).textTheme.titleMedium,
-                        ),
-                        const SizedBox(height: 8),
-                        Text(tr(address)),
-                        Wrap(
-                          spacing: 8,
-                          crossAxisAlignment: WrapCrossAlignment.center,
-                          children: [
-                            if (row['is_default'] == true)
-                               Chip(label: Text(tr('Default')))
-                            else
-                              TextButton(
-                                onPressed: _busy
-                                    ? null
-                                    : () => _change(
-                                        () => _service.setDefaultAddress(
-                                          row['address_id'].toString(),
-                                          address,
-                                        ),
-                                      ),
-                                child:  Text(tr('Set as default')),
-                              ),
-                            TextButton(
-                              onPressed: _busy ? null : () => _delete(row),
-                              child:  Text(tr('Delete')),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }),
-            ],
-          ),
-        );
-      },
-    ),
-  ); }
+        },
+      ),
+    );
+  }
 }

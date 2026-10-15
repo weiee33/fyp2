@@ -1,0 +1,5 @@
+"NSSpeechRecognitionUsageDescription" = "将您说出的助手消息转换为可编辑文字。";
+"NSMicrophoneUsageDescription" = "仅在您使用助手麦克风时聆听。";
+"NSCameraUsageDescription" = "拍摄照片并在服务对话中分享。";
+"NSPhotoLibraryUsageDescription" = "选择照片并与服务商或客户分享。";
+"NSLocationWhenInUseUsageDescription" = "打开地址选择器时，使用您的位置预填服务地址。";

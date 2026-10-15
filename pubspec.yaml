@@ -1,5 +1,5 @@
 name: fyp2
-description: "Local Life Service Assistant App"
+description: "Home Serve - trusted home services"
 publish_to: 'none'
 
 version: 1.0.0+1
@@ -43,9 +43,15 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: HomeServeCJK
+      fonts:
+        - asset: assets/fonts/noto-sans-sc-regular.ttf
   assets:
     - assets/brand/
     - assets/l10n/
     - assets/fonts/roboto-regular.ttf
     - assets/fonts/roboto-bold.ttf
     - assets/fonts/roboto_license.txt
+    - assets/fonts/noto-sans-sc-regular.ttf
+    - assets/fonts/noto-sans-sc-license.txt

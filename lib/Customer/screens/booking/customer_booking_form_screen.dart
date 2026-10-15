@@ -151,8 +151,9 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
       await CustomerDialogs.show(
         context,
         title: tr('Success'),
-        message:
-            tr('Your booking request was sent. Wait for the provider to accept before paying.'),
+        message: tr(
+          'Your booking request was sent. Wait for the provider to accept before paying.',
+        ),
       );
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
@@ -182,7 +183,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
         ) ??
         0;
     return Scaffold(
-      appBar: AppBar(title:  Text(tr('Book service'))),
+      appBar: AppBar(title: Text(tr('Book service'))),
       body: AbsorbPointer(
         absorbing: _saving,
         child: ListView(
@@ -197,7 +198,8 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
               highlighted: true,
               children: [
                 Text(
-                  tr(widget.serviceData['service_name']?.toString() ?? 'Service'),
+                  widget.serviceData['service_name']?.toString() ??
+                      tr('Service'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Text(widget.providerData['business_name']?.toString() ?? ''),
@@ -210,8 +212,10 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                 Text(
-                  tr('The current price and appointment will be checked when you book.'),
+                Text(
+                  tr(
+                    'The current price and appointment will be checked when you book.',
+                  ),
                 ),
               ],
             ),
@@ -225,10 +229,10 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                   Text(tr(_addressError!)),
                   TextButton(
                     onPressed: _loadAddresses,
-                    child:  Text(tr('Retry addresses')),
+                    child: Text(tr('Retry addresses')),
                   ),
                 ] else if (_addresses.isEmpty)
-                   Text(tr('Add a saved address before booking.'))
+                  Text(tr('Add a saved address before booking.'))
                 else
                   DropdownButtonFormField<String>(
                     initialValue: _addressId,
@@ -260,7 +264,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                     if (mounted) await _loadAddresses();
                   },
                   icon: const Icon(Icons.add_location_alt_outlined),
-                  label:  Text(tr('Add address')),
+                  label: Text(tr('Add address')),
                 ),
               ],
             ),
@@ -270,15 +274,17 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
               children: [
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  title:  Text(tr('Appointment date')),
+                  title: Text(tr('Appointment date')),
                   subtitle: Text(
-                    tr('${DateFormat('EEE, d MMM yyyy').format(_date)} · Malaysia time'),
+                    tr("{0} · Malaysia time", [
+                      DateFormat.yMMMEd().format(_date),
+                    ]),
                   ),
                   trailing: const Icon(Icons.calendar_month),
                   onTap: _chooseDate,
                 ),
                 const SizedBox(height: 12),
-                 Text(
+                Text(
                   tr('Available times'),
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
@@ -289,17 +295,17 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                   Text(tr(_slotsError!)),
                   TextButton(
                     onPressed: _loadSlots,
-                    child:  Text(tr('Retry availability')),
+                    child: Text(tr('Retry availability')),
                   ),
                 ] else if (_slots.isEmpty)
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                       Text(tr('No appointments available on this date.')),
+                      Text(tr('No appointments available on this date.')),
                       TextButton.icon(
                         onPressed: _chooseDate,
                         icon: const Icon(Icons.event_available),
-                        label:  Text(tr('Choose another date')),
+                        label: Text(tr('Choose another date')),
                       ),
                     ],
                   )
@@ -331,7 +337,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                   controller: _instructions,
                   maxLines: 3,
                   maxLength: 1000,
-                  decoration:  InputDecoration(
+                  decoration: InputDecoration(
                     labelText: trOrNull('Instructions (optional)'),
                     border: OutlineInputBorder(),
                   ),
@@ -339,8 +345,10 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                       _requestId = CustomerTransactionService.newRequestId(),
                 ),
                 const SizedBox(height: 12),
-                 Text(
-                  tr('Send your request first. Once the provider accepts, open Booking details and pay by FPX, card or GrabPay within 30 minutes.'),
+                Text(
+                  tr(
+                    'Send your request first. Once the provider accepts, open Booking details and pay by FPX, card or GrabPay within 30 minutes.',
+                  ),
                 ),
               ],
             ),
@@ -369,7 +377,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                       width: 20,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  :  Text(tr('Create booking')),
+                  : Text(tr('Create booking')),
             ),
           ),
         ),

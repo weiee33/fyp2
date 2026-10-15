@@ -32,7 +32,7 @@ class _OtpScreenState extends State<OtpScreen> {
     final code = _otp.text.trim();
     if (code.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-         SnackBar(content: Text(tr('Please enter the full 6-digit code'))),
+        SnackBar(content: Text(tr('Please enter the full 6-digit code'))),
       );
       return;
     }
@@ -44,13 +44,13 @@ class _OtpScreenState extends State<OtpScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const MyProfileScreen()),
-            (_) => false,
+        (_) => false,
       );
     } on AuthException catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Verification Failed: ${e.message}')),
+          content: Text(tr("Verification Failed: {0}", [e.message])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -59,7 +59,7 @@ class _OtpScreenState extends State<OtpScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Error: $e')),
+          content: Text(tr("Error: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -76,7 +76,7 @@ class _OtpScreenState extends State<OtpScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content:  Text(tr('A new OTP has been sent to your email.')),
+          content: Text(tr('A new OTP has been sent to your email.')),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -85,7 +85,7 @@ class _OtpScreenState extends State<OtpScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Failed to resend: $e')),
+          content: Text(tr("Failed to resend: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -101,7 +101,7 @@ class _OtpScreenState extends State<OtpScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title:  Text(tr('Verify Your Account')),
+        title: Text(tr('Verify Your Account')),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -128,14 +128,14 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-               Text(
+              Text(
                 tr('Enter Verification Code'),
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),
               Text(
-                tr('A 6-digit code was sent to:\n${widget.email}'),
+                tr("A 6-digit code was sent to:\n{0}", [widget.email]),
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.grey, fontSize: 14),
               ),
@@ -162,7 +162,10 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: _primaryColor, width: 2),
+                    borderSide: const BorderSide(
+                      color: _primaryColor,
+                      width: 2,
+                    ),
                   ),
                 ),
               ),
@@ -181,20 +184,20 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                   child: _loading
                       ? const SizedBox(
-                    height: 22,
-                    width: 22,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2.5,
-                    ),
-                  )
-                      :  Text(
-                    tr('Verify'),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2.5,
+                          ),
+                        )
+                      : Text(
+                          tr('Verify'),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
               const SizedBox(height: 12),
@@ -202,14 +205,14 @@ class _OtpScreenState extends State<OtpScreen> {
                 onPressed: _resending ? null : _resend,
                 child: _resending
                     ? const SizedBox(
-                  height: 16,
-                  width: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-                    :  Text(
-                  tr('Resend OTP'),
-                  style: TextStyle(color: _primaryColor),
-                ),
+                        height: 16,
+                        width: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : Text(
+                        tr('Resend OTP'),
+                        style: TextStyle(color: _primaryColor),
+                      ),
               ),
             ],
           ),

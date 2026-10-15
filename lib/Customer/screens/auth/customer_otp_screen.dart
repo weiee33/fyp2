@@ -56,11 +56,11 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
       if (!mounted) return;
       await CustomerDialogs.show(
         context,
-        message: tr('Verification Failed: ${e.message}'),
+        message: tr("Verification Failed: {0}", [e.message]),
       );
     } catch (e) {
       if (!mounted) return;
-      await CustomerDialogs.show(context, message: tr('Error: $e'));
+      await CustomerDialogs.show(context, message: tr("Error: {0}", [e]));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -77,7 +77,10 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
       );
     } catch (e) {
       if (!mounted) return;
-      await CustomerDialogs.show(context, message: tr('Failed to resend: $e'));
+      await CustomerDialogs.show(
+        context,
+        message: tr("Failed to resend: {0}", [e]),
+      );
     } finally {
       if (mounted) setState(() => _resending = false);
     }
@@ -89,7 +92,7 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
     return Theme(
       data: CustomerTheme.lightTheme,
       child: Scaffold(
-        appBar: AppBar(title:  Text(tr('Verify Account'))),
+        appBar: AppBar(title: Text(tr('Verify Account'))),
         body: ListView(
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
@@ -103,14 +106,14 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
               color: CustomerTheme.primary,
             ),
             const SizedBox(height: 16),
-             Text(
+            Text(
               tr('Enter Verification Code'),
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              tr('A verification code was sent to:\n${widget.email}'),
+              tr("A verification code was sent to:\n{0}", [widget.email]),
               textAlign: TextAlign.center,
               style: const TextStyle(
                 color: CustomerTheme.textSecondary,
@@ -145,7 +148,7 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
                         strokeWidth: 2,
                       ),
                     )
-                  :  Text(tr('Verify & Proceed')),
+                  : Text(tr('Verify & Proceed')),
             ),
             const SizedBox(height: 12),
             TextButton(
@@ -156,7 +159,7 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
                       width: 16,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  :  Text(
+                  : Text(
                       tr('Resend Code'),
                       style: TextStyle(color: CustomerTheme.primary),
                     ),

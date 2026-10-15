@@ -102,21 +102,21 @@ class _CustomerBookingDetailScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title:  Text(tr('Cancel booking?')),
+        title: Text(tr('Cancel booking?')),
         content: TextField(
           controller: reason,
           maxLength: 500,
           maxLines: 3,
-          decoration:  InputDecoration(labelText: trOrNull('Reason (optional)')),
+          decoration: InputDecoration(labelText: trOrNull('Reason (optional)')),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child:  Text(tr('Cancel')),
+            child: Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, true),
-            child:  Text(tr('OK')),
+            child: Text(tr('OK')),
           ),
         ],
       ),
@@ -155,7 +155,7 @@ class _CustomerBookingDetailScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title:  Text(tr('Request booking support')),
+        title: Text(tr('Request booking support')),
         content: SingleChildScrollView(
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
@@ -168,18 +168,26 @@ class _CustomerBookingDetailScreenState
                 TextFormField(
                   controller: subject,
                   maxLength: 150,
-                  decoration:  InputDecoration(labelText: trOrNull('Subject')),
-                  validator: (value) => trOrNull(((value) => (value?.trim().length ?? 0) >= 3 ? null : 'Enter at least 3 characters')(value)),
+                  decoration: InputDecoration(labelText: trOrNull('Subject')),
+                  validator: (value) => trOrNull(
+                    ((value) => (value?.trim().length ?? 0) >= 3
+                        ? null
+                        : 'Enter at least 3 characters')(value),
+                  ),
                 ),
                 TextFormField(
                   controller: description,
                   minLines: 3,
                   maxLines: 6,
                   maxLength: 4000,
-                  decoration:  InputDecoration(
+                  decoration: InputDecoration(
                     labelText: trOrNull('Describe the problem'),
                   ),
-                  validator: (value) => trOrNull(((value) => (value?.trim().length ?? 0) >= 10 ? null : 'Enter at least 10 characters')(value)),
+                  validator: (value) => trOrNull(
+                    ((value) => (value?.trim().length ?? 0) >= 10
+                        ? null
+                        : 'Enter at least 10 characters')(value),
+                  ),
                 ),
               ],
             ),
@@ -188,13 +196,13 @@ class _CustomerBookingDetailScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child:  Text(tr('Cancel')),
+            child: Text(tr('Cancel')),
           ),
           FilledButton(
             onPressed: () {
               if (form.currentState!.validate()) Navigator.pop(ctx, true);
             },
-            child:  Text(tr('OK')),
+            child: Text(tr('OK')),
           ),
         ],
       ),
@@ -228,7 +236,7 @@ class _CustomerBookingDetailScreenState
     final booking = _booking;
     return Scaffold(
       appBar: AppBar(
-        title:  Text(tr('Booking details')),
+        title: Text(tr('Booking details')),
         actions: [
           IconButton(
             tooltip: trOrNull('Chat with provider'),
@@ -254,10 +262,7 @@ class _CustomerBookingDetailScreenState
                 children: [
                   if (_error != null) ...[
                     Text(tr(_error!)),
-                    TextButton(
-                      onPressed: _load,
-                      child:  Text(tr('Try again')),
-                    ),
+                    TextButton(onPressed: _load, child: Text(tr('Try again'))),
                   ],
                   if (_loading) const LinearProgressIndicator(),
                   if (booking != null) ...[
@@ -282,7 +287,7 @@ class _CustomerBookingDetailScreenState
                           ],
                         ),
                         Text(
-                          tr('Booking ${booking.shortId}'),
+                          tr("Booking {0}", [booking.shortId]),
                           style: const TextStyle(
                             color: CustomerTheme.textSecondary,
                           ),
@@ -309,7 +314,13 @@ class _CustomerBookingDetailScreenState
                           PaymentCountdown(deadline: booking.paymentDeadline!),
                           const SizedBox(height: 10),
                           Text(
-                            tr('Pay by ${DateFormat('d MMM, h:mm a').format(booking.paymentDeadline!.toUtc().add(const Duration(hours: 8)))} (Malaysia time)'),
+                            tr("Pay by {0} (Malaysia time)", [
+                              DateFormat.MMMd().add_jm().format(
+                                booking.paymentDeadline!.toUtc().add(
+                                  const Duration(hours: 8),
+                                ),
+                              ),
+                            ]),
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               color: CustomerTheme.primary,
@@ -333,7 +344,7 @@ class _CustomerBookingDetailScreenState
                                       ),
                                     ),
                               icon: const Icon(Icons.event_available),
-                              label:  Text(tr('Choose a new appointment')),
+                              label: Text(tr('Choose a new appointment')),
                             ),
                           ),
                         ],
@@ -350,7 +361,7 @@ class _CustomerBookingDetailScreenState
                       children: [
                         _row(
                           'Appointment',
-                          '${booking.appointmentLabel}\nMalaysia time',
+                          tr("{0}\nMalaysia time", [booking.appointmentLabel]),
                         ),
                         const Divider(height: 24),
                         _row('Service address', booking.address),
@@ -371,7 +382,7 @@ class _CustomerBookingDetailScreenState
                       children: [
                         Row(
                           children: [
-                             Expanded(child: Text(tr('Service total'))),
+                            Expanded(child: Text(tr('Service total'))),
                             Text(
                               tr('RM ${booking.amount.toStringAsFixed(2)}'),
                               style: const TextStyle(
@@ -395,7 +406,7 @@ class _CustomerBookingDetailScreenState
                                     ),
                                   ),
                             icon: const Icon(Icons.receipt_long),
-                            label:  Text(tr('View receipt')),
+                            label: Text(tr('View receipt')),
                           ),
                       ],
                     ),
@@ -407,12 +418,16 @@ class _CustomerBookingDetailScreenState
                         icon: Icons.rate_review_outlined,
                         children: [
                           Text(
-                            tr(booking.status == 'Cancelled' ? 'Reviews are available for completed services. Contact support about this cancelled booking.' : 'Your payment is confirmed. You can write a review here once the provider marks your service Completed.'),
+                            tr(
+                              booking.status == 'Cancelled'
+                                  ? 'Reviews are available for completed services. Contact support about this cancelled booking.'
+                                  : 'Your payment is confirmed. You can write a review here once the provider marks your service Completed.',
+                            ),
                           ),
                         ],
                       ),
                     if (booking.hasReview)
-                       ListTile(
+                      ListTile(
                         leading: Icon(Icons.rate_review_outlined),
                         title: Text(tr('Your review has been submitted.')),
                       ),
@@ -429,7 +444,7 @@ class _CustomerBookingDetailScreenState
                                 ),
                               ),
                         icon: const Icon(Icons.star_outline),
-                        label:  Text(tr('Write a review')),
+                        label: Text(tr('Write a review')),
                       ),
                     BookingSection(
                       title: tr('Help with this booking'),
@@ -441,7 +456,9 @@ class _CustomerBookingDetailScreenState
                             contentPadding: EdgeInsets.zero,
                             title: Text(tr(dispute['subject'].toString())),
                             subtitle: Text(
-                              tr('${dispute['status']}\n${dispute['resolution'] ?? 'Awaiting administrator review.'}'),
+                              tr(
+                                '${dispute['status']}\n${dispute['resolution'] ?? 'Awaiting administrator review.'}',
+                              ),
                             ),
                           ),
                         SizedBox(
@@ -451,7 +468,7 @@ class _CustomerBookingDetailScreenState
                                 ? null
                                 : _requestHelp,
                             icon: const Icon(Icons.support_agent),
-                            label:  Text(tr('Request booking support')),
+                            label: Text(tr('Request booking support')),
                           ),
                         ),
                         if (booking.canCancel && !booking.needsNewBooking)
@@ -485,7 +502,7 @@ class _CustomerBookingDetailScreenState
                             ),
                           ),
                     icon: const Icon(Icons.payment),
-                    label:  Padding(
+                    label: Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
                       child: Text(tr('Continue to payment')),
                     ),
@@ -550,7 +567,7 @@ class _CustomerBookingDetailScreenState
         ),
       ),
       const SizedBox(height: 6),
-      Text(tr(value), style: const TextStyle(fontSize: 15, height: 1.5)),
+      Text(value, style: const TextStyle(fontSize: 15, height: 1.5)),
     ],
   );
 }

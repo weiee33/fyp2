@@ -83,8 +83,9 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
       await CustomerDialogs.show(
         context,
         title: tr('Check your email'),
-        message:
-            tr('A verification code has been requested for your registered customer email. Check your inbox and spam folder. Your password has not changed yet.'),
+        message: tr(
+          'A verification code has been requested for your registered customer email. Check your inbox and spam folder. Your password has not changed yet.',
+        ),
       );
     } catch (e) {
       if (mounted) {
@@ -102,7 +103,9 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
       setState(() => _busy = false);
       await CustomerDialogs.show(
         context,
-        message: tr('Enter the complete verification code from your latest email.'),
+        message: tr(
+          'Enter the complete verification code from your latest email.',
+        ),
       );
       return;
     }
@@ -158,150 +161,196 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  Theme(
-    data: CustomerTheme.lightTheme,
-    child: PopScope(
-      canPop: !_committing,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            tr(widget.requireCurrentPassword ? 'Change password' : 'Reset password'),
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Theme(
+      data: CustomerTheme.lightTheme,
+      child: PopScope(
+        canPop: !_committing,
+        child: Scaffold(
+          appBar: AppBar(
+            title: Text(
+              tr(
+                widget.requireCurrentPassword
+                    ? 'Change password'
+                    : 'Reset password',
+              ),
+            ),
           ),
-        ),
-        body: ScrollConfiguration(
-          behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
-          child: SizedBox.expand(
-            child: SafeArea(
-              child: SingleChildScrollView(
-                physics: widget.requireCurrentPassword
-                    ? const BouncingScrollPhysics(
-                        parent: AlwaysScrollableScrollPhysics(),
-                      )
-                    : const ClampingScrollPhysics(),
-                padding: const EdgeInsets.all(24),
-                child: Form(
-                  key: _form,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const Icon(
-                        Icons.lock_reset,
-                        size: 56,
-                        color: CustomerTheme.primary,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        tr(_sent ? 'Verify your email' : 'Choose your new password'),
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        tr(_sent ? 'Enter the latest code sent to ${_email.text.trim()}.' : 'We will email a code to confirm that this account belongs to you.'),
-                      ),
-                      const SizedBox(height: 24),
-                      if (!_sent) ...[
-                        TextFormField(
-                          controller: _email,
-                          enabled: !_busy && !widget.requireCurrentPassword,
-                          keyboardType: TextInputType.emailAddress,
-                          autofillHints: const [AutofillHints.email],
-                          decoration:  InputDecoration(
-                            labelText: trOrNull('Email address'),
-                          ),
-                          validator: (value) => trOrNull(((v) => RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(v?.trim() ?? '') ? null : 'Enter a valid email address')(value)),
+          body: ScrollConfiguration(
+            behavior: ScrollConfiguration.of(
+              context,
+            ).copyWith(overscroll: false),
+            child: SizedBox.expand(
+              child: SafeArea(
+                child: SingleChildScrollView(
+                  physics: widget.requireCurrentPassword
+                      ? const BouncingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        )
+                      : const ClampingScrollPhysics(),
+                  padding: const EdgeInsets.all(24),
+                  child: Form(
+                    key: _form,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Icon(
+                          Icons.lock_reset,
+                          size: 56,
+                          color: CustomerTheme.primary,
                         ),
                         const SizedBox(height: 16),
-                        if (widget.requireCurrentPassword) ...[
+                        Text(
+                          tr(
+                            _sent
+                                ? 'Verify your email'
+                                : 'Choose your new password',
+                          ),
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          tr(
+                            _sent
+                                ? tr("Enter the latest code sent to {0}.", [
+                                    _email.text.trim(),
+                                  ])
+                                : 'We will email a code to confirm that this account belongs to you.',
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        if (!_sent) ...[
                           TextFormField(
-                            controller: _currentPassword,
+                            controller: _email,
+                            enabled: !_busy && !widget.requireCurrentPassword,
+                            keyboardType: TextInputType.emailAddress,
+                            autofillHints: const [AutofillHints.email],
+                            decoration: InputDecoration(
+                              labelText: trOrNull('Email address'),
+                            ),
+                            validator: (value) => trOrNull(
+                              ((v) =>
+                                  RegExp(
+                                    r'^[^\s@]+@[^\s@]+\.[^\s@]+$',
+                                  ).hasMatch(v?.trim() ?? '')
+                                  ? null
+                                  : 'Enter a valid email address')(value),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          if (widget.requireCurrentPassword) ...[
+                            TextFormField(
+                              controller: _currentPassword,
+                              enabled: !_busy,
+                              obscureText: true,
+                              enableSuggestions: false,
+                              autocorrect: false,
+                              decoration: InputDecoration(
+                                labelText: trOrNull('Current password'),
+                              ),
+                              validator: (value) => trOrNull(
+                                ((v) => (v ?? '').isEmpty
+                                    ? 'Enter your current password'
+                                    : null)(value),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                          ],
+                          TextFormField(
+                            controller: _password,
+                            enabled: !_busy,
+                            obscureText: _obscure,
+                            enableSuggestions: false,
+                            autocorrect: false,
+                            decoration: InputDecoration(
+                              labelText: trOrNull('New password'),
+                              helperText: trOrNull('Use 12–128 characters'),
+                              suffixIcon: IconButton(
+                                tooltip: trOrNull('Show or hide password'),
+                                onPressed: () =>
+                                    setState(() => _obscure = !_obscure),
+                                icon: Icon(
+                                  _obscure
+                                      ? Icons.visibility_off
+                                      : Icons.visibility,
+                                ),
+                              ),
+                            ),
+                            validator: (value) => trOrNull(
+                              ((v) =>
+                                  widget.requireCurrentPassword &&
+                                      v == _currentPassword.text
+                                  ? 'Choose a different new password'
+                                  : (v?.length ?? 0) >= 12 && v!.length <= 128
+                                  ? null
+                                  : 'Use 12–128 characters')(value),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _confirm,
                             enabled: !_busy,
                             obscureText: true,
                             enableSuggestions: false,
                             autocorrect: false,
-                            decoration:  InputDecoration(
-                              labelText: trOrNull('Current password'),
+                            decoration: InputDecoration(
+                              labelText: trOrNull('Confirm new password'),
                             ),
-                            validator: (value) => trOrNull(((v) => (v ?? '').isEmpty ? 'Enter your current password' : null)(value)),
+                            validator: (value) => trOrNull(
+                              ((v) => v == _password.text
+                                  ? null
+                                  : 'Passwords must match')(value),
+                            ),
                           ),
-                          const SizedBox(height: 16),
-                        ],
-                        TextFormField(
-                          controller: _password,
-                          enabled: !_busy,
-                          obscureText: _obscure,
-                          enableSuggestions: false,
-                          autocorrect: false,
-                          decoration: InputDecoration(
-                            labelText: trOrNull('New password'),
-                            helperText: trOrNull('Use 12–128 characters'),
-                            suffixIcon: IconButton(
-                              tooltip: trOrNull('Show or hide password'),
-                              onPressed: () =>
-                                  setState(() => _obscure = !_obscure),
-                              icon: Icon(
-                                _obscure
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
+                          const SizedBox(height: 24),
+                          FilledButton(
+                            onPressed: _busy ? null : _request,
+                            child: Text(tr('Confirm change password')),
+                          ),
+                        ] else ...[
+                          TextField(
+                            controller: _code,
+                            enabled: !_busy,
+                            keyboardType: TextInputType.number,
+                            autofillHints: const [AutofillHints.oneTimeCode],
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(10),
+                            ],
+                            decoration: InputDecoration(
+                              labelText: trOrNull('Email verification code'),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          FilledButton(
+                            onPressed: _busy ? null : _verify,
+                            child: Text(tr('Verify & change password')),
+                          ),
+                          TextButton(
+                            onPressed: _busy || _seconds > 0 ? null : _request,
+                            child: Text(
+                              tr(
+                                _seconds > 0
+                                    ? tr("Resend code in {0}s", [_seconds])
+                                    : 'Send a new code',
                               ),
                             ),
                           ),
-                          validator: (value) => trOrNull(((v) => widget.requireCurrentPassword && v == _currentPassword.text ? 'Choose a different new password' : (v?.length ?? 0) >= 12 && v!.length <= 128 ? null : 'Use 12–128 characters')(value)),
-                        ),
-                        const SizedBox(height: 16),
-                        TextFormField(
-                          controller: _confirm,
-                          enabled: !_busy,
-                          obscureText: true,
-                          enableSuggestions: false,
-                          autocorrect: false,
-                          decoration:  InputDecoration(
-                            labelText: trOrNull('Confirm new password'),
+                          TextButton(
+                            onPressed: _busy
+                                ? null
+                                : () => setState(() {
+                                    _sent = false;
+                                    _code.clear();
+                                  }),
+                            child: Text(tr('Change email or password')),
                           ),
-                          validator: (value) => trOrNull(((v) => v == _password.text ? null : 'Passwords must match')(value)),
-                        ),
-                        const SizedBox(height: 24),
-                        FilledButton(
-                          onPressed: _busy ? null : _request,
-                          child:  Text(tr('Confirm change password')),
-                        ),
-                      ] else ...[
-                        TextField(
-                          controller: _code,
-                          enabled: !_busy,
-                          keyboardType: TextInputType.number,
-                          autofillHints: const [AutofillHints.oneTimeCode],
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            LengthLimitingTextInputFormatter(10),
-                          ],
-                          decoration:  InputDecoration(
-                            labelText: trOrNull('Email verification code'),
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        FilledButton(
-                          onPressed: _busy ? null : _verify,
-                          child:  Text(tr('Verify & change password')),
-                        ),
-                        TextButton(
-                          onPressed: _busy || _seconds > 0 ? null : _request,
-                          child: Text(
-                            tr(_seconds > 0 ? 'Resend code in ${_seconds}s' : 'Send a new code'),
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: _busy
-                              ? null
-                              : () => setState(() {
-                                  _sent = false;
-                                  _code.clear();
-                                }),
-                          child:  Text(tr('Change email or password')),
-                        ),
+                        ],
+                        if (_busy)
+                          const Center(child: CircularProgressIndicator()),
                       ],
-                      if (_busy)
-                        const Center(child: CircularProgressIndicator()),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -309,6 +358,6 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
           ),
         ),
       ),
-    ),
-  ); }
+    );
+  }
 }

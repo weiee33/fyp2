@@ -134,7 +134,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                 Icons.photo_library_rounded,
                 color: CustomerTheme.primary,
               ),
-              title:  Text(tr('Choose from Gallery')),
+              title: Text(tr('Choose from Gallery')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.gallery);
@@ -145,7 +145,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                 Icons.camera_alt_rounded,
                 color: CustomerTheme.primary,
               ),
-              title:  Text(tr('Take a Photo')),
+              title: Text(tr('Take a Photo')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.camera);
@@ -165,7 +165,9 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       setState(() => _isSaving = false);
       await CustomerDialogs.show(
         context,
-        message: tr('Please enter your name and a valid Malaysian mobile number.'),
+        message: tr(
+          'Please enter your name and a valid Malaysian mobile number.',
+        ),
       );
       return;
     }
@@ -209,7 +211,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       setState(() => _isSaving = false);
       await CustomerDialogs.show(
         context,
-        message: tr('Failed to update profile: $e'),
+        message: tr("Failed to update profile: {0}", [e]),
       );
     } finally {
       if (mounted) setState(() => _isSaving = false);
@@ -229,7 +231,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
-        title: Text(tr('Edit $field')),
+        title: Text(tr("Edit {0}", [tr(field)])),
         content: Form(
           key: form,
           child: field == 'Phone'
@@ -239,20 +241,24 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                   autofocus: true,
                   maxLength: field == 'Bio' ? 300 : 100,
                   maxLines: field == 'Bio' ? 4 : 1,
-                  validator: (value) => trOrNull(((v) => field == 'Name' && (v?.trim().isEmpty ?? true) ? 'Name is required' : null)(value)),
+                  validator: (value) => trOrNull(
+                    ((v) => field == 'Name' && (v?.trim().isEmpty ?? true)
+                        ? 'Name is required'
+                        : null)(value),
+                  ),
                 ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:  Text(tr('Cancel')),
+            child: Text(tr('Cancel')),
           ),
           FilledButton(
             onPressed: () {
               if (form.currentState!.validate())
                 Navigator.pop(ctx, controller.text.trim());
             },
-            child:  Text(tr('OK')),
+            child: Text(tr('OK')),
           ),
         ],
       ),
@@ -279,7 +285,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
     final value = await showDialog<String>(
       context: context,
       builder: (ctx) => SimpleDialog(
-        title:  Text(tr('Gender')),
+        title: Text(tr('Gender')),
         children: [
           for (final label in ['Female', 'Male', 'Prefer not to say'])
             SimpleDialogOption(
@@ -314,179 +320,184 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
   }
 
   @override
-  Widget build(BuildContext context) { AppLanguage.watch(context); return  PopScope(
-    canPop: !_dirty && !_isSaving,
-    onPopInvokedWithResult: (didPop, result) async {
-      if (didPop || _isSaving) return;
-      if (await CustomerDialogs.confirm(
-            context,
-            title: tr('Discard changes?'),
-            message: tr('Your unsaved profile changes will be lost.'),
-          ) &&
-          mounted) {
-        setState(() => _dirty = false);
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) Navigator.pop(context);
-        });
-      }
-    },
-    child: Scaffold(
-      backgroundColor: const Color(0xFFF5F5F5),
-      appBar: AppBar(
-        title:  Text(tr('Edit Profile')),
-        actions: [
-          TextButton(
-            onPressed: _isSaving ? null : _saveProfile,
-            child:  Text(tr('Save')),
-          ),
-        ],
-      ),
-      body: _isSaving
-          ? const Center(child: CircularProgressIndicator())
-          : ListView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
-              padding: const EdgeInsets.all(10),
-              children: [
-                AccountGroup(
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Center(
-                        child: InkWell(
-                          onTap: _showImageSourceSheet,
-                          child: Column(
-                            children: [
-                              CircleAvatar(
-                                radius: 38,
-                                backgroundColor: CustomerTheme.primarySurface,
-                                backgroundImage: _pickedImageBytes != null
-                                    ? MemoryImage(_pickedImageBytes!)
-                                    : (_existingPhotoUrl?.isNotEmpty ?? false)
-                                    ? NetworkImage(_existingPhotoUrl!)
-                                    : null,
-                                child:
-                                    _pickedImageBytes == null &&
-                                        (_existingPhotoUrl?.isEmpty ?? true)
-                                    ? const Icon(
-                                        Icons.person,
-                                        color: CustomerTheme.primary,
-                                        size: 44,
-                                      )
-                                    : null,
-                              ),
-                              const SizedBox(height: 8),
-                               Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.edit_outlined, size: 18),
-                                  Text(tr(' Edit photo')),
-                                ],
-                              ),
-                            ],
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return PopScope(
+      canPop: !_dirty && !_isSaving,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop || _isSaving) return;
+        if (await CustomerDialogs.confirm(
+              context,
+              title: tr('Discard changes?'),
+              message: tr('Your unsaved profile changes will be lost.'),
+            ) &&
+            mounted) {
+          setState(() => _dirty = false);
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) Navigator.pop(context);
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F5F5),
+        appBar: AppBar(
+          title: Text(tr('Edit Profile')),
+          actions: [
+            TextButton(
+              onPressed: _isSaving ? null : _saveProfile,
+              child: Text(tr('Save')),
+            ),
+          ],
+        ),
+        body: _isSaving
+            ? const Center(child: CircularProgressIndicator())
+            : ListView(
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
+                padding: const EdgeInsets.all(10),
+                children: [
+                  AccountGroup(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Center(
+                          child: InkWell(
+                            onTap: _showImageSourceSheet,
+                            child: Column(
+                              children: [
+                                CircleAvatar(
+                                  radius: 38,
+                                  backgroundColor: CustomerTheme.primarySurface,
+                                  backgroundImage: _pickedImageBytes != null
+                                      ? MemoryImage(_pickedImageBytes!)
+                                      : (_existingPhotoUrl?.isNotEmpty ?? false)
+                                      ? NetworkImage(_existingPhotoUrl!)
+                                      : null,
+                                  child:
+                                      _pickedImageBytes == null &&
+                                          (_existingPhotoUrl?.isEmpty ?? true)
+                                      ? const Icon(
+                                          Icons.person,
+                                          color: CustomerTheme.primary,
+                                          size: 44,
+                                        )
+                                      : null,
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.edit_outlined, size: 18),
+                                    Text(tr(' Edit photo')),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                AccountGroup(
-                  children: [
-                    AccountRow(
-                      label: tr('Name'),
-                      value: _nameController.text,
-                      onTap: () => _edit('Name'),
-                    ),
-                    AccountRow(
-                      label: tr('Bio'),
-                      value: _bio.isEmpty ? 'Set now' : _bio,
-                      onTap: () => _edit('Bio'),
-                    ),
-                  ],
-                ),
-                AccountGroup(
-                  children: [
-                    AccountRow(
-                      label: tr('Gender'),
-                      value: _gender ?? 'Set now',
-                      onTap: _pickGender,
-                    ),
-                    AccountRow(
-                      label: tr('Birthday'),
-                      value: _birthday ?? 'Set now',
-                      onTap: _pickBirthday,
-                    ),
-                  ],
-                ),
-                AccountGroup(
-                  children: [
-                    AccountRow(
-                      label: tr('Phone'),
-                      value: maskedPhone('+60${_phoneController.text}'),
-                      onTap: () => _edit('Phone'),
-                    ),
-                    AccountRow(
-                      label: tr('Email'),
-                      value: maskedEmail(
-                        widget.profileData?['email']?.toString() ?? '',
+                    ],
+                  ),
+                  AccountGroup(
+                    children: [
+                      AccountRow(
+                        label: tr('Name'),
+                        value: _nameController.text,
+                        onTap: () => _edit('Name'),
                       ),
-                      subtitle: tr('Verified sign-in email'),
-                    ),
-                  ],
-                ),
-                AccountGroup(
-                  title: tr('Service preferences'),
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                           Text(tr('Choose services you frequently need.')),
-                          const SizedBox(height: 12),
-                          if (_preferencesError != null) ...[
-                            Text(tr(_preferencesError!)),
-                            TextButton(
-                              onPressed: _loadPreferences,
-                              child:  Text(tr('Retry categories')),
+                      AccountRow(
+                        label: tr('Bio'),
+                        value: _bio.isEmpty ? 'Set now' : _bio,
+                        onTap: () => _edit('Bio'),
+                      ),
+                    ],
+                  ),
+                  AccountGroup(
+                    children: [
+                      AccountRow(
+                        label: tr('Gender'),
+                        value: _gender ?? 'Set now',
+                        onTap: _pickGender,
+                      ),
+                      AccountRow(
+                        label: tr('Birthday'),
+                        value: _birthday ?? 'Set now',
+                        onTap: _pickBirthday,
+                      ),
+                    ],
+                  ),
+                  AccountGroup(
+                    children: [
+                      AccountRow(
+                        label: tr('Phone'),
+                        value: maskedPhone('+60${_phoneController.text}'),
+                        onTap: () => _edit('Phone'),
+                      ),
+                      AccountRow(
+                        label: tr('Email'),
+                        value: maskedEmail(
+                          widget.profileData?['email']?.toString() ?? '',
+                        ),
+                        subtitle: tr('Verified sign-in email'),
+                      ),
+                    ],
+                  ),
+                  AccountGroup(
+                    title: tr('Service preferences'),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(tr('Choose services you frequently need.')),
+                            const SizedBox(height: 12),
+                            if (_preferencesError != null) ...[
+                              Text(tr(_preferencesError!)),
+                              TextButton(
+                                onPressed: _loadPreferences,
+                                child: Text(tr('Retry categories')),
+                              ),
+                            ],
+                            Wrap(
+                              spacing: 8,
+                              children: _availablePreferences
+                                  .map(
+                                    (pref) => FilterChip(
+                                      label: Text(tr(pref)),
+                                      selected: _selectedPreferences.contains(
+                                        pref,
+                                      ),
+                                      onSelected: (selected) => setState(() {
+                                        _dirty = true;
+                                        if (selected) {
+                                          _selectedPreferences.add(pref);
+                                        } else {
+                                          _selectedPreferences.remove(pref);
+                                        }
+                                      }),
+                                    ),
+                                  )
+                                  .toList(),
                             ),
                           ],
-                          Wrap(
-                            spacing: 8,
-                            children: _availablePreferences
-                                .map(
-                                  (pref) => FilterChip(
-                                    label: Text(tr(pref)),
-                                    selected: _selectedPreferences.contains(
-                                      pref,
-                                    ),
-                                    onSelected: (selected) => setState(() {
-                                      _dirty = true;
-                                      if (selected) {
-                                        _selectedPreferences.add(pref);
-                                      } else {
-                                        _selectedPreferences.remove(pref);
-                                      }
-                                    }),
-                                  ),
-                                )
-                                .toList(),
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                 Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Text(
-                    tr('Your birthday and gender are optional and are not shown to providers.'),
-                    style: TextStyle(color: Colors.black54, fontSize: 12),
+                    ],
                   ),
-                ),
-              ],
-            ),
-    ),
-  ); }
+                  Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Text(
+                      tr(
+                        'Your birthday and gender are optional and are not shown to providers.',
+                      ),
+                      style: TextStyle(color: Colors.black54, fontSize: 12),
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    );
+  }
 }

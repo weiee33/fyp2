@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import '../../shared/localization/app_language.dart';
 
 /// Dates and times returned by the API use the service area's Malaysia time zone.
 class CustomerBooking {
@@ -7,9 +8,9 @@ class CustomerBooking {
     : data = Map.unmodifiable(json);
   String get id => data['booking_id'] as String;
   String get providerId => data['provider_id'] as String;
-  String get serviceName => data['service_name']?.toString() ?? 'Service';
+  String get serviceName => data['service_name']?.toString() ?? tr('Service');
   String get providerName =>
-      data['business_name']?.toString() ?? 'Service provider';
+      data['business_name']?.toString() ?? tr('Service provider');
   String get status => data['booking_status']?.toString() ?? 'Pending';
   String get date => data['booking_date']?.toString() ?? '';
   String get time =>
@@ -20,7 +21,7 @@ class CustomerBooking {
     final hour = int.tryParse(parts.first);
     final minute = parts.length > 1 ? parts[1] : '';
     if (day == null || hour == null) return '$date · $time';
-    return '${DateFormat('EEE, d MMM yyyy').format(day)} · ${hour % 12 == 0 ? 12 : hour % 12}:$minute ${hour >= 12 ? 'PM' : 'AM'}';
+    return '${DateFormat.yMMMEd().format(day)} · ${DateFormat.jm().format(DateTime(2000, 1, 1, hour, int.tryParse(minute) ?? 0))}';
   }
 
   String get address => data['customer_address']?.toString() ?? '';
@@ -72,7 +73,9 @@ class BookingSlot {
   String get label {
     final parts = time.split(':');
     final hour = int.parse(parts[0]);
-    return '${hour % 12 == 0 ? 12 : hour % 12}:${parts[1]} ${hour >= 12 ? 'PM' : 'AM'}';
+    return DateFormat.jm().format(
+      DateTime(2000, 1, 1, hour, int.parse(parts[1])),
+    );
   }
 }
 

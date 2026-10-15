@@ -63,7 +63,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError('Failed to load: $e');
+      _showError(tr("Failed to load: {0}", [e]));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -84,7 +84,8 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       final pid = await _service.getProviderId();
       if (pid == null) {
         throw Exception(
-            'Provider profile not found. Please complete your profile first.');
+          'Provider profile not found. Please complete your profile first.',
+        );
       }
 
       final data = {
@@ -126,7 +127,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError('Save failed: $e');
+      _showError(tr("Save failed: {0}", [e]));
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -138,9 +139,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
         content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -148,23 +147,24 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   // ============ Validators ============
 
   String? _required(String? v, String label) {
-    if (v == null || v.trim().isEmpty) return '$label is required';
+    if (v == null || v.trim().isEmpty)
+      return tr("{0} is required", [tr(label)]);
     return null;
   }
 
   String? _validatePrice(String? v) {
-    if (v == null || v.trim().isEmpty) return 'Price is required';
+    if (v == null || v.trim().isEmpty) return tr('Price is required');
     final n = double.tryParse(v.trim());
-    if (n == null) return 'Enter a valid number';
-    if (n < 0) return 'Price cannot be negative';
+    if (n == null) return tr('Enter a valid number');
+    if (n < 0) return tr('Price cannot be negative');
     return null;
   }
 
   String? _validateDuration(String? v) {
-    if (v == null || v.trim().isEmpty) return 'Duration is required';
+    if (v == null || v.trim().isEmpty) return tr('Duration is required');
     final n = int.tryParse(v.trim());
-    if (n == null) return 'Enter a valid number';
-    if (n < 15) return 'Minimum 15 minutes';
+    if (n == null) return tr('Enter a valid number');
+    if (n < 15) return tr('Minimum 15 minutes');
     return null;
   }
 
@@ -182,160 +182,178 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                // ---- Category ----
-                _label('Category'),
-                DropdownButtonFormField<String>(
-                  initialValue: _categoryId,
-                  decoration: _inputDecoration(
-                    hint: 'Select a category',
-                    icon: Icons.category_outlined,
-                  ),
-                  items: _categories
-                      .map((c) => DropdownMenuItem<String>(
-                    value: c['category_id'] as String,
-                    child: Text(tr(c['category_name'] ?? '')),
-                  ))
-                      .toList(),
-                  onChanged: _saving
-                      ? null
-                      : (v) => setState(() => _categoryId = v),
-                  validator: (value) => trOrNull(((v) => v == null ? 'Please select a category' : null)(value)),
-                ),
-                const SizedBox(height: 16),
-
-                // ---- Service Title ----
-                _label('Service Title'),
-                TextFormField(
-                  controller: _title,
-                  textInputAction: TextInputAction.next,
-                  enabled: !_saving,
-                  validator: (value) => trOrNull(((v) => _required(v, 'Service title'))(value)),
-                  decoration: _inputDecoration(
-                    hint: 'e.g. Pipe Repair',
-                    icon: Icons.work_outline,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // ---- Description ----
-                _label('Description'),
-                TextFormField(
-                  controller: _desc,
-                  maxLines: 3,
-                  enabled: !_saving,
-                  validator: (value) => trOrNull(((v) => _required(v, 'Description'))(value)),
-                  decoration: _inputDecoration(
-                    hint: 'Describe your service...',
-                    icon: Icons.description_outlined,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // ---- Pricing Type ----
-                _label('Pricing Type'),
-                DropdownButtonFormField<String>(
-                  initialValue: _pricing,
-                  decoration: _inputDecoration(
-                    hint: 'Select pricing type',
-                    icon: Icons.attach_money,
-                  ),
-                  items:  [
-                    DropdownMenuItem(
-                        value: 'Fixed', child: Text(tr('Fixed'))),
-                    DropdownMenuItem(
-                        value: 'Hourly', child: Text(tr('Hourly'))),
-                  ],
-                  onChanged: _saving
-                      ? null
-                      : (v) => setState(() => _pricing = v ?? 'Fixed'),
-                ),
-                const SizedBox(height: 16),
-
-                // ---- Price ----
-                _label('Price Amount (RM)'),
-                TextFormField(
-                  controller: _price,
-                  enabled: !_saving,
-                  keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true),
-                  validator: _validatePrice,
-                  decoration: _inputDecoration(
-                    hint: 'e.g. 100',
-                    icon: Icons.payments_outlined,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // ---- Duration ----
-                _label('Estimated Duration (minutes)'),
-                TextFormField(
-                  controller: _duration,
-                  enabled: !_saving,
-                  keyboardType: TextInputType.number,
-                  validator: _validateDuration,
-                  decoration: _inputDecoration(
-                    hint: 'e.g. 90',
-                    icon: Icons.timer_outlined,
-                  ),
-                ),
-                const SizedBox(height: 28),
-
-                // ---- Save Button ----
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton.icon(
-                    onPressed: _saving ? null : _save,
-                    icon: _saving
-                        ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Colors.white,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // ---- Category ----
+                      _label('Category'),
+                      DropdownButtonFormField<String>(
+                        initialValue: _categoryId,
+                        decoration: _inputDecoration(
+                          hint: 'Select a category',
+                          icon: Icons.category_outlined,
+                        ),
+                        items: _categories
+                            .map(
+                              (c) => DropdownMenuItem<String>(
+                                value: c['category_id'] as String,
+                                child: Text(tr(c['category_name'] ?? '')),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: _saving
+                            ? null
+                            : (v) => setState(() => _categoryId = v),
+                        validator: (value) => trOrNull(
+                          ((v) => v == null
+                              ? 'Please select a category'
+                              : null)(value),
+                        ),
                       ),
-                    )
-                        : Icon(_isEditing ? Icons.save : Icons.add),
-                    label: Text(
-                      tr(_saving ? 'Saving...' : (_isEditing ? 'Save Changes' : 'Add Service')),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: 16),
+
+                      // ---- Service Title ----
+                      _label('Service Title'),
+                      TextFormField(
+                        controller: _title,
+                        textInputAction: TextInputAction.next,
+                        enabled: !_saving,
+                        validator: (value) => trOrNull(
+                          ((v) => _required(v, 'Service title'))(value),
+                        ),
+                        decoration: _inputDecoration(
+                          hint: 'e.g. Pipe Repair',
+                          icon: Icons.work_outline,
+                        ),
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryOrange,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      const SizedBox(height: 16),
+
+                      // ---- Description ----
+                      _label('Description'),
+                      TextFormField(
+                        controller: _desc,
+                        maxLines: 3,
+                        enabled: !_saving,
+                        validator: (value) => trOrNull(
+                          ((v) => _required(v, 'Description'))(value),
+                        ),
+                        decoration: _inputDecoration(
+                          hint: 'Describe your service...',
+                          icon: Icons.description_outlined,
+                        ),
                       ),
-                      elevation: 2,
-                    ),
+                      const SizedBox(height: 16),
+
+                      // ---- Pricing Type ----
+                      _label('Pricing Type'),
+                      DropdownButtonFormField<String>(
+                        initialValue: _pricing,
+                        decoration: _inputDecoration(
+                          hint: 'Select pricing type',
+                          icon: Icons.attach_money,
+                        ),
+                        items: [
+                          DropdownMenuItem(
+                            value: 'Fixed',
+                            child: Text(tr('Fixed')),
+                          ),
+                          DropdownMenuItem(
+                            value: 'Hourly',
+                            child: Text(tr('Hourly')),
+                          ),
+                        ],
+                        onChanged: _saving
+                            ? null
+                            : (v) => setState(() => _pricing = v ?? 'Fixed'),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ---- Price ----
+                      _label('Price Amount (RM)'),
+                      TextFormField(
+                        controller: _price,
+                        enabled: !_saving,
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
+                        validator: _validatePrice,
+                        decoration: _inputDecoration(
+                          hint: 'e.g. 100',
+                          icon: Icons.payments_outlined,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // ---- Duration ----
+                      _label('Estimated Duration (minutes)'),
+                      TextFormField(
+                        controller: _duration,
+                        enabled: !_saving,
+                        keyboardType: TextInputType.number,
+                        validator: _validateDuration,
+                        decoration: _inputDecoration(
+                          hint: 'e.g. 90',
+                          icon: Icons.timer_outlined,
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+
+                      // ---- Save Button ----
+                      SizedBox(
+                        height: 52,
+                        child: ElevatedButton.icon(
+                          onPressed: _saving ? null : _save,
+                          icon: _saving
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Icon(_isEditing ? Icons.save : Icons.add),
+                          label: Text(
+                            tr(
+                              _saving
+                                  ? 'Saving...'
+                                  : (_isEditing
+                                        ? 'Save Changes'
+                                        : 'Add Service'),
+                            ),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _primaryOrange,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(
-      text,
-      style: const TextStyle(
-        fontWeight: FontWeight.w600,
-        fontSize: 13,
-      ),
+      tr(text),
+      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
     ),
   );
 

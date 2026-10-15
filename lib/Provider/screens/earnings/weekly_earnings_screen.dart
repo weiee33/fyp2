@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -65,7 +66,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Failed to load: $e')),
+          content: Text(tr("Failed to load: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -101,7 +102,7 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title:  Text(tr('This Week')),
+        title: Text(tr('This Week')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -109,118 +110,131 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _load,
-          color: _primaryOrange,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // ---- Total Card ----
-              Card(
-                elevation: 2,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: _borderOrange),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: _lightOrange,
-                              borderRadius: BorderRadius.circular(10),
+              child: RefreshIndicator(
+                onRefresh: _load,
+                color: _primaryOrange,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    // ---- Total Card ----
+                    Card(
+                      elevation: 2,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: _borderOrange),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: _lightOrange,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.date_range,
+                                    color: _primaryOrange,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    tr('Total This Week'),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            child: const Icon(
-                              Icons.date_range,
-                              color: _primaryOrange,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                           Expanded(
-                            child: Text(
-                              tr('Total This Week'),
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500,
+                            const SizedBox(height: 16),
+                            Text(
+                              tr("RM{0}", [_total.toStringAsFixed(2)]),
+                              style: const TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: _primaryOrange,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        tr('RM${_total.toStringAsFixed(2)}'),
-                        style: const TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: _primaryOrange,
+                            const SizedBox(height: 4),
+                            Text(
+                              tr(rangeText),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        tr(rangeText),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
+                    ),
+                    const SizedBox(height: 16),
 
-              // ---- Busiest Day Card ----
-              if (hasData) ...[
-                Card(
-                  elevation: 1,
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                    side: const BorderSide(color: _borderOrange),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: _lightOrange,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.local_fire_department,
-                            color: _primaryOrange,
-                            size: 22,
-                          ),
+                    // ---- Busiest Day Card ----
+                    if (hasData) ...[
+                      Card(
+                        elevation: 1,
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(color: _borderOrange),
                         ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
                             children: [
-                               Text(
-                                tr('Busiest Day'),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: _lightOrange,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(
+                                  Icons.local_fire_department,
+                                  color: _primaryOrange,
+                                  size: 22,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      tr('Busiest Day'),
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      tr(_dayLabels[busiestIdx]),
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: _primaryOrange,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               Text(
-                                tr(_dayLabels[busiestIdx]),
+                                tr("RM{0}", [
+                                  _days[busiestIdx].toStringAsFixed(2),
+                                ]),
                                 style: const TextStyle(
-                                  fontSize: 18,
+                                  fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   color: _primaryOrange,
                                 ),
@@ -228,168 +242,164 @@ class _WeeklyEarningsScreenState extends State<WeeklyEarningsScreen> {
                             ],
                           ),
                         ),
-                        Text(
-                          tr('RM${_days[busiestIdx].toStringAsFixed(2)}'),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: _primaryOrange,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-
-              // ---- Chart Card ----
-              Card(
-                elevation: 2,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: _borderOrange),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                       Row(
-                        children: [
-                          Icon(Icons.bar_chart,
-                              color: _primaryOrange, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            tr('Daily Breakdown'),
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: _primaryOrange,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                       Text(
-                        tr('Mon – Sun'),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
                       ),
                       const SizedBox(height: 20),
-                      SizedBox(
-                        height: 220,
-                        child: hasData
-                            ? BarChart(
-                          BarChartData(
-                            alignment:
-                            BarChartAlignment.spaceAround,
-                            maxY: maxY,
-                            barGroups:
-                            List.generate(7, (i) {
-                              final isBusiest = i == busiestIdx;
-                              return BarChartGroupData(
-                                x: i,
-                                barRods: [
-                                  BarChartRodData(
-                                    toY: _days[i],
-                                    // Busiest day darker orange,
-                                    // others lighter orange
-                                    color: isBusiest
-                                        ? const Color(0xFFE85D00)
-                                        : const Color(0xFFFFB380),
-                                    width: 22,
-                                    borderRadius:
-                                    BorderRadius.circular(6),
+                    ],
+
+                    // ---- Chart Card ----
+                    Card(
+                      elevation: 2,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: _borderOrange),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.bar_chart,
+                                  color: _primaryOrange,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  tr('Daily Breakdown'),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: _primaryOrange,
                                   ),
-                                ],
-                              );
-                            }),
-                            titlesData: FlTitlesData(
-                              show: true,
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 28,
-                                  getTitlesWidget: (v, meta) {
-                                    final i = v.toInt();
-                                    if (i < 0 || i > 6) {
-                                      return const SizedBox();
-                                    }
-                                    return Padding(
-                                      padding:
-                                      const EdgeInsets.only(
-                                          top: 6),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              tr('Mon – Sun'),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              height: 220,
+                              child: hasData
+                                  ? BarChart(
+                                      BarChartData(
+                                        alignment:
+                                            BarChartAlignment.spaceAround,
+                                        maxY: maxY,
+                                        barGroups: List.generate(7, (i) {
+                                          final isBusiest = i == busiestIdx;
+                                          return BarChartGroupData(
+                                            x: i,
+                                            barRods: [
+                                              BarChartRodData(
+                                                toY: _days[i],
+                                                // Busiest day darker orange,
+                                                // others lighter orange
+                                                color: isBusiest
+                                                    ? const Color(0xFFE85D00)
+                                                    : const Color(0xFFFFB380),
+                                                width: 22,
+                                                borderRadius:
+                                                    BorderRadius.circular(6),
+                                              ),
+                                            ],
+                                          );
+                                        }),
+                                        titlesData: FlTitlesData(
+                                          show: true,
+                                          bottomTitles: AxisTitles(
+                                            sideTitles: SideTitles(
+                                              showTitles: true,
+                                              reservedSize: 28,
+                                              getTitlesWidget: (v, meta) {
+                                                final i = v.toInt();
+                                                if (i < 0 || i > 6) {
+                                                  return const SizedBox();
+                                                }
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        top: 6,
+                                                      ),
+                                                  child: Text(
+                                                    tr(
+                                                      _dayLabels[i].substring(
+                                                        0,
+                                                        1,
+                                                      ),
+                                                    ),
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey,
+                                                      fontWeight:
+                                                          FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          leftTitles: const AxisTitles(
+                                            sideTitles: SideTitles(
+                                              showTitles: false,
+                                            ),
+                                          ),
+                                          topTitles: const AxisTitles(
+                                            sideTitles: SideTitles(
+                                              showTitles: false,
+                                            ),
+                                          ),
+                                          rightTitles: const AxisTitles(
+                                            sideTitles: SideTitles(
+                                              showTitles: false,
+                                            ),
+                                          ),
+                                        ),
+                                        gridData: FlGridData(
+                                          show: true,
+                                          drawVerticalLine: false,
+                                          horizontalInterval: (maxY / 3).clamp(
+                                            1,
+                                            9999,
+                                          ),
+                                          getDrawingHorizontalLine: (value) =>
+                                              FlLine(
+                                                color: Colors.grey.shade200,
+                                                strokeWidth: 1,
+                                              ),
+                                        ),
+                                        borderData: FlBorderData(show: false),
+                                      ),
+                                    )
+                                  : Center(
                                       child: Text(
-                                        tr(_dayLabels[i].substring(0, 1)),
-                                        style: const TextStyle(
-                                          fontSize: 11,
+                                        tr('No earnings this week'),
+                                        style: TextStyle(
                                           color: Colors.grey,
-                                          fontWeight:
-                                          FontWeight.w600,
+                                          fontSize: 13,
                                         ),
                                       ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              leftTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                    showTitles: false),
-                              ),
-                              topTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                    showTitles: false),
-                              ),
-                              rightTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                    showTitles: false),
-                              ),
+                                    ),
                             ),
-                            gridData: FlGridData(
-                              show: true,
-                              drawVerticalLine: false,
-                              horizontalInterval:
-                              (maxY / 3).clamp(1, 9999),
-                              getDrawingHorizontalLine: (value) =>
-                                  FlLine(
-                                    color: Colors.grey.shade200,
-                                    strokeWidth: 1,
-                                  ),
-                            ),
-                            borderData:
-                            FlBorderData(show: false),
-                          ),
-                        )
-                            :  Center(
-                          child: Text(
-                            tr('No earnings this week'),
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 13,
-                            ),
-                          ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
-  String _monthShort(int month) {
-    const months = [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-    ];
-    return months[month - 1];
-  }
+  String _monthShort(int month) =>
+      DateFormat.MMM().format(DateTime(2000, month));
 }

@@ -12,13 +12,24 @@ Future<void> main() async {
   runApp(LanguageScope(child: const LocalLifeApp()));
 }
 
-Future<void> _initialize() async {
+Future<void>? _startup;
+Future<void> _initialize() =>
+    _startup ??= _initializeOnce().catchError((Object error) {
+      _startup = null;
+      throw error;
+    });
+
+Future<void> _initializeOnce() async {
   await AppLanguage.instance.load();
-  await Supabase.initialize(url: SupabaseConfig.url, anonKey: SupabaseConfig.anonKey);
+  await Supabase.initialize(
+    url: SupabaseConfig.url,
+    anonKey: SupabaseConfig.anonKey,
+  );
 }
 
 class LocalLifeApp extends StatelessWidget {
-  const LocalLifeApp({super.key});
+  final Future<void> Function()? initialize;
+  const LocalLifeApp({super.key, this.initialize});
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +41,10 @@ class LocalLifeApp extends StatelessWidget {
       supportedLocales: AppLanguage.supported,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       debugShowCheckedModeBanner: false,
-      home: BrandSplash(initialize: _initialize, child: const PortalEntryScreen()),
+      home: BrandSplash(
+        initialize: initialize ?? _initialize,
+        child: const PortalEntryScreen(),
+      ),
     );
   }
 }
