@@ -75,29 +75,64 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
     return PopScope(
       canPop: !_busy,
       child: Scaffold(
-        appBar: AppBar(title: Text(tr('Delete your account'))),
+        appBar: AppBar(title: Text(tr('Delete Your Account'))),
         body: ListView(
           physics: const BouncingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),
           padding: const EdgeInsets.all(20),
           children: [
-            const Icon(
-              Icons.person_remove_outlined,
-              size: 48,
-              color: Colors.red,
+            Center(
+              child: Container(
+                padding: const EdgeInsets.all(20),
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFEE4E2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.person_remove_outlined,
+                  size: 40,
+                  color: Color(0xFFB42318),
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             Text(
-              tr(
-                'This permanently removes your login and personal profile. You cannot sign in again unless you register a new account, even if you reuse the same email.',
+              tr('This Cannot Be Undone'),
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFFB42318),
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF1F0),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFFDA29B)),
+              ),
+              child: Text(
+                tr(
+                  'This permanently removes your login and personal profile. You cannot sign in again unless you register a new account, even if you reuse the same email.',
+                ),
+                style: const TextStyle(height: 1.5, color: Color(0xFF912018)),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              tr('Before You Continue'),
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 8),
             Text(
               tr(
                 'Finish or cancel active bookings and resolve pending payments or disputes first. Anonymized transaction and rating records are retained.',
               ),
+              style: const TextStyle(height: 1.5),
             ),
             const SizedBox(height: 24),
             TextField(
@@ -114,10 +149,17 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
             const SizedBox(height: 20),
             FilledButton(
               onPressed: _busy ? null : _delete,
-              style: FilledButton.styleFrom(backgroundColor: Colors.red),
-              child: Text(
-                tr(_busy ? 'Deleting account…' : 'Delete my account'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFB42318),
+                minimumSize: const Size.fromHeight(48),
               ),
+              child: Text(
+                tr(_busy ? 'Deleting account…' : 'Delete My Account'),
+              ),
+            ),
+            TextButton(
+              onPressed: _busy ? null : () => Navigator.maybePop(context),
+              child: Text(tr('Keep My Account')),
             ),
           ],
         ),

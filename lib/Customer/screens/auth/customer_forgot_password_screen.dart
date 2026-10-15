@@ -172,8 +172,8 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
             title: Text(
               tr(
                 widget.requireCurrentPassword
-                    ? 'Change password'
-                    : 'Reset password',
+                    ? 'Change Password'
+                    : 'Reset Password',
               ),
             ),
           ),
@@ -207,18 +207,18 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                                 ? 'Verify your email'
                                 : 'Choose your new password',
                           ),
+                          textAlign: TextAlign.center,
                           style: Theme.of(context).textTheme.headlineSmall,
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          tr(
-                            _sent
-                                ? tr("Enter the latest code sent to {0}.", [
-                                    _email.text.trim(),
-                                  ])
-                                : 'We will email a code to confirm that this account belongs to you.',
+                        if (_sent) ...[
+                          const SizedBox(height: 12),
+                          Text(
+                            tr('Enter the latest code sent to {0}.', [
+                              _email.text.trim(),
+                            ]),
+                            textAlign: TextAlign.center,
                           ),
-                        ),
+                        ],
                         const SizedBox(height: 24),
                         if (!_sent) ...[
                           TextFormField(

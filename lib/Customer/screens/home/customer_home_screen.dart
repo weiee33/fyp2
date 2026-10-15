@@ -238,7 +238,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                       children: [
                         Expanded(
                           child: Text(
-                            tr('Service categories'),
+                            tr('Service Categories'),
                             style: TextStyle(
                               fontSize: 20,
                               fontWeight: FontWeight.bold,
@@ -270,8 +270,20 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                               .map(
                                 (category) => SizedBox(
                                   width: width,
+                                  height:
+                                      80 +
+                                      40 *
+                                          MediaQuery.textScalerOf(
+                                            context,
+                                          ).scale(1),
                                   child: Card(
                                     margin: EdgeInsets.zero,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                      side: const BorderSide(
+                                        color: Color(0xFFE9E3DE),
+                                      ),
+                                    ),
                                     child: InkWell(
                                       borderRadius: BorderRadius.circular(12),
                                       onTap: () => _browse(
@@ -286,6 +298,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                                           vertical: 14,
                                         ),
                                         child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           children: [
                                             Icon(
                                               _categoryIcon(
@@ -296,12 +310,19 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                                               size: 32,
                                             ),
                                             const SizedBox(height: 8),
-                                            Text(
-                                              tr(
-                                                category['category_name']
-                                                    as String,
+                                            Expanded(
+                                              child: Center(
+                                                child: Text(
+                                                  tr(
+                                                    category['category_name']
+                                                        as String,
+                                                  ),
+                                                  textAlign: TextAlign.center,
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
                                               ),
-                                              textAlign: TextAlign.center,
                                             ),
                                           ],
                                         ),
@@ -316,17 +337,13 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     ),
                     const SizedBox(height: 28),
                     Text(
-                      tr('Verified providers'),
+                      tr('Verified Providers'),
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      tr('Ordered by customer rating'),
-                      style: TextStyle(color: CustomerTheme.textSecondary),
-                    ),
+
                     const SizedBox(height: 12),
                     if (_providers.isEmpty)
                       Text(
@@ -375,7 +392,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                 ],
               ),
             ),
-            const CustomerChatButton(color: Colors.white),
+            CustomerChatButton(
+              color: Colors.white,
+              enabled: widget.homeService == null,
+            ),
           ],
         ),
         const SizedBox(height: 12),

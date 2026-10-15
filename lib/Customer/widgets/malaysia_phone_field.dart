@@ -43,13 +43,14 @@ class MalaysiaPhoneField extends StatelessWidget {
         FilteringTextInputFormatter.digitsOnly,
         LengthLimitingTextInputFormatter(10),
       ],
-      validator: MalaysiaPhone.validate,
+      validator: (value) => trOrNull(MalaysiaPhone.validate(value)),
       decoration: InputDecoration(
         labelText: trOrNull('Mobile number'),
         hintText: '102049818',
         helperText: trOrNull('Malaysia · omit the first 0'),
         prefixIcon: SizedBox(
-          width: 72,
+          width: 64,
+          height: 48,
           child: Center(
             child: Text('+60', style: TextStyle(fontWeight: FontWeight.w600)),
           ),

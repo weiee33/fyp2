@@ -203,6 +203,10 @@ void main() {
     await t.pumpWidget(
       capture.app(CustomerAiScreen(service: service, speech: FakeSpeech())),
     );
+    expect(find.byTooltip('New chat'), findsNothing);
+    final title = t.getCenter(find.text('Home Serve AI').first);
+    final subtitle = t.getCenter(find.text('New chat'));
+    expect(subtitle.dx, closeTo(title.dx, 1));
     await capture.proof(t, 'ai-welcome-redesign');
     await t.tap(find.byTooltip('Chat history'));
     await t.pumpAndSettle();

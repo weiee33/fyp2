@@ -506,7 +506,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                         child: Text(
                           tr(
                             paid
-                                ? 'View receipt'
+                                ? 'View Receipt'
                                 : _processing
                                 ? 'Opening payment…'
                                 : booking.canPay

@@ -99,10 +99,10 @@ class _ProfileState extends State<CustomerProfileScreen> {
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 12, 24),
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
                   child: Column(
                     children: [
-                      Row(
+                      Column(
                         children: [
                           InkWell(
                             onTap: _profile == null ? null : _edit,
@@ -127,24 +127,23 @@ class _ProfileState extends State<CustomerProfileScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: InkWell(
-                              onTap: _profile == null ? null : _edit,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _profile?['full_name']?.toString() ??
-                                        'My account',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                          const SizedBox(height: 12),
+                          InkWell(
+                            onTap: _profile == null ? null : _edit,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Text(
+                                  _profile?['full_name']?.toString() ??
+                                      tr('My account'),
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -179,7 +178,7 @@ class _ProfileState extends State<CustomerProfileScreen> {
                           ),
                           _shortcut(
                             Icons.rate_review_outlined,
-                            'My reviews',
+                            'Reviews',
                             const CustomerMyReviewsScreen(),
                           ),
                           _shortcut(
@@ -196,14 +195,12 @@ class _ProfileState extends State<CustomerProfileScreen> {
                     children: [
                       AccountRow(
                         label: tr('My Addresses'),
-                        subtitle: tr('Where your service takes place'),
                         icon: Icons.location_on_outlined,
                         onTap: () =>
                             _open(const CustomerSavedAddressesScreen()),
                       ),
                       AccountRow(
                         label: tr('Profile & Preferences'),
-                        subtitle: tr('Personal details and preferred services'),
                         icon: Icons.person_outline,
                         onTap: _profile == null ? null : _edit,
                       ),

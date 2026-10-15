@@ -231,6 +231,10 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        scrollable: true,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(tr("Edit {0}", [tr(field)])),
         content: Form(
           key: form,
@@ -451,8 +455,6 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(tr('Choose services you frequently need.')),
-                            const SizedBox(height: 12),
                             if (_preferencesError != null) ...[
                               Text(tr(_preferencesError!)),
                               TextButton(
@@ -485,15 +487,6 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                         ),
                       ),
                     ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Text(
-                      tr(
-                        'Your birthday and gender are optional and are not shown to providers.',
-                      ),
-                      style: TextStyle(color: Colors.black54, fontSize: 12),
-                    ),
                   ),
                 ],
               ),

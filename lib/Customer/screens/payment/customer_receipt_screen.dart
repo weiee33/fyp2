@@ -83,7 +83,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
     AppLanguage.watch(context);
     final receipt = _receipt;
     return Scaffold(
-      appBar: AppBar(title: Text(tr('Payment receipt'))),
+      appBar: AppBar(title: Text(tr('Payment Receipt'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

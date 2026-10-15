@@ -66,14 +66,14 @@ void main() {
       await t.pumpAndSettle();
       expect(find.text('Payment unavailable'), findsOneWidget);
       expect(find.byType(AlertDialog), findsNothing);
-      expect(find.text('View receipt'), findsNothing);
+      expect(find.text('View Receipt'), findsNothing);
       await capture.proof(t, 'payment-setup-needed');
       configured = true;
       await t.tap(find.text('Open secure payment'));
       await t.pumpAndSettle();
       expect(find.text('Payment unavailable'), findsNothing);
       expect(find.text('Reopen secure payment'), findsOneWidget);
-      expect(find.text('View receipt'), findsNothing);
+      expect(find.text('View Receipt'), findsNothing);
       await t.pumpWidget(const SizedBox());
     },
   );
@@ -105,7 +105,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('Reopen secure payment'), findsNothing);
-    expect(find.text('View receipt'), findsNothing);
+    expect(find.text('View Receipt'), findsNothing);
   });
   testWidgets('automatic checks stop after server verified payment', (t) async {
     capture.pixel(t);
@@ -134,11 +134,11 @@ void main() {
     await capture.proof(t, 'payment-ready');
     await t.tap(find.text('Open secure payment'));
     await t.pumpAndSettle();
-    expect(find.text('View receipt'), findsNothing);
+    expect(find.text('View Receipt'), findsNothing);
     paid = true;
     await t.pump(const Duration(seconds: 5));
     await t.pumpAndSettle();
-    expect(find.text('View receipt'), findsOneWidget);
+    expect(find.text('View Receipt'), findsOneWidget);
     await capture.proof(t, 'payment-confirmed');
     final count = reads;
     await t.pump(const Duration(seconds: 65));

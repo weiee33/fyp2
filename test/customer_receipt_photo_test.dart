@@ -74,10 +74,13 @@ class PhotoChat extends ChatService {
 
 void main() {
   setUpAll(() async {
+    // Geometry assertions use the app font on CI as well as local captures.
+    await (FontLoader(
+      'Roboto',
+    )..addFont(rootBundle.load('assets/fonts/roboto-regular.ttf'))).load();
     const root = String.fromEnvironment('FLUTTER_FONT_ROOT');
     if (root.isNotEmpty) {
       for (final entry in {
-        'Roboto': 'roboto-regular.ttf',
         'MaterialIcons': 'materialicons-regular.otf',
       }.entries) {
         final loader = FontLoader(entry.key)
@@ -200,6 +203,19 @@ void main() {
     await t.pumpAndSettle();
     await capture.proof(t, 'booking-paid-details');
     expect(find.text('Payment received'), findsWidgets);
+    final status = t.getRect(find.byKey(const ValueKey('booking-status')));
+    final paid = t.getRect(find.byType(BookingPaymentStatus).first);
+    expect(paid.height, status.height);
+    expect(paid.center.dy, status.center.dy);
+    await t.scrollUntilVisible(find.text('View Receipt'), 300);
+    await t.pumpAndSettle();
+    final receiptButton = t.getRect(
+      find.widgetWithText(OutlinedButton, 'View Receipt'),
+    );
+    final paymentBadge = t.getRect(find.byType(BookingPaymentStatus).last);
+    expect(paymentBadge.height, receiptButton.height);
+    expect(paymentBadge.center.dy, closeTo(receiptButton.center.dy, 1));
+    await capture.proof(t, 'booking-paid-summary');
     expect(t.takeException(), isNull);
   });
   testWidgets('refunded checkout does not announce a new successful payment', (

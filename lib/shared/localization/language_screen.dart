@@ -31,7 +31,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
     AppLanguage.watch(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr('Choose language')),
+        title: Text(tr('Choose Language')),
         actions: [
           TextButton(
             onPressed: _saving ? null : _save,
@@ -41,7 +41,7 @@ class _LanguageScreenState extends State<LanguageScreen> {
                     height: 20,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : Text(tr('Done')),
+                : Text(tr('Save')),
           ),
         ],
       ),
@@ -89,15 +89,6 @@ class _LanguageScreenState extends State<LanguageScreen> {
                   ),
                 ],
               ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Text(
-              tr(
-                'Applies throughout Home Serve. Your messages and provider descriptions stay in their original language.',
-              ),
-              style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
         ],

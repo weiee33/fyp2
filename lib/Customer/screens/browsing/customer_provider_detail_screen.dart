@@ -87,7 +87,7 @@ class _CustomerProviderDetailScreenState
     return Scaffold(
       backgroundColor: CustomerTheme.background,
       appBar: AppBar(
-        title: Text(tr('Provider details')),
+        title: Text(tr('Provider Details')),
         actions: [
           IconButton(
             tooltip: trOrNull('Chat with provider'),

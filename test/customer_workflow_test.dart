@@ -169,7 +169,7 @@ void main() {
           state == 'Completed' ? findsOneWidget : findsNothing,
         );
         expect(
-          find.text('View receipt'),
+          find.text('View Receipt'),
           state == 'Completed' ? findsOneWidget : findsNothing,
         );
         expect(tester.takeException(), isNull);
@@ -269,13 +269,13 @@ void main() {
       await tester.tap(find.text('Open secure payment'));
       await tester.pumpAndSettle();
       expect(opened, 1);
-      expect(find.text('View receipt'), findsNothing);
+      expect(find.text('View Receipt'), findsNothing);
       paid = true;
       await tester.scrollUntilVisible(find.text('Check payment status'), 250);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Check payment status'));
       await tester.pumpAndSettle();
-      expect(find.text('View receipt'), findsOneWidget);
+      expect(find.text('View Receipt'), findsOneWidget);
       expect(tester.takeException(), isNull);
     },
   );
@@ -304,7 +304,7 @@ void main() {
         find.text('FPX test checkout is not configured yet.'),
         findsOneWidget,
       );
-      expect(find.text('View receipt'), findsNothing);
+      expect(find.text('View Receipt'), findsNothing);
     },
   );
   testWidgets(

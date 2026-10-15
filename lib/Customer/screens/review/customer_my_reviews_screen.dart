@@ -91,204 +91,229 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(tr('My Reviews'))),
-      body: FutureBuilder<List<Map<String, dynamic>>>(
-        future: _reviews,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(tr('Could not load your reviews.')),
-                  TextButton(onPressed: _reload, child: Text(tr('Retry'))),
-                ],
+    return DefaultTabController(
+      length: 2,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(tr('Reviews')),
+          bottom: TabBar(
+            tabs: [
+              Tab(
+                height: 56,
+                child: Text(tr('Ready To Review'), textAlign: TextAlign.center),
               ),
-            );
-          }
-          final rows = snapshot.data ?? [];
-          return CustomerRefresh(
-            onRefresh: _reload,
-            child: ListView(
-              physics: const BouncingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
+              Tab(
+                height: 56,
+                child: Text(tr('Your Reviews'), textAlign: TextAlign.center),
               ),
-              padding: const EdgeInsets.all(16),
+            ],
+            labelColor: CustomerTheme.primary,
+            unselectedLabelColor: CustomerTheme.textSecondary,
+            indicatorSize: TabBarIndicatorSize.tab,
+          ),
+        ),
+        body: FutureBuilder<List<Map<String, dynamic>>>(
+          future: _reviews,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(tr('Could not load your reviews.')),
+                    TextButton(onPressed: _reload, child: Text(tr('Retry'))),
+                  ],
+                ),
+              );
+            }
+            final rows = snapshot.data ?? [];
+            return TabBarView(
               children: [
-                Text(
-                  tr('Ready to review'),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  tr(
-                    'Reviews unlock after payment and after your provider marks the service Completed.',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                if (_ready.isEmpty)
-                  Padding(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    child: Text(
-                      tr('No completed services awaiting your review.'),
-                    ),
-                  ),
-                ..._ready.map(
-                  (row) => Card(
-                    color: Colors.white,
-                    child: ListTile(
-                      leading: const Icon(
-                        Icons.star_outline,
-                        color: CustomerTheme.primary,
+                _reviewList('ready-reviews', [
+                  if (_ready.isEmpty)
+                    Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        tr('No completed services awaiting your review.'),
                       ),
-                      title: Text(
-                        row['service_name_snapshot']?.toString() ??
-                            tr('Completed service'),
-                      ),
-                      subtitle: Text(
-                        row['provider_name_snapshot']?.toString() ??
-                            tr('Service provider'),
-                      ),
-                      trailing: const Icon(Icons.chevron_right),
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => CustomerSubmitReviewScreen(
-                              bookingId: row['booking_id'].toString(),
-                              providerId: row['provider_id'].toString(),
-                              providerName:
-                                  row['provider_name_snapshot']?.toString() ??
-                                  'Service provider',
-                              serviceName:
-                                  row['service_name_snapshot']?.toString() ??
-                                  'Completed service',
-                            ),
-                          ),
-                        );
-                        if (mounted) await _reload();
-                      },
                     ),
-                  ),
-                ),
-                if (_moreError != null) Text(tr(_moreError!)),
-                if (_more)
-                  TextButton(
-                    onPressed: _loadingMore ? null : _loadMore,
-                    child: Text(
-                      tr(_loadingMore ? 'Loading…' : 'More completed services'),
-                    ),
-                  ),
-                const SizedBox(height: 24),
-                Text(
-                  tr('Your reviews'),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                ...(rows.isEmpty
-                    ? [
-                        Padding(
-                          padding: EdgeInsets.all(24),
-                          child: Text(
-                            tr(
-                              'No reviews yet. Open a completed, paid booking to share your experience.',
-                            ),
-                          ),
+                  ..._ready.map(
+                    (row) => Card(
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: Color(0xFFE5E7EB)),
+                      ),
+                      child: ListTile(
+                        leading: const Icon(
+                          Icons.star_outline,
+                          color: CustomerTheme.primary,
                         ),
-                      ]
-                    : rows
-                          .map(
-                            (row) => Card(
-                              child: Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      row['provider_name']?.toString() ??
-                                          tr('Service provider'),
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.titleMedium,
-                                    ),
-                                    if (row['service_name'] != null)
-                                      Text(row['service_name'].toString()),
-                                    const SizedBox(height: 8),
-                                    Row(
-                                      children: List.generate(
-                                        5,
-                                        (i) => Icon(
-                                          i <
-                                                  ((row['rating_score'] as num?)
-                                                          ?.toInt() ??
-                                                      0)
-                                              ? Icons.star
-                                              : Icons.star_border,
-                                          color: CustomerTheme.primary,
-                                          size: 22,
-                                        ),
-                                      ),
-                                    ),
-                                    if ((row['review_comment']?.toString() ??
-                                            '')
-                                        .isNotEmpty)
-                                      Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 8,
-                                        ),
-                                        child: Text(
-                                          row['review_comment'].toString(),
-                                        ),
-                                      ),
-                                    if ((row['review_image_url']?.toString() ??
-                                            '')
-                                        .isNotEmpty)
-                                      _ReviewPhoto(
-                                        path: row['review_image_url']
-                                            .toString(),
-                                        service: _service,
-                                      ),
-                                    Text(
-                                      tr(
-                                        row['moderation_status'] == 'hidden'
-                                            ? 'Hidden by moderation'
-                                            : row['is_flagged'] == true
-                                            ? 'Under moderation review'
-                                            : 'Published',
-                                      ),
-                                      style: const TextStyle(
-                                        color: CustomerTheme.textSecondary,
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) =>
-                                              CustomerBookingDetailScreen(
-                                                bookingId: row['booking_id']
-                                                    .toString(),
-                                              ),
-                                        ),
-                                      ),
-                                      child: Text(tr('View booking')),
-                                    ),
-                                  ],
-                                ),
+                        title: Text(
+                          row['service_name_snapshot']?.toString() ??
+                              tr('Completed service'),
+                        ),
+                        subtitle: Text(
+                          row['provider_name_snapshot']?.toString() ??
+                              tr('Service provider'),
+                        ),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => CustomerSubmitReviewScreen(
+                                bookingId: row['booking_id'].toString(),
+                                providerId: row['provider_id'].toString(),
+                                providerName:
+                                    row['provider_name_snapshot']?.toString() ??
+                                    'Service provider',
+                                serviceName:
+                                    row['service_name_snapshot']?.toString() ??
+                                    'Completed service',
                               ),
                             ),
-                          )
-                          .toList()),
+                          );
+                          if (mounted) await _reload();
+                        },
+                      ),
+                    ),
+                  ),
+                  if (_moreError != null) Text(tr(_moreError!)),
+                  if (_more)
+                    TextButton(
+                      onPressed: _loadingMore ? null : _loadMore,
+                      child: Text(
+                        tr(
+                          _loadingMore ? 'Loading…' : 'More completed services',
+                        ),
+                      ),
+                    ),
+                ]),
+                _reviewList('submitted-reviews', [
+                  ...(rows.isEmpty
+                      ? [
+                          Padding(
+                            padding: EdgeInsets.all(24),
+                            child: Text(tr('No reviews yet.')),
+                          ),
+                        ]
+                      : rows
+                            .map(
+                              (row) => Card(
+                                color: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  side: const BorderSide(
+                                    color: Color(0xFFE5E7EB),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        row['provider_name']?.toString() ??
+                                            tr('Service provider'),
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
+                                      ),
+                                      if (row['service_name'] != null)
+                                        Text(row['service_name'].toString()),
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        children: List.generate(
+                                          5,
+                                          (i) => Icon(
+                                            i <
+                                                    ((row['rating_score']
+                                                                as num?)
+                                                            ?.toInt() ??
+                                                        0)
+                                                ? Icons.star
+                                                : Icons.star_border,
+                                            color: CustomerTheme.primary,
+                                            size: 22,
+                                          ),
+                                        ),
+                                      ),
+                                      if ((row['review_comment']?.toString() ??
+                                              '')
+                                          .isNotEmpty)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                          ),
+                                          child: Text(
+                                            row['review_comment'].toString(),
+                                          ),
+                                        ),
+                                      if ((row['review_image_url']
+                                                  ?.toString() ??
+                                              '')
+                                          .isNotEmpty)
+                                        _ReviewPhoto(
+                                          path: row['review_image_url']
+                                              .toString(),
+                                          service: _service,
+                                        ),
+                                      Text(
+                                        tr(
+                                          row['moderation_status'] == 'hidden'
+                                              ? 'Hidden by moderation'
+                                              : row['is_flagged'] == true
+                                              ? 'Under moderation review'
+                                              : 'Published',
+                                        ),
+                                        style: const TextStyle(
+                                          color: CustomerTheme.textSecondary,
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (_) =>
+                                                CustomerBookingDetailScreen(
+                                                  bookingId: row['booking_id']
+                                                      .toString(),
+                                                ),
+                                          ),
+                                        ),
+                                        child: Text(tr('View booking')),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            )
+                            .toList()),
+                ]),
               ],
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
+
+  Widget _reviewList(String key, List<Widget> children) => CustomerRefresh(
+    onRefresh: _reload,
+    child: ListView(
+      key: PageStorageKey(key),
+      physics: const BouncingScrollPhysics(
+        parent: AlwaysScrollableScrollPhysics(),
+      ),
+      padding: const EdgeInsets.all(16),
+      children: children,
+    ),
+  );
 }
 
 class _ReviewPhoto extends StatefulWidget {

@@ -51,7 +51,7 @@ void main() {
       expect(find.text('Home'), findsOneWidget);
       expect(find.text('Address'), findsOneWidget);
       expect(find.text('Please wait'), findsOneWidget);
-      expect(find.text(tr('Booking details')), findsOneWidget);
+      expect(find.text(tr('Booking Details')), findsOneWidget);
       expect(tester.takeException(), isNull);
       await tester.pumpWidget(const SizedBox());
     });

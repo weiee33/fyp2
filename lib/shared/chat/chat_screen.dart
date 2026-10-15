@@ -413,15 +413,6 @@ class _ConversationState extends State<ConversationScreen> {
         body: SafeArea(
           child: Column(
             children: [
-              Padding(
-                padding: EdgeInsets.all(12),
-                child: Text(
-                  tr(
-                    'Discuss a time here, then submit a booking. Pay only after the provider accepts it.',
-                  ),
-                  style: TextStyle(fontSize: 12, color: Colors.black54),
-                ),
-              ),
               if (_error != null)
                 MaterialBanner(
                   content: Text(tr(_error!)),

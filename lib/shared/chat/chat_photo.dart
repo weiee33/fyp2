@@ -161,7 +161,6 @@ class _ChatPhotoGalleryState extends State<ChatPhotoGallery> {
       appBar: AppBar(
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
-        title: Text(tr("Photo {0} of {1}", [_index + 1, _paths.length])),
       ),
       body: Column(
         children: [
@@ -238,16 +237,10 @@ class _ChatPhotoGalleryState extends State<ChatPhotoGallery> {
                   disabledColor: Colors.white24,
                   icon: const Icon(Icons.chevron_left),
                 ),
-                Flexible(
-                  child: Text(
-                    tr(
-                      _zoomed
-                          ? 'Pinch to zoom out, then swipe'
-                          : 'Swipe to browse · Pinch to zoom',
-                    ),
-                    style: const TextStyle(color: Colors.white70),
-                    textAlign: TextAlign.center,
-                  ),
+                Semantics(
+                  liveRegion: true,
+                  label: tr('Photo {0} of {1}', [_index + 1, _paths.length]),
+                  child: const SizedBox.shrink(),
                 ),
                 IconButton(
                   tooltip: trOrNull('Next photo'),

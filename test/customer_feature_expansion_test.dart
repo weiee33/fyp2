@@ -48,16 +48,16 @@ void main() {
         ),
       );
       await t.pumpAndSettle();
-      expect(find.text('Photo 2 of 3'), findsOneWidget);
+      expect(find.bySemanticsLabel('Photo 2 of 3'), findsOneWidget);
       await t.drag(find.byType(PageView), const Offset(-500, 0));
       await t.pumpAndSettle();
-      expect(find.text('Photo 3 of 3'), findsOneWidget);
+      expect(find.bySemanticsLabel('Photo 3 of 3'), findsOneWidget);
       await t.drag(find.byType(PageView), const Offset(500, 0));
       await t.pumpAndSettle();
-      expect(find.text('Photo 2 of 3'), findsOneWidget);
+      expect(find.bySemanticsLabel('Photo 2 of 3'), findsOneWidget);
       await t.tap(find.byTooltip('Previous photo'));
       await t.pumpAndSettle();
-      expect(find.text('Photo 1 of 3'), findsOneWidget);
+      expect(find.bySemanticsLabel('Photo 1 of 3'), findsOneWidget);
       await capture.proof(t, 'gallery-swipe');
       expect(t.takeException(), isNull);
     },
@@ -85,9 +85,19 @@ void main() {
       ),
     );
     await t.pumpAndSettle();
-    expect(find.text('Ready to review'), findsOneWidget);
+    expect(find.text('Ready To Review'), findsOneWidget);
     expect(find.text('Completed cleaning'), findsOneWidget);
-    expect(find.textContaining('Reviews unlock after payment'), findsOneWidget);
+    expect(find.textContaining('Reviews unlock after payment'), findsNothing);
+    expect(find.text('Your Reviews'), findsOneWidget);
+    await capture.proof(t, 'review-ready');
+    await t.drag(find.byType(TabBarView), const Offset(-500, 0));
+    await t.pumpAndSettle();
+    expect(find.text('No reviews yet.'), findsOneWidget);
+    expect(find.text('Completed cleaning'), findsNothing);
+    await capture.proof(t, 'review-submitted');
+    await t.tap(find.text('Ready To Review'));
+    await t.pumpAndSettle();
+    expect(find.text('Completed cleaning'), findsOneWidget);
     await capture.proof(t, 'review-ready');
     expect(t.takeException(), isNull);
   });
@@ -131,7 +141,7 @@ void main() {
         'booking_id': 'booking',
         'payment_option': 'wallet_card',
       });
-      expect(find.text('View receipt'), findsNothing);
+      expect(find.text('View Receipt'), findsNothing);
       await t.pumpWidget(const SizedBox());
     },
   );

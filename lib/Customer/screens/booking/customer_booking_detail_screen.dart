@@ -236,7 +236,7 @@ class _CustomerBookingDetailScreenState
     final booking = _booking;
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr('Booking details')),
+        title: Text(tr('Booking Details')),
         actions: [
           IconButton(
             tooltip: trOrNull('Chat with provider'),
@@ -280,10 +280,29 @@ class _CustomerBookingDetailScreenState
                         const SizedBox(height: 12),
                         Wrap(
                           spacing: 8,
-                          runSpacing: 4,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
                           children: [
-                            Chip(label: Text(tr(booking.displayStatus))),
-                            BookingPaymentStatus(booking: booking),
+                            Container(
+                              key: const ValueKey('booking-status'),
+                              constraints: const BoxConstraints(minHeight: 40),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: const Color(0xFFE5E7EB),
+                                ),
+                              ),
+                              child: Text(tr(booking.displayStatus)),
+                            ),
+                            BookingPaymentStatus(
+                              booking: booking,
+                              minHeight: 40,
+                            ),
                           ],
                         ),
                         Text(
@@ -394,20 +413,35 @@ class _CustomerBookingDetailScreenState
                           ],
                         ),
                         const SizedBox(height: 10),
-                        BookingPaymentStatus(booking: booking),
-                        if (booking.hasReceipt)
-                          OutlinedButton.icon(
-                            onPressed: _acting
-                                ? null
-                                : () => _open(
-                                    CustomerReceiptScreen(
-                                      bookingId: booking.id,
-                                      transactions: _transactions,
-                                    ),
-                                  ),
-                            icon: const Icon(Icons.receipt_long),
-                            label: Text(tr('View receipt')),
-                          ),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 8,
+                          crossAxisAlignment: WrapCrossAlignment.center,
+                          children: [
+                            BookingPaymentStatus(
+                              booking: booking,
+                              minHeight: 40,
+                            ),
+                            if (booking.hasReceipt)
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(0, 40),
+                                  tapTargetSize:
+                                      MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                onPressed: _acting
+                                    ? null
+                                    : () => _open(
+                                        CustomerReceiptScreen(
+                                          bookingId: booking.id,
+                                          transactions: _transactions,
+                                        ),
+                                      ),
+                                icon: const Icon(Icons.receipt_long),
+                                label: Text(tr('View Receipt')),
+                              ),
+                          ],
+                        ),
                       ],
                     ),
                     if (!booking.hasReview &&

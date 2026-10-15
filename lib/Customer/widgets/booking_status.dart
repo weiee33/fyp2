@@ -5,7 +5,12 @@ import '../models/booking_model.dart';
 
 class BookingPaymentStatus extends StatelessWidget {
   final CustomerBooking booking;
-  const BookingPaymentStatus({super.key, required this.booking});
+  final double minHeight;
+  const BookingPaymentStatus({
+    super.key,
+    required this.booking,
+    this.minHeight = 32,
+  });
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
@@ -35,6 +40,7 @@ class BookingPaymentStatus extends StatelessWidget {
           : const Duration(milliseconds: 300),
       child: Container(
         key: ValueKey(label),
+        constraints: BoxConstraints(minHeight: minHeight),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
         decoration: BoxDecoration(
           color: color.withValues(alpha: .09),

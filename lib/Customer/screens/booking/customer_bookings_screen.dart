@@ -75,7 +75,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
     AppLanguage.watch(context);
     return Scaffold(
       appBar: AppBar(
-        title: Text(tr('My bookings')),
+        title: Text(tr('My Bookings')),
         actions: [CustomerChatButton(enabled: _transactions.usesLiveBackend)],
       ),
       body: CustomerRefresh(
@@ -185,7 +185,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                                     ),
                                     SizedBox(width: 6),
                                     Text(
-                                      tr('Ready to review'),
+                                      tr('Ready To Review'),
                                       style: TextStyle(
                                         color: Color(0xFFFF6B00),
                                         fontWeight: FontWeight.w600,

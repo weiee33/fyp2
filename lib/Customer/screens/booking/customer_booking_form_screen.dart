@@ -183,7 +183,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
         ) ??
         0;
     return Scaffold(
-      appBar: AppBar(title: Text(tr('Book service'))),
+      appBar: AppBar(title: Text(tr('Book Service'))),
       body: AbsorbPointer(
         absorbing: _saving,
         child: ListView(
