@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/booking_service.dart';
 
@@ -47,7 +49,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to build schedule: $e'),
+          content: Text(tr("Failed to build schedule: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -58,8 +60,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
   /// Nearest-neighbor heuristic (Module 11)
   /// Simulated distances: uses booking order as pseudo-locations.
   /// In production, replace with real lat/lng + Google Distance Matrix.
-  Map<String, dynamic> _optimizeSchedule(
-      List<Map<String, dynamic>> bookings) {
+  Map<String, dynamic> _optimizeSchedule(List<Map<String, dynamic>> bookings) {
     if (bookings.isEmpty) {
       return {
         'schedule': <Map<String, dynamic>>[],
@@ -107,8 +108,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     // Add earnings
     double earnings = 0;
     for (final j in ordered) {
-      earnings +=
-          (j['total_amount'] as num?)?.toDouble() ?? 0;
+      earnings += (j['total_amount'] as num?)?.toDouble() ?? 0;
     }
 
     return {
@@ -128,16 +128,17 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
   String _formatTime(int minutes) {
     final h = minutes ~/ 60;
     final m = minutes % 60;
-    if (h == 0) return '${m}m';
-    return '${h}h ${m}m';
+    if (h == 0) return tr("{0}m", [m]);
+    return tr("{0}h {1}m", [h, m]);
   }
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('AI Smart Schedule'),
+        title: Text(tr('AI Smart Schedule')),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -145,109 +146,109 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _load,
-          color: _primaryColor,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Date header
-              Text(
-                _formatDate(DateTime.now()),
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: _primaryColor,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // Stats grid
-              GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.5,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _statCard(
-                    label: 'Total Jobs',
-                    value: '${_schedule.length}',
-                    icon: Icons.work_outline,
-                    color: _primaryColor,
-                  ),
-                  _statCard(
-                    label: 'Total Distance',
-                    value: '${_totalDistanceKm.toStringAsFixed(0)} km',
-                    icon: Icons.route_outlined,
-                    color: const Color(0xFF10B981),
-                  ),
-                  _statCard(
-                    label: 'Travel Time',
-                    value: _formatTime(_totalTravelMin),
-                    icon: Icons.timer_outlined,
-                    color: const Color(0xFF8B5CF6),
-                  ),
-                  _statCard(
-                    label: 'Est. Earnings',
-                    value:
-                    'RM${_estimatedEarnings.toStringAsFixed(0)}',
-                    icon: Icons.attach_money,
-                    color: const Color(0xFFF59E0B),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              const Text(
-                'Optimized Route',
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: _primaryColor,
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              if (_schedule.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 32),
-                  child: Center(
-                    child: Text(
-                      'No confirmed bookings today',
-                      style: TextStyle(color: Colors.grey),
+              child: RefreshIndicator(
+                onRefresh: _load,
+                color: _primaryColor,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    // Date header
+                    Text(
+                      tr(_formatDate(DateTime.now())),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: _primaryColor,
+                      ),
                     ),
-                  ),
-                )
-              else
-                ...List.generate(
-                  _schedule.length,
-                      (i) => _scheduleTile(_schedule[i], i + 1),
+                    const SizedBox(height: 12),
+
+                    // Stats grid
+                    GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 1.5,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      children: [
+                        _statCard(
+                          label: tr('Total Jobs'),
+                          value: '${_schedule.length}',
+                          icon: Icons.work_outline,
+                          color: _primaryColor,
+                        ),
+                        _statCard(
+                          label: tr('Total Distance'),
+                          value: tr("{0} km", [
+                            _totalDistanceKm.toStringAsFixed(0),
+                          ]),
+                          icon: Icons.route_outlined,
+                          color: const Color(0xFF10B981),
+                        ),
+                        _statCard(
+                          label: tr('Travel Time'),
+                          value: _formatTime(_totalTravelMin),
+                          icon: Icons.timer_outlined,
+                          color: const Color(0xFF8B5CF6),
+                        ),
+                        _statCard(
+                          label: tr('Est. Earnings'),
+                          value: tr("RM{0}", [
+                            _estimatedEarnings.toStringAsFixed(0),
+                          ]),
+                          icon: Icons.attach_money,
+                          color: const Color(0xFFF59E0B),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+
+                    Text(
+                      tr('Optimized Route'),
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                        color: _primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    if (_schedule.isEmpty)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 32),
+                        child: Center(
+                          child: Text(
+                            tr('No confirmed bookings today'),
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      )
+                    else
+                      ...List.generate(
+                        _schedule.length,
+                        (i) => _scheduleTile(_schedule[i], i + 1),
+                      ),
+                  ],
                 ),
-            ],
-          ),
-        ),
-      ),
+              ),
+            ),
     );
   }
 
   Widget _scheduleTile(Map<String, dynamic> b, int step) {
-    final cust = b['customer_profiles']?['users']?['full_name'] ??
-        'Customer';
-    final svc = b['services']?['service_name'] ?? 'Service';
-    final address = b['customer_address']?.toString() ?? 'Address';
-    final duration =
-        (b['estimated_duration'] as num?)?.toInt() ?? 60;
+    final cust =
+        b['customer_profiles']?['users']?['full_name'] ?? tr('Customer');
+    final svc = b['services']?['service_name'] ?? tr('Service');
+    final address = b['customer_address']?.toString() ?? tr('Address');
+    final duration = (b['estimated_duration'] as num?)?.toInt() ?? 60;
     final amount = (b['total_amount'] as num?)?.toDouble() ?? 0;
 
     return Card(
       elevation: 1,
       color: Colors.white,
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
@@ -263,7 +264,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
               ),
               alignment: Alignment.center,
               child: Text(
-                '$step',
+                tr('$step'),
                 style: const TextStyle(
                   color: _primaryColor,
                   fontWeight: FontWeight.bold,
@@ -288,20 +289,24 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                   const SizedBox(height: 4),
                   Text(
                     cust,
-                    style: const TextStyle(
-                        fontSize: 12, color: Colors.grey),
+                    style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
                   const SizedBox(height: 6),
                   Row(
                     children: [
-                      const Icon(Icons.location_on_outlined,
-                          size: 13, color: Colors.grey),
+                      const Icon(
+                        Icons.location_on_outlined,
+                        size: 13,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
                           address,
                           style: const TextStyle(
-                              fontSize: 12, color: Colors.grey),
+                            fontSize: 12,
+                            color: Colors.grey,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
@@ -310,19 +315,27 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.timer_outlined,
-                          size: 13, color: Colors.grey),
+                      const Icon(
+                        Icons.timer_outlined,
+                        size: 13,
+                        color: Colors.grey,
+                      ),
                       const SizedBox(width: 4),
                       Text(
-                        '$duration min',
+                        tr("{0} min", [duration]),
                         style: const TextStyle(
-                            fontSize: 12, color: Colors.grey),
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                       const SizedBox(width: 12),
-                      const Icon(Icons.attach_money,
-                          size: 13, color: Colors.grey),
+                      const Icon(
+                        Icons.attach_money,
+                        size: 13,
+                        color: Colors.grey,
+                      ),
                       Text(
-                        'RM${amount.toStringAsFixed(0)}',
+                        tr("RM{0}", [amount.toStringAsFixed(0)]),
                         style: const TextStyle(
                           fontSize: 12,
                           color: _primaryColor,
@@ -349,9 +362,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     return Card(
       elevation: 1,
       color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -371,7 +382,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    label,
+                    tr(label),
                     style: const TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
@@ -384,7 +395,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              value,
+              tr(value),
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -397,11 +408,5 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     );
   }
 
-  String _formatDate(DateTime d) {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return '${d.day} ${months[d.month - 1]} ${d.year}';
-  }
+  String _formatDate(DateTime d) => DateFormat.yMMMd().format(d);
 }

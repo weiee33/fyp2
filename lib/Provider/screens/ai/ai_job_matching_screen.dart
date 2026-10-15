@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/profile_service.dart';
 
@@ -45,7 +46,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to compute matches: $e'),
+          content: Text(tr("Failed to compute matches: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -55,9 +56,9 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
   /// Simple weighted scoring algorithm (Module 10)
   List<Map<String, dynamic>> _computeMatches(
-      Map<String, dynamic>? profile,
-      List<Map<String, dynamic>> certs,
-      ) {
+    Map<String, dynamic>? profile,
+    List<Map<String, dynamic>> certs,
+  ) {
     final rating = (profile?['overall_rating'] as num?)?.toDouble() ?? 0;
     final years = (profile?['years_experience'] as num?)?.toInt() ?? 0;
     final certCount = certs.length;
@@ -101,8 +102,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     for (final c in candidates) {
       // 1. Skill match (40%): does provider have the required certification?
       final hasSkill = certs.any((cert) {
-        final name =
-            cert['certification_name']?.toString().toLowerCase() ?? '';
+        final name = cert['certification_name']?.toString().toLowerCase() ?? '';
         final issuer = cert['issuer']?.toString().toLowerCase() ?? '';
         final skill = c['requiredSkill']!.toString().toLowerCase();
         return name.contains(skill) || issuer.contains(skill);
@@ -121,16 +121,13 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       final total = skillScore + ratingScore + expScore + certScore;
       final matchPercent = total.round().clamp(0, 100);
 
-      results.add({
-        ...c,
-        'hasSkill': hasSkill,
-        'matchPercent': matchPercent,
-      });
+      results.add({...c, 'hasSkill': hasSkill, 'matchPercent': matchPercent});
     }
 
     // Sort by match percentage, descending
-    results.sort((a, b) =>
-        (b['matchPercent'] as int).compareTo(a['matchPercent'] as int));
+    results.sort(
+      (a, b) => (b['matchPercent'] as int).compareTo(a['matchPercent'] as int),
+    );
 
     return results;
   }
@@ -138,7 +135,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   void _onAccept(Map<String, dynamic> m) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Accepted: ${m['category']}'),
+        content: Text(tr("Accepted: {0}", [m['category']])),
         backgroundColor: Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
       ),
@@ -151,7 +148,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Removed: ${m['category']}'),
+        content: Text(tr("Removed: {0}", [m['category']])),
         backgroundColor: Colors.grey.shade700,
         behavior: SnackBarBehavior.floating,
       ),
@@ -160,10 +157,11 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('AI Job Matching'),
+        title: Text(tr('AI Job Matching')),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -171,68 +169,70 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _load,
-          color: _primaryColor,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // Header Card
-              Card(
-                elevation: 2,
-                color: _accentColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Padding(
+              child: RefreshIndicator(
+                onRefresh: _load,
+                color: _primaryColor,
+                child: ListView(
                   padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: _primaryColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Icon(
-                          Icons.auto_awesome,
-                          color: _primaryColor,
-                          size: 24,
+                  children: [
+                    // Header Card
+                    Card(
+                      elevation: 2,
+                      color: _accentColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: _primaryColor.withValues(alpha: 0.12),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: const Icon(
+                                Icons.auto_awesome,
+                                color: _primaryColor,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                tr(
+                                  'Based on your skills and certifications, we recommend these service categories for you.',
+                                ),
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.black87,
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'Based on your skills and certifications, we recommend these service categories for you.',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.black87,
-                            height: 1.4,
+                    ),
+                    const SizedBox(height: 20),
+
+                    if (_matches.isEmpty)
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 48),
+                        child: Center(
+                          child: Text(
+                            tr('No recommendations available'),
+                            style: TextStyle(color: Colors.grey),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                      )
+                    else
+                      ..._matches.map((m) => _matchCard(m)),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              if (_matches.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 48),
-                  child: Center(
-                    child: Text(
-                      'No recommendations available',
-                      style: TextStyle(color: Colors.grey),
-                    ),
-                  ),
-                )
-              else
-                ..._matches.map((m) => _matchCard(m)),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -242,16 +242,14 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     final matchColor = matchPercent >= 80
         ? const Color(0xFF10B981)
         : (matchPercent >= 60
-        ? const Color(0xFFF59E0B)
-        : const Color(0xFFEF4444));
+              ? const Color(0xFFF59E0B)
+              : const Color(0xFFEF4444));
 
     return Card(
       elevation: 2,
       color: Colors.white,
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -262,7 +260,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    m['category'].toString(),
+                    tr(m['category'].toString()),
                     style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -271,13 +269,15 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 4),
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: matchColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '$matchPercent% match',
+                    tr("{0}% match", [matchPercent]),
                     style: TextStyle(
                       color: matchColor,
                       fontSize: 12,
@@ -291,7 +291,10 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
             // Meta
             Text(
-              'Jobs available: ${m['jobsAvailable']} · Avg. earnings: RM${m['avgEarning']}',
+              tr("Jobs available: {0} · Avg. earnings: RM{1}", [
+                m['jobsAvailable'],
+                m['avgEarning'],
+              ]),
               style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
             const SizedBox(height: 8),
@@ -309,9 +312,15 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    hasSkill
-                        ? 'You have: ${m['requiredSkill']} certificate'
-                        : 'Missing: ${m['requiredSkill']} certification',
+                    tr(
+                      hasSkill
+                          ? tr("You have: {0} certificate", [
+                              m['requiredSkill'],
+                            ])
+                          : tr("Missing: {0} certification", [
+                              m['requiredSkill'],
+                            ]),
+                    ),
                     style: TextStyle(
                       fontSize: 12,
                       color: hasSkill
@@ -338,7 +347,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Accept'),
+                    child: Text(tr('Accept')),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -353,7 +362,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: const Text('Not Interested'),
+                    child: Text(tr('Not Interested')),
                   ),
                 ),
               ],

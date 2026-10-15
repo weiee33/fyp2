@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -5,7 +6,6 @@ import '../../../shared/chat/chat_screen.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:timeago/timeago.dart' as timeago;
 import '../../core/customer_theme.dart';
 import '../../services/customer_notification_service.dart';
 import '../../services/customer_live_updates.dart';
@@ -80,8 +80,8 @@ class _CustomerNotificationScreenState
       if (mounted)
         CustomerDialogs.show(
           context,
-          title: 'Unable to load',
-          message: 'Could not load notifications. Please retry.',
+          title: tr('Unable to load'),
+          message: tr('Could not load notifications. Please retry.'),
         );
     }
   }
@@ -93,9 +93,10 @@ class _CustomerNotificationScreenState
       if (delete &&
           !await CustomerDialogs.confirm(
             context,
-            title: 'Delete notification?',
-            message:
-                'Remove this notification from your list? Your booking is unchanged.',
+            title: tr('Delete notification?'),
+            message: tr(
+              'Remove this notification from your list? Your booking is unchanged.',
+            ),
           ))
         return;
       if (delete) {
@@ -108,11 +109,13 @@ class _CustomerNotificationScreenState
       if (!mounted) return;
       await CustomerDialogs.show(
         context,
-        message: delete
-            ? 'Notification deleted.'
-            : row['is_pinned'] == true
-            ? 'Notification unpinned.'
-            : 'Notification pinned.',
+        message: tr(
+          delete
+              ? 'Notification deleted.'
+              : row['is_pinned'] == true
+              ? 'Notification unpinned.'
+              : 'Notification pinned.',
+        ),
       );
     } catch (e) {
       if (mounted) await CustomerDialogs.error(context, e);
@@ -163,17 +166,17 @@ class _CustomerNotificationScreenState
       await showDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(notification['title']?.toString() ?? 'Notification'),
+          title: Text(tr(notification['title']?.toString() ?? 'Notification')),
           content: SingleChildScrollView(
             physics: const BouncingScrollPhysics(
               parent: AlwaysScrollableScrollPhysics(),
             ),
-            child: Text(notification['message']?.toString() ?? ''),
+            child: Text(tr(notification['message']?.toString() ?? '')),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('OK'),
+              child: Text(tr('OK')),
             ),
           ],
         ),
@@ -183,6 +186,7 @@ class _CustomerNotificationScreenState
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     // Apply client-side filtering[cite: 455]
     final filteredNotifications = _activeFilter == 'All'
         ? _allNotifications
@@ -216,8 +220,8 @@ class _CustomerNotificationScreenState
                 pinned: true,
                 backgroundColor: Colors.white,
                 elevation: 2,
-                title: const Text(
-                  'Notifications',
+                title: Text(
+                  tr('Notifications'),
                   style: TextStyle(color: CustomerTheme.textPrimary),
                 ),
                 actions: [CustomerChatButton(enabled: widget.service == null)],
@@ -247,10 +251,10 @@ class _CustomerNotificationScreenState
                     padding: const EdgeInsets.all(24),
                     child: Column(
                       children: [
-                        Text(_loadError!),
+                        Text(tr(_loadError!)),
                         TextButton(
                           onPressed: _fetchNotifications,
-                          child: const Text('Retry'),
+                          child: Text(tr('Retry')),
                         ),
                       ],
                     ),
@@ -271,7 +275,9 @@ class _CustomerNotificationScreenState
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'No ${_activeFilter == 'All' ? '' : _activeFilter} notifications yet.',
+                          tr("No {0} notifications yet.", [
+                            _activeFilter == 'All' ? '' : tr(_activeFilter),
+                          ]),
                           style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 16,
@@ -318,7 +324,7 @@ class _CustomerNotificationScreenState
           final isSelected = _activeFilter == filter;
 
           return ChoiceChip(
-            label: Text(filter),
+            label: Text(tr(filter)),
             selected: isSelected,
             onSelected: (selected) {
               HapticFeedback.selectionClick();
@@ -374,7 +380,7 @@ class _CustomerNotificationScreenState
                 icon: notification['is_pinned'] == true
                     ? Icons.push_pin
                     : Icons.push_pin_outlined,
-                label: notification['is_pinned'] == true ? 'Unpin' : 'Pin',
+                label: tr(notification['is_pinned'] == true ? 'Unpin' : 'Pin'),
               ),
               SlidableAction(
                 borderRadius: BorderRadius.circular(16),
@@ -382,7 +388,7 @@ class _CustomerNotificationScreenState
                 backgroundColor: CustomerTheme.danger,
                 foregroundColor: Colors.white,
                 icon: Icons.delete_outline,
-                label: 'Delete',
+                label: tr('Delete'),
               ),
             ],
           ),
@@ -435,7 +441,7 @@ class _CustomerNotificationScreenState
                           children: [
                             Expanded(
                               child: Text(
-                                title,
+                                tr(title),
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: isRead
@@ -448,12 +454,7 @@ class _CustomerNotificationScreenState
                               ),
                             ),
                             Text(
-                              createdAt == null
-                                  ? ''
-                                  : timeago.format(
-                                      createdAt,
-                                      locale: 'en_short',
-                                    ),
+                              createdAt == null ? '' : relativeTime(createdAt),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isRead
@@ -468,7 +469,7 @@ class _CustomerNotificationScreenState
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          message,
+                          tr(message),
                           style: TextStyle(
                             fontSize: 13,
                             color: isRead

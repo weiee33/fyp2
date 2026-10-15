@@ -3,7 +3,8 @@ import 'package:http/http.dart' as http;
 import '../core/api_config.dart';
 
 class CustomerGeminiService {
-  static const String _baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models';
+  static const String _baseUrl =
+      'https://generativelanguage.googleapis.com/v1beta/models';
 
   /// Sends the customer's problem description to Gemini and extracts structured triage data
   Future<Map<String, dynamic>> triageCustomerIssue(String userQuery) async {
@@ -12,7 +13,7 @@ class CustomerGeminiService {
     );
 
     final systemInstruction = '''
-You are the AI triage assistant for the Malaysian home services app "Local Life Service Assistant".
+You are the AI triage assistant for the Malaysian home services app "Home Serve".
 Analyze the user's issue and return ONLY a valid JSON object matching this schema:
 {
   "category": "Plumbing" | "Electrical" | "Cleaning" | "Aircon" | "Other",
@@ -31,27 +32,32 @@ Do not include markdown fences (```json) or extra text. Output raw JSON only.
           'contents': [
             {
               'parts': [
-                {'text': '$systemInstruction\n\nUser Issue: "$userQuery"'}
-              ]
-            }
-          ]
+                {'text': '$systemInstruction\n\nUser Issue: "$userQuery"'},
+              ],
+            },
+          ],
         }),
       );
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        final rawText = data['candidates']?[0]?['content']?[0]?['text'] ??
+        final rawText =
+            data['candidates']?[0]?['content']?[0]?['text'] ??
             data['candidates']?[0]?['content']?['parts']?[0]?['text'] ??
             '';
 
         // Clean out any accidental markdown code fences
-        final cleanedJson = rawText.replaceAll('```json', '').replaceAll('```', '').trim();
+        final cleanedJson = rawText
+            .replaceAll('```json', '')
+            .replaceAll('```', '')
+            .trim();
         return jsonDecode(cleanedJson) as Map<String, dynamic>;
       } else {
         return {
           'category': 'Other',
           'urgency': 'Medium',
-          'explanation': 'Service request received. Route to general maintenance technician.',
+          'explanation':
+              'Service request received. Route to general maintenance technician.',
           'recommended_action': 'General On-site Inspection',
         };
       }
@@ -59,7 +65,8 @@ Do not include markdown fences (```json) or extra text. Output raw JSON only.
       return {
         'category': 'Other',
         'urgency': 'Medium',
-        'explanation': 'Local diagnosis fallback: please choose your technician from the service catalog.',
+        'explanation':
+            'Local diagnosis fallback: please choose your technician from the service catalog.',
         'recommended_action': 'General Service',
       };
     }

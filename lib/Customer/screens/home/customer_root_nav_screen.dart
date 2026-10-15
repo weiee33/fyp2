@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../notifications/customer_notification_screen.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     // Define the 4 main screens for the bottom navigation
     final screens =
         widget.pages ??
@@ -82,7 +84,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                   Expanded(
                     child: Semantics(
                       button: true,
-                      label: 'Open AI assistant',
+                      label: tr('Open AI assistant'),
                       child: InkWell(
                         key: const ValueKey('raised-ai-button'),
                         borderRadius: BorderRadius.circular(40),
@@ -100,8 +102,8 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                                 child: const AiHalo(size: 54),
                               ),
                               const SizedBox(height: 3),
-                              const Text(
-                                'AI',
+                              Text(
+                                tr('AI'),
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w700,
@@ -173,7 +175,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    label,
+                    tr(label),
                     style: TextStyle(
                       fontSize: 11,
                       color: selected

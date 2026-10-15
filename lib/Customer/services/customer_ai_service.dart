@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:image/image.dart' as image;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'customer_transaction_service.dart';
+import '../../shared/localization/app_language.dart';
 
 Uint8List _preparePhoto(Uint8List bytes) {
   if (bytes.length > 16 * 1024 * 1024) {
@@ -106,6 +107,7 @@ class CustomerAiService {
       'request_id': requestId,
       'message': message,
       'mode': mode,
+      'locale': AppLanguage.instance.code,
       if (imagePath != null) 'image_path': imagePath,
     });
     return Map<String, dynamic>.from(data['message'] as Map);

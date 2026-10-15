@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/booking_service.dart';
 import 'booking_detail_screen.dart';
@@ -38,8 +39,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Future<void> _load() async {
     if (mounted) setState(() => _loading = true);
     try {
-      final items =
-      await _service.getMyBookings(status: statusMap[tabs[_tab]]);
+      final items = await _service.getMyBookings(status: statusMap[tabs[_tab]]);
       if (!mounted) return;
       setState(() {
         _items = items;
@@ -50,7 +50,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load bookings: $e'),
+          content: Text(tr("Failed to load bookings: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -63,10 +63,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('My Bookings'),
+        title: Text(tr('My Bookings')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -78,8 +79,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             // ---- Status Filter Chips ----
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 12, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -95,24 +95,20 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 150),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
                           decoration: BoxDecoration(
-                            color: selected
-                                ? _primaryOrange
-                                : _lightOrange,
+                            color: selected ? _primaryOrange : _lightOrange,
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
-                              color: selected
-                                  ? _primaryOrange
-                                  : _borderOrange,
+                              color: selected ? _primaryOrange : _borderOrange,
                             ),
                           ),
                           child: Text(
-                            tabs[i],
+                            tr(tabs[i]),
                             style: TextStyle(
-                              color: selected
-                                  ? Colors.white
-                                  : _primaryOrange,
+                              color: selected ? Colors.white : _primaryOrange,
                               fontWeight: FontWeight.w600,
                               fontSize: 13,
                             ),
@@ -131,16 +127,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : RefreshIndicator(
-                onRefresh: _load,
-                color: _primaryOrange,
-                child: _items.isEmpty
-                    ? _buildEmpty()
-                    : ListView(
-                  padding: const EdgeInsets.all(16),
-                  children:
-                  _items.map((b) => _bookingCard(b)).toList(),
-                ),
-              ),
+                      onRefresh: _load,
+                      color: _primaryOrange,
+                      child: _items.isEmpty
+                          ? _buildEmpty()
+                          : ListView(
+                              padding: const EdgeInsets.all(16),
+                              children: _items
+                                  .map((b) => _bookingCard(b))
+                                  .toList(),
+                            ),
+                    ),
             ),
           ],
         ),
@@ -150,13 +147,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _buildEmpty() {
     return ListView(
-      children: const [
+      children: [
         SizedBox(height: 100),
         Icon(Icons.event_busy_outlined, size: 56, color: Colors.grey),
         SizedBox(height: 12),
         Center(
           child: Text(
-            'No bookings',
+            tr('No bookings'),
             style: TextStyle(
               color: Colors.grey,
               fontSize: 14,
@@ -167,7 +164,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         SizedBox(height: 4),
         Center(
           child: Text(
-            'New booking requests will appear here',
+            tr('New booking requests will appear here'),
             style: TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ),
@@ -178,22 +175,24 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   Widget _bookingCard(Map<String, dynamic> b) {
     // ---- Safe field extraction with fallbacks ----
     final rawId = b['booking_id']?.toString() ?? '';
-    final shortId =
-    rawId.isEmpty ? 'N/A' : (rawId.length >= 8 ? rawId.substring(0, 8) : rawId);
+    final shortId = rawId.isEmpty
+        ? 'N/A'
+        : (rawId.length >= 8 ? rawId.substring(0, 8) : rawId);
 
-    final cust = b['customer_profiles']?['users']?['full_name']?.toString() ??
-        'Customer';
-    final svc = b['services']?['service_name']?.toString() ?? 'Service';
+    final cust =
+        b['customer_profiles']?['users']?['full_name']?.toString() ??
+        tr('Customer');
+    final svc = b['services']?['service_name']?.toString() ?? tr('Service');
 
     final amountRaw = b['total_amount'];
     final amountText = amountRaw == null
         ? '—'
         : (amountRaw is num
-        ? amountRaw.toStringAsFixed(0)
-        : amountRaw.toString());
+              ? amountRaw.toStringAsFixed(0)
+              : amountRaw.toString());
 
     final status = b['booking_status']?.toString() ?? 'Pending';
-    final date = b['booking_date']?.toString() ?? 'Date TBA';
+    final date = b['booking_date']?.toString() ?? tr('Date TBA');
 
     return Card(
       elevation: 1,
@@ -206,15 +205,16 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       child: InkWell(
         onTap: () {
           if (rawId.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Booking ID missing')),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(tr('Booking ID missing'))));
             return;
           }
           Navigator.push(
             context,
             MaterialPageRoute(
-                builder: (_) => BookingDetailScreen(bookingId: rawId)),
+              builder: (_) => BookingDetailScreen(bookingId: rawId),
+            ),
           ).then((_) => _load());
         },
         borderRadius: BorderRadius.circular(12),
@@ -243,7 +243,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        '#$shortId',
+                        tr('#$shortId'),
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -253,7 +253,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     ],
                   ),
                   Text(
-                    amountRaw == null ? '—' : 'RM$amountText',
+                    tr(amountRaw == null ? '—' : tr("RM{0}", [amountText])),
                     style: const TextStyle(
                       color: _primaryOrange,
                       fontWeight: FontWeight.bold,
@@ -281,8 +281,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _statusBadge(status),
-                  const Text(
-                    'View detail →',
+                  Text(
+                    tr('View detail →'),
                     style: TextStyle(
                       color: _primaryOrange,
                       fontWeight: FontWeight.w600,
@@ -306,10 +306,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         Expanded(
           child: Text(
             text,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF4B5563),
-            ),
+            style: const TextStyle(fontSize: 13, color: Color(0xFF4B5563)),
             overflow: TextOverflow.ellipsis,
           ),
         ),
@@ -344,7 +341,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         icon = Icons.cancel_outlined;
         break;
       default:
-      // Pending / New
+        // Pending / New
         bg = _lightOrange;
         fg = _primaryOrange;
         icon = Icons.pending_outlined;
@@ -362,7 +359,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           Icon(icon, size: 13, color: fg),
           const SizedBox(width: 4),
           Text(
-            status,
+            tr(status),
             style: TextStyle(
               color: fg,
               fontSize: 11,

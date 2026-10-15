@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'customer_delete_account_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,12 +9,13 @@ import '../../../shared/portal_entry_screen.dart';
 import '../../../shared/chat/chat_inbox_screen.dart';
 import '../auth/customer_forgot_password_screen.dart';
 import 'customer_edit_profile_screen.dart';
+import '../../../shared/localization/language_screen.dart';
 
 Future<void> customerSignOut(BuildContext context) async {
   if (!await CustomerDialogs.confirm(
     context,
-    title: 'Log out?',
-    message: 'You can sign in again with your email and password.',
+    title: tr('Log out?'),
+    message: tr('You can sign in again with your email and password.'),
   ))
     return;
   try {
@@ -32,86 +34,106 @@ Future<void> customerSignOut(BuildContext context) async {
 class CustomerSettingsScreen extends StatelessWidget {
   const CustomerSettingsScreen({super.key});
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFFF5F5F5),
-    appBar: AppBar(title: const Text('Account Settings')),
-    body: ListView(
-      physics: const BouncingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
-      padding: const EdgeInsets.all(10),
-      children: [
-        AccountGroup(
-          title: 'My account',
-          children: [
-            AccountRow(
-              label: 'Account & Security',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => const CustomerAccountSecurityScreen(),
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(title: Text(tr('Account Settings'))),
+      body: ListView(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+        padding: const EdgeInsets.all(10),
+        children: [
+          AccountGroup(
+            title: tr('Preferences'),
+            children: [
+              AccountRow(
+                label: tr('Language / 语言 / Bahasa'),
+                subtitle: AppLanguage.instance.name,
+                icon: Icons.language_rounded,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LanguageScreen()),
                 ),
               ),
-            ),
-          ],
-        ),
-        AccountGroup(
-          title: 'Communication',
-          children: [
-            AccountRow(
-              label: 'Chats',
-              subtitle: 'Search, pin or delete a conversation',
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ChatInboxScreen()),
+            ],
+          ),
+          AccountGroup(
+            title: tr('My account'),
+            children: [
+              AccountRow(
+                label: tr('Account & Security'),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const CustomerAccountSecurityScreen(),
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-        AccountGroup(
-          title: 'Support',
-          children: [
-            AccountRow(
-              label: 'Help Centre',
-              onTap: () => CustomerDialogs.show(
-                context,
-                title: 'Booking help',
-                message:
+            ],
+          ),
+          AccountGroup(
+            title: tr('Communication'),
+            children: [
+              AccountRow(
+                label: tr('Chats'),
+                subtitle: tr('Search, pin or delete a conversation'),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ChatInboxScreen()),
+                ),
+              ),
+            ],
+          ),
+          AccountGroup(
+            title: tr('Support'),
+            children: [
+              AccountRow(
+                label: tr('Help Centre'),
+                onTap: () => CustomerDialogs.show(
+                  context,
+                  title: tr('Booking help'),
+                  message: tr(
                     '1. Choose a service and address.\n2. Discuss your preferred time using Chat.\n3. Submit the booking and wait for the provider to accept.\n4. Pay from the accepted booking.\n5. Track progress, then review the completed service.\n\nChat agreements do not reserve a time slot. Always use the booking screen.',
+                  ),
+                ),
               ),
-            ),
-            AccountRow(
-              label: 'Privacy',
-              onTap: () => CustomerDialogs.show(
-                context,
-                title: 'Your information',
-                message:
+              AccountRow(
+                label: tr('Privacy'),
+                onTap: () => CustomerDialogs.show(
+                  context,
+                  title: tr('Your information'),
+                  message: tr(
                     'Providers receive the details needed for your bookings and the messages you send them. Your optional birthday and gender are not part of the provider profile view. Deleting a chat clears your visible history; it does not delete the other person’s copy.',
+                  ),
+                ),
               ),
-            ),
-            AccountRow(
-              label: 'About Local Life',
-              onTap: () => CustomerDialogs.show(
-                context,
-                title: 'Local Life',
-                message:
-                    'Local Life Service Assistant\nHousehold services, bookings and provider communication.\n\nFYP mobile application.',
+              AccountRow(
+                label: tr('About Home Serve'),
+                onTap: () => CustomerDialogs.show(
+                  context,
+                  title: tr('Home Serve'),
+                  message: tr(
+                    'Home Serve\nHousehold services, bookings and provider communication.\n\nFYP mobile application.',
+                  ),
+                ),
               ),
-            ),
-          ],
-        ),
-        AccountGroup(
-          children: [
-            AccountRow(
-              label: 'Logout Your Account',
-              icon: Icons.logout,
-              onTap: () => customerSignOut(context),
-            ),
-          ],
-        ),
-      ],
-    ),
-  );
+            ],
+          ),
+          AccountGroup(
+            children: [
+              AccountRow(
+                label: tr('Logout Your Account'),
+                icon: Icons.logout,
+                onTap: () => customerSignOut(context),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class CustomerAccountSecurityScreen extends StatefulWidget {
@@ -159,74 +181,77 @@ class _SecurityState extends State<CustomerAccountSecurityScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: const Color(0xFFF5F5F5),
-    appBar: AppBar(title: const Text('Account & Security')),
-    body: _profile == null
-        ? Center(
-            child: _error == null
-                ? const CircularProgressIndicator()
-                : TextButton(
-                    onPressed: _load,
-                    child: const Text('Retry account details'),
-                  ),
-          )
-        : ListView(
-            physics: const BouncingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
-            padding: const EdgeInsets.all(10),
-            children: [
-              AccountGroup(
-                title: 'Account',
-                children: [
-                  AccountRow(label: 'My Profile', onTap: _edit),
-                  AccountRow(
-                    label: 'Name',
-                    value: _profile!['full_name']?.toString() ?? '',
-                    onTap: _edit,
-                  ),
-                  AccountRow(
-                    label: 'Phone',
-                    value: maskedPhone(_profile!['phone']?.toString() ?? ''),
-                    onTap: _edit,
-                  ),
-                  AccountRow(
-                    label: 'Email',
-                    value: maskedEmail(_profile!['email']?.toString() ?? ''),
-                    subtitle: 'Verified sign-in email',
-                  ),
-                  AccountRow(
-                    label: 'Change Password',
-                    subtitle: 'Current password and email verification',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => CustomerForgotPasswordScreen(
-                          requireCurrentPassword: true,
-                          initialEmail: _profile!['email']?.toString() ?? '',
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Scaffold(
+      backgroundColor: const Color(0xFFF5F5F5),
+      appBar: AppBar(title: Text(tr('Account & Security'))),
+      body: _profile == null
+          ? Center(
+              child: _error == null
+                  ? const CircularProgressIndicator()
+                  : TextButton(
+                      onPressed: _load,
+                      child: Text(tr('Retry account details')),
+                    ),
+            )
+          : ListView(
+              physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics(),
+              ),
+              padding: const EdgeInsets.all(10),
+              children: [
+                AccountGroup(
+                  title: tr('Account'),
+                  children: [
+                    AccountRow(label: tr('My Profile'), onTap: _edit),
+                    AccountRow(
+                      label: tr('Name'),
+                      value: _profile!['full_name']?.toString() ?? '',
+                      onTap: _edit,
+                    ),
+                    AccountRow(
+                      label: tr('Phone'),
+                      value: maskedPhone(_profile!['phone']?.toString() ?? ''),
+                      onTap: _edit,
+                    ),
+                    AccountRow(
+                      label: tr('Email'),
+                      value: maskedEmail(_profile!['email']?.toString() ?? ''),
+                      subtitle: tr('Verified sign-in email'),
+                    ),
+                    AccountRow(
+                      label: tr('Change Password'),
+                      subtitle: tr('Current password and email verification'),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => CustomerForgotPasswordScreen(
+                            requireCurrentPassword: true,
+                            initialEmail: _profile!['email']?.toString() ?? '',
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              AccountGroup(
-                title: 'Security',
-                children: [
-                  AccountRow(
-                    label: 'Delete your account',
-                    subtitle: 'Permanently remove your login and profile',
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const CustomerDeleteAccountScreen(),
+                  ],
+                ),
+                AccountGroup(
+                  title: tr('Security'),
+                  children: [
+                    AccountRow(
+                      label: tr('Delete your account'),
+                      subtitle: tr('Permanently remove your login and profile'),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const CustomerDeleteAccountScreen(),
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-  );
+                  ],
+                ),
+              ],
+            ),
+    );
+  }
 }

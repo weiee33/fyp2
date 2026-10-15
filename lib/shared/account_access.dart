@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Navigation follows the database identity; RLS remains the authority.
@@ -12,8 +13,12 @@ class AccountAccess {
       );
       if (identity['role'] != expectedRole) {
         throw AuthException(
-          'This account cannot use the $expectedRole portal. '
-          'Use the portal for your account; administrators use the website.',
+          tr("This account cannot use the {0} portal. ", [
+                tr(expectedRole == 'customer' ? 'Customer' : 'Provider'),
+              ]) +
+              tr(
+                'Use the portal for your account; administrators use the website.',
+              ),
         );
       }
       return identity;

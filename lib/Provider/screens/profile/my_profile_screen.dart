@@ -1,4 +1,6 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
+import '../../../shared/localization/language_screen.dart';
 
 import '../../../shared/chat/chat_inbox_screen.dart';
 import 'package:fyp2/Provider/services/profile_service.dart';
@@ -60,7 +62,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load profile: $e'),
+          content: Text(tr("Failed to load profile: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -72,17 +74,25 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Log Out'),
-        content: const Text('Are you sure you want to log out?'),
+        title: Text(tr('Log Out')),
+        content: Text(tr('Are you sure you want to log out?')),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.language_rounded),
+            tooltip: trOrNull('Language / 语言 / Bahasa'),
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LanguageScreen()),
+            ),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Log Out'),
+            child: Text(tr('Log Out')),
           ),
         ],
       ),
@@ -95,7 +105,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const PortalEntryScreen()),
-          (_) => false,
+      (_) => false,
     );
   }
 
@@ -111,14 +121,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   void _openChats() {
     Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => const ChatInboxScreen(customer: false),
-      ),
+      MaterialPageRoute(builder: (_) => const ChatInboxScreen(customer: false)),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     // 👇 pages order matches bottom nav: Profile | Services | Bookings | Schedule | Earnings
     final pages = [
       _buildProfileTab(),
@@ -133,68 +142,68 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       // AppBar only shows on the Profile tab
       appBar: _tab == 0
           ? AppBar(
-        backgroundColor: _primaryOrange,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        automaticallyImplyLeading: false,
-        title: const Text(
-          'Profile',
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
-        actions: [
-          // ---- Chat Icon ----
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline),
-            tooltip: 'Chats',
-            onPressed: _openChats,
-          ),
+              backgroundColor: _primaryOrange,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              title: Text(
+                tr('Profile'),
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              actions: [
+                // ---- Chat Icon ----
+                IconButton(
+                  icon: const Icon(Icons.chat_bubble_outline),
+                  tooltip: trOrNull('Chats'),
+                  onPressed: _openChats,
+                ),
 
-          // ---- Notification Bell with Unread Badge ----
-          FutureBuilder<List<Map<String, dynamic>>>(
-            future: _notificationService.getMyNotifications(),
-            builder: (context, snapshot) {
-              final unread = (snapshot.data ?? [])
-                  .where((n) => n['is_read'] != true)
-                  .length;
-              return Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    tooltip: 'Notifications',
-                    onPressed: _openNotifications,
-                  ),
-                  if (unread > 0)
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
+                // ---- Notification Bell with Unread Badge ----
+                FutureBuilder<List<Map<String, dynamic>>>(
+                  future: _notificationService.getMyNotifications(),
+                  builder: (context, snapshot) {
+                    final unread = (snapshot.data ?? [])
+                        .where((n) => n['is_read'] != true)
+                        .length;
+                    return Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications_outlined),
+                          tooltip: trOrNull('Notifications'),
+                          onPressed: _openNotifications,
                         ),
-                        constraints: const BoxConstraints(
-                          minWidth: 18,
-                          minHeight: 18,
-                        ),
-                        child: Text(
-                          unread > 9 ? '9+' : '$unread',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
+                        if (unread > 0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: const BoxDecoration(
+                                color: Colors.red,
+                                shape: BoxShape.circle,
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 18,
+                                minHeight: 18,
+                              ),
+                              child: Text(
+                                tr(unread > 9 ? '9+' : '$unread'),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                           ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(width: 4),
-        ],
-      )
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(width: 4),
+              ],
+            )
           : null,
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -205,23 +214,35 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         type: BottomNavigationBarType.fixed,
         selectedItemColor: _primaryOrange,
         unselectedItemColor: Colors.grey,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.work), label: 'Services'),
+        items: [
           BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_month), label: 'Bookings'),
+            icon: Icon(Icons.person),
+            label: tr('Profile'),
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.schedule), label: 'Schedule'),
+            icon: Icon(Icons.work),
+            label: tr('Services'),
+          ),
           BottomNavigationBarItem(
-              icon: Icon(Icons.attach_money), label: 'Earnings'),
+            icon: Icon(Icons.calendar_month),
+            label: tr('Bookings'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.schedule),
+            label: tr('Schedule'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.attach_money),
+            label: tr('Earnings'),
+          ),
         ],
       ),
     );
   }
 
   Widget _buildProfileTab() {
-    final name = _profile?['business_name'] ?? 'My Business';
-    final bio = _profile?['bio'] ?? 'No bio yet';
+    final name = _profile?['business_name'] ?? tr('My Business');
+    final bio = _profile?['bio'] ?? tr('No bio yet');
     final rating = _profile?['overall_rating'] ?? 0;
     final years = _profile?['years_experience'] ?? 0;
     final status = _profile?['verification_status'] ?? 'Pending';
@@ -251,17 +272,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     CircleAvatar(
                       radius: 32,
                       backgroundColor: _lightOrange,
-                      backgroundImage:
-                      photoUrl.isNotEmpty ? NetworkImage(photoUrl) : null,
+                      backgroundImage: photoUrl.isNotEmpty
+                          ? NetworkImage(photoUrl)
+                          : null,
                       child: photoUrl.isEmpty
                           ? Text(
-                        initial,
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: _primaryOrange,
-                        ),
-                      )
+                              tr(initial),
+                              style: const TextStyle(
+                                fontSize: 26,
+                                fontWeight: FontWeight.bold,
+                                color: _primaryOrange,
+                              ),
+                            )
                           : null,
                     ),
                     const SizedBox(width: 12),
@@ -290,11 +312,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           const SizedBox(height: 6),
                           Row(
                             children: [
-                              const Icon(Icons.star,
-                                  color: Colors.orange, size: 16),
+                              const Icon(
+                                Icons.star,
+                                color: Colors.orange,
+                                size: 16,
+                              ),
                               const SizedBox(width: 4),
                               Text(
-                                '$rating · $years years',
+                                tr("{0} · {1} years", [rating, years]),
                                 style: const TextStyle(
                                   color: Colors.orange,
                                   fontSize: 13,
@@ -311,7 +336,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       icon: const Icon(Icons.logout),
                       color: Colors.red.shade400,
                       onPressed: _logout,
-                      tooltip: 'Log Out',
+                      tooltip: trOrNull('Log Out'),
                     ),
                   ],
                 ),
@@ -323,30 +348,26 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             _tile('Update Personal Info', Icons.edit_outlined, () async {
               await Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const UpdateProfileScreen()),
+                MaterialPageRoute(builder: (_) => const UpdateProfileScreen()),
               );
               _load();
             }),
             _tile('Certifications', Icons.workspace_premium_outlined, () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const CertificationsScreen()),
+                MaterialPageRoute(builder: (_) => const CertificationsScreen()),
               );
             }),
             _tile('Service Areas', Icons.location_on_outlined, () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const ServiceAreasScreen()),
+                MaterialPageRoute(builder: (_) => const ServiceAreasScreen()),
               );
             }),
             _tile('Working Hours', Icons.access_time_outlined, () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const WorkingHoursScreen()),
+                MaterialPageRoute(builder: (_) => const WorkingHoursScreen()),
               );
             }),
 
@@ -354,15 +375,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             _tile('AI Job Matching', Icons.auto_awesome, () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const AiJobMatchingScreen()),
+                MaterialPageRoute(builder: (_) => const AiJobMatchingScreen()),
               );
             }),
             _tile('AI Smart Schedule', Icons.schedule, () {
               Navigator.push(
                 context,
-                MaterialPageRoute(
-                    builder: (_) => const AiScheduleScreen()),
+                MaterialPageRoute(builder: (_) => const AiScheduleScreen()),
               );
             }),
 
@@ -373,17 +392,21 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               height: 50,
               child: ElevatedButton.icon(
                 onPressed: () async {
-                  await _service
-                      .updateProfile({'verification_status': 'Pending'});
+                  await _service.updateProfile({
+                    'verification_status': 'Pending',
+                  });
                   if (!mounted) return;
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: const Row(
+                      content: Row(
                         children: [
-                          Icon(Icons.check_circle,
-                              color: Colors.white, size: 20),
+                          Icon(
+                            Icons.check_circle,
+                            color: Colors.white,
+                            size: 20,
+                          ),
                           SizedBox(width: 8),
-                          Text('Submitted for verification'),
+                          Text(tr('Submitted for verification')),
                         ],
                       ),
                       backgroundColor: Colors.green.shade600,
@@ -396,8 +419,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   _load();
                 },
                 icon: const Icon(Icons.verified_outlined),
-                label: const Text(
-                  'Submit for Verification',
+                label: Text(
+                  tr('Submit for Verification'),
                   style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                 ),
                 style: ElevatedButton.styleFrom(
@@ -438,7 +461,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         icon = Icons.block;
         break;
       default:
-      // Pending
+        // Pending
         bg = _lightOrange;
         fg = _primaryOrange;
         icon = Icons.pending;
@@ -456,7 +479,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           Icon(icon, size: 14, color: fg),
           const SizedBox(width: 4),
           Text(
-            status,
+            tr(status),
             style: TextStyle(
               color: fg,
               fontSize: 12,
@@ -479,7 +502,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     child: ListTile(
       leading: Icon(icon, color: _primaryOrange),
       title: Text(
-        label,
+        tr(label),
         style: const TextStyle(fontWeight: FontWeight.w500),
       ),
       trailing: const Icon(Icons.chevron_right, color: Colors.grey),

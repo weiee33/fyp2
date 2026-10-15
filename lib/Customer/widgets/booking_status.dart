@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/booking_model.dart';
@@ -7,6 +8,7 @@ class BookingPaymentStatus extends StatelessWidget {
   const BookingPaymentStatus({super.key, required this.booking});
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final refunded = booking.paymentStatus == 'Refunded';
     final paid = booking.paymentStatus == 'Success';
     final expired = booking.displayStatus == 'Expired';
@@ -55,7 +57,7 @@ class BookingPaymentStatus extends StatelessWidget {
             const SizedBox(width: 6),
             Flexible(
               child: Text(
-                label,
+                tr(label),
                 style: TextStyle(
                   color: color,
                   fontWeight: FontWeight.w600,
@@ -96,13 +98,17 @@ class _PaymentCountdownState extends State<PaymentCountdown> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final seconds = widget.deadline
         .difference(DateTime.now())
         .inSeconds
         .clamp(0, 86400);
     final label = seconds == 0
         ? 'Payment window ended'
-        : 'Time to pay: ${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
+        : tr("Time to pay: {0}:{1}", [
+            (seconds ~/ 60).toString().padLeft(2, '0'),
+            (seconds % 60).toString().padLeft(2, '0'),
+          ]);
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -115,7 +121,7 @@ class _PaymentCountdownState extends State<PaymentCountdown> {
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              label,
+              tr(label),
               style: const TextStyle(
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF9A5700),
@@ -133,6 +139,7 @@ class BookingProgress extends StatelessWidget {
   const BookingProgress({super.key, required this.booking});
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final stopped =
         booking.displayStatus == 'Expired' || booking.status == 'Cancelled';
     final stage = booking.status == 'Completed'
@@ -147,8 +154,8 @@ class BookingProgress extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Booking progress',
+        Text(
+          tr('Booking progress'),
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 14),
@@ -177,13 +184,15 @@ class BookingProgress extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    [
-                      'Requested',
-                      'Provider accepted',
-                      'Payment received',
-                      'Service in progress',
-                      'Service completed',
-                    ][i],
+                    tr(
+                      [
+                        'Requested',
+                        'Provider accepted',
+                        'Payment received',
+                        'Service in progress',
+                        'Service completed',
+                      ][i],
+                    ),
                     style: TextStyle(
                       color: i <= stage ? Colors.black87 : Colors.black45,
                     ),
@@ -194,7 +203,7 @@ class BookingProgress extends StatelessWidget {
           ),
         if (stopped)
           Text(
-            'Booking ${booking.displayStatus.toLowerCase()}.',
+            tr("Booking {0}.", [tr(booking.displayStatus)]),
             style: const TextStyle(
               color: Color(0xFFB42318),
               fontWeight: FontWeight.w600,

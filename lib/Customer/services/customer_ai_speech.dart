@@ -1,4 +1,5 @@
 import 'package:speech_to_text/speech_to_text.dart';
+import '../../shared/localization/app_language.dart';
 
 /// Speech remains a draft until the customer presses Send.
 class CustomerAiSpeech {
@@ -24,7 +25,21 @@ class CustomerAiSpeech {
       },
     );
     if (!available || generation != _generation) return false;
+    final locales = await _speech.locales();
+    if (generation != _generation) return false;
+    final selected = AppLanguage.instance.speechLocale;
+    final language = AppLanguage.instance.code;
+    final matches = locales
+        .where((l) => l.localeId.replaceAll('-', '_') == selected)
+        .toList();
+    final alternatives = locales
+        .where((l) => l.localeId.startsWith(language))
+        .toList();
+    // Do not silently listen in an unrelated device language.
+    if (matches.isEmpty && alternatives.isEmpty) return false;
     await _speech.listen(
+      localeId:
+          (matches.isNotEmpty ? matches.first : alternatives.first).localeId,
       onResult: (r) {
         if (generation == _generation) text(r.recognizedWords);
       },

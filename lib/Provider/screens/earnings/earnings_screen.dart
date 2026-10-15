@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
@@ -49,7 +50,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load earnings: $e'),
+          content: Text(tr("Failed to load earnings: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -61,7 +62,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
   }
 
   DateTime? _parseDate(Map<String, dynamic> row) {
-    final dateStr = row['earned_at']?.toString() ??
+    final dateStr =
+        row['earned_at']?.toString() ??
         row['bookings']?['booking_date']?.toString() ??
         row['booking_date']?.toString() ??
         row['date']?.toString() ??
@@ -121,8 +123,18 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
   List<String> _getMonthlyLabels() {
     return const [
-      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
     ];
   }
 
@@ -151,10 +163,9 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     if (_loading) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final today = _sum['today'] ?? 0;
@@ -167,19 +178,19 @@ class _EarningsScreenState extends State<EarningsScreen> {
     String chartSubtitle;
     switch (_chartView) {
       case 1:
-      // Monthly: Jan - Dec
+        // Monthly: Jan - Dec
         chartValues = _getMonthlyData();
         chartLabels = _getMonthlyLabels();
         chartSubtitle = 'This Year (Monthly)';
         break;
       case 2:
-      // Yearly: last 5 years
+        // Yearly: last 5 years
         chartValues = _getYearlyData();
         chartLabels = _getYearlyLabels();
         chartSubtitle = 'Last 5 Years';
         break;
       default:
-      // Last 7 days
+        // Last 7 days
         chartValues = _getLast7Days();
         chartLabels = _getLast7DayLabels();
         chartSubtitle = 'Last 7 days';
@@ -193,7 +204,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Earnings'),
+        title: Text(tr('Earnings')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -216,26 +227,26 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _statCard(
-                    label: 'Today',
-                    value: 'RM${today.toStringAsFixed(0)}',
+                    label: tr('Today'),
+                    value: tr("RM{0}", [today.toStringAsFixed(0)]),
                     icon: Icons.today,
                     color: const Color(0xFF3B82F6),
                   ),
                   _statCard(
-                    label: 'This Week',
-                    value: 'RM${week.toStringAsFixed(0)}',
+                    label: tr('This Week'),
+                    value: tr("RM{0}", [week.toStringAsFixed(0)]),
                     icon: Icons.date_range,
                     color: const Color(0xFF10B981),
                   ),
                   _statCard(
-                    label: 'This Month',
-                    value: 'RM${month.toStringAsFixed(0)}',
+                    label: tr('This Month'),
+                    value: tr("RM{0}", [month.toStringAsFixed(0)]),
                     icon: Icons.calendar_month,
                     color: const Color(0xFF8B5CF6),
                   ),
                   _statCard(
-                    label: 'Pending',
-                    value: 'RM${pending.toStringAsFixed(0)}',
+                    label: tr('Pending'),
+                    value: tr("RM{0}", [pending.toStringAsFixed(0)]),
                     icon: Icons.hourglass_bottom,
                     color: const Color(0xFFF59E0B),
                   ),
@@ -256,13 +267,16 @@ class _EarningsScreenState extends State<EarningsScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.show_chart,
-                              color: _primaryOrange, size: 20),
+                          Icon(
+                            Icons.show_chart,
+                            color: _primaryOrange,
+                            size: 20,
+                          ),
                           SizedBox(width: 8),
                           Text(
-                            'Earnings Trend',
+                            tr('Earnings Trend'),
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.bold,
@@ -273,9 +287,11 @@ class _EarningsScreenState extends State<EarningsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        chartSubtitle,
+                        tr(chartSubtitle),
                         style: const TextStyle(
-                            fontSize: 12, color: Colors.grey),
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
                       ),
                       const SizedBox(height: 12),
 
@@ -286,88 +302,87 @@ class _EarningsScreenState extends State<EarningsScreen> {
                         height: 220,
                         child: hasData
                             ? BarChart(
-                          BarChartData(
-                            alignment:
-                            BarChartAlignment.spaceAround,
-                            maxY: maxY,
-                            barGroups: List.generate(
-                                chartValues.length, (i) {
-                              return BarChartGroupData(
-                                x: i,
-                                barRods: [
-                                  BarChartRodData(
-                                    toY: chartValues[i],
-                                    color: _primaryOrange,
-                                    width: 12,
-                                    borderRadius:
-                                    BorderRadius.circular(6),
-                                  ),
-                                ],
-                              );
-                            }),
-                            titlesData: FlTitlesData(
-                              show: true,
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 24,
-                                  getTitlesWidget: (value, meta) {
-                                    final idx = value.toInt();
-                                    if (idx < 0 ||
-                                        idx >= chartLabels.length) {
-                                      return const SizedBox();
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                          top: 6),
-                                      child: Text(
-                                        chartLabels[idx],
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey,
+                                BarChartData(
+                                  alignment: BarChartAlignment.spaceAround,
+                                  maxY: maxY,
+                                  barGroups: List.generate(chartValues.length, (
+                                    i,
+                                  ) {
+                                    return BarChartGroupData(
+                                      x: i,
+                                      barRods: [
+                                        BarChartRodData(
+                                          toY: chartValues[i],
+                                          color: _primaryOrange,
+                                          width: 12,
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     );
-                                  },
+                                  }),
+                                  titlesData: FlTitlesData(
+                                    show: true,
+                                    bottomTitles: AxisTitles(
+                                      sideTitles: SideTitles(
+                                        showTitles: true,
+                                        reservedSize: 24,
+                                        getTitlesWidget: (value, meta) {
+                                          final idx = value.toInt();
+                                          if (idx < 0 ||
+                                              idx >= chartLabels.length) {
+                                            return const SizedBox();
+                                          }
+                                          return Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 6,
+                                            ),
+                                            child: Text(
+                                              tr(chartLabels[idx]),
+                                              style: const TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                    leftTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    topTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                    rightTitles: const AxisTitles(
+                                      sideTitles: SideTitles(showTitles: false),
+                                    ),
+                                  ),
+                                  gridData: FlGridData(
+                                    show: true,
+                                    drawVerticalLine: false,
+                                    horizontalInterval: (maxY / 3).clamp(
+                                      1,
+                                      double.infinity,
+                                    ),
+                                    getDrawingHorizontalLine: (value) => FlLine(
+                                      color: Colors.grey.shade200,
+                                      strokeWidth: 1,
+                                    ),
+                                  ),
+                                  borderData: FlBorderData(show: false),
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  tr('No earnings data yet'),
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ),
-                              leftTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                    showTitles: false),
-                              ),
-                              topTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                    showTitles: false),
-                              ),
-                              rightTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                    showTitles: false),
-                              ),
-                            ),
-                            gridData: FlGridData(
-                              show: true,
-                              drawVerticalLine: false,
-                              horizontalInterval:
-                              (maxY / 3).clamp(1, double.infinity),
-                              getDrawingHorizontalLine: (value) =>
-                                  FlLine(
-                                    color: Colors.grey.shade200,
-                                    strokeWidth: 1,
-                                  ),
-                            ),
-                            borderData:
-                            FlBorderData(show: false),
-                          ),
-                        )
-                            : const Center(
-                          child: Text(
-                            'No earnings data yet',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
                       ),
                     ],
                   ),
@@ -376,8 +391,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
               const SizedBox(height: 20),
 
               // ---- Menu ----
-              const Text(
-                'Details',
+              Text(
+                tr('Details'),
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
@@ -387,47 +402,49 @@ class _EarningsScreenState extends State<EarningsScreen> {
               const SizedBox(height: 12),
 
               _menuTile(
-                title: 'Daily Earnings',
-                subtitle: 'View earnings by day',
+                title: tr('Daily Earnings'),
+                subtitle: tr('View earnings by day'),
                 icon: Icons.calendar_today_outlined,
                 color: const Color(0xFF3B82F6),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => const DailyEarningsScreen()),
+                    builder: (_) => const DailyEarningsScreen(),
+                  ),
                 ),
               ),
               _menuTile(
-                title: 'Weekly Earnings',
-                subtitle: 'View earnings by week',
+                title: tr('Weekly Earnings'),
+                subtitle: tr('View earnings by week'),
                 icon: Icons.date_range_outlined,
                 color: const Color(0xFF10B981),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => const WeeklyEarningsScreen()),
+                    builder: (_) => const WeeklyEarningsScreen(),
+                  ),
                 ),
               ),
               _menuTile(
-                title: 'Monthly Earnings',
-                subtitle: 'View earnings by month',
+                title: tr('Monthly Earnings'),
+                subtitle: tr('View earnings by month'),
                 icon: Icons.calendar_month_outlined,
                 color: const Color(0xFF8B5CF6),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => const MonthlyEarningsScreen()),
+                    builder: (_) => const MonthlyEarningsScreen(),
+                  ),
                 ),
               ),
               _menuTile(
-                title: 'Performance',
-                subtitle: 'View your performance metrics',
+                title: tr('Performance'),
+                subtitle: tr('View your performance metrics'),
                 icon: Icons.insights_outlined,
                 color: const Color(0xFFF59E0B),
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(
-                      builder: (_) => const PerformanceScreen()),
+                  MaterialPageRoute(builder: (_) => const PerformanceScreen()),
                 ),
               ),
               const SizedBox(height: 16),
@@ -470,7 +487,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
           ),
           child: Center(
             child: Text(
-              label,
+              tr(label),
               style: TextStyle(
                 color: selected ? Colors.white : _primaryOrange,
                 fontSize: 12,
@@ -515,7 +532,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    label,
+                    tr(label),
                     style: const TextStyle(
                       color: Colors.grey,
                       fontSize: 12,
@@ -528,7 +545,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              value,
+              tr(value),
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -566,11 +583,11 @@ class _EarningsScreenState extends State<EarningsScreen> {
           child: Icon(icon, color: color, size: 22),
         ),
         title: Text(
-          title,
+          tr(title),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
-          subtitle,
+          tr(subtitle),
           style: const TextStyle(fontSize: 12, color: Colors.grey),
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.grey),

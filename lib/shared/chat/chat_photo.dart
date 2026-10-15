@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'chat_service.dart';
@@ -19,59 +20,62 @@ class ChatPhoto extends StatefulWidget {
 class _ChatPhotoState extends State<ChatPhoto> {
   late Future<Uint8List> _bytes = widget.service.photo(widget.path);
   @override
-  Widget build(BuildContext context) => FutureBuilder<Uint8List>(
-    future: _bytes,
-    builder: (context, snapshot) {
-      if (snapshot.hasError) {
-        return TextButton.icon(
-          onPressed: () =>
-              setState(() => _bytes = widget.service.photo(widget.path)),
-          icon: const Icon(Icons.refresh),
-          label: const Text('Reload photo'),
-        );
-      }
-      if (!snapshot.hasData) {
-        return const SizedBox(
-          width: 200,
-          height: 150,
-          child: Center(child: CircularProgressIndicator()),
-        );
-      }
-      return Semantics(
-        label: 'Photo attachment. Tap to enlarge.',
-        button: true,
-        child: InkWell(
-          onTap:
-              widget.onOpen ??
-              () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ChatPhotoGallery(
-                    paths: [widget.path],
-                    initialPath: widget.path,
-                    service: widget.service,
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return FutureBuilder<Uint8List>(
+      future: _bytes,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return TextButton.icon(
+            onPressed: () =>
+                setState(() => _bytes = widget.service.photo(widget.path)),
+            icon: const Icon(Icons.refresh),
+            label: Text(tr('Reload photo')),
+          );
+        }
+        if (!snapshot.hasData) {
+          return const SizedBox(
+            width: 200,
+            height: 150,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        return Semantics(
+          label: tr('Photo attachment. Tap to enlarge.'),
+          button: true,
+          child: InkWell(
+            onTap:
+                widget.onOpen ??
+                () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ChatPhotoGallery(
+                      paths: [widget.path],
+                      initialPath: widget.path,
+                      service: widget.service,
+                    ),
                   ),
                 ),
-              ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: Image.memory(
-              snapshot.data!,
-              width: 240,
-              height: 180,
-              fit: BoxFit.cover,
-              cacheWidth: 720,
-              errorBuilder: (_, _, _) => const SizedBox(
-                width: 200,
-                height: 120,
-                child: Center(child: Text('Unsupported photo')),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.memory(
+                snapshot.data!,
+                width: 240,
+                height: 180,
+                fit: BoxFit.cover,
+                cacheWidth: 720,
+                errorBuilder: (_, _, _) => SizedBox(
+                  width: 200,
+                  height: 120,
+                  child: Center(child: Text(tr('Unsupported photo'))),
+                ),
               ),
             ),
           ),
-        ),
-      );
-    },
-  );
+        );
+      },
+    );
+  }
 }
 
 /// Only visible conversation attachments are supplied; downloads keep Storage RLS.
@@ -150,107 +154,115 @@ class _ChatPhotoGalleryState extends State<ChatPhotoGallery> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: Colors.black,
-    appBar: AppBar(
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Scaffold(
       backgroundColor: Colors.black,
-      foregroundColor: Colors.white,
-      title: Text('Photo ${_index + 1} of ${_paths.length}'),
-    ),
-    body: Column(
-      children: [
-        if (_loading) const LinearProgressIndicator(),
-        if (_error != null)
-          TextButton(onPressed: _earlier, child: Text('$_error Retry')),
-        Expanded(
-          child: PageView.builder(
-            controller: _pages,
-            physics: _zoomed
-                ? const NeverScrollableScrollPhysics()
-                : const ClampingScrollPhysics(),
-            itemCount: _paths.length,
-            onPageChanged: (index) {
-              setState(() {
-                _index = index;
-                _zoomed = false;
-                final nearby = _paths
-                    .skip(index > 0 ? index - 1 : 0)
-                    .take(index > 0 ? 3 : 2)
-                    .toSet();
-                _downloads.removeWhere((path, _) => !nearby.contains(path));
-              });
-              if (index == 0) _earlier();
-            },
-            itemBuilder: (context, index) {
-              final path = _paths[index];
-              return FutureBuilder<Uint8List>(
-                future: _downloads.putIfAbsent(
-                  path,
-                  () => widget.service.photo(path),
-                ),
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return Center(
-                      child: TextButton.icon(
-                        onPressed: () => setState(() {
-                          _downloads[path] = widget.service.photo(path);
-                        }),
-                        icon: const Icon(Icons.refresh),
-                        label: const Text('Retry photo'),
-                      ),
+      appBar: AppBar(
+        backgroundColor: Colors.black,
+        foregroundColor: Colors.white,
+        title: Text(tr("Photo {0} of {1}", [_index + 1, _paths.length])),
+      ),
+      body: Column(
+        children: [
+          if (_loading) const LinearProgressIndicator(),
+          if (_error != null)
+            TextButton(
+              onPressed: _earlier,
+              child: Text(tr("{0} Retry", [_error])),
+            ),
+          Expanded(
+            child: PageView.builder(
+              controller: _pages,
+              physics: _zoomed
+                  ? const NeverScrollableScrollPhysics()
+                  : const ClampingScrollPhysics(),
+              itemCount: _paths.length,
+              onPageChanged: (index) {
+                setState(() {
+                  _index = index;
+                  _zoomed = false;
+                  final nearby = _paths
+                      .skip(index > 0 ? index - 1 : 0)
+                      .take(index > 0 ? 3 : 2)
+                      .toSet();
+                  _downloads.removeWhere((path, _) => !nearby.contains(path));
+                });
+                if (index == 0) _earlier();
+              },
+              itemBuilder: (context, index) {
+                final path = _paths[index];
+                return FutureBuilder<Uint8List>(
+                  future: _downloads.putIfAbsent(
+                    path,
+                    () => widget.service.photo(path),
+                  ),
+                  builder: (context, snapshot) {
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: TextButton.icon(
+                          onPressed: () => setState(() {
+                            _downloads[path] = widget.service.photo(path);
+                          }),
+                          icon: const Icon(Icons.refresh),
+                          label: Text(tr('Retry photo')),
+                        ),
+                      );
+                    }
+                    if (!snapshot.hasData) {
+                      return const Center(child: CircularProgressIndicator());
+                    }
+                    return _ZoomPhoto(
+                      key: ValueKey('$path-${index == _index}'),
+                      bytes: snapshot.data!,
+                      onZoom: (zoom) {
+                        if (index == _index && zoom != _zoomed) {
+                          setState(() => _zoomed = zoom);
+                        }
+                      },
                     );
-                  }
-                  if (!snapshot.hasData) {
-                    return const Center(child: CircularProgressIndicator());
-                  }
-                  return _ZoomPhoto(
-                    key: ValueKey('$path-${index == _index}'),
-                    bytes: snapshot.data!,
-                    onZoom: (zoom) {
-                      if (index == _index && zoom != _zoomed) {
-                        setState(() => _zoomed = zoom);
-                      }
-                    },
-                  );
-                },
-              );
-            },
+                  },
+                );
+              },
+            ),
           ),
-        ),
-        SafeArea(
-          top: false,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              IconButton(
-                tooltip: 'Previous photo',
-                onPressed: _index > 0 ? () => _move(-1) : null,
-                color: Colors.white,
-                disabledColor: Colors.white24,
-                icon: const Icon(Icons.chevron_left),
-              ),
-              Flexible(
-                child: Text(
-                  _zoomed
-                      ? 'Pinch to zoom out, then swipe'
-                      : 'Swipe to browse · Pinch to zoom',
-                  style: const TextStyle(color: Colors.white70),
-                  textAlign: TextAlign.center,
+          SafeArea(
+            top: false,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  tooltip: trOrNull('Previous photo'),
+                  onPressed: _index > 0 ? () => _move(-1) : null,
+                  color: Colors.white,
+                  disabledColor: Colors.white24,
+                  icon: const Icon(Icons.chevron_left),
                 ),
-              ),
-              IconButton(
-                tooltip: 'Next photo',
-                onPressed: _index < _paths.length - 1 ? () => _move(1) : null,
-                color: Colors.white,
-                disabledColor: Colors.white24,
-                icon: const Icon(Icons.chevron_right),
-              ),
-            ],
+                Flexible(
+                  child: Text(
+                    tr(
+                      _zoomed
+                          ? 'Pinch to zoom out, then swipe'
+                          : 'Swipe to browse · Pinch to zoom',
+                    ),
+                    style: const TextStyle(color: Colors.white70),
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+                IconButton(
+                  tooltip: trOrNull('Next photo'),
+                  onPressed: _index < _paths.length - 1 ? () => _move(1) : null,
+                  color: Colors.white,
+                  disabledColor: Colors.white24,
+                  icon: const Icon(Icons.chevron_right),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
 
 class _ZoomPhoto extends StatefulWidget {
@@ -283,24 +295,27 @@ class _ZoomPhotoState extends State<_ZoomPhoto> {
   }
 
   @override
-  Widget build(BuildContext context) => SizedBox.expand(
-    child: InteractiveViewer(
-      panEnabled: _zoomed,
-      transformationController: _transform,
-      minScale: 1,
-      maxScale: 4,
-      onInteractionEnd: (_) =>
-          widget.onZoom(_transform.value.getMaxScaleOnAxis() > 1.01),
-      child: SizedBox.expand(
-        child: Image.memory(
-          widget.bytes,
-          fit: BoxFit.contain,
-          errorBuilder: (_, _, _) => const Text(
-            'Photo unavailable',
-            style: TextStyle(color: Colors.white),
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return SizedBox.expand(
+      child: InteractiveViewer(
+        panEnabled: _zoomed,
+        transformationController: _transform,
+        minScale: 1,
+        maxScale: 4,
+        onInteractionEnd: (_) =>
+            widget.onZoom(_transform.value.getMaxScaleOnAxis() > 1.01),
+        child: SizedBox.expand(
+          child: Image.memory(
+            widget.bytes,
+            fit: BoxFit.contain,
+            errorBuilder: (_, _, _) => Text(
+              tr('Photo unavailable'),
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }

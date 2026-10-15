@@ -301,7 +301,7 @@ void main() {
       expect(find.text('Notifications content'), findsOneWidget);
       await t.tap(find.text('AI'));
       await t.pumpAndSettle();
-      expect(find.text('Local Life AI'), findsOneWidget);
+      expect(find.text('Home Serve AI'), findsOneWidget);
       await t.tap(find.byTooltip('Close assistant'));
       await t.pumpAndSettle();
       expect(find.text('Notifications content'), findsOneWidget);

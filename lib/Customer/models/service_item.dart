@@ -1,3 +1,5 @@
+import 'package:fyp2/shared/localization/app_language.dart';
+
 /// Public discovery projection. Never contains private provider/account fields.
 class ServiceItem {
   final String serviceId;
@@ -51,8 +53,8 @@ class ServiceItem {
 
   String get ratingLabel => reviewCount == 0
       ? 'No reviews yet'
-      : '${rating.toStringAsFixed(1)} ($reviewCount reviews)';
+      : tr("{0} ({1} reviews)", [rating.toStringAsFixed(1), reviewCount]);
 
   String get priceLabel =>
-      'RM ${price.toStringAsFixed(2)}${pricingType == 'Hourly' ? '/hour' : ''}';
+      'RM ${price.toStringAsFixed(2)}${pricingType == 'Hourly' ? tr('/hour') : ''}';
 }

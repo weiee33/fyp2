@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/earnings_service.dart';
 
@@ -41,7 +42,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
 
       final total = list.fold<double>(
         0,
-            (s, r) => s + ((r['net_earnings'] as num?)?.toDouble() ?? 0),
+        (s, r) => s + ((r['net_earnings'] as num?)?.toDouble() ?? 0),
       );
 
       if (!mounted) return;
@@ -55,7 +56,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load: $e'),
+          content: Text(tr("Failed to load: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -74,6 +75,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final today = DateTime.now();
     final dateText =
         '${today.day.toString().padLeft(2, '0')} / ${today.month.toString().padLeft(2, '0')} / ${today.year}';
@@ -81,7 +83,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Today's Earnings"),
+        title: Text(tr("Today's Earnings")),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -89,125 +91,132 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _load,
-          color: _primaryOrange,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // ---- Total Card ----
-              Card(
-                elevation: 2,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: _borderOrange),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: _lightOrange,
-                              borderRadius: BorderRadius.circular(10),
+              child: RefreshIndicator(
+                onRefresh: _load,
+                color: _primaryOrange,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    // ---- Total Card ----
+                    Card(
+                      elevation: 2,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: _borderOrange),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: _lightOrange,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.today,
+                                    color: _primaryOrange,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    tr('Total Earned Today'),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                            child: const Icon(
-                              Icons.today,
-                              color: _primaryOrange,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Text(
-                              'Total Earned Today',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500,
+                            const SizedBox(height: 16),
+                            Text(
+                              tr("RM{0}", [_total.toStringAsFixed(2)]),
+                              style: const TextStyle(
+                                fontSize: 36,
+                                fontWeight: FontWeight.bold,
+                                color: _primaryOrange,
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'RM${_total.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: _primaryOrange,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        dateText,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: _lightOrange,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.receipt_long_outlined,
-                              size: 14,
-                              color: _primaryOrange,
-                            ),
-                            const SizedBox(width: 6),
+                            const SizedBox(height: 4),
                             Text(
-                              '${_today.length} transaction${_today.length == 1 ? '' : 's'}',
+                              tr(dateText),
                               style: const TextStyle(
                                 fontSize: 12,
-                                color: _primaryOrange,
-                                fontWeight: FontWeight.w600,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _lightOrange,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.receipt_long_outlined,
+                                    size: 14,
+                                    color: _primaryOrange,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    tr(
+                                      _today.length == 1
+                                          ? '{0} transaction'
+                                          : '{0} transactions',
+                                      [_today.length],
+                                    ),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      color: _primaryOrange,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
                         ),
                       ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ---- Section Title ----
+                    if (_today.isNotEmpty) ...[
+                      Text(
+                        tr('Transactions'),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                          color: _primaryOrange,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
                     ],
-                  ),
+
+                    // ---- Transactions List ----
+                    if (_today.isEmpty)
+                      _buildEmptyState()
+                    else
+                      ..._today.map((r) => _transactionTile(r)),
+                  ],
                 ),
               ),
-              const SizedBox(height: 20),
-
-              // ---- Section Title ----
-              if (_today.isNotEmpty) ...[
-                const Text(
-                  'Transactions',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: _primaryOrange,
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-
-              // ---- Transactions List ----
-              if (_today.isEmpty)
-                _buildEmptyState()
-              else
-                ..._today.map((r) => _transactionTile(r)),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
@@ -219,18 +228,14 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
         borderRadius: BorderRadius.circular(16),
         side: const BorderSide(color: _borderOrange),
       ),
-      child: const Padding(
+      child: Padding(
         padding: EdgeInsets.symmetric(vertical: 48, horizontal: 24),
         child: Column(
           children: [
-            Icon(
-              Icons.receipt_long_outlined,
-              size: 56,
-              color: Colors.grey,
-            ),
+            Icon(Icons.receipt_long_outlined, size: 56, color: Colors.grey),
             SizedBox(height: 12),
             Text(
-              'No earnings today',
+              tr('No earnings today'),
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 14,
@@ -239,7 +244,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
             ),
             SizedBox(height: 4),
             Text(
-              'Completed jobs will appear here',
+              tr('Completed jobs will appear here'),
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ],
@@ -297,7 +302,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
                   Row(
                     children: [
                       Text(
-                        '#$bookingId',
+                        tr('#$bookingId'),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -311,7 +316,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
               ),
             ),
             Text(
-              'RM${amount.toStringAsFixed(2)}',
+              tr("RM{0}", [amount.toStringAsFixed(2)]),
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -338,7 +343,7 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
         fg = const Color(0xFF1E40AF);
         break;
       default:
-      // Pending
+        // Pending
         bg = _lightOrange;
         fg = _primaryOrange;
     }
@@ -350,12 +355,8 @@ class _DailyEarningsScreenState extends State<DailyEarningsScreen> {
         borderRadius: BorderRadius.circular(20),
       ),
       child: Text(
-        status,
-        style: TextStyle(
-          color: fg,
-          fontSize: 10,
-          fontWeight: FontWeight.w600,
-        ),
+        tr(status),
+        style: TextStyle(color: fg, fontSize: 10, fontWeight: FontWeight.w600),
       ),
     );
   }

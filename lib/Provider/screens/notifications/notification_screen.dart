@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/notification_service.dart';
 import 'notification_detail_screen.dart';
@@ -38,7 +39,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showError('Failed to load: $e');
+      _showError(tr("Failed to load: {0}", [e]));
     }
   }
 
@@ -66,9 +67,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (!mounted) return;
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (_) => NotificationDetailScreen(data: n),
-      ),
+      MaterialPageRoute(builder: (_) => NotificationDetailScreen(data: n)),
     );
     _load();
   }
@@ -77,23 +76,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     try {
       await _service.deleteNotification(id);
       if (!mounted) return;
-      setState(() =>
-          _items.removeWhere((n) => n['notification_id'].toString() == id));
+      setState(
+        () => _items.removeWhere((n) => n['notification_id'].toString() == id),
+      );
       _showSuccess('Notification deleted');
     } catch (e) {
-      _showError('Delete failed: $e');
+      _showError(tr("Delete failed: {0}", [e]));
     }
   }
 
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -101,12 +99,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _showSuccess(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -117,20 +113,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (d == null) return '';
     final diff = DateTime.now().difference(d);
     if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return '${diff.inMinutes} min ago';
-    if (diff.inHours < 24) return '${diff.inHours} hours ago';
-    if (diff.inDays < 7) return '${diff.inDays} days ago';
+    if (diff.inMinutes < 60) return tr("{0} min ago", [diff.inMinutes]);
+    if (diff.inHours < 24) return tr("{0} hours ago", [diff.inHours]);
+    if (diff.inDays < 7) return tr("{0} days ago", [diff.inDays]);
     return '${d.day}/${d.month}/${d.year}';
   }
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final list = _filtered;
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text(tr('Notifications')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -138,48 +135,49 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: Column(
-          children: [
-            // ---- Filter Tabs ----
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 10),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _filterChip('All'),
-                    const SizedBox(width: 8),
-                    _filterChip('Bookings'),
-                    const SizedBox(width: 8),
-                    _filterChip('Messages'),
-                    const SizedBox(width: 8),
-                    _filterChip('Payments'),
-                  ],
-                ),
-              ),
-            ),
-            const Divider(height: 1),
+              child: Column(
+                children: [
+                  // ---- Filter Tabs ----
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _filterChip('All'),
+                          const SizedBox(width: 8),
+                          _filterChip('Bookings'),
+                          const SizedBox(width: 8),
+                          _filterChip('Messages'),
+                          const SizedBox(width: 8),
+                          _filterChip('Payments'),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const Divider(height: 1),
 
-            // ---- List ----
-            Expanded(
-              child: list.isEmpty
-                  ? _buildEmpty()
-                  : RefreshIndicator(
-                onRefresh: _load,
-                color: _primaryOrange,
-                child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: list.length,
-                  itemBuilder: (_, i) =>
-                      _notificationTile(list[i]),
-                ),
+                  // ---- List ----
+                  Expanded(
+                    child: list.isEmpty
+                        ? _buildEmpty()
+                        : RefreshIndicator(
+                            onRefresh: _load,
+                            color: _primaryOrange,
+                            child: ListView.builder(
+                              padding: const EdgeInsets.all(16),
+                              itemCount: list.length,
+                              itemBuilder: (_, i) => _notificationTile(list[i]),
+                            ),
+                          ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
@@ -193,12 +191,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         decoration: BoxDecoration(
           color: selected ? _primaryOrange : _lightOrange,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: selected ? _primaryOrange : _borderOrange,
-          ),
+          border: Border.all(color: selected ? _primaryOrange : _borderOrange),
         ),
         child: Text(
-          label,
+          tr(label),
           style: TextStyle(
             color: selected ? Colors.white : _primaryOrange,
             fontWeight: FontWeight.w600,
@@ -238,9 +234,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(
-            color: isRead
-                ? _borderOrange
-                : color.withValues(alpha: 0.3),
+            color: isRead ? _borderOrange : color.withValues(alpha: 0.3),
             width: 1,
           ),
         ),
@@ -268,7 +262,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              n['title']?.toString() ?? 'Notification',
+                              tr(n['title']?.toString() ?? 'Notification'),
                               style: TextStyle(
                                 fontWeight: isRead
                                     ? FontWeight.w500
@@ -292,7 +286,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        n['message']?.toString() ?? '',
+                        tr(n['message']?.toString() ?? ''),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -302,7 +296,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        _formatTime(n['created_at']?.toString()),
+                        tr(_formatTime(n['created_at']?.toString())),
                         style: const TextStyle(
                           fontSize: 11,
                           color: Colors.grey,
@@ -320,17 +314,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Widget _buildEmpty() {
-    return const Center(
+    return Center(
       child: Padding(
         padding: EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.notifications_off_outlined,
-                size: 56, color: Colors.grey),
+            Icon(
+              Icons.notifications_off_outlined,
+              size: 56,
+              color: Colors.grey,
+            ),
             SizedBox(height: 12),
             Text(
-              'No notifications',
+              tr('No notifications'),
               style: TextStyle(
                 color: Colors.grey,
                 fontSize: 14,
@@ -339,7 +336,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             ),
             SizedBox(height: 4),
             Text(
-              'Updates about bookings, payments and messages will appear here',
+              tr(
+                'Updates about bookings, payments and messages will appear here',
+              ),
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey, fontSize: 12),
             ),

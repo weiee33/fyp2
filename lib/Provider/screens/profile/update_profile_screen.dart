@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -66,7 +67,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError('Failed to load profile: $e');
+      _showError(tr("Failed to load profile: {0}", [e]));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -91,7 +92,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      _showError('Failed to pick image: $e');
+      _showError(tr("Failed to pick image: {0}", [e]));
     }
   }
 
@@ -105,18 +106,16 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
         child: Wrap(
           children: [
             ListTile(
-              leading: const Icon(Icons.photo_library,
-                  color: _primaryOrange),
-              title: const Text('Choose from Gallery'),
+              leading: const Icon(Icons.photo_library, color: _primaryOrange),
+              title: Text(tr('Choose from Gallery')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.gallery);
               },
             ),
             ListTile(
-              leading:
-              const Icon(Icons.camera_alt, color: _primaryOrange),
-              title: const Text('Take a Photo'),
+              leading: const Icon(Icons.camera_alt, color: _primaryOrange),
+              title: Text(tr('Take a Photo')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.camera);
@@ -125,8 +124,10 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             if (_pickedImageBytes != null || _existingPhotoUrl != null)
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Remove Photo',
-                    style: TextStyle(color: Colors.red)),
+                title: Text(
+                  tr('Remove Photo'),
+                  style: TextStyle(color: Colors.red),
+                ),
                 onTap: () {
                   Navigator.pop(ctx);
                   setState(() {
@@ -173,11 +174,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Row(
+          content: Row(
             children: [
               Icon(Icons.check_circle, color: Colors.white, size: 20),
               SizedBox(width: 8),
-              Text('Profile updated successfully'),
+              Text(tr('Profile updated successfully')),
             ],
           ),
           backgroundColor: Colors.green.shade600,
@@ -193,7 +194,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError('Save failed: $e');
+      _showError(tr("Save failed: {0}", [e]));
     } finally {
       if (mounted) {
         setState(() {
@@ -207,18 +208,17 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(msg),
+        content: Text(tr(msg)),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
 
   String? _validateRequired(String? v, String label) {
-    if (v == null || v.trim().isEmpty) return '$label is required';
+    if (v == null || v.trim().isEmpty)
+      return tr("{0} is required", [tr(label)]);
     return null;
   }
 
@@ -233,10 +233,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Update Profile'),
+        title: Text(tr('Update Profile')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -244,146 +245,149 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Center(child: _buildAvatar()),
-                const SizedBox(height: 8),
-                Center(
-                  child: TextButton.icon(
-                    onPressed:
-                    _saving ? null : _showImageSourceSheet,
-                    icon: const Icon(Icons.photo_camera_outlined),
-                    label: const Text('Change Photo'),
-                    style: TextButton.styleFrom(
-                      foregroundColor: _primaryOrange,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                _label('Full Name'),
-                TextFormField(
-                  controller: _fullName,
-                  textInputAction: TextInputAction.next,
-                  enabled: !_saving,
-                  validator: (v) =>
-                      _validateRequired(v, 'Full name'),
-                  decoration: _inputDecoration(
-                    hint: 'Your full name',
-                    icon: Icons.person_outline,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                _label('Phone Number'),
-                TextFormField(
-                  controller: _phone,
-                  keyboardType: TextInputType.phone,
-                  textInputAction: TextInputAction.next,
-                  enabled: !_saving,
-                  decoration: _inputDecoration(
-                    hint: '+60 12-345 6789',
-                    icon: Icons.phone_outlined,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                _label('Business Name'),
-                TextFormField(
-                  controller: _name,
-                  textInputAction: TextInputAction.next,
-                  enabled: !_saving,
-                  validator: (v) =>
-                      _validateRequired(v, 'Business name'),
-                  decoration: _inputDecoration(
-                    hint: 'e.g. ABC Services',
-                    icon: Icons.storefront_outlined,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                _label('Bio'),
-                TextFormField(
-                  controller: _bio,
-                  maxLines: 3,
-                  enabled: !_saving,
-                  decoration: _inputDecoration(
-                    hint: 'Tell customers about your services...',
-                    icon: Icons.description_outlined,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                _label('Years of Experience'),
-                TextFormField(
-                  controller: _years,
-                  keyboardType: TextInputType.number,
-                  textInputAction: TextInputAction.next,
-                  enabled: !_saving,
-                  validator: _validateYears,
-                  decoration: _inputDecoration(
-                    hint: 'e.g. 5',
-                    icon: Icons.timeline_outlined,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                _label('City'),
-                TextFormField(
-                  controller: _city,
-                  textInputAction: TextInputAction.done,
-                  enabled: !_saving,
-                  onFieldSubmitted: (_) => _save(),
-                  decoration: _inputDecoration(
-                    hint: 'e.g. Kuala Lumpur',
-                    icon: Icons.location_city_outlined,
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                SizedBox(
-                  height: 52,
-                  child: ElevatedButton(
-                    onPressed: _saving ? null : _save,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryOrange,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Center(child: _buildAvatar()),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: _saving ? null : _showImageSourceSheet,
+                          icon: const Icon(Icons.photo_camera_outlined),
+                          label: Text(tr('Change Photo')),
+                          style: TextButton.styleFrom(
+                            foregroundColor: _primaryOrange,
+                          ),
+                        ),
                       ),
-                      elevation: 2,
-                    ),
-                    child: _saving
-                        ? const SizedBox(
-                      height: 22,
-                      width: 22,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2.5,
-                        color: Colors.white,
+                      const SizedBox(height: 16),
+
+                      _label('Full Name'),
+                      TextFormField(
+                        controller: _fullName,
+                        textInputAction: TextInputAction.next,
+                        enabled: !_saving,
+                        validator: (value) => trOrNull(
+                          ((v) => _validateRequired(v, 'Full name'))(value),
+                        ),
+                        decoration: _inputDecoration(
+                          hint: 'Your full name',
+                          icon: Icons.person_outline,
+                        ),
                       ),
-                    )
-                        : Text(
-                      _uploadingPhoto
-                          ? 'Uploading photo...'
-                          : 'Save Changes',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                      const SizedBox(height: 16),
+
+                      _label('Phone Number'),
+                      TextFormField(
+                        controller: _phone,
+                        keyboardType: TextInputType.phone,
+                        textInputAction: TextInputAction.next,
+                        enabled: !_saving,
+                        decoration: _inputDecoration(
+                          hint: '+60 12-345 6789',
+                          icon: Icons.phone_outlined,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 16),
+
+                      _label('Business Name'),
+                      TextFormField(
+                        controller: _name,
+                        textInputAction: TextInputAction.next,
+                        enabled: !_saving,
+                        validator: (value) => trOrNull(
+                          ((v) => _validateRequired(v, 'Business name'))(value),
+                        ),
+                        decoration: _inputDecoration(
+                          hint: 'e.g. ABC Services',
+                          icon: Icons.storefront_outlined,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _label('Bio'),
+                      TextFormField(
+                        controller: _bio,
+                        maxLines: 3,
+                        enabled: !_saving,
+                        decoration: _inputDecoration(
+                          hint: 'Tell customers about your services...',
+                          icon: Icons.description_outlined,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _label('Years of Experience'),
+                      TextFormField(
+                        controller: _years,
+                        keyboardType: TextInputType.number,
+                        textInputAction: TextInputAction.next,
+                        enabled: !_saving,
+                        validator: (value) => trOrNull(_validateYears(value)),
+                        decoration: _inputDecoration(
+                          hint: 'e.g. 5',
+                          icon: Icons.timeline_outlined,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      _label('City'),
+                      TextFormField(
+                        controller: _city,
+                        textInputAction: TextInputAction.done,
+                        enabled: !_saving,
+                        onFieldSubmitted: (_) => _save(),
+                        decoration: _inputDecoration(
+                          hint: 'e.g. Kuala Lumpur',
+                          icon: Icons.location_city_outlined,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+
+                      SizedBox(
+                        height: 52,
+                        child: ElevatedButton(
+                          onPressed: _saving ? null : _save,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: _primaryOrange,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                          ),
+                          child: _saving
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : Text(
+                                  tr(
+                                    _uploadingPhoto
+                                        ? 'Uploading photo...'
+                                        : 'Save Changes',
+                                  ),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-              ],
+              ),
             ),
-          ),
-        ),
-      ),
     );
   }
 
@@ -391,8 +395,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     ImageProvider? imageProvider;
     if (_pickedImageBytes != null) {
       imageProvider = MemoryImage(_pickedImageBytes!);
-    } else if (_existingPhotoUrl != null &&
-        _existingPhotoUrl!.isNotEmpty) {
+    } else if (_existingPhotoUrl != null && _existingPhotoUrl!.isNotEmpty) {
       imageProvider = NetworkImage(_existingPhotoUrl!);
     }
 
@@ -404,15 +407,17 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           backgroundImage: imageProvider,
           child: imageProvider == null
               ? Text(
-            _fullName.text.isNotEmpty
-                ? _fullName.text[0].toUpperCase()
-                : 'U',
-            style: const TextStyle(
-              fontSize: 40,
-              fontWeight: FontWeight.bold,
-              color: _primaryOrange,
-            ),
-          )
+                  tr(
+                    _fullName.text.isNotEmpty
+                        ? _fullName.text[0].toUpperCase()
+                        : 'U',
+                  ),
+                  style: const TextStyle(
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                    color: _primaryOrange,
+                  ),
+                )
               : null,
         ),
         Positioned(
@@ -427,7 +432,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             child: IconButton(
               icon: const Icon(Icons.edit, color: Colors.white, size: 18),
               onPressed: _saving ? null : _showImageSourceSheet,
-              tooltip: 'Edit photo',
+              tooltip: trOrNull('Edit photo'),
               constraints: const BoxConstraints(),
               padding: const EdgeInsets.all(6),
             ),
@@ -439,10 +444,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
 
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
-    child: Text(
-      text,
-      style: const TextStyle(fontWeight: FontWeight.w600),
-    ),
+    child: Text(tr(text), style: const TextStyle(fontWeight: FontWeight.w600)),
   );
 
   InputDecoration _inputDecoration({
@@ -450,7 +452,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     required IconData icon,
   }) {
     return InputDecoration(
-      hintText: hint,
+      hintText: trOrNull(hint),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,

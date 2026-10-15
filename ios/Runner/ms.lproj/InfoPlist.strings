@@ -1,0 +1,5 @@
+"NSSpeechRecognitionUsageDescription" = "Tukar mesej suara anda kepada teks yang boleh disunting.";
+"NSMicrophoneUsageDescription" = "Dengar hanya semasa anda menggunakan mikrofon pembantu.";
+"NSCameraUsageDescription" = "Ambil foto untuk dikongsi dalam perbualan perkhidmatan anda.";
+"NSPhotoLibraryUsageDescription" = "Pilih foto untuk dikongsi dengan penyedia perkhidmatan atau pelanggan.";
+"NSLocationWhenInUseUsageDescription" = "Gunakan lokasi anda untuk mengisi alamat perkhidmatan apabila pemilih alamat dibuka.";

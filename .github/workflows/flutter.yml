@@ -1,9 +1,9 @@
 name: Flutter contracts
 on:
   push:
-    paths: ['lib/**', 'test/**', 'pubspec.*', '.github/workflows/flutter.yml']
+    paths: ['lib/**', 'test/**', 'pubspec.*', 'assets/**', 'tool/check_localization.py', '.github/workflows/flutter.yml']
   pull_request:
-    paths: ['lib/**', 'test/**', 'pubspec.*', '.github/workflows/flutter.yml']
+    paths: ['lib/**', 'test/**', 'pubspec.*', 'assets/**', 'tool/check_localization.py', '.github/workflows/flutter.yml']
 permissions:
   contents: read
 jobs:
@@ -16,6 +16,7 @@ jobs:
           flutter-version: '3.38.8'
           channel: stable
           cache: true
+      - run: python3 tool/check_localization.py
       - run: flutter pub get
       - run: flutter test --no-pub
       - run: flutter test --no-pub --platform chrome test/customer_recovery_web_test.dart

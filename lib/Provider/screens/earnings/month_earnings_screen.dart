@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../services/earnings_service.dart';
@@ -62,8 +64,8 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
         final amt = (r['net_earnings'] as num?)?.toDouble() ?? 0;
         total += amt;
 
-        final cat = r['bookings']?['services']?['service_name']?.toString() ??
-            'Other';
+        final cat =
+            r['bookings']?['services']?['service_name']?.toString() ?? 'Other';
         _byCategory[cat] = (_byCategory[cat] ?? 0) + amt;
 
         final weekIdx = ((d.day - 1) ~/ 7).clamp(0, 4);
@@ -80,7 +82,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load: $e'),
+          content: Text(tr("Failed to load: {0}", [e])),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -93,6 +95,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final now = DateTime.now();
     final monthName = _monthName(now.month);
 
@@ -105,7 +108,7 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('This Month'),
+        title: Text(tr('This Month')),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -113,350 +116,360 @@ class _MonthlyEarningsScreenState extends State<MonthlyEarningsScreen> {
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _load,
-          color: _primaryOrange,
-          child: ListView(
-            padding: const EdgeInsets.all(16),
-            children: [
-              // ---- Total Card ----
-              Card(
-                elevation: 2,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: _borderOrange),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: _lightOrange,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.calendar_month,
-                              color: _primaryOrange,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          const Expanded(
-                            child: Text(
-                              'Total This Month',
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: Colors.grey,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
+              child: RefreshIndicator(
+                onRefresh: _load,
+                color: _primaryOrange,
+                child: ListView(
+                  padding: const EdgeInsets.all(16),
+                  children: [
+                    // ---- Total Card ----
+                    Card(
+                      elevation: 2,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: _borderOrange),
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'RM${_total.toStringAsFixed(2)}',
-                        style: const TextStyle(
-                          fontSize: 36,
-                          fontWeight: FontWeight.bold,
-                          color: _primaryOrange,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '$monthName ${now.year}',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // ---- Pie Chart Card ----
-              if (hasCategory) ...[
-                Card(
-                  elevation: 2,
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: _borderOrange),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Row(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Icon(Icons.pie_chart_outline,
-                                color: _primaryOrange, size: 20),
-                            SizedBox(width: 8),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: _lightOrange,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.calendar_month,
+                                    color: _primaryOrange,
+                                    size: 22,
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Text(
+                                    tr('Total This Month'),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
                             Text(
-                              'Service Popularity',
-                              style: TextStyle(
-                                fontSize: 15,
+                              tr("RM{0}", [_total.toStringAsFixed(2)]),
+                              style: const TextStyle(
+                                fontSize: 36,
                                 fontWeight: FontWeight.bold,
                                 color: _primaryOrange,
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Earnings by service category',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        SizedBox(
-                          height: 200,
-                          child: PieChart(
-                            PieChartData(
-                              sectionsSpace: 2,
-                              centerSpaceRadius: 40,
-                              sections: List.generate(
-                                sortedCategories.length,
-                                    (i) {
-                                  final e = sortedCategories[i];
-                                  final pct = _total > 0
-                                      ? (e.value / _total * 100)
-                                      : 0;
-                                  return PieChartSectionData(
-                                    value: e.value,
-                                    title: '${pct.toStringAsFixed(0)}%',
-                                    color: _palette[i % _palette.length],
-                                    radius: 60,
-                                    titleStyle: const TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  );
-                                },
+                            const SizedBox(height: 4),
+                            Text(
+                              tr('$monthName ${now.year}'),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
                               ),
                             ),
-                          ),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                        // Legend
-                        ...List.generate(
-                          sortedCategories.length,
-                              (i) {
-                            final e = sortedCategories[i];
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  vertical: 6),
-                              child: Row(
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+
+                    // ---- Pie Chart Card ----
+                    if (hasCategory) ...[
+                      Card(
+                        elevation: 2,
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: const BorderSide(color: _borderOrange),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
                                 children: [
-                                  Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color:
-                                      _palette[i % _palette.length],
-                                      borderRadius:
-                                      BorderRadius.circular(3),
-                                    ),
+                                  Icon(
+                                    Icons.pie_chart_outline,
+                                    color: _primaryOrange,
+                                    size: 20,
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      e.key,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
+                                  SizedBox(width: 8),
                                   Text(
-                                    'RM${e.value.toStringAsFixed(2)}',
-                                    style: const TextStyle(
-                                      fontSize: 13,
+                                    tr('Service Popularity'),
+                                    style: TextStyle(
+                                      fontSize: 15,
                                       fontWeight: FontWeight.bold,
                                       color: _primaryOrange,
                                     ),
                                   ),
                                 ],
                               ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 20),
-              ],
-
-              // ---- Weekly Trend Card ----
-              Card(
-                elevation: 2,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: _borderOrange),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.show_chart,
-                              color: _primaryOrange, size: 20),
-                          SizedBox(width: 8),
-                          Text(
-                            'Weekly Trend',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: _primaryOrange,
-                            ),
+                              const SizedBox(height: 4),
+                              Text(
+                                tr('Earnings by service category'),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              SizedBox(
+                                height: 200,
+                                child: PieChart(
+                                  PieChartData(
+                                    sectionsSpace: 2,
+                                    centerSpaceRadius: 40,
+                                    sections: List.generate(
+                                      sortedCategories.length,
+                                      (i) {
+                                        final e = sortedCategories[i];
+                                        final pct = _total > 0
+                                            ? (e.value / _total * 100)
+                                            : 0;
+                                        return PieChartSectionData(
+                                          value: e.value,
+                                          title: tr(
+                                            '${pct.toStringAsFixed(0)}%',
+                                          ),
+                                          color: _palette[i % _palette.length],
+                                          radius: 60,
+                                          titleStyle: const TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              // Legend
+                              ...List.generate(sortedCategories.length, (i) {
+                                final e = sortedCategories[i];
+                                return Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 6,
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        width: 12,
+                                        height: 12,
+                                        decoration: BoxDecoration(
+                                          color: _palette[i % _palette.length],
+                                          borderRadius: BorderRadius.circular(
+                                            3,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Expanded(
+                                        child: Text(
+                                          tr(e.key),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      Text(
+                                        tr("RM{0}", [
+                                          e.value.toStringAsFixed(2),
+                                        ]),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          color: _primaryOrange,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
+                            ],
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      const Text(
-                        'Earnings per week this month',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
                         ),
                       ),
                       const SizedBox(height: 20),
-                      SizedBox(
-                        height: 180,
-                        child: hasTrend
-                            ? LineChart(
-                          LineChartData(
-                            gridData: FlGridData(
-                              show: true,
-                              drawVerticalLine: false,
-                              horizontalInterval: (_weeklyTotals
-                                  .reduce((a, b) =>
-                              a > b ? a : b) /
-                                  3)
-                                  .clamp(1, 99999),
-                              getDrawingHorizontalLine: (value) =>
-                                  FlLine(
-                                    color: Colors.grey.shade200,
-                                    strokeWidth: 1,
+                    ],
+
+                    // ---- Weekly Trend Card ----
+                    Card(
+                      elevation: 2,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: const BorderSide(color: _borderOrange),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.show_chart,
+                                  color: _primaryOrange,
+                                  size: 20,
+                                ),
+                                SizedBox(width: 8),
+                                Text(
+                                  tr('Weekly Trend'),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.bold,
+                                    color: _primaryOrange,
                                   ),
+                                ),
+                              ],
                             ),
-                            titlesData: FlTitlesData(
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 26,
-                                  getTitlesWidget: (v, meta) {
-                                    final i = v.toInt();
-                                    if (i < 0 || i > 4) {
-                                      return const SizedBox();
-                                    }
-                                    return Padding(
-                                      padding:
-                                      const EdgeInsets.only(
-                                          top: 6),
+                            const SizedBox(height: 4),
+                            Text(
+                              tr('Earnings per week this month'),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            SizedBox(
+                              height: 180,
+                              child: hasTrend
+                                  ? LineChart(
+                                      LineChartData(
+                                        gridData: FlGridData(
+                                          show: true,
+                                          drawVerticalLine: false,
+                                          horizontalInterval:
+                                              (_weeklyTotals.reduce(
+                                                        (a, b) => a > b ? a : b,
+                                                      ) /
+                                                      3)
+                                                  .clamp(1, 99999),
+                                          getDrawingHorizontalLine: (value) =>
+                                              FlLine(
+                                                color: Colors.grey.shade200,
+                                                strokeWidth: 1,
+                                              ),
+                                        ),
+                                        titlesData: FlTitlesData(
+                                          bottomTitles: AxisTitles(
+                                            sideTitles: SideTitles(
+                                              showTitles: true,
+                                              reservedSize: 26,
+                                              getTitlesWidget: (v, meta) {
+                                                final i = v.toInt();
+                                                if (i < 0 || i > 4) {
+                                                  return const SizedBox();
+                                                }
+                                                return Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        top: 6,
+                                                      ),
+                                                  child: Text(
+                                                    tr("Wk {0}", [i + 1]),
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                                );
+                                              },
+                                            ),
+                                          ),
+                                          leftTitles: const AxisTitles(
+                                            sideTitles: SideTitles(
+                                              showTitles: false,
+                                            ),
+                                          ),
+                                          topTitles: const AxisTitles(
+                                            sideTitles: SideTitles(
+                                              showTitles: false,
+                                            ),
+                                          ),
+                                          rightTitles: const AxisTitles(
+                                            sideTitles: SideTitles(
+                                              showTitles: false,
+                                            ),
+                                          ),
+                                        ),
+                                        borderData: FlBorderData(show: false),
+                                        minX: 0,
+                                        maxX: 4,
+                                        minY: 0,
+                                        lineBarsData: [
+                                          LineChartBarData(
+                                            spots: List.generate(
+                                              5,
+                                              (i) => FlSpot(
+                                                i.toDouble(),
+                                                _weeklyTotals[i],
+                                              ),
+                                            ),
+                                            isCurved: true,
+                                            color: _primaryOrange,
+                                            barWidth: 3,
+                                            dotData: FlDotData(
+                                              show: true,
+                                              getDotPainter:
+                                                  (spot, pct, bar, idx) =>
+                                                      FlDotCirclePainter(
+                                                        radius: 4,
+                                                        color: Colors.white,
+                                                        strokeWidth: 2,
+                                                        strokeColor:
+                                                            _primaryOrange,
+                                                      ),
+                                            ),
+                                            belowBarData: BarAreaData(
+                                              show: true,
+                                              color: _primaryOrange.withValues(
+                                                alpha: 0.15,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    )
+                                  : Center(
                                       child: Text(
-                                        'Wk ${i + 1}',
-                                        style: const TextStyle(
-                                          fontSize: 11,
+                                        tr('No earnings this month'),
+                                        style: TextStyle(
                                           color: Colors.grey,
+                                          fontSize: 13,
                                         ),
                                       ),
-                                    );
-                                  },
-                                ),
-                              ),
-                              leftTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                    showTitles: false),
-                              ),
-                              topTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                    showTitles: false),
-                              ),
-                              rightTitles: const AxisTitles(
-                                sideTitles: SideTitles(
-                                    showTitles: false),
-                              ),
+                                    ),
                             ),
-                            borderData:
-                            FlBorderData(show: false),
-                            minX: 0,
-                            maxX: 4,
-                            minY: 0,
-                            lineBarsData: [
-                              LineChartBarData(
-                                spots: List.generate(
-                                  5,
-                                      (i) => FlSpot(
-                                      i.toDouble(),
-                                      _weeklyTotals[i]),
-                                ),
-                                isCurved: true,
-                                color: _primaryOrange,
-                                barWidth: 3,
-                                dotData: FlDotData(
-                                  show: true,
-                                  getDotPainter: (spot, pct,
-                                      bar, idx) =>
-                                      FlDotCirclePainter(
-                                        radius: 4,
-                                        color: Colors.white,
-                                        strokeWidth: 2,
-                                        strokeColor: _primaryOrange,
-                                      ),
-                                ),
-                                belowBarData: BarAreaData(
-                                  show: true,
-                                  color: _primaryOrange
-                                      .withValues(alpha: 0.15),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                            : const Center(
-                          child: Text(
-                            'No earnings this month',
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 13,
-                            ),
-                          ),
+                          ],
                         ),
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            ),
     );
   }
 
-  String _monthName(int month) {
-    const months = [
-      'January', 'February', 'March', 'April', 'May', 'June',
-      'July', 'August', 'September', 'October', 'November', 'December'
-    ];
-    return months[month - 1];
-  }
+  String _monthName(int month) =>
+      DateFormat.MMMM().format(DateTime(2000, month));
 }

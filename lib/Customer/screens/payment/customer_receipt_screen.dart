@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../../services/receipt_pdf.dart';
@@ -70,7 +71,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
         );
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text(_saveError!)));
+        ).showSnackBar(SnackBar(content: Text(tr(_saveError!))));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -79,15 +80,16 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     final receipt = _receipt;
     return Scaffold(
-      appBar: AppBar(title: const Text('Payment receipt')),
+      appBar: AppBar(title: Text(tr('Payment receipt'))),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           if (_error != null) ...[
-            Text(_error!),
-            TextButton(onPressed: _load, child: const Text('Try again')),
+            Text(tr(_error!)),
+            TextButton(onPressed: _load, child: Text(tr('Try again'))),
           ] else if (receipt == null)
             const Center(child: CircularProgressIndicator())
           else ...[
@@ -101,7 +103,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
+                  Row(
                     children: [
                       Icon(
                         Icons.receipt_long,
@@ -110,7 +112,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                       ),
                       SizedBox(width: 10),
                       Text(
-                        'LOCAL LIFE',
+                        tr('HOME SERVE'),
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -120,8 +122,8 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  const Text(
-                    'PAYMENT RECEIPT',
+                  Text(
+                    tr('PAYMENT RECEIPT'),
                     style: TextStyle(
                       fontSize: 12,
                       letterSpacing: 1.3,
@@ -148,7 +150,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        receipt.status,
+                        tr(receipt.status),
                         style: TextStyle(
                           color: receipt.refunded
                               ? Colors.blueGrey
@@ -178,7 +180,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            row.$1,
+                            tr(row.$1),
                             style: const TextStyle(
                               fontSize: 12,
                               color: Colors.black54,
@@ -193,31 +195,35 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                       ),
                     ),
                   const Divider(),
-                  const Text(
-                    'SANDBOX TEST RECEIPT',
+                  Text(
+                    tr('SANDBOX TEST RECEIPT'),
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
                   ),
                   const SizedBox(height: 6),
-                  const Text(
-                    'No real money transferred. This demonstration receipt is not a tax invoice.',
+                  Text(
+                    tr(
+                      'No real money transferred. This demonstration receipt is not a tax invoice.',
+                    ),
                     style: TextStyle(fontSize: 12, color: Colors.black54),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 16),
-            const BookingSection(
-              title: 'Keep your payment record',
+            BookingSection(
+              title: tr('Keep your payment record'),
               icon: Icons.verified_user_outlined,
               children: [
                 Text(
-                  'Download a PDF copy for your records. Include the payment reference when requesting booking support.',
+                  tr(
+                    'Download a PDF copy for your records. Include the payment reference when requesting booking support.',
+                  ),
                 ),
               ],
             ),
           ],
           if (_saveError != null)
-            Text(_saveError!, style: const TextStyle(color: Colors.red)),
+            Text(tr(_saveError!), style: const TextStyle(color: Colors.red)),
         ],
       ),
       bottomNavigationBar: receipt == null
@@ -238,7 +244,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                   label: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
-                      _saving ? 'Preparing PDF…' : 'Download receipt (PDF)',
+                      tr(_saving ? 'Preparing PDF…' : 'Download receipt (PDF)'),
                     ),
                   ),
                 ),

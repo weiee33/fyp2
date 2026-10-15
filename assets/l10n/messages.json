@@ -1,0 +1,4362 @@
+{
+  "1. Choose a service and address.\n2. Discuss your preferred time using Chat.\n3. Submit the booking and wait for the provider to accept.\n4. Pay from the accepted booking.\n5. Track progress, then review the completed service.\n\nChat agreements do not reserve a time slot. Always use the booking screen.": [
+    "1. 选择服务和地址。\n2. 通过聊天讨论预约时间。\n3. 提交预约并等待服务商接受。\n4. 服务商接受后付款。\n5. 跟进服务进度，完成后留下评价。\n\n聊天中的约定不会保留时段。请通过预约页面提交。",
+    "1. Pilih perkhidmatan dan alamat.\n2. Bincangkan waktu pilihan melalui sembang.\n3. Hantar tempahan dan tunggu penyedia menerimanya.\n4. Bayar selepas tempahan diterima.\n5. Ikuti perkembangan dan beri ulasan selepas perkhidmatan selesai.\n\nPersetujuan dalam sembang tidak menempah slot. Gunakan skrin tempahan."
+  ],
+  "1. Service address": [
+    "1. 服务地址",
+    "1. Alamat perkhidmatan"
+  ],
+  "2. Appointment": [
+    "2. 预约时间",
+    "2. Janji temu"
+  ],
+  "3. Extra details": [
+    "3. 补充信息",
+    "3. Maklumat tambahan"
+  ],
+  "7 Days": [
+    "7天",
+    "7 hari"
+  ],
+  "A 6-digit code was sent to:\n{0}": [
+    "六位数验证码已发送至：\n{0}",
+    "Kod 6 digit telah dihantar ke:\n{0}"
+  ],
+  "A little care. A better home.": [
+    "用心服务，让家更好。",
+    "Penjagaan ikhlas. Kediaman lebih selesa."
+  ],
+  "A new OTP has been dispatched to your email.": [
+    "新的验证码已发送至您的邮箱。",
+    "OTP baharu telah dihantar ke e-mel anda."
+  ],
+  "A new OTP has been sent to your email.": [
+    "新的验证码已发送至您的邮箱。",
+    "OTP baharu telah dihantar ke e-mel anda."
+  ],
+  "A verification code has been requested for your registered customer email. Check your inbox and spam folder. Your password has not changed yet.": [
+    "已为您的注册邮箱申请验证码。请检查收件箱和垃圾邮件。您的密码尚未更改。",
+    "Kod pengesahan telah diminta untuk e-mel pelanggan berdaftar anda. Semak peti masuk dan spam. Kata laluan anda belum diubah."
+  ],
+  "A verification code was sent to:\n{0}": [
+    "验证码已发送至：\n{0}",
+    "Kod pengesahan telah dihantar ke:\n{0}"
+  ],
+  "A verified payment is required for a receipt.": [
+    "付款经核实后才能生成收据。",
+    "Bayaran mesti disahkan sebelum resit boleh dikeluarkan."
+  ],
+  "AC Servicing": [
+    "空调保养",
+    "Servis penyaman udara"
+  ],
+  "AI": [
+    "AI",
+    "AI"
+  ],
+  "AI Job Matching": [
+    "AI工作匹配",
+    "Padanan kerja AI"
+  ],
+  "AI Smart Schedule": [
+    "AI智能日程",
+    "Jadual pintar AI"
+  ],
+  "AI is thinking": [
+    "AI正在思考",
+    "AI sedang berfikir"
+  ],
+  "About": [
+    "关于",
+    "Tentang"
+  ],
+  "About Home Serve": [
+    "关于Home Serve",
+    "Tentang Home Serve"
+  ],
+  "Accept": [
+    "接受",
+    "Terima"
+  ],
+  "Accepted: {0}": [
+    "已接受：{0}",
+    "Diterima: {0}"
+  ],
+  "Account": [
+    "账户",
+    "Akaun"
+  ],
+  "Account & Security": [
+    "账户与安全",
+    "Akaun & keselamatan"
+  ],
+  "Account Settings": [
+    "账户设置",
+    "Tetapan akaun"
+  ],
+  "Account deleted": [
+    "账户已删除",
+    "Akaun dipadamkan"
+  ],
+  "Account deletion failed. Please retry.": [
+    "账户删除失败，请重试。",
+    "Pemadaman akaun gagal. Sila cuba lagi."
+  ],
+  "Account deletion has not completed. Please retry.": [
+    "账户尚未删除完成，请重试。",
+    "Pemadaman akaun belum selesai. Sila cuba lagi."
+  ],
+  "Action completed.": [
+    "操作已完成。",
+    "Tindakan selesai."
+  ],
+  "Add Certification": [
+    "添加资质证书",
+    "Tambah sijil"
+  ],
+  "Add New Certification": [
+    "添加新证书",
+    "Tambah sijil baharu"
+  ],
+  "Add New Service": [
+    "添加新服务",
+    "Tambah perkhidmatan baharu"
+  ],
+  "Add Service": [
+    "添加服务",
+    "Tambah perkhidmatan"
+  ],
+  "Add Service Location": [
+    "添加服务地点",
+    "Tambah lokasi perkhidmatan"
+  ],
+  "Add a saved address before booking.": [
+    "请先保存地址再预约。",
+    "Simpan alamat sebelum membuat tempahan."
+  ],
+  "Add a service address before booking.": [
+    "请先添加服务地址再预约。",
+    "Tambah alamat perkhidmatan sebelum menempah."
+  ],
+  "Add address": [
+    "添加地址",
+    "Tambah alamat"
+  ],
+  "Add an address to use when making a booking.": [
+    "添加预约时使用的地址。",
+    "Tambah alamat untuk digunakan semasa membuat tempahan."
+  ],
+  "Add photo": [
+    "添加照片",
+    "Tambah foto"
+  ],
+  "Add service address": [
+    "添加服务地址",
+    "Tambah alamat perkhidmatan"
+  ],
+  "Add your unit or floor number if needed.": [
+    "如有需要，请填写单位或楼层。",
+    "Masukkan nombor unit atau tingkat jika perlu."
+  ],
+  "Adding...": [
+    "正在添加…",
+    "Sedang menambah…"
+  ],
+  "Address": [
+    "地址",
+    "Alamat"
+  ],
+  "Address Details": [
+    "地址详情",
+    "Butiran alamat"
+  ],
+  "Address Line / Unit No.": [
+    "地址／单位号码",
+    "Alamat / nombor unit"
+  ],
+  "Address lookup is busy. Please retry.": [
+    "地址查询繁忙，请重试。",
+    "Carian alamat sedang sibuk. Sila cuba lagi."
+  ],
+  "Address lookup is unavailable.": [
+    "暂时无法查询地址。",
+    "Carian alamat tidak tersedia."
+  ],
+  "Address lookup is unavailable. Enter the address manually.": [
+    "暂时无法查询地址，请手动填写。",
+    "Carian alamat tidak tersedia. Masukkan alamat secara manual."
+  ],
+  "Address not found in Malaysia. Try a nearby street or building.": [
+    "在马来西亚找不到此地址，请尝试附近街道或建筑。",
+    "Alamat tidak ditemui di Malaysia. Cuba jalan atau bangunan berdekatan."
+  ],
+  "Address saved successfully.": [
+    "地址已保存。",
+    "Alamat berjaya disimpan."
+  ],
+  "Address updated successfully.": [
+    "地址已更新。",
+    "Alamat berjaya dikemas kini."
+  ],
+  "Admin governance is accessible via web dashboard only.": [
+    "管理员功能仅可通过网页管理平台使用。",
+    "Pentadbiran hanya tersedia melalui papan pemuka web."
+  ],
+  "Air-Conditioning": [
+    "空调",
+    "Penyaman udara"
+  ],
+  "Alert": [
+    "提示",
+    "Makluman"
+  ],
+  "All": [
+    "全部",
+    "Semua"
+  ],
+  "All services": [
+    "所有服务",
+    "Semua perkhidmatan"
+  ],
+  "Already have an account? ": [
+    "已有账户？ ",
+    "Sudah mempunyai akaun? "
+  ],
+  "Any": [
+    "不限",
+    "Mana-mana"
+  ],
+  "Any city": [
+    "所有城市",
+    "Mana-mana bandar"
+  ],
+  "Applies throughout Home Serve. Your messages and provider descriptions stay in their original language.": [
+    "适用于整个Home Serve。您的消息和服务商描述将保留原文。",
+    "Digunakan di seluruh Home Serve. Mesej anda dan penerangan penyedia kekal dalam bahasa asal."
+  ],
+  "Apply filters": [
+    "应用筛选",
+    "Gunakan penapis"
+  ],
+  "Appointment": [
+    "预约时间",
+    "Janji temu"
+  ],
+  "Appointment & location": [
+    "预约与地点",
+    "Janji temu & lokasi"
+  ],
+  "Appointment (Malaysia time)": [
+    "预约时间（马来西亚时间）",
+    "Janji temu (waktu Malaysia)"
+  ],
+  "Appointment date": [
+    "预约日期",
+    "Tarikh janji temu"
+  ],
+  "Apr": [
+    "4月",
+    "Apr"
+  ],
+  "April": [
+    "四月",
+    "April"
+  ],
+  "Are you sure you want to cancel this booking?": [
+    "确定要取消此预约吗？",
+    "Adakah anda pasti mahu membatalkan tempahan ini?"
+  ],
+  "Are you sure you want to delete this service?": [
+    "确定要删除此服务吗？",
+    "Adakah anda pasti mahu memadamkan perkhidmatan ini?"
+  ],
+  "Are you sure you want to log out?": [
+    "确定要退出登录吗？",
+    "Adakah anda pasti mahu log keluar?"
+  ],
+  "Are you sure?": [
+    "确定吗？",
+    "Adakah anda pasti?"
+  ],
+  "Ask AI": [
+    "咨询AI",
+    "Tanya AI"
+  ],
+  "Assistant mode": [
+    "助手模式",
+    "Mod pembantu"
+  ],
+  "Assistant unavailable. Please retry.": [
+    "助手暂时不可用，请重试。",
+    "Pembantu tidak tersedia. Sila cuba lagi."
+  ],
+  "Attach Photo (Optional)": [
+    "附加照片（选填）",
+    "Lampirkan foto (pilihan)"
+  ],
+  "Attach photo": [
+    "附加照片",
+    "Lampirkan foto"
+  ],
+  "Aug": [
+    "8月",
+    "Ogos"
+  ],
+  "August": [
+    "八月",
+    "Ogos"
+  ],
+  "Auth Error: {0}": [
+    "身份验证错误：{0}",
+    "Ralat pengesahan: {0}"
+  ],
+  "Available services": [
+    "可预约服务",
+    "Perkhidmatan tersedia"
+  ],
+  "Available times": [
+    "可预约时段",
+    "Waktu tersedia"
+  ],
+  "Avg. Response Time": [
+    "平均回复时间",
+    "Purata masa respons"
+  ],
+  "Awaiting payment": [
+    "等待付款",
+    "Menunggu bayaran"
+  ],
+  "Back to booking": [
+    "返回预约",
+    "Kembali ke tempahan"
+  ],
+  "Bahasa Melayu": [
+    "Bahasa Melayu",
+    "Bahasa Melayu"
+  ],
+  "Based on your skills and certifications, we recommend these service categories for you.": [
+    "根据您的技能和证书，为您推荐以下服务类别。",
+    "Berdasarkan kemahiran dan sijil anda, kami mencadangkan kategori perkhidmatan berikut."
+  ],
+  "Bio": [
+    "简介",
+    "Biodata"
+  ],
+  "Birthday": [
+    "生日",
+    "Tarikh lahir"
+  ],
+  "Book service": [
+    "预约服务",
+    "Tempah perkhidmatan"
+  ],
+  "Booking": [
+    "预约",
+    "Tempahan"
+  ],
+  "Booking Detail": [
+    "预约详情",
+    "Butiran tempahan"
+  ],
+  "Booking Details": [
+    "预约详情",
+    "Butiran tempahan"
+  ],
+  "Booking ID": [
+    "预约编号",
+    "ID tempahan"
+  ],
+  "Booking ID missing": [
+    "缺少预约编号",
+    "ID tempahan tiada"
+  ],
+  "Booking Info": [
+    "预约信息",
+    "Maklumat tempahan"
+  ],
+  "Booking Update": [
+    "预约更新",
+    "Kemas kini tempahan"
+  ],
+  "Booking cancelled": [
+    "预约已取消",
+    "Tempahan dibatalkan"
+  ],
+  "Booking cancelled.": [
+    "预约已取消。",
+    "Tempahan dibatalkan."
+  ],
+  "Booking details": [
+    "预约详情",
+    "Butiran tempahan"
+  ],
+  "Booking help": [
+    "预约帮助",
+    "Bantuan tempahan"
+  ],
+  "Booking marked as {0}": [
+    "预约已标记为{0}",
+    "Tempahan ditandakan sebagai {0}"
+  ],
+  "Booking not found": [
+    "找不到预约",
+    "Tempahan tidak ditemui"
+  ],
+  "Booking progress": [
+    "预约进度",
+    "Perkembangan tempahan"
+  ],
+  "Booking reference": [
+    "预约参考编号",
+    "Rujukan tempahan"
+  ],
+  "Booking request sent": [
+    "预约请求已发送",
+    "Permintaan tempahan dihantar"
+  ],
+  "Booking request sent. Payment opens after provider acceptance.": [
+    "预约请求已发送。服务商接受后即可付款。",
+    "Permintaan tempahan dihantar. Bayaran dibuka selepas penyedia menerima tempahan."
+  ],
+  "Booking status": [
+    "预约状态",
+    "Status tempahan"
+  ],
+  "Booking {0}": [
+    "预约{0}",
+    "Tempahan {0}"
+  ],
+  "Booking {0}.": [
+    "预约{0}。",
+    "Tempahan {0}."
+  ],
+  "Bookings": [
+    "我的预约",
+    "Tempahan"
+  ],
+  "Busiest Day": [
+    "最繁忙的一天",
+    "Hari paling sibuk"
+  ],
+  "Business Name": [
+    "商家名称",
+    "Nama perniagaan"
+  ],
+  "Business name": [
+    "商家名称",
+    "Nama perniagaan"
+  ],
+  "Cancel": [
+    "取消",
+    "Batal"
+  ],
+  "Cancel Booking": [
+    "取消预约",
+    "Batalkan tempahan"
+  ],
+  "Cancel booking": [
+    "取消预约",
+    "Batalkan tempahan"
+  ],
+  "Cancel booking?": [
+    "取消预约？",
+    "Batalkan tempahan?"
+  ],
+  "Cancellation": [
+    "取消",
+    "Pembatalan"
+  ],
+  "Cancelled": [
+    "已取消",
+    "Dibatalkan"
+  ],
+  "Cancelling…": [
+    "正在取消…",
+    "Sedang membatalkan…"
+  ],
+  "Cannot be negative": [
+    "不能为负数",
+    "Tidak boleh negatif"
+  ],
+  "Card number, expiry and CVC are validated by Stripe. Your card details are never stored in this app.": [
+    "卡号、有效期和CVC由Stripe验证。此应用不会保存您的银行卡信息。",
+    "Nombor kad, tarikh luput dan CVC disahkan oleh Stripe. Butiran kad anda tidak disimpan dalam aplikasi ini."
+  ],
+  "Category": [
+    "类别",
+    "Kategori"
+  ],
+  "Certificate File (Optional)": [
+    "证书文件（选填）",
+    "Fail sijil (pilihan)"
+  ],
+  "Certification Name": [
+    "证书名称",
+    "Nama sijil"
+  ],
+  "Certification added": [
+    "证书已添加",
+    "Sijil ditambah"
+  ],
+  "Certification name": [
+    "证书名称",
+    "Nama sijil"
+  ],
+  "Certification updated": [
+    "证书已更新",
+    "Sijil dikemas kini"
+  ],
+  "Certifications": [
+    "资质证书",
+    "Sijil"
+  ],
+  "Change Password": [
+    "更改密码",
+    "Tukar kata laluan"
+  ],
+  "Change Photo": [
+    "更换照片",
+    "Tukar foto"
+  ],
+  "Change email or password": [
+    "更改邮箱或密码",
+    "Tukar e-mel atau kata laluan"
+  ],
+  "Change password": [
+    "更改密码",
+    "Tukar kata laluan"
+  ],
+  "Chat": [
+    "聊天",
+    "Sembang"
+  ],
+  "Chat deleted from your inbox.": [
+    "聊天已从您的收件箱删除。",
+    "Sembang dipadamkan daripada peti masuk anda."
+  ],
+  "Chat history": [
+    "聊天记录",
+    "Sejarah sembang"
+  ],
+  "Chat name": [
+    "聊天名称",
+    "Nama sembang"
+  ],
+  "Chat options": [
+    "聊天选项",
+    "Pilihan sembang"
+  ],
+  "Chat pinned.": [
+    "聊天已置顶。",
+    "Sembang disematkan."
+  ],
+  "Chat unpinned.": [
+    "聊天已取消置顶。",
+    "Sembang dinyahsemat."
+  ],
+  "Chat with Customer": [
+    "与客户聊天",
+    "Sembang dengan pelanggan"
+  ],
+  "Chat with provider": [
+    "与服务商聊天",
+    "Sembang dengan penyedia"
+  ],
+  "Chats": [
+    "聊天",
+    "Sembang"
+  ],
+  "Check payment status": [
+    "查询付款状态",
+    "Semak status bayaran"
+  ],
+  "Check your email": [
+    "请检查邮箱",
+    "Semak e-mel anda"
+  ],
+  "Check your email for the verification code to activate your account.": [
+    "请查看邮箱中的验证码以激活账户。",
+    "Semak e-mel anda untuk kod pengesahan bagi mengaktifkan akaun."
+  ],
+  "Choose FPX online banking, or cards and GrabPay. Payment details are entered securely on Stripe.": [
+    "选择FPX网上银行、银行卡或GrabPay。在Stripe安全页面输入付款信息。",
+    "Pilih perbankan dalam talian FPX, kad atau GrabPay. Butiran bayaran dimasukkan dengan selamat di Stripe."
+  ],
+  "Choose File": [
+    "选择文件",
+    "Pilih fail"
+  ],
+  "Choose a JPEG, PNG or WebP image.": [
+    "请选择JPEG、PNG或WebP图片。",
+    "Pilih imej JPEG, PNG atau WebP."
+  ],
+  "Choose a JPEG, PNG or WebP photo.": [
+    "请选择JPEG、PNG或WebP照片。",
+    "Pilih foto JPEG, PNG atau WebP."
+  ],
+  "Choose a different new password": [
+    "请选择不同的新密码",
+    "Pilih kata laluan baharu yang berbeza"
+  ],
+  "Choose a new appointment": [
+    "选择新预约时间",
+    "Pilih janji temu baharu"
+  ],
+  "Choose a photo smaller than 16 MB.": [
+    "请选择小于16 MB的照片。",
+    "Pilih foto yang lebih kecil daripada 16 MB."
+  ],
+  "Choose a photo smaller than 5 MB.": [
+    "请选择小于5 MB的照片。",
+    "Pilih foto yang lebih kecil daripada 5 MB."
+  ],
+  "Choose a public map pin so customers can see your coverage.": [
+    "选择公开地图标记，让客户了解您的服务范围。",
+    "Pilih pin peta awam supaya pelanggan dapat melihat kawasan liputan anda."
+  ],
+  "Choose a rating from 1 to 5 stars.": [
+    "请选择1至5星评分。",
+    "Pilih penilaian 1 hingga 5 bintang."
+  ],
+  "Choose a service address": [
+    "选择服务地址",
+    "Pilih alamat perkhidmatan"
+  ],
+  "Choose a smaller photo.": [
+    "请选择较小的照片。",
+    "Pilih foto yang lebih kecil."
+  ],
+  "Choose a supported photo.": [
+    "请选择支持的照片格式。",
+    "Pilih foto dalam format yang disokong."
+  ],
+  "Choose an image smaller than 5 MB.": [
+    "请选择小于5 MB的图片。",
+    "Pilih imej yang lebih kecil daripada 5 MB."
+  ],
+  "Choose another date": [
+    "选择其他日期",
+    "Pilih tarikh lain"
+  ],
+  "Choose date & book": [
+    "选择日期并预约",
+    "Pilih tarikh & tempah"
+  ],
+  "Choose from Gallery": [
+    "从相册选择",
+    "Pilih daripada galeri"
+  ],
+  "Choose from gallery": [
+    "从相册选择",
+    "Pilih daripada galeri"
+  ],
+  "Choose language": [
+    "选择语言",
+    "Pilih bahasa"
+  ],
+  "Choose on the secure Stripe page": [
+    "在Stripe安全页面选择",
+    "Pilih pada halaman Stripe yang selamat"
+  ],
+  "Choose services you frequently need.": [
+    "选择您经常需要的服务。",
+    "Pilih perkhidmatan yang kerap anda perlukan."
+  ],
+  "Choose your Malaysian bank": [
+    "选择您的马来西亚银行",
+    "Pilih bank Malaysia anda"
+  ],
+  "Choose your new password": [
+    "设置新密码",
+    "Pilih kata laluan baharu anda"
+  ],
+  "City": [
+    "城市",
+    "Bandar"
+  ],
+  "City is required": [
+    "请填写城市",
+    "Bandar diperlukan"
+  ],
+  "City name is too short": [
+    "城市名称太短",
+    "Nama bandar terlalu pendek"
+  ],
+  "Cleaning": [
+    "清洁",
+    "Pembersihan"
+  ],
+  "Clear filters": [
+    "清除筛选",
+    "Kosongkan penapis"
+  ],
+  "Clear search": [
+    "清除搜索",
+    "Kosongkan carian"
+  ],
+  "Close": [
+    "关闭",
+    "Tutup"
+  ],
+  "Close assistant": [
+    "关闭助手",
+    "Tutup pembantu"
+  ],
+  "Close chat history": [
+    "关闭聊天记录",
+    "Tutup sejarah sembang"
+  ],
+  "Communication": [
+    "沟通",
+    "Komunikasi"
+  ],
+  "Compare providers near my saved address": [
+    "比较我保存地址附近的服务商",
+    "Bandingkan penyedia berhampiran alamat tersimpan saya"
+  ],
+  "Complete Service": [
+    "完成服务",
+    "Selesaikan perkhidmatan"
+  ],
+  "Complete the secure payment page, then return here. Opening it does not mean payment succeeded.": [
+    "请在安全付款页面完成付款后返回。打开页面并不代表付款成功。",
+    "Selesaikan bayaran di halaman selamat, kemudian kembali ke sini. Membukanya tidak bermakna bayaran berjaya."
+  ],
+  "Completed": [
+    "已完成",
+    "Selesai"
+  ],
+  "Completed jobs will appear here": [
+    "已完成的工作将显示在这里",
+    "Kerja yang selesai akan dipaparkan di sini"
+  ],
+  "Completed service": [
+    "已完成服务",
+    "Perkhidmatan selesai"
+  ],
+  "Completion Rate": [
+    "完成率",
+    "Kadar penyelesaian"
+  ],
+  "Confirm": [
+    "确认",
+    "Sahkan"
+  ],
+  "Confirm action": [
+    "确认操作",
+    "Sahkan tindakan"
+  ],
+  "Confirm change password": [
+    "确认更改密码",
+    "Sahkan perubahan kata laluan"
+  ],
+  "Confirm new password": [
+    "确认新密码",
+    "Sahkan kata laluan baharu"
+  ],
+  "Confirm these details to send your request. You can pay after the provider accepts.": [
+    "确认这些信息以发送请求。服务商接受后即可付款。",
+    "Sahkan butiran ini untuk menghantar permintaan. Anda boleh membayar selepas penyedia menerimanya."
+  ],
+  "Confirmed": [
+    "已确认",
+    "Disahkan"
+  ],
+  "Connection unavailable. Please retry.": [
+    "无法连接，请重试。",
+    "Sambungan tidak tersedia. Sila cuba lagi."
+  ],
+  "Consumer Portal": [
+    "客户入口",
+    "Portal pelanggan"
+  ],
+  "Contact": [
+    "联系方式",
+    "Hubungi"
+  ],
+  "Continue": [
+    "继续",
+    "Teruskan"
+  ],
+  "Continue the opened checkout. Its payment option is reserved until the window ends.": [
+    "继续已打开的结账。在付款期限结束前，该付款方式会被保留。",
+    "Teruskan pembayaran yang dibuka. Kaedah bayarannya dikekalkan sehingga tempoh tamat."
+  ],
+  "Continue to payment": [
+    "前往付款",
+    "Teruskan ke pembayaran"
+  ],
+  "Conversation": [
+    "会话",
+    "Perbualan"
+  ],
+  "Conversations": [
+    "会话",
+    "Perbualan"
+  ],
+  "Could not check payment status": [
+    "无法查询付款状态",
+    "Tidak dapat menyemak status bayaran"
+  ],
+  "Could not check review eligibility. Please retry.": [
+    "无法检查评价资格，请重试。",
+    "Tidak dapat menyemak kelayakan ulasan. Sila cuba lagi."
+  ],
+  "Could not delete chat. Retry.": [
+    "无法删除聊天，请重试。",
+    "Tidak dapat memadamkan sembang. Cuba lagi."
+  ],
+  "Could not load chats.": [
+    "无法加载聊天。",
+    "Tidak dapat memuatkan sembang."
+  ],
+  "Could not load earlier photos.": [
+    "无法加载更早的照片。",
+    "Tidak dapat memuatkan foto terdahulu."
+  ],
+  "Could not load more bookings. Try again.": [
+    "无法加载更多预约，请重试。",
+    "Tidak dapat memuatkan lebih banyak tempahan. Cuba lagi."
+  ],
+  "Could not load notifications. Please retry.": [
+    "无法加载通知，请重试。",
+    "Tidak dapat memuatkan pemberitahuan. Sila cuba lagi."
+  ],
+  "Could not load notifications. Pull down to retry.": [
+    "无法加载通知，请下拉重试。",
+    "Tidak dapat memuatkan pemberitahuan. Tarik ke bawah untuk mencuba lagi."
+  ],
+  "Could not load service categories. Your saved preferences are kept.": [
+    "无法加载服务类别。已保留您保存的偏好。",
+    "Tidak dapat memuatkan kategori perkhidmatan. Pilihan tersimpan anda dikekalkan."
+  ],
+  "Could not load your reviews.": [
+    "无法加载您的评价。",
+    "Tidak dapat memuatkan ulasan anda."
+  ],
+  "Could not load your saved addresses.": [
+    "无法加载已保存的地址。",
+    "Tidak dapat memuatkan alamat tersimpan anda."
+  ],
+  "Could not mark this notification as read.": [
+    "无法将此通知标记为已读。",
+    "Tidak dapat menandakan pemberitahuan ini sebagai dibaca."
+  ],
+  "Could not open payment": [
+    "无法打开付款页面",
+    "Tidak dapat membuka pembayaran"
+  ],
+  "Could not open your photo. Check camera/photo permissions and try again.": [
+    "无法打开照片，请检查相机／相册权限后重试。",
+    "Tidak dapat membuka foto. Semak kebenaran kamera/foto dan cuba lagi."
+  ],
+  "Could not rename this chat. Please retry.": [
+    "无法重命名聊天，请重试。",
+    "Tidak dapat menamakan semula sembang ini. Sila cuba lagi."
+  ],
+  "Could not save language": [
+    "无法保存语言",
+    "Tidak dapat menyimpan bahasa"
+  ],
+  "Could not save your language. Please retry.": [
+    "无法保存语言，请重试。",
+    "Tidak dapat menyimpan bahasa anda. Sila cuba lagi."
+  ],
+  "Could not save your receipt. Please try again.": [
+    "无法保存收据，请重试。",
+    "Tidak dapat menyimpan resit anda. Sila cuba lagi."
+  ],
+  "Could not send the verification code. Please retry.": [
+    "无法发送验证码，请重试。",
+    "Tidak dapat menghantar kod pengesahan. Sila cuba lagi."
+  ],
+  "Coverage unavailable. Tap to retry.": [
+    "无法获取服务范围，点击重试。",
+    "Liputan tidak tersedia. Ketik untuk mencuba lagi."
+  ],
+  "Create Account": [
+    "创建账户",
+    "Cipta akaun"
+  ],
+  "Create Customer Account": [
+    "创建客户账户",
+    "Cipta akaun pelanggan"
+  ],
+  "Create booking": [
+    "提交预约",
+    "Buat tempahan"
+  ],
+  "Current password": [
+    "当前密码",
+    "Kata laluan semasa"
+  ],
+  "Current password and email verification": [
+    "当前密码和邮箱验证",
+    "Kata laluan semasa dan pengesahan e-mel"
+  ],
+  "Current password is incorrect.": [
+    "当前密码不正确。",
+    "Kata laluan semasa tidak betul."
+  ],
+  "Current password is incorrect. Please try again.": [
+    "当前密码不正确，请重试。",
+    "Kata laluan semasa tidak betul. Sila cuba lagi."
+  ],
+  "Customer": [
+    "客户",
+    "Pelanggan"
+  ],
+  "Customer Location": [
+    "客户地点",
+    "Lokasi pelanggan"
+  ],
+  "Customer Login": [
+    "客户登录",
+    "Log masuk pelanggan"
+  ],
+  "Customer Reviews": [
+    "客户评价",
+    "Ulasan pelanggan"
+  ],
+  "Daily Breakdown": [
+    "每日明细",
+    "Pecahan harian"
+  ],
+  "Daily Earnings": [
+    "每日收入",
+    "Pendapatan harian"
+  ],
+  "Date": [
+    "日期",
+    "Tarikh"
+  ],
+  "Date & Time": [
+    "日期与时间",
+    "Tarikh & waktu"
+  ],
+  "Date TBA": [
+    "日期待定",
+    "Tarikh akan ditentukan"
+  ],
+  "Debit / credit card": [
+    "借记卡／信用卡",
+    "Kad debit / kredit"
+  ],
+  "Debit / credit card or GrabPay": [
+    "借记卡／信用卡或GrabPay",
+    "Kad debit / kredit atau GrabPay"
+  ],
+  "Dec": [
+    "12月",
+    "Dis"
+  ],
+  "December": [
+    "十二月",
+    "Disember"
+  ],
+  "Decline": [
+    "拒绝",
+    "Tolak"
+  ],
+  "Decline booking request": [
+    "拒绝预约请求",
+    "Tolak permintaan tempahan"
+  ],
+  "Deep Cleaning": [
+    "深度清洁",
+    "Pembersihan menyeluruh"
+  ],
+  "Default": [
+    "默认",
+    "Lalai"
+  ],
+  "Delete": [
+    "删除",
+    "Padam"
+  ],
+  "Delete Certification": [
+    "删除证书",
+    "Padam sijil"
+  ],
+  "Delete Service": [
+    "删除服务",
+    "Padam perkhidmatan"
+  ],
+  "Delete failed: {0}": [
+    "删除失败：{0}",
+    "Gagal memadamkan: {0}"
+  ],
+  "Delete my account": [
+    "删除我的账户",
+    "Padam akaun saya"
+  ],
+  "Delete notification?": [
+    "删除通知？",
+    "Padam pemberitahuan?"
+  ],
+  "Delete saved address?": [
+    "删除已保存的地址？",
+    "Padam alamat tersimpan?"
+  ],
+  "Delete this chat?": [
+    "删除此聊天？",
+    "Padam sembang ini?"
+  ],
+  "Delete your account": [
+    "删除您的账户",
+    "Padam akaun anda"
+  ],
+  "Deleted": [
+    "已删除",
+    "Dipadamkan"
+  ],
+  "Deleting account…": [
+    "正在删除账户…",
+    "Sedang memadamkan akaun…"
+  ],
+  "Describe the problem": [
+    "描述问题",
+    "Terangkan masalah"
+  ],
+  "Describe your service...": [
+    "描述您的服务…",
+    "Terangkan perkhidmatan anda…"
+  ],
+  "Description": [
+    "描述",
+    "Penerangan"
+  ],
+  "Details": [
+    "详情",
+    "Butiran"
+  ],
+  "Discard changes?": [
+    "放弃更改？",
+    "Buang perubahan?"
+  ],
+  "Discuss a time here, then submit a booking. Pay only after the provider accepts it.": [
+    "先在此讨论时间，再提交预约。请在服务商接受后才付款。",
+    "Bincangkan waktu di sini, kemudian hantar tempahan. Bayar hanya selepas penyedia menerimanya."
+  ],
+  "Do it for me": [
+    "帮我办理",
+    "Uruskan untuk saya"
+  ],
+  "Done": [
+    "完成",
+    "Selesai"
+  ],
+  "Download a PDF copy for your records. Include the payment reference when requesting booking support.": [
+    "下载PDF副本以作记录。申请预约支持时，请提供付款参考编号。",
+    "Muat turun salinan PDF untuk rekod anda. Sertakan rujukan bayaran apabila meminta bantuan tempahan."
+  ],
+  "Download receipt (PDF)": [
+    "下载收据（PDF）",
+    "Muat turun resit (PDF)"
+  ],
+  "Drag to resize address panel": [
+    "拖动调整地址面板大小",
+    "Seret untuk mengubah saiz panel alamat"
+  ],
+  "Duplicate": [
+    "重复",
+    "Pendua"
+  ],
+  "Duration": [
+    "时长",
+    "Tempoh"
+  ],
+  "Duration is required": [
+    "请填写时长",
+    "Tempoh diperlukan"
+  ],
+  "E-Wallet": [
+    "电子钱包",
+    "E-dompet"
+  ],
+  "E-wallet": [
+    "电子钱包",
+    "E-dompet"
+  ],
+  "EXPIRED": [
+    "已过期",
+    "TAMAT TEMPOH"
+  ],
+  "Earnings": [
+    "收入",
+    "Pendapatan"
+  ],
+  "Earnings Trend": [
+    "收入趋势",
+    "Trend pendapatan"
+  ],
+  "Earnings by service category": [
+    "按服务类别统计收入",
+    "Pendapatan mengikut kategori perkhidmatan"
+  ],
+  "Earnings per week this month": [
+    "本月每周收入",
+    "Pendapatan mingguan bulan ini"
+  ],
+  "Edit": [
+    "编辑",
+    "Edit"
+  ],
+  "Edit Certification": [
+    "编辑证书",
+    "Edit sijil"
+  ],
+  "Edit Profile": [
+    "编辑个人资料",
+    "Edit profil"
+  ],
+  "Edit Service": [
+    "编辑服务",
+    "Edit perkhidmatan"
+  ],
+  "Edit photo": [
+    "编辑照片",
+    "Edit foto"
+  ],
+  "Edit profile photo and personal details": [
+    "编辑头像及个人信息",
+    "Edit foto profil dan maklumat peribadi"
+  ],
+  "Edit {0}": [
+    "编辑{0}",
+    "Edit {0}"
+  ],
+  "Electrical": [
+    "电气",
+    "Elektrik"
+  ],
+  "Electrical Wiring Repair": [
+    "电路维修",
+    "Pembaikan pendawaian elektrik"
+  ],
+  "Email": [
+    "邮箱",
+    "E-mel"
+  ],
+  "Email Address": [
+    "邮箱地址",
+    "Alamat e-mel"
+  ],
+  "Email address": [
+    "邮箱地址",
+    "Alamat e-mel"
+  ],
+  "Email is required": [
+    "请填写邮箱",
+    "E-mel diperlukan"
+  ],
+  "Email not confirmed": [
+    "邮箱未验证",
+    "E-mel belum disahkan"
+  ],
+  "Email verification code": [
+    "邮箱验证码",
+    "Kod pengesahan e-mel"
+  ],
+  "English": [
+    "English",
+    "English"
+  ],
+  "Enter 9–10 digits starting with 1, without +60 or the first 0.": [
+    "输入以1开头的9至10位号码，无需+60或首位0。",
+    "Masukkan 9–10 digit bermula dengan 1, tanpa +60 atau angka 0 pertama."
+  ],
+  "Enter Verification Code": [
+    "输入验证码",
+    "Masukkan kod pengesahan"
+  ],
+  "Enter a message of 1–2000 characters.": [
+    "请输入1至2000个字符的消息。",
+    "Masukkan mesej sepanjang 1–2000 aksara."
+  ],
+  "Enter a name between 1 and 70 characters.": [
+    "请输入1至70个字符的名称。",
+    "Masukkan nama sepanjang 1–70 aksara."
+  ],
+  "Enter a service radius from 1 to 200 km first.": [
+    "请先输入1至200公里的服务半径。",
+    "Masukkan jejari perkhidmatan 1 hingga 200 km dahulu."
+  ],
+  "Enter a valid Malaysian mobile number, for example 102049818.": [
+    "请输入有效的马来西亚手机号码，例如102049818。",
+    "Masukkan nombor telefon bimbit Malaysia yang sah, contohnya 102049818."
+  ],
+  "Enter a valid email address": [
+    "请输入有效的邮箱地址",
+    "Masukkan alamat e-mel yang sah"
+  ],
+  "Enter a valid number": [
+    "请输入有效数字",
+    "Masukkan nombor yang sah"
+  ],
+  "Enter a valid price of zero or more.": [
+    "请输入大于或等于零的有效价格。",
+    "Masukkan harga sah yang bernilai sifar atau lebih."
+  ],
+  "Enter at least 10 characters": [
+    "请至少输入10个字符",
+    "Masukkan sekurang-kurangnya 10 aksara"
+  ],
+  "Enter at least 3 characters": [
+    "请至少输入3个字符",
+    "Masukkan sekurang-kurangnya 3 aksara"
+  ],
+  "Enter the complete verification code from your latest email.": [
+    "请输入最新邮件中的完整验证码。",
+    "Masukkan kod pengesahan lengkap daripada e-mel terkini anda."
+  ],
+  "Enter the latest code sent to {0}.": [
+    "请输入发送至{0}的最新验证码。",
+    "Masukkan kod terkini yang dihantar ke {0}."
+  ],
+  "Enter your current password": [
+    "请输入当前密码",
+    "Masukkan kata laluan semasa anda"
+  ],
+  "Enter your current password to confirm that this is your account.": [
+    "输入当前密码以确认账户属于您。",
+    "Masukkan kata laluan semasa untuk mengesahkan bahawa ini akaun anda."
+  ],
+  "Error: {0}": [
+    "错误：{0}",
+    "Ralat: {0}"
+  ],
+  "Est. Earnings": [
+    "预计收入",
+    "Anggaran pendapatan"
+  ],
+  "Estimated Duration (minutes)": [
+    "预计时长（分钟）",
+    "Anggaran tempoh (minit)"
+  ],
+  "Existing bookings keep their service address. If this is the default, another saved address becomes the default.": [
+    "现有预约的服务地址不会改变。如果删除默认地址，另一个已保存地址会成为默认地址。",
+    "Alamat perkhidmatan tempahan sedia ada dikekalkan. Jika ini alamat lalai, alamat tersimpan lain akan menjadi lalai."
+  ],
+  "Expired": [
+    "已过期",
+    "Tamat tempoh"
+  ],
+  "Expired Booking": [
+    "已过期预约",
+    "Tempahan tamat tempoh"
+  ],
+  "Expired Schedule": [
+    "已过期日程",
+    "Jadual tamat tempoh"
+  ],
+  "Expired · Not paid": [
+    "已过期 · 未付款",
+    "Tamat tempoh · Belum dibayar"
+  ],
+  "Expired — ask for a new card": [
+    "已过期，请申请新的操作卡片",
+    "Tamat tempoh — minta kad tindakan baharu"
+  ],
+  "Expires: {0}": [
+    "到期时间：{0}",
+    "Tamat tempoh: {0}"
+  ],
+  "Expiry Date": [
+    "到期日期",
+    "Tarikh luput"
+  ],
+  "Explore": [
+    "探索",
+    "Teroka"
+  ],
+  "F": [
+    "五",
+    "J"
+  ],
+  "FPX": [
+    "FPX",
+    "FPX"
+  ],
+  "FPX online banking": [
+    "FPX网上银行",
+    "Perbankan dalam talian FPX"
+  ],
+  "Failed": [
+    "失败",
+    "Gagal"
+  ],
+  "Failed to add: {0}": [
+    "添加失败：{0}",
+    "Gagal menambah: {0}"
+  ],
+  "Failed to build schedule: {0}": [
+    "生成日程失败：{0}",
+    "Gagal membina jadual: {0}"
+  ],
+  "Failed to compute matches: {0}": [
+    "匹配失败：{0}",
+    "Gagal mengira padanan: {0}"
+  ],
+  "Failed to load bookings: {0}": [
+    "加载预约失败：{0}",
+    "Gagal memuatkan tempahan: {0}"
+  ],
+  "Failed to load certifications: {0}": [
+    "加载证书失败：{0}",
+    "Gagal memuatkan sijil: {0}"
+  ],
+  "Failed to load earnings: {0}": [
+    "加载收入失败：{0}",
+    "Gagal memuatkan pendapatan: {0}"
+  ],
+  "Failed to load messages": [
+    "加载消息失败",
+    "Gagal memuatkan mesej"
+  ],
+  "Failed to load performance: {0}": [
+    "加载绩效失败：{0}",
+    "Gagal memuatkan prestasi: {0}"
+  ],
+  "Failed to load profile: {0}": [
+    "加载个人资料失败：{0}",
+    "Gagal memuatkan profil: {0}"
+  ],
+  "Failed to load schedule": [
+    "加载日程失败",
+    "Gagal memuatkan jadual"
+  ],
+  "Failed to load services: {0}": [
+    "加载服务失败：{0}",
+    "Gagal memuatkan perkhidmatan: {0}"
+  ],
+  "Failed to load working hours: {0}": [
+    "加载工作时间失败：{0}",
+    "Gagal memuatkan waktu bekerja: {0}"
+  ],
+  "Failed to load: {0}": [
+    "加载失败：{0}",
+    "Gagal memuatkan: {0}"
+  ],
+  "Failed to pick file: {0}": [
+    "选择文件失败：{0}",
+    "Gagal memilih fail: {0}"
+  ],
+  "Failed to pick image: {0}": [
+    "选择图片失败：{0}",
+    "Gagal memilih imej: {0}"
+  ],
+  "Failed to resend: {0}": [
+    "重新发送失败：{0}",
+    "Gagal menghantar semula: {0}"
+  ],
+  "Failed to send message": [
+    "发送消息失败",
+    "Gagal menghantar mesej"
+  ],
+  "Failed to sync earnings record: {0}": [
+    "同步收入记录失败：{0}",
+    "Gagal menyegerakkan rekod pendapatan: {0}"
+  ],
+  "Failed to update profile: {0}": [
+    "更新个人资料失败：{0}",
+    "Gagal mengemas kini profil: {0}"
+  ],
+  "Failed to update: {0}": [
+    "更新失败：{0}",
+    "Gagal mengemas kini: {0}"
+  ],
+  "Faucet Installation": [
+    "水龙头安装",
+    "Pemasangan paip air"
+  ],
+  "Feb": [
+    "2月",
+    "Feb"
+  ],
+  "February": [
+    "二月",
+    "Februari"
+  ],
+  "Female": [
+    "女",
+    "Perempuan"
+  ],
+  "File URL: {0}": [
+    "文件链接：{0}",
+    "URL fail: {0}"
+  ],
+  "Filter services": [
+    "筛选服务",
+    "Tapis perkhidmatan"
+  ],
+  "Find a service": [
+    "寻找服务",
+    "Cari perkhidmatan"
+  ],
+  "Find a service. Compare providers.\nLet’s plan your next booking.": [
+    "寻找服务，比较服务商。\n一起安排您的下一次预约。",
+    "Cari perkhidmatan. Bandingkan penyedia.\nMari rancang tempahan anda."
+  ],
+  "Find providers": [
+    "寻找服务商",
+    "Cari penyedia"
+  ],
+  "Find, book and pay trusted local services": [
+    "寻找、预约并支付可靠的本地服务",
+    "Cari, tempah dan bayar perkhidmatan tempatan yang dipercayai"
+  ],
+  "Finish or cancel active bookings and resolve pending payments or disputes first. Anonymized transaction and rating records are retained.": [
+    "请先完成或取消进行中的预约，并处理待付款或争议。匿名交易及评分记录将被保留。",
+    "Selesaikan atau batalkan tempahan aktif serta urus bayaran atau pertikaian tertunggak dahulu. Rekod transaksi dan penilaian tanpa identiti dikekalkan."
+  ],
+  "Fixed": [
+    "固定",
+    "Tetap"
+  ],
+  "Forgot password?": [
+    "忘记密码？",
+    "Lupa kata laluan?"
+  ],
+  "Fri": [
+    "周五",
+    "Jum"
+  ],
+  "Friday": [
+    "星期五",
+    "Jumaat"
+  ],
+  "From RM {0}{1}": [
+    "RM {0}{1}起",
+    "Dari RM {0}{1}"
+  ],
+  "Full Name": [
+    "姓名",
+    "Nama penuh"
+  ],
+  "Full name": [
+    "姓名",
+    "Nama penuh"
+  ],
+  "Full name is required": [
+    "请填写姓名",
+    "Nama penuh diperlukan"
+  ],
+  "Gender": [
+    "性别",
+    "Jantina"
+  ],
+  "General On-site Inspection": [
+    "一般上门检查",
+    "Pemeriksaan am di lokasi"
+  ],
+  "General Service": [
+    "一般服务",
+    "Perkhidmatan am"
+  ],
+  "Go Back": [
+    "返回",
+    "Kembali"
+  ],
+  "Good day,": [
+    "您好，",
+    "Salam sejahtera,"
+  ],
+  "Got it": [
+    "知道了",
+    "Faham"
+  ],
+  "GrabPay": [
+    "GrabPay",
+    "GrabPay"
+  ],
+  "HOME SERVE": [
+    "HOME SERVE",
+    "HOME SERVE"
+  ],
+  "Help Centre": [
+    "帮助中心",
+    "Pusat bantuan"
+  ],
+  "Help me choose a service": [
+    "帮我选择服务",
+    "Bantu saya memilih perkhidmatan"
+  ],
+  "Help with a photo": [
+    "通过照片获取帮助",
+    "Dapatkan bantuan melalui foto"
+  ],
+  "Help with this booking": [
+    "此预约的帮助",
+    "Bantuan untuk tempahan ini"
+  ],
+  "Hidden by moderation": [
+    "已由管理员隐藏",
+    "Disembunyikan oleh penyederhana"
+  ],
+  "Hide service areas": [
+    "隐藏服务范围",
+    "Sembunyikan kawasan perkhidmatan"
+  ],
+  "Hold to speak": [
+    "按住说话",
+    "Tekan dan tahan untuk bercakap"
+  ],
+  "Hold to speak; tap to start or stop": [
+    "按住说话；轻触开始或停止",
+    "Tekan dan tahan untuk bercakap; ketik untuk mula atau berhenti"
+  ],
+  "Home": [
+    "家",
+    "Rumah"
+  ],
+  "Home Serve": [
+    "Home Serve",
+    "Home Serve"
+  ],
+  "Home Serve\nHousehold services, bookings and provider communication.\n\nFYP mobile application.": [
+    "Home Serve\n家庭服务、预约及服务商沟通。\n\n毕业设计手机应用。",
+    "Home Serve\nPerkhidmatan rumah, tempahan dan komunikasi dengan penyedia.\n\nAplikasi mudah alih projek tahun akhir."
+  ],
+  "Home Serve  |  Page {0} of {1}": [
+    "Home Serve · 第{0}页，共{1}页",
+    "Home Serve · Halaman {0} daripada {1}"
+  ],
+  "Home Serve AI": [
+    "Home Serve AI",
+    "Home Serve AI"
+  ],
+  "Home Serve payment receipt {0}": [
+    "Home Serve付款收据{0}",
+    "Resit bayaran Home Serve {0}"
+  ],
+  "Hourly": [
+    "按小时",
+    "Mengikut jam"
+  ],
+  "Hourly services show their hourly rate.": [
+    "按小时计费的服务显示每小时价格。",
+    "Perkhidmatan mengikut jam memaparkan kadar sejam."
+  ],
+  "How customers rated your service": [
+    "客户对您的服务评分",
+    "Penilaian pelanggan terhadap perkhidmatan anda"
+  ],
+  "How far are you willing to travel from your service centre?": [
+    "您愿意从服务中心出发前往多远的地点？",
+    "Sejauh mana anda sanggup bergerak dari pusat perkhidmatan anda?"
+  ],
+  "How was your service with": [
+    "您对以下服务商的服务体验如何",
+    "Bagaimanakah pengalaman perkhidmatan anda dengan"
+  ],
+  "In Progress": [
+    "服务中",
+    "Sedang berjalan"
+  ],
+  "In-Progress": [
+    "服务中",
+    "Sedang berjalan"
+  ],
+  "Incorrect email or password.": [
+    "邮箱或密码不正确。",
+    "E-mel atau kata laluan tidak betul."
+  ],
+  "Instructions": [
+    "备注",
+    "Arahan"
+  ],
+  "Instructions (optional)": [
+    "备注（选填）",
+    "Arahan (pilihan)"
+  ],
+  "Invalid login credentials": [
+    "登录凭据无效",
+    "Maklumat log masuk tidak sah"
+  ],
+  "Ipoh": [
+    "怡保",
+    "Ipoh"
+  ],
+  "Issuer": [
+    "颁发机构",
+    "Pengeluar"
+  ],
+  "Its conversation history and attached photos will be removed. Bookings already submitted are kept.": [
+    "此聊天记录和附加照片将被删除。已提交的预约会保留。",
+    "Sejarah perbualan dan foto lampirannya akan dipadamkan. Tempahan yang telah dihantar dikekalkan."
+  ],
+  "Jan": [
+    "1月",
+    "Jan"
+  ],
+  "January": [
+    "一月",
+    "Januari"
+  ],
+  "Jobs available: {0} · Avg. earnings: RM{1}": [
+    "可接工作：{0} · 平均收入：RM{1}",
+    "Kerja tersedia: {0} · Purata pendapatan: RM{1}"
+  ],
+  "John Doe": [
+    "王小明",
+    "Ahmad Ali"
+  ],
+  "Johor Bahru": [
+    "新山",
+    "Johor Bahru"
+  ],
+  "Jul": [
+    "7月",
+    "Jul"
+  ],
+  "July": [
+    "七月",
+    "Julai"
+  ],
+  "Jun": [
+    "6月",
+    "Jun"
+  ],
+  "June": [
+    "六月",
+    "Jun"
+  ],
+  "Just now": [
+    "刚刚",
+    "Baru sahaja"
+  ],
+  "Keep chat": [
+    "保留聊天",
+    "Kekalkan sembang"
+  ],
+  "Keep existing file": [
+    "保留现有文件",
+    "Kekalkan fail sedia ada"
+  ],
+  "Keep your message under 4000 characters.": [
+    "请将消息控制在4000个字符以内。",
+    "Pastikan mesej anda kurang daripada 4000 aksara."
+  ],
+  "Keep your payment record": [
+    "保存您的付款记录",
+    "Simpan rekod bayaran anda"
+  ],
+  "Klang Valley": [
+    "巴生谷",
+    "Lembah Klang"
+  ],
+  "Language / 语言 / Bahasa": [
+    "Language / 语言 / Bahasa",
+    "Language / 语言 / Bahasa"
+  ],
+  "Last 5 Years": [
+    "过去5年",
+    "5 tahun terakhir"
+  ],
+  "Last 7 days": [
+    "过去7天",
+    "7 hari terakhir"
+  ],
+  "Listening… release to edit your words": [
+    "正在聆听…松开后可编辑文字",
+    "Sedang mendengar… lepaskan untuk mengedit teks"
+  ],
+  "Live chat and earlier messages": [
+    "实时聊天及历史消息",
+    "Sembang langsung dan mesej terdahulu"
+  ],
+  "Load earlier messages": [
+    "加载更早的消息",
+    "Muatkan mesej terdahulu"
+  ],
+  "Load more": [
+    "加载更多",
+    "Muatkan lagi"
+  ],
+  "Load more conversations": [
+    "加载更多会话",
+    "Muatkan lagi perbualan"
+  ],
+  "Load more services": [
+    "加载更多服务",
+    "Muatkan lagi perkhidmatan"
+  ],
+  "Loading conversations…": [
+    "正在加载会话…",
+    "Memuatkan perbualan…"
+  ],
+  "Loading…": [
+    "正在加载…",
+    "Memuatkan…"
+  ],
+  "Local diagnosis fallback: please choose your technician from the service catalog.": [
+    "暂时无法进行AI诊断，请从服务目录选择技术人员。",
+    "Diagnosis AI tidak tersedia. Sila pilih juruteknik daripada katalog perkhidmatan."
+  ],
+  "Locating…": [
+    "正在定位…",
+    "Mencari lokasi…"
+  ],
+  "Location permission is off. Allow location in your device or browser settings, or search for your address.": [
+    "定位权限已关闭。请在设备或浏览器设置中允许定位，或搜索地址。",
+    "Kebenaran lokasi dimatikan. Benarkan lokasi dalam tetapan peranti atau pelayar, atau cari alamat anda."
+  ],
+  "Location unavailable. Tap the map to select your service centre.": [
+    "无法获取位置。请点击地图选择服务中心。",
+    "Lokasi tidak tersedia. Ketik peta untuk memilih pusat perkhidmatan anda."
+  ],
+  "Log Out": [
+    "退出登录",
+    "Log keluar"
+  ],
+  "Log out?": [
+    "退出登录？",
+    "Log keluar?"
+  ],
+  "Login": [
+    "登录",
+    "Log masuk"
+  ],
+  "Login Error: {0}": [
+    "登录错误：{0}",
+    "Ralat log masuk: {0}"
+  ],
+  "Logout Your Account": [
+    "退出账户",
+    "Log keluar akaun"
+  ],
+  "M": [
+    "一",
+    "I"
+  ],
+  "Malaysia · omit the first 0": [
+    "马来西亚 · 省略首位0",
+    "Malaysia · abaikan angka 0 pertama"
+  ],
+  "Male": [
+    "男",
+    "Lelaki"
+  ],
+  "Manage jobs, availability, and earnings": [
+    "管理工作、可预约时间及收入",
+    "Urus kerja, ketersediaan dan pendapatan"
+  ],
+  "Manage my account": [
+    "管理我的账户",
+    "Urus akaun saya"
+  ],
+  "Mar": [
+    "3月",
+    "Mac"
+  ],
+  "March": [
+    "三月",
+    "Mac"
+  ],
+  "Mark as Completed": [
+    "标记为已完成",
+    "Tandakan selesai"
+  ],
+  "Maximum listed price (RM)": [
+    "最高标价（RM）",
+    "Harga maksimum disenaraikan (RM)"
+  ],
+  "May": [
+    "五月",
+    "Mei"
+  ],
+  "Medium": [
+    "中等",
+    "Sederhana"
+  ],
+  "Melaka": [
+    "马六甲",
+    "Melaka"
+  ],
+  "Message": [
+    "消息",
+    "Mesej"
+  ],
+  "Message or hold to speak": [
+    "输入消息或按住说话",
+    "Taip mesej atau tahan untuk bercakap"
+  ],
+  "Messages": [
+    "消息",
+    "Mesej"
+  ],
+  "Messages, attached photos and relevant app details are sent to Google Gemini. AI can make mistakes. Review action cards before confirming; payments stay with you.": [
+    "消息、附加照片及相关应用信息将发送给Google Gemini。AI可能出错，请在确认前核对操作卡片；付款仍由您亲自完成。",
+    "Mesej, foto lampiran dan maklumat aplikasi berkaitan dihantar kepada Google Gemini. AI boleh tersilap. Semak kad tindakan sebelum mengesahkan; bayaran tetap dibuat oleh anda sendiri."
+  ],
+  "Messaging is unavailable. Refresh this conversation or contact support.": [
+    "暂时无法发送消息。请刷新会话或联系支持。",
+    "Pemesejan tidak tersedia. Muat semula perbualan ini atau hubungi sokongan."
+  ],
+  "Microphone or speech recognition unavailable. Enable permissions in Settings, or type your message.": [
+    "麦克风或语音识别不可用。请在设置中启用权限，或输入消息。",
+    "Mikrofon atau pengecaman pertuturan tidak tersedia. Aktifkan kebenaran dalam Tetapan atau taip mesej anda."
+  ],
+  "Minimum 15 minutes": [
+    "最少15分钟",
+    "Minimum 15 minit"
+  ],
+  "Minimum rating": [
+    "最低评分",
+    "Penilaian minimum"
+  ],
+  "Missing certification ID": [
+    "缺少证书编号",
+    "ID sijil tiada"
+  ],
+  "Missing: {0} certification": [
+    "缺少：{0}项证书",
+    "Tiada: {0} sijil"
+  ],
+  "Mobile number": [
+    "手机号码",
+    "Nombor telefon bimbit"
+  ],
+  "Mon": [
+    "周一",
+    "Isn"
+  ],
+  "Mon – Sun": [
+    "周一至周日",
+    "Isnin – Ahad"
+  ],
+  "Monday": [
+    "星期一",
+    "Isnin"
+  ],
+  "Monthly": [
+    "每月",
+    "Bulanan"
+  ],
+  "Monthly Earnings": [
+    "每月收入",
+    "Pendapatan bulanan"
+  ],
+  "More completed services": [
+    "更多已完成服务",
+    "Lagi perkhidmatan selesai"
+  ],
+  "Must be 6+ characters": [
+    "至少6个字符",
+    "Mesti 6 aksara atau lebih"
+  ],
+  "My Addresses": [
+    "我的地址",
+    "Alamat saya"
+  ],
+  "My Bookings": [
+    "我的预约",
+    "Tempahan saya"
+  ],
+  "My Business": [
+    "我的商家",
+    "Perniagaan saya"
+  ],
+  "My Certifications": [
+    "我的证书",
+    "Sijil saya"
+  ],
+  "My Profile": [
+    "我的资料",
+    "Profil saya"
+  ],
+  "My Reviews": [
+    "我的评价",
+    "Ulasan saya"
+  ],
+  "My Services": [
+    "我的服务",
+    "Perkhidmatan saya"
+  ],
+  "My account": [
+    "我的账户",
+    "Akaun saya"
+  ],
+  "My bookings": [
+    "我的预约",
+    "Tempahan saya"
+  ],
+  "My location": [
+    "我的位置",
+    "Lokasi saya"
+  ],
+  "My reviews": [
+    "我的评价",
+    "Ulasan saya"
+  ],
+  "N/A": [
+    "暂无",
+    "Tiada"
+  ],
+  "Name": [
+    "姓名",
+    "Nama"
+  ],
+  "Name is required": [
+    "请填写姓名",
+    "Nama diperlukan"
+  ],
+  "Name is too short": [
+    "姓名太短",
+    "Nama terlalu pendek"
+  ],
+  "Nearby providers": [
+    "附近服务商",
+    "Penyedia berdekatan"
+  ],
+  "Network error. Please check your connection.": [
+    "网络错误，请检查连接。",
+    "Ralat rangkaian. Sila semak sambungan anda."
+  ],
+  "New": [
+    "新预约",
+    "Baharu"
+  ],
+  "New Booking": [
+    "新预约",
+    "Tempahan baharu"
+  ],
+  "New booking requests will appear here": [
+    "新的预约请求将显示在这里",
+    "Permintaan tempahan baharu akan dipaparkan di sini"
+  ],
+  "New chat": [
+    "新聊天",
+    "Sembang baharu"
+  ],
+  "New here? ": [
+    "新用户？ ",
+    "Pengguna baharu? "
+  ],
+  "New password": [
+    "新密码",
+    "Kata laluan baharu"
+  ],
+  "Next photo": [
+    "下一张照片",
+    "Foto seterusnya"
+  ],
+  "Next: pay by FPX, card or GrabPay to keep your appointment. Use the payment button below. Availability is checked again before checkout.": [
+    "下一步：通过FPX、银行卡或GrabPay付款以保留预约。请使用下方付款按钮，结账前将再次检查时段。",
+    "Seterusnya: bayar melalui FPX, kad atau GrabPay untuk mengekalkan janji temu anda. Gunakan butang bayaran di bawah. Ketersediaan disemak semula sebelum pembayaran."
+  ],
+  "No": [
+    "否",
+    "Tidak"
+  ],
+  "No address was found for this pin. Please enter the address details.": [
+    "此标记未找到地址，请填写地址详情。",
+    "Tiada alamat ditemui untuk pin ini. Sila masukkan butiran alamat."
+  ],
+  "No appointments available on this date.": [
+    "此日期没有可预约时段。",
+    "Tiada janji temu tersedia pada tarikh ini."
+  ],
+  "No bio yet": [
+    "暂无简介",
+    "Belum ada biodata"
+  ],
+  "No bookable services are currently available.": [
+    "目前没有可预约服务。",
+    "Tiada perkhidmatan boleh ditempah buat masa ini."
+  ],
+  "No bookings": [
+    "暂无预约",
+    "Tiada tempahan"
+  ],
+  "No bookings yet. Find a service from Home to get started.": [
+    "暂无预约，请从首页寻找服务。",
+    "Belum ada tempahan. Cari perkhidmatan dari halaman utama untuk bermula."
+  ],
+  "No certifications yet": [
+    "暂无证书",
+    "Belum ada sijil"
+  ],
+  "No chats match your search.": [
+    "没有符合搜索条件的聊天。",
+    "Tiada sembang sepadan dengan carian anda."
+  ],
+  "No completed services awaiting your review.": [
+    "暂无等待您评价的已完成服务。",
+    "Tiada perkhidmatan selesai yang menunggu ulasan anda."
+  ],
+  "No confirmed bookings today": [
+    "今天没有已确认预约",
+    "Tiada tempahan disahkan hari ini"
+  ],
+  "No conversations yet. Customers can contact you from your provider page.": [
+    "暂无会话。客户可从您的服务商页面联系您。",
+    "Belum ada perbualan. Pelanggan boleh menghubungi anda melalui halaman penyedia anda."
+  ],
+  "No conversations yet. Search a provider by name to start chatting.": [
+    "暂无会话。按名称搜索服务商以开始聊天。",
+    "Belum ada perbualan. Cari penyedia mengikut nama untuk mula bersembang."
+  ],
+  "No coordinates available for this booking": [
+    "此预约没有位置信息",
+    "Tiada koordinat untuk tempahan ini"
+  ],
+  "No description provided.": [
+    "暂无描述。",
+    "Tiada penerangan diberikan."
+  ],
+  "No earnings data yet": [
+    "暂无收入数据",
+    "Belum ada data pendapatan"
+  ],
+  "No earnings this month": [
+    "本月暂无收入",
+    "Tiada pendapatan bulan ini"
+  ],
+  "No earnings this week": [
+    "本周暂无收入",
+    "Tiada pendapatan minggu ini"
+  ],
+  "No earnings today": [
+    "今天暂无收入",
+    "Tiada pendapatan hari ini"
+  ],
+  "No messages yet": [
+    "暂无消息",
+    "Belum ada mesej"
+  ],
+  "No new checkout was opened. You can try again once the service is available.": [
+    "未打开新的付款页面。服务恢复后可再次尝试。",
+    "Tiada pembayaran baharu dibuka. Anda boleh mencuba lagi apabila perkhidmatan tersedia."
+  ],
+  "No notifications": [
+    "暂无通知",
+    "Tiada pemberitahuan"
+  ],
+  "No published service areas near this address.": [
+    "此地址附近暂无已公布的服务范围。",
+    "Tiada kawasan perkhidmatan diterbitkan berhampiran alamat ini."
+  ],
+  "No real money is collected. For a successful card test, use 4242 4242 4242 4242, a future expiry and any three-digit CVC. For FPX or GrabPay, follow the test authorisation page. Return here for verified confirmation.": [
+    "不会收取真实款项。银行卡成功测试请使用4242 4242 4242 4242、未来有效期及任意三位数CVC。FPX或GrabPay请按测试授权页面操作。完成后返回此页查看核实结果。",
+    "Tiada wang sebenar dikutip. Untuk ujian kad berjaya, gunakan 4242 4242 4242 4242, tarikh luput masa hadapan dan sebarang CVC tiga digit. Untuk FPX atau GrabPay, ikuti halaman kebenaran ujian. Kembali ke sini untuk pengesahan."
+  ],
+  "No real money transferred. This demonstration receipt is not a tax invoice.": [
+    "未转移真实款项。此演示收据不是税务发票。",
+    "Tiada wang sebenar dipindahkan. Resit demonstrasi ini bukan invois cukai."
+  ],
+  "No recommendations available": [
+    "暂无推荐",
+    "Tiada cadangan tersedia"
+  ],
+  "No reviews yet": [
+    "暂无评价",
+    "Belum ada ulasan"
+  ],
+  "No reviews yet.": [
+    "暂无评价。",
+    "Belum ada ulasan."
+  ],
+  "No reviews yet. Open a completed, paid booking to share your experience.": [
+    "暂无评价。打开已完成且已付款的预约即可分享体验。",
+    "Belum ada ulasan. Buka tempahan yang selesai dan telah dibayar untuk berkongsi pengalaman anda."
+  ],
+  "No scheduled bookings": [
+    "暂无预约日程",
+    "Tiada tempahan dijadualkan"
+  ],
+  "No service categories are available yet.": [
+    "暂无服务类别。",
+    "Belum ada kategori perkhidmatan tersedia."
+  ],
+  "No services match your search.": [
+    "没有符合搜索条件的服务。",
+    "Tiada perkhidmatan sepadan dengan carian anda."
+  ],
+  "No services yet": [
+    "暂无服务",
+    "Belum ada perkhidmatan"
+  ],
+  "No verified providers match this name.": [
+    "没有匹配此名称的已认证服务商。",
+    "Tiada penyedia disahkan sepadan dengan nama ini."
+  ],
+  "No verified providers with available services yet.": [
+    "暂无提供可预约服务的已认证服务商。",
+    "Belum ada penyedia disahkan dengan perkhidmatan tersedia."
+  ],
+  "No {0} notifications yet.": [
+    "暂无{0}通知。",
+    "Belum ada pemberitahuan {0}."
+  ],
+  "Not Interested": [
+    "不感兴趣",
+    "Tidak berminat"
+  ],
+  "Not logged in": [
+    "未登录",
+    "Belum log masuk"
+  ],
+  "Not now": [
+    "暂不",
+    "Bukan sekarang"
+  ],
+  "Not paid": [
+    "未付款",
+    "Belum dibayar"
+  ],
+  "Notification": [
+    "通知",
+    "Pemberitahuan"
+  ],
+  "Notification Detail": [
+    "通知详情",
+    "Butiran pemberitahuan"
+  ],
+  "Notification deleted": [
+    "通知已删除",
+    "Pemberitahuan dipadamkan"
+  ],
+  "Notification deleted.": [
+    "通知已删除。",
+    "Pemberitahuan dipadamkan."
+  ],
+  "Notification pinned.": [
+    "通知已置顶。",
+    "Pemberitahuan disematkan."
+  ],
+  "Notification unpinned.": [
+    "通知已取消置顶。",
+    "Pemberitahuan dinyahsemat."
+  ],
+  "Notifications": [
+    "通知",
+    "Pemberitahuan"
+  ],
+  "Nov": [
+    "11月",
+    "Nov"
+  ],
+  "November": [
+    "十一月",
+    "November"
+  ],
+  "OFF": [
+    "关闭",
+    "MATI"
+  ],
+  "OK": [
+    "确定",
+    "OK"
+  ],
+  "ON": [
+    "开启",
+    "HIDUP"
+  ],
+  "Oct": [
+    "10月",
+    "Okt"
+  ],
+  "October": [
+    "十月",
+    "Oktober"
+  ],
+  "Office": [
+    "办公室",
+    "Pejabat"
+  ],
+  "On-Time Rate": [
+    "准时率",
+    "Kadar ketepatan masa"
+  ],
+  "Only your completed, paid bookings can be reviewed. Each booking can have one review.": [
+    "只有已完成且已付款的预约可以评价。每个预约只能评价一次。",
+    "Hanya tempahan yang selesai dan telah dibayar boleh diulas. Setiap tempahan boleh menerima satu ulasan."
+  ],
+  "Open": [
+    "待处理",
+    "Terbuka"
+  ],
+  "Open AI assistant": [
+    "打开AI助手",
+    "Buka pembantu AI"
+  ],
+  "Open conversation": [
+    "打开会话",
+    "Buka perbualan"
+  ],
+  "Open secure payment": [
+    "打开安全付款页面",
+    "Buka pembayaran selamat"
+  ],
+  "OpenStreetMap contributors": [
+    "OpenStreetMap贡献者",
+    "Penyumbang OpenStreetMap"
+  ],
+  "Opening payment…": [
+    "正在打开付款页面…",
+    "Membuka pembayaran…"
+  ],
+  "Optimized Route": [
+    "优化路线",
+    "Laluan dioptimumkan"
+  ],
+  "Ordered by customer rating": [
+    "按客户评分排序",
+    "Disusun mengikut penilaian pelanggan"
+  ],
+  "Other": [
+    "其他",
+    "Lain-lain"
+  ],
+  "Overall Rating": [
+    "综合评分",
+    "Penilaian keseluruhan"
+  ],
+  "PAID": [
+    "已付款",
+    "DIBAYAR"
+  ],
+  "PAYMENT RECEIPT": [
+    "付款收据",
+    "RESIT BAYARAN"
+  ],
+  "Paid": [
+    "已付款",
+    "Dibayar"
+  ],
+  "Password": [
+    "密码",
+    "Kata laluan"
+  ],
+  "Password change was cancelled.": [
+    "密码更改已取消。",
+    "Perubahan kata laluan dibatalkan."
+  ],
+  "Password changed": [
+    "密码已更改",
+    "Kata laluan ditukar"
+  ],
+  "Password is required": [
+    "请填写密码",
+    "Kata laluan diperlukan"
+  ],
+  "Password must be 6+ characters": [
+    "密码至少需要6个字符",
+    "Kata laluan mesti 6 aksara atau lebih"
+  ],
+  "Password must be at least 6 characters": [
+    "密码至少需要6个字符",
+    "Kata laluan mesti sekurang-kurangnya 6 aksara"
+  ],
+  "Passwords must match": [
+    "两次密码必须相同",
+    "Kata laluan mesti sepadan"
+  ],
+  "Pay by {0} (Malaysia time)": [
+    "请于{0}前付款（马来西亚时间）",
+    "Bayar sebelum {0} (waktu Malaysia)"
+  ],
+  "Payment": [
+    "付款",
+    "Pembayaran"
+  ],
+  "Payment confirmation": [
+    "付款确认",
+    "Pengesahan bayaran"
+  ],
+  "Payment confirmed": [
+    "付款已确认",
+    "Bayaran disahkan"
+  ],
+  "Payment failed": [
+    "付款失败",
+    "Bayaran gagal"
+  ],
+  "Payment is no longer available": [
+    "付款已不可用",
+    "Bayaran tidak lagi tersedia"
+  ],
+  "Payment is not available for this booking. Refresh to check its latest status, or request booking support below.": [
+    "此预约暂时无法付款。请刷新查看最新状态，或在下方申请预约支持。",
+    "Bayaran tidak tersedia untuk tempahan ini. Muat semula untuk menyemak status terkini atau minta bantuan tempahan di bawah."
+  ],
+  "Payment method": [
+    "付款方式",
+    "Kaedah bayaran"
+  ],
+  "Payment not available yet": [
+    "暂时无法付款",
+    "Bayaran belum tersedia"
+  ],
+  "Payment receipt": [
+    "付款收据",
+    "Resit bayaran"
+  ],
+  "Payment received": [
+    "已收到付款",
+    "Bayaran diterima"
+  ],
+  "Payment received · Booking cancelled": [
+    "已收到付款 · 预约已取消",
+    "Bayaran diterima · Tempahan dibatalkan"
+  ],
+  "Payment recorded": [
+    "付款已记录",
+    "Bayaran direkodkan"
+  ],
+  "Payment recorded.": [
+    "付款已记录。",
+    "Bayaran direkodkan."
+  ],
+  "Payment reference": [
+    "付款参考编号",
+    "Rujukan bayaran"
+  ],
+  "Payment refunded": [
+    "付款已退还",
+    "Bayaran dipulangkan"
+  ],
+  "Payment status: {0}": [
+    "付款状态：{0}",
+    "Status bayaran: {0}"
+  ],
+  "Payment summary": [
+    "付款摘要",
+    "Ringkasan bayaran"
+  ],
+  "Payment unavailable": [
+    "付款不可用",
+    "Bayaran tidak tersedia"
+  ],
+  "Payment window ended": [
+    "付款期限已结束",
+    "Tempoh bayaran tamat"
+  ],
+  "Payments": [
+    "付款",
+    "Bayaran"
+  ],
+  "Penang": [
+    "槟城",
+    "Pulau Pinang"
+  ],
+  "Pending": [
+    "待接受",
+    "Menunggu"
+  ],
+  "Performance": [
+    "绩效",
+    "Prestasi"
+  ],
+  "Permanently delete your account?": [
+    "永久删除您的账户？",
+    "Padam akaun anda secara kekal?"
+  ],
+  "Permanently remove your login and profile": [
+    "永久移除登录及个人资料",
+    "Padam log masuk dan profil anda secara kekal"
+  ],
+  "Personal details and preferred services": [
+    "个人资料及服务偏好",
+    "Maklumat peribadi dan pilihan perkhidmatan"
+  ],
+  "Phone": [
+    "电话",
+    "Telefon"
+  ],
+  "Phone Number": [
+    "电话号码",
+    "Nombor telefon"
+  ],
+  "Phone number is required": [
+    "请填写电话号码",
+    "Nombor telefon diperlukan"
+  ],
+  "Photo attachment. Tap to enlarge.": [
+    "照片附件，点击放大。",
+    "Lampiran foto. Ketik untuk membesarkan."
+  ],
+  "Photo conversation": [
+    "照片会话",
+    "Perbualan foto"
+  ],
+  "Photo not sent. Tap Send photo to retry.": [
+    "照片未发送。点击“发送照片”重试。",
+    "Foto belum dihantar. Ketik Hantar foto untuk mencuba lagi."
+  ],
+  "Photo unavailable": [
+    "照片不可用",
+    "Foto tidak tersedia"
+  ],
+  "Photo {0} of {1}": [
+    "第{0}张，共{1}张",
+    "Foto {0} daripada {1}"
+  ],
+  "Pin": [
+    "置顶",
+    "Semat"
+  ],
+  "Pinch to zoom out, then swipe": [
+    "双指缩小后左右滑动",
+    "Cubit untuk zum keluar, kemudian leret"
+  ],
+  "Pipe Repair": [
+    "水管维修",
+    "Pembaikan paip"
+  ],
+  "Please check your connection and try again.": [
+    "请检查网络连接后重试。",
+    "Sila semak sambungan anda dan cuba lagi."
+  ],
+  "Please contact the customer to discuss these past appointments.": [
+    "请联系客户讨论这些已过预约时间的服务。",
+    "Sila hubungi pelanggan untuk membincangkan janji temu yang telah berlalu ini."
+  ],
+  "Please contact the customer to discuss.": [
+    "请联系客户讨论。",
+    "Sila hubungi pelanggan untuk berbincang."
+  ],
+  "Please correct the highlighted fields.": [
+    "请更正标出的字段。",
+    "Sila betulkan medan yang ditandakan."
+  ],
+  "Please enter a valid email": [
+    "请输入有效邮箱",
+    "Sila masukkan e-mel yang sah"
+  ],
+  "Please enter a valid number": [
+    "请输入有效数字",
+    "Sila masukkan nombor yang sah"
+  ],
+  "Please enter a valid phone number": [
+    "请输入有效电话号码",
+    "Sila masukkan nombor telefon yang sah"
+  ],
+  "Please enter the address, city, state and a five-digit Malaysian postcode.": [
+    "请填写地址、城市、州属及五位数马来西亚邮编。",
+    "Sila masukkan alamat, bandar, negeri dan poskod Malaysia lima digit."
+  ],
+  "Please enter the complete code": [
+    "请输入完整验证码",
+    "Sila masukkan kod lengkap"
+  ],
+  "Please enter the full 6-digit code": [
+    "请输入完整六位数验证码",
+    "Sila masukkan kod 6 digit yang lengkap"
+  ],
+  "Please enter your name and a valid Malaysian mobile number.": [
+    "请填写姓名及有效的马来西亚手机号码。",
+    "Sila masukkan nama dan nombor telefon bimbit Malaysia yang sah."
+  ],
+  "Please provide a reason...": [
+    "请填写原因…",
+    "Sila berikan sebab…"
+  ],
+  "Please request a new verification code.": [
+    "请申请新的验证码。",
+    "Sila minta kod pengesahan baharu."
+  ],
+  "Please select a category": [
+    "请选择类别",
+    "Sila pilih kategori"
+  ],
+  "Please select a star rating.": [
+    "请选择星级评分。",
+    "Sila pilih penilaian bintang."
+  ],
+  "Please sign in again.": [
+    "请重新登录。",
+    "Sila log masuk semula."
+  ],
+  "Please verify your email address before logging in.": [
+    "请在登录前验证邮箱。",
+    "Sila sahkan alamat e-mel sebelum log masuk."
+  ],
+  "Plumbing": [
+    "水管服务",
+    "Perpaipan"
+  ],
+  "Postcode": [
+    "邮编",
+    "Poskod"
+  ],
+  "Powered by Gemini · AI can make mistakes · Privacy": [
+    "由Gemini提供支持 · AI可能出错 · 隐私",
+    "Dikuasakan oleh Gemini · AI boleh tersilap · Privasi"
+  ],
+  "Prefer not to say": [
+    "不愿透露",
+    "Tidak mahu menyatakan"
+  ],
+  "Preferences": [
+    "偏好设置",
+    "Keutamaan"
+  ],
+  "Preparing PDF…": [
+    "正在生成PDF…",
+    "Menyediakan PDF…"
+  ],
+  "Previous photo": [
+    "上一张照片",
+    "Foto sebelumnya"
+  ],
+  "Price Amount (RM)": [
+    "价格（RM）",
+    "Harga (RM)"
+  ],
+  "Price cannot be negative": [
+    "价格不能为负数",
+    "Harga tidak boleh negatif"
+  ],
+  "Price is required": [
+    "请填写价格",
+    "Harga diperlukan"
+  ],
+  "Pricing Type": [
+    "计价方式",
+    "Jenis harga"
+  ],
+  "Privacy": [
+    "隐私",
+    "Privasi"
+  ],
+  "Profile": [
+    "我的",
+    "Profil"
+  ],
+  "Profile & Preferences": [
+    "个人资料与偏好",
+    "Profil & keutamaan"
+  ],
+  "Profile updated successfully": [
+    "个人资料已更新",
+    "Profil berjaya dikemas kini"
+  ],
+  "Provider": [
+    "服务商",
+    "Penyedia"
+  ],
+  "Provider Login": [
+    "服务商登录",
+    "Log masuk penyedia"
+  ],
+  "Provider Portal": [
+    "服务商入口",
+    "Portal penyedia"
+  ],
+  "Provider acceptance": [
+    "服务商接受",
+    "Penerimaan penyedia"
+  ],
+  "Provider accepted": [
+    "服务商已接受",
+    "Penyedia telah menerima"
+  ],
+  "Provider accepted your booking": [
+    "服务商已接受您的预约",
+    "Penyedia menerima tempahan anda"
+  ],
+  "Provider city": [
+    "服务商所在城市",
+    "Bandar penyedia"
+  ],
+  "Provider details": [
+    "服务商详情",
+    "Butiran penyedia"
+  ],
+  "Provider profile not found. Please complete your profile first.": [
+    "找不到服务商资料，请先完善资料。",
+    "Profil penyedia tidak ditemui. Sila lengkapkan profil anda dahulu."
+  ],
+  "Provider-declared areas. Confirm availability before booking.": [
+    "服务范围由服务商提供。预约前请确认是否可提供服务。",
+    "Kawasan diisytiharkan oleh penyedia. Sahkan ketersediaan sebelum menempah."
+  ],
+  "Providers receive the details needed for your bookings and the messages you send them. Your optional birthday and gender are not part of the provider profile view. Deleting a chat clears your visible history; it does not delete the other person’s copy.": [
+    "服务商会收到预约所需信息以及您发送的消息。选填的生日及性别不会显示给服务商。删除聊天仅清除您可见的记录，不会删除对方的副本。",
+    "Penyedia menerima butiran yang diperlukan untuk tempahan anda dan mesej yang anda hantar. Tarikh lahir dan jantina pilihan anda tidak dipaparkan kepada penyedia. Memadamkan sembang hanya mengosongkan sejarah yang anda lihat; salinan pihak lain tidak dipadamkan."
+  ],
+  "Publish your service area": [
+    "公布您的服务范围",
+    "Terbitkan kawasan perkhidmatan anda"
+  ],
+  "Published": [
+    "已公布",
+    "Diterbitkan"
+  ],
+  "REFUNDED": [
+    "已退款",
+    "DIPULANGKAN"
+  ],
+  "RM{0}": [
+    "RM{0}",
+    "RM{0}"
+  ],
+  "RM{0} · {1}": [
+    "RM{0} · {1}",
+    "RM{0} · {1}"
+  ],
+  "RM{0} · {1} min · {2}": [
+    "RM{0} · {1}分钟 · {2}",
+    "RM{0} · {1} minit · {2}"
+  ],
+  "Radius cannot exceed 200 km": [
+    "服务半径不能超过200公里",
+    "Jejari tidak boleh melebihi 200 km"
+  ],
+  "Radius must be at least 1 km": [
+    "服务半径至少为1公里",
+    "Jejari mesti sekurang-kurangnya 1 km"
+  ],
+  "Rate Service": [
+    "评价服务",
+    "Nilai perkhidmatan"
+  ],
+  "Rating Distribution": [
+    "评分分布",
+    "Taburan penilaian"
+  ],
+  "Ready to review": [
+    "可以评价",
+    "Sedia untuk diulas"
+  ],
+  "Reason (optional)": [
+    "原因（选填）",
+    "Sebab (pilihan)"
+  ],
+  "Reason is required": [
+    "请填写原因",
+    "Sebab diperlukan"
+  ],
+  "Reason must be at least 3 characters": [
+    "原因至少需要3个字符",
+    "Sebab mesti sekurang-kurangnya 3 aksara"
+  ],
+  "Reason must not exceed 500 characters": [
+    "原因不能超过500个字符",
+    "Sebab tidak boleh melebihi 500 aksara"
+  ],
+  "Receipt number": [
+    "收据编号",
+    "Nombor resit"
+  ],
+  "Recent customer reviews": [
+    "近期客户评价",
+    "Ulasan pelanggan terkini"
+  ],
+  "Recenter on customer location": [
+    "重新定位到客户位置",
+    "Pusatkan semula pada lokasi pelanggan"
+  ],
+  "Refresh status": [
+    "刷新状态",
+    "Muat semula status"
+  ],
+  "Refund recorded": [
+    "退款已记录",
+    "Bayaran balik direkodkan"
+  ],
+  "Refunded": [
+    "已退款",
+    "Dipulangkan"
+  ],
+  "Region": [
+    "地区",
+    "Wilayah"
+  ],
+  "Register & Verify": [
+    "注册并验证",
+    "Daftar & sahkan"
+  ],
+  "Registration received": [
+    "注册申请已收到",
+    "Pendaftaran diterima"
+  ],
+  "Related Booking": [
+    "相关预约",
+    "Tempahan berkaitan"
+  ],
+  "Reload photo": [
+    "重新加载照片",
+    "Muat semula foto"
+  ],
+  "Remove Photo": [
+    "移除照片",
+    "Buang foto"
+  ],
+  "Remove photo": [
+    "移除照片",
+    "Buang foto"
+  ],
+  "Remove public map pin": [
+    "移除公开地图标记",
+    "Buang pin peta awam"
+  ],
+  "Remove selected photo": [
+    "移除所选照片",
+    "Buang foto dipilih"
+  ],
+  "Remove this notification from your list? Your booking is unchanged.": [
+    "从列表中删除此通知？您的预约不会改变。",
+    "Buang pemberitahuan ini daripada senarai? Tempahan anda tidak berubah."
+  ],
+  "Removed: {0}": [
+    "已移除：{0}",
+    "Dibuang: {0}"
+  ],
+  "Rename": [
+    "重命名",
+    "Namakan semula"
+  ],
+  "Rename chat": [
+    "重命名聊天",
+    "Namakan semula sembang"
+  ],
+  "Reopen secure payment": [
+    "重新打开安全付款页面",
+    "Buka semula pembayaran selamat"
+  ],
+  "Request booking support": [
+    "申请预约支持",
+    "Minta bantuan tempahan"
+  ],
+  "Requested": [
+    "已申请",
+    "Diminta"
+  ],
+  "Resend Code": [
+    "重新发送验证码",
+    "Hantar semula kod"
+  ],
+  "Resend OTP": [
+    "重新发送验证码",
+    "Hantar semula OTP"
+  ],
+  "Resend code in {0}s": [
+    "{0}秒后可重发验证码",
+    "Hantar semula kod dalam {0}s"
+  ],
+  "Reset filters": [
+    "重置筛选",
+    "Tetapkan semula penapis"
+  ],
+  "Reset password": [
+    "重置密码",
+    "Tetapkan semula kata laluan"
+  ],
+  "Retry": [
+    "重试",
+    "Cuba lagi"
+  ],
+  "Retry account details": [
+    "重新加载账户详情",
+    "Cuba semula butiran akaun"
+  ],
+  "Retry addresses": [
+    "重新加载地址",
+    "Cuba semula alamat"
+  ],
+  "Retry availability": [
+    "重新查询可预约时段",
+    "Cuba semula ketersediaan"
+  ],
+  "Retry categories": [
+    "重新加载类别",
+    "Cuba semula kategori"
+  ],
+  "Retry photo": [
+    "重试照片",
+    "Cuba semula foto"
+  ],
+  "Return here after completing the secure payment page. We check for confirmation automatically for one minute. Closing that page alone does not confirm payment.": [
+    "在安全付款页面完成操作后返回此页。我们会自动检查一分钟。仅关闭付款页面并不表示付款已确认。",
+    "Kembali ke sini selepas melengkapkan halaman bayaran selamat. Kami menyemak pengesahan secara automatik selama satu minit. Menutup halaman sahaja tidak mengesahkan bayaran."
+  ],
+  "Return to Booking details to check the provider response and booking status.": [
+    "返回预约详情以查看服务商回复及预约状态。",
+    "Kembali ke Butiran tempahan untuk menyemak respons penyedia dan status tempahan."
+  ],
+  "Review & confirm": [
+    "核对并确认",
+    "Semak & sahkan"
+  ],
+  "Review & send → Provider accepts → You pay": [
+    "核对并发送 → 服务商接受 → 您付款",
+    "Semak & hantar → Penyedia terima → Anda bayar"
+  ],
+  "Review Locked": [
+    "暂不可评价",
+    "Ulasan dikunci"
+  ],
+  "Review Submitted!": [
+    "评价已提交！",
+    "Ulasan dihantar!"
+  ],
+  "Review booking": [
+    "核对预约",
+    "Semak tempahan"
+  ],
+  "Review your service": [
+    "评价本次服务",
+    "Ulas perkhidmatan anda"
+  ],
+  "Reviews are available for completed services. Contact support about this cancelled booking.": [
+    "服务完成后才可评价。关于此已取消预约，请联系支持。",
+    "Ulasan tersedia untuk perkhidmatan selesai. Hubungi sokongan mengenai tempahan yang dibatalkan ini."
+  ],
+  "Reviews unlock after payment and after your provider marks the service Completed.": [
+    "付款且服务商将服务标记为已完成后，即可评价。",
+    "Ulasan dibuka selepas bayaran dan selepas penyedia menandakan perkhidmatan selesai."
+  ],
+  "S": [
+    "六",
+    "S"
+  ],
+  "SANDBOX TEST RECEIPT": [
+    "沙盒测试收据",
+    "RESIT UJIAN SANDBOX"
+  ],
+  "SANDBOX TEST RECEIPT - No real money transferred.": [
+    "沙盒测试收据－未转移真实款项。",
+    "RESIT UJIAN SANDBOX - Tiada wang sebenar dipindahkan."
+  ],
+  "SERVICE": [
+    "服务",
+    "PERKHIDMATAN"
+  ],
+  "Sandbox test payment": [
+    "沙盒测试付款",
+    "Bayaran ujian sandbox"
+  ],
+  "Sat": [
+    "周六",
+    "Sab"
+  ],
+  "Saturday": [
+    "星期六",
+    "Sabtu"
+  ],
+  "Save": [
+    "保存",
+    "Simpan"
+  ],
+  "Save & Select Address": [
+    "保存并选择地址",
+    "Simpan & pilih alamat"
+  ],
+  "Save Changes": [
+    "保存更改",
+    "Simpan perubahan"
+  ],
+  "Save failed: {0}": [
+    "保存失败：{0}",
+    "Gagal menyimpan: {0}"
+  ],
+  "Save payment receipt": [
+    "保存付款收据",
+    "Simpan resit bayaran"
+  ],
+  "Saved Addresses": [
+    "已保存地址",
+    "Alamat tersimpan"
+  ],
+  "Saving...": [
+    "正在保存…",
+    "Menyimpan…"
+  ],
+  "Saving…": [
+    "正在保存…",
+    "Menyimpan…"
+  ],
+  "Schedule": [
+    "日程",
+    "Jadual"
+  ],
+  "Search address": [
+    "搜索地址",
+    "Cari alamat"
+  ],
+  "Search chats": [
+    "搜索聊天",
+    "Cari sembang"
+  ],
+  "Search customer name": [
+    "搜索客户姓名",
+    "Cari nama pelanggan"
+  ],
+  "Search provider name": [
+    "搜索服务商名称",
+    "Cari nama penyedia"
+  ],
+  "Search services": [
+    "搜索服务",
+    "Cari perkhidmatan"
+  ],
+  "Search services or providers": [
+    "搜索服务或服务商",
+    "Cari perkhidmatan atau penyedia"
+  ],
+  "Search street or building": [
+    "搜索街道或建筑",
+    "Cari jalan atau bangunan"
+  ],
+  "Search, pin or delete a conversation": [
+    "搜索、置顶或删除会话",
+    "Cari, semat atau padam perbualan"
+  ],
+  "Secure payment": [
+    "安全付款",
+    "Pembayaran selamat"
+  ],
+  "Security": [
+    "安全",
+    "Keselamatan"
+  ],
+  "Select a category": [
+    "选择类别",
+    "Pilih kategori"
+  ],
+  "Select a pin to continue": [
+    "选择地图标记以继续",
+    "Pilih pin untuk meneruskan"
+  ],
+  "Select a region": [
+    "选择地区",
+    "Pilih wilayah"
+  ],
+  "Select a service area in Malaysia.": [
+    "请选择马来西亚境内的服务范围。",
+    "Pilih kawasan perkhidmatan di Malaysia."
+  ],
+  "Select pricing type": [
+    "选择计价方式",
+    "Pilih jenis harga"
+  ],
+  "Select your portal to continue": [
+    "选择入口以继续",
+    "Pilih portal anda untuk meneruskan"
+  ],
+  "Send a new code": [
+    "发送新验证码",
+    "Hantar kod baharu"
+  ],
+  "Send booking request": [
+    "发送预约请求",
+    "Hantar permintaan tempahan"
+  ],
+  "Send message": [
+    "发送消息",
+    "Hantar mesej"
+  ],
+  "Send photo": [
+    "发送照片",
+    "Hantar foto"
+  ],
+  "Send your request first. Once the provider accepts, open Booking details and pay by FPX, card or GrabPay within 30 minutes.": [
+    "请先发送请求。服务商接受后，打开预约详情，并在30分钟内通过FPX、银行卡或GrabPay付款。",
+    "Hantar permintaan dahulu. Selepas penyedia menerima, buka Butiran tempahan dan bayar melalui FPX, kad atau GrabPay dalam masa 30 minit."
+  ],
+  "Sending photo…": [
+    "正在发送照片…",
+    "Menghantar foto…"
+  ],
+  "Sep": [
+    "9月",
+    "Sep"
+  ],
+  "September": [
+    "九月",
+    "September"
+  ],
+  "Service": [
+    "服务",
+    "Perkhidmatan"
+  ],
+  "Service Address": [
+    "服务地址",
+    "Alamat perkhidmatan"
+  ],
+  "Service Areas": [
+    "服务范围",
+    "Kawasan perkhidmatan"
+  ],
+  "Service Popularity": [
+    "服务热门程度",
+    "Populariti perkhidmatan"
+  ],
+  "Service Radius (km)": [
+    "服务半径（公里）",
+    "Jejari perkhidmatan (km)"
+  ],
+  "Service Title": [
+    "服务名称",
+    "Tajuk perkhidmatan"
+  ],
+  "Service added": [
+    "服务已添加",
+    "Perkhidmatan ditambah"
+  ],
+  "Service address": [
+    "服务地址",
+    "Alamat perkhidmatan"
+  ],
+  "Service area centre": [
+    "服务范围中心",
+    "Pusat kawasan perkhidmatan"
+  ],
+  "Service areas saved": [
+    "服务范围已保存",
+    "Kawasan perkhidmatan disimpan"
+  ],
+  "Service categories": [
+    "服务类别",
+    "Kategori perkhidmatan"
+  ],
+  "Service centre selected": [
+    "已选择服务中心",
+    "Pusat perkhidmatan dipilih"
+  ],
+  "Service completed": [
+    "服务已完成",
+    "Perkhidmatan selesai"
+  ],
+  "Service deleted": [
+    "服务已删除",
+    "Perkhidmatan dipadamkan"
+  ],
+  "Service in progress": [
+    "服务进行中",
+    "Perkhidmatan sedang berjalan"
+  ],
+  "Service preferences": [
+    "服务偏好",
+    "Pilihan perkhidmatan"
+  ],
+  "Service provider": [
+    "服务商",
+    "Penyedia perkhidmatan"
+  ],
+  "Service radius is required": [
+    "请填写服务半径",
+    "Jejari perkhidmatan diperlukan"
+  ],
+  "Service radius: {0} km": [
+    "服务半径：{0}公里",
+    "Jejari perkhidmatan: {0} km"
+  ],
+  "Service request received. Route to general maintenance technician.": [
+    "已收到服务请求，请联系一般维修技术人员。",
+    "Permintaan perkhidmatan diterima. Hubungi juruteknik penyelenggaraan am."
+  ],
+  "Service title": [
+    "服务名称",
+    "Tajuk perkhidmatan"
+  ],
+  "Service total": [
+    "服务总额",
+    "Jumlah perkhidmatan"
+  ],
+  "Service updated": [
+    "服务已更新",
+    "Perkhidmatan dikemas kini"
+  ],
+  "Services": [
+    "服务",
+    "Perkhidmatan"
+  ],
+  "Set as default": [
+    "设为默认",
+    "Tetapkan sebagai lalai"
+  ],
+  "Set as default service address": [
+    "设为默认服务地址",
+    "Tetapkan sebagai alamat perkhidmatan lalai"
+  ],
+  "Set now": [
+    "立即设置",
+    "Tetapkan sekarang"
+  ],
+  "Set your region, city, and travel radius": [
+    "设置地区、城市及出行半径",
+    "Tetapkan wilayah, bandar dan jejari perjalanan anda"
+  ],
+  "Settings & Help": [
+    "设置与帮助",
+    "Tetapan & bantuan"
+  ],
+  "Share your experience": [
+    "分享您的体验",
+    "Kongsi pengalaman anda"
+  ],
+  "Show all services": [
+    "显示全部服务",
+    "Papar semua perkhidmatan"
+  ],
+  "Show or hide password": [
+    "显示或隐藏密码",
+    "Papar atau sembunyikan kata laluan"
+  ],
+  "Show service areas": [
+    "显示服务范围",
+    "Papar kawasan perkhidmatan"
+  ],
+  "Showing the first 30 providers. Refine the name to find a specific provider.": [
+    "显示前30位服务商。请细化名称以查找特定服务商。",
+    "Memaparkan 30 penyedia pertama. Perincikan nama untuk mencari penyedia tertentu."
+  ],
+  "Showing the latest {0} of {1} reviews.": [
+    "显示最新{0}条，共{1}条评价。",
+    "Memaparkan {0} ulasan terkini daripada {1}."
+  ],
+  "Sign in to attach a photo.": [
+    "登录后才可附加照片。",
+    "Log masuk untuk melampirkan foto."
+  ],
+  "Sign in to book household repair & cleaning": [
+    "登录以预约家居维修及清洁",
+    "Log masuk untuk menempah pembaikan dan pembersihan rumah"
+  ],
+  "Sign in to offer your services": [
+    "登录以提供服务",
+    "Log masuk untuk menawarkan perkhidmatan anda"
+  ],
+  "Sign in to upload a photo.": [
+    "登录后才可上传照片。",
+    "Log masuk untuk memuat naik foto."
+  ],
+  "Slot accepted. Waiting for the customer to complete FPX payment.": [
+    "时段已接受，等待客户完成FPX付款。",
+    "Slot diterima. Menunggu pelanggan menyelesaikan bayaran FPX."
+  ],
+  "Special Instructions": [
+    "特别备注",
+    "Arahan khas"
+  ],
+  "Start Job": [
+    "开始工作",
+    "Mula kerja"
+  ],
+  "Start Service": [
+    "开始服务",
+    "Mula perkhidmatan"
+  ],
+  "Start a conversation": [
+    "开始会话",
+    "Mulakan perbualan"
+  ],
+  "Start the conversation below": [
+    "在下方开始聊天",
+    "Mulakan perbualan di bawah"
+  ],
+  "Start the conversation.": [
+    "开始聊天。",
+    "Mulakan perbualan."
+  ],
+  "State": [
+    "州属",
+    "Negeri"
+  ],
+  "Status": [
+    "状态",
+    "Status"
+  ],
+  "Subject": [
+    "主题",
+    "Subjek"
+  ],
+  "Submit Review": [
+    "提交评价",
+    "Hantar ulasan"
+  ],
+  "Submit for Verification": [
+    "提交审核",
+    "Hantar untuk pengesahan"
+  ],
+  "Submitted for verification": [
+    "已提交审核",
+    "Dihantar untuk pengesahan"
+  ],
+  "Success": [
+    "成功",
+    "Berjaya"
+  ],
+  "Sun": [
+    "周日",
+    "Ahd"
+  ],
+  "Sunday": [
+    "星期日",
+    "Ahad"
+  ],
+  "Support": [
+    "支持",
+    "Sokongan"
+  ],
+  "Swipe to browse · Pinch to zoom": [
+    "左右滑动浏览 · 双指缩放",
+    "Leret untuk menyemak imbas · Cubit untuk zum"
+  ],
+  "System": [
+    "系统",
+    "Sistem"
+  ],
+  "T": [
+    "二",
+    "S"
+  ],
+  "Take a Photo": [
+    "拍照",
+    "Ambil foto"
+  ],
+  "Take a photo": [
+    "拍照",
+    "Ambil foto"
+  ],
+  "Tap \"Add New Service\" to create your first listing": [
+    "点击“添加新服务”以创建您的首个服务",
+    "Ketik \"Tambah perkhidmatan baharu\" untuk membuat penyenaraian pertama anda"
+  ],
+  "Tap to select date": [
+    "点击选择日期",
+    "Ketik untuk memilih tarikh"
+  ],
+  "Tap your business or service-area centre. This pin and your service radius will be visible to customers.": [
+    "点击您的商家或服务范围中心。客户将能看到此标记及服务半径。",
+    "Ketik pusat perniagaan atau kawasan perkhidmatan anda. Pin dan jejari perkhidmatan ini akan dipaparkan kepada pelanggan."
+  ],
+  "Tell customers about your services...": [
+    "向客户介绍您的服务…",
+    "Beritahu pelanggan tentang perkhidmatan anda…"
+  ],
+  "Thank you for sharing your experience.": [
+    "感谢您分享体验。",
+    "Terima kasih kerana berkongsi pengalaman anda."
+  ],
+  "The connection is taking too long. Your draft is kept; tap Retry.": [
+    "连接时间过长。已保留草稿，请点击重试。",
+    "Sambungan mengambil masa terlalu lama. Draf anda disimpan; ketik Cuba lagi."
+  ],
+  "The current price and appointment will be checked when you book.": [
+    "提交预约时将核对最新价格和时段。",
+    "Harga semasa dan janji temu akan disemak apabila anda menempah."
+  ],
+  "The payment gateway returned an invalid checkout URL.": [
+    "付款网关返回了无效的结账链接。",
+    "Gerbang bayaran mengembalikan URL pembayaran yang tidak sah."
+  ],
+  "The payment was refunded. Your updated receipt is ready.": [
+    "付款已退还，更新后的收据已准备好。",
+    "Bayaran telah dipulangkan. Resit terkini anda sedia."
+  ],
+  "The previous photo could not be recovered. Choose it again.": [
+    "无法恢复之前的照片，请重新选择。",
+    "Foto sebelumnya tidak dapat dipulihkan. Pilih semula."
+  ],
+  "The secure payment page could not open. Please try again.": [
+    "无法打开安全付款页面，请重试。",
+    "Halaman bayaran selamat tidak dapat dibuka. Sila cuba lagi."
+  ],
+  "The server returned an invalid response. Please retry.": [
+    "服务器返回了无效响应，请重试。",
+    "Pelayan mengembalikan respons tidak sah. Sila cuba lagi."
+  ],
+  "The service you selected is no longer available.": [
+    "您选择的服务已不可用。",
+    "Perkhidmatan yang anda pilih tidak lagi tersedia."
+  ],
+  "These details are already in use. Please check and try again.": [
+    "这些信息已被使用，请检查后重试。",
+    "Butiran ini sudah digunakan. Sila semak dan cuba lagi."
+  ],
+  "Thinking…": [
+    "正在思考…",
+    "Sedang berfikir…"
+  ],
+  "This Month": [
+    "本月",
+    "Bulan ini"
+  ],
+  "This Week": [
+    "本周",
+    "Minggu ini"
+  ],
+  "This Year (Monthly)": [
+    "今年（按月）",
+    "Tahun ini (bulanan)"
+  ],
+  "This account cannot use the customer portal.": [
+    "此账户无法使用客户入口。",
+    "Akaun ini tidak boleh menggunakan portal pelanggan."
+  ],
+  "This account cannot use the {0} portal. ": [
+    "此账户无法使用{0}入口。 ",
+    "Akaun ini tidak boleh menggunakan portal {0}. "
+  ],
+  "This action could not be completed. Refresh or ask for a new action card.": [
+    "无法完成此操作。请刷新或申请新的操作卡片。",
+    "Tindakan ini tidak dapat diselesaikan. Muat semula atau minta kad tindakan baharu."
+  ],
+  "This appointment has passed. Please contact the customer to discuss.": [
+    "此预约时间已过，请联系客户讨论。",
+    "Waktu janji temu ini telah berlalu. Sila hubungi pelanggan untuk berbincang."
+  ],
+  "This booking could not be opened. Please check My bookings.": [
+    "无法打开此预约，请查看“我的预约”。",
+    "Tempahan ini tidak dapat dibuka. Sila semak Tempahan saya."
+  ],
+  "This booking is cancelled and cannot be paid.": [
+    "此预约已取消，无法付款。",
+    "Tempahan ini dibatalkan dan tidak boleh dibayar."
+  ],
+  "This clears the chat from your inbox and your visible history. The other person keeps their copy. A new message will reopen the conversation.": [
+    "此操作会清除您的收件箱聊天和可见记录。对方保留其副本。收到新消息时会话将重新显示。",
+    "Ini mengosongkan sembang daripada peti masuk dan sejarah yang anda lihat. Pihak lain mengekalkan salinan mereka. Mesej baharu akan membuka semula perbualan."
+  ],
+  "This email is already registered.": [
+    "此邮箱已注册。",
+    "E-mel ini sudah didaftarkan."
+  ],
+  "This email is already registered. Please sign in or reset your password.": [
+    "此邮箱已注册，请登录或重置密码。",
+    "E-mel ini sudah didaftarkan. Sila log masuk atau tetapkan semula kata laluan."
+  ],
+  "This is a sandbox demonstration receipt, not a tax invoice or evidence of a real bank transfer.": [
+    "这是沙盒演示收据，不是税务发票或真实银行转账凭证。",
+    "Ini resit demonstrasi sandbox, bukan invois cukai atau bukti pindahan bank sebenar."
+  ],
+  "This payment is recorded as refunded. The original payment details are retained for your records.": [
+    "此付款已记录为退款。原付款详情会保留供您查阅。",
+    "Bayaran ini direkodkan sebagai dipulangkan. Butiran bayaran asal dikekalkan untuk rekod anda."
+  ],
+  "This permanently removes your login and personal profile. You cannot sign in again unless you register a new account, even if you reuse the same email.": [
+    "此操作将永久删除您的登录及个人资料。即使使用相同邮箱，也必须重新注册账户才能登录。",
+    "Ini memadamkan log masuk dan profil peribadi anda secara kekal. Anda perlu mendaftar akaun baharu untuk log masuk semula, walaupun menggunakan e-mel yang sama."
+  ],
+  "This provider is no longer available. Return to search to find another service.": [
+    "此服务商已不可用，请返回搜索其他服务。",
+    "Penyedia ini tidak lagi tersedia. Kembali ke carian untuk mencari perkhidmatan lain."
+  ],
+  "This receipt reflects the payment confirmed by the server. Keep the payment reference when contacting support.": [
+    "此收据反映服务器确认的付款。联系支持时请保留付款参考编号。",
+    "Resit ini mencerminkan bayaran yang disahkan pelayan. Simpan rujukan bayaran apabila menghubungi sokongan."
+  ],
+  "This unpaid reservation expired. Return to Booking details to choose a new appointment. If you already completed the secure payment page, check the payment status before starting another booking.": [
+    "此未付款预约已过期。请返回预约详情选择新时间。如果已在安全付款页面完成付款，请先查询付款状态再创建其他预约。",
+    "Tempahan belum dibayar ini telah tamat tempoh. Kembali ke Butiran tempahan untuk memilih janji temu baharu. Jika anda sudah melengkapkan halaman bayaran selamat, semak status bayaran sebelum membuat tempahan lain."
+  ],
+  "This unpaid reservation has expired. The request or payment deadline has passed, or the appointment time is already over. Choose a new available appointment to book again.": [
+    "此未付款预约已过期。请求期限、付款期限或预约时间已过。请选择新的可用时段重新预约。",
+    "Tempahan belum dibayar ini telah tamat tempoh. Had masa permintaan, bayaran atau janji temu telah berlalu. Pilih janji temu tersedia yang baharu untuk menempah semula."
+  ],
+  "Thu": [
+    "周四",
+    "Kha"
+  ],
+  "Thursday": [
+    "星期四",
+    "Khamis"
+  ],
+  "Time to pay: {0}:{1}": [
+    "剩余付款时间：{0}:{1}",
+    "Masa untuk membayar: {0}:{1}"
+  ],
+  "Today": [
+    "今天",
+    "Hari ini"
+  ],
+  "Today's Earnings": [
+    "今日收入",
+    "Pendapatan hari ini"
+  ],
+  "Tomorrow": [
+    "明天",
+    "Esok"
+  ],
+  "Total": [
+    "总计",
+    "Jumlah"
+  ],
+  "Total Distance": [
+    "总距离",
+    "Jumlah jarak"
+  ],
+  "Total Earned Today": [
+    "今日总收入",
+    "Jumlah pendapatan hari ini"
+  ],
+  "Total Jobs": [
+    "工作总数",
+    "Jumlah kerja"
+  ],
+  "Total This Month": [
+    "本月总计",
+    "Jumlah bulan ini"
+  ],
+  "Total This Week": [
+    "本周总计",
+    "Jumlah minggu ini"
+  ],
+  "Transactions": [
+    "交易",
+    "Transaksi"
+  ],
+  "Travel Time": [
+    "行程时间",
+    "Masa perjalanan"
+  ],
+  "Try a different keyword, city or price range.": [
+    "请尝试其他关键词、城市或价格范围。",
+    "Cuba kata kunci, bandar atau julat harga lain."
+  ],
+  "Try again": [
+    "重试",
+    "Cuba lagi"
+  ],
+  "Tue": [
+    "周二",
+    "Sel"
+  ],
+  "Tuesday": [
+    "星期二",
+    "Selasa"
+  ],
+  "Turn on location services, then tap My location. You can also search for your address.": [
+    "请开启定位服务后点击“我的位置”，也可搜索地址。",
+    "Hidupkan perkhidmatan lokasi, kemudian ketik Lokasi saya. Anda juga boleh mencari alamat."
+  ],
+  "Type a message": [
+    "输入消息",
+    "Taip mesej"
+  ],
+  "Unable to change your address. Please retry.": [
+    "无法更改地址，请重试。",
+    "Tidak dapat menukar alamat anda. Sila cuba lagi."
+  ],
+  "Unable to complete": [
+    "无法完成",
+    "Tidak dapat menyelesaikan"
+  ],
+  "Unable to complete the request. Check your connection and try again.": [
+    "无法完成请求，请检查连接后重试。",
+    "Tidak dapat menyelesaikan permintaan. Semak sambungan dan cuba lagi."
+  ],
+  "Unable to complete the request. Please retry.": [
+    "无法完成请求，请重试。",
+    "Tidak dapat menyelesaikan permintaan. Sila cuba lagi."
+  ],
+  "Unable to load": [
+    "无法加载",
+    "Tidak dapat memuatkan"
+  ],
+  "Unable to load addresses": [
+    "无法加载地址",
+    "Tidak dapat memuatkan alamat"
+  ],
+  "Unable to load services. Check your connection and retry.": [
+    "无法加载服务，请检查连接后重试。",
+    "Tidak dapat memuatkan perkhidmatan. Semak sambungan dan cuba lagi."
+  ],
+  "Unable to load this provider. Please retry.": [
+    "无法加载此服务商，请重试。",
+    "Tidak dapat memuatkan penyedia ini. Sila cuba lagi."
+  ],
+  "Unable to load times": [
+    "无法加载时段",
+    "Tidak dapat memuatkan waktu"
+  ],
+  "Unable to load your services. Check your connection and retry.": [
+    "无法加载您的服务，请检查连接后重试。",
+    "Tidak dapat memuatkan perkhidmatan anda. Semak sambungan dan cuba lagi."
+  ],
+  "Unable to start. Check your connection and retry.": [
+    "无法启动，请检查连接后重试。",
+    "Tidak dapat memulakan. Semak sambungan dan cuba lagi."
+  ],
+  "Unavailable": [
+    "暂无",
+    "Tidak tersedia"
+  ],
+  "Under moderation review": [
+    "审核中",
+    "Dalam semakan"
+  ],
+  "Unknown error": [
+    "未知错误",
+    "Ralat tidak diketahui"
+  ],
+  "Unpin": [
+    "取消置顶",
+    "Nyahsemat"
+  ],
+  "Unscheduled": [
+    "未安排时间",
+    "Belum dijadualkan"
+  ],
+  "Unsupported photo": [
+    "不支持的照片格式",
+    "Foto tidak disokong"
+  ],
+  "Up to RM {0}": [
+    "最高RM {0}",
+    "Sehingga RM {0}"
+  ],
+  "Upcoming Schedule": [
+    "即将到来的日程",
+    "Jadual akan datang"
+  ],
+  "Update Personal Info": [
+    "更新个人信息",
+    "Kemas kini maklumat peribadi"
+  ],
+  "Update Profile": [
+    "更新个人资料",
+    "Kemas kini profil"
+  ],
+  "Update failed: {0}": [
+    "更新失败：{0}",
+    "Kemas kini gagal: {0}"
+  ],
+  "Updates about bookings, payments and messages will appear here": [
+    "预约、付款及消息更新将显示在这里",
+    "Kemas kini tempahan, bayaran dan mesej akan dipaparkan di sini"
+  ],
+  "Uploading photo...": [
+    "正在上传照片…",
+    "Memuat naik foto…"
+  ],
+  "Use 12–128 characters": [
+    "使用12至128个字符",
+    "Gunakan 12–128 aksara"
+  ],
+  "Use my location": [
+    "使用我的位置",
+    "Gunakan lokasi saya"
+  ],
+  "Use the portal for your account; administrators use the website.": [
+    "请使用对应账户入口；管理员请使用网站。",
+    "Gunakan portal untuk akaun anda; pentadbir menggunakan laman web."
+  ],
+  "Use this service centre": [
+    "使用此服务中心",
+    "Gunakan pusat perkhidmatan ini"
+  ],
+  "Using Home Serve AI": [
+    "使用Home Serve AI",
+    "Menggunakan Home Serve AI"
+  ],
+  "Valid email required": [
+    "请填写有效邮箱",
+    "E-mel sah diperlukan"
+  ],
+  "Value is too large": [
+    "数值太大",
+    "Nilai terlalu besar"
+  ],
+  "Verification Failed: {0}": [
+    "验证失败：{0}",
+    "Pengesahan gagal: {0}"
+  ],
+  "Verified by the payment server. Your receipt is ready.": [
+    "付款服务器已确认，您的收据已准备好。",
+    "Disahkan oleh pelayan bayaran. Resit anda sedia."
+  ],
+  "Verified credentials": [
+    "已验证资质",
+    "Kelayakan disahkan"
+  ],
+  "Verified customer": [
+    "已验证客户",
+    "Pelanggan disahkan"
+  ],
+  "Verified provider": [
+    "已认证服务商",
+    "Penyedia disahkan"
+  ],
+  "Verified providers": [
+    "已认证服务商",
+    "Penyedia disahkan"
+  ],
+  "Verified sign-in email": [
+    "已验证的登录邮箱",
+    "E-mel log masuk disahkan"
+  ],
+  "Verify": [
+    "验证",
+    "Sahkan"
+  ],
+  "Verify & Proceed": [
+    "验证并继续",
+    "Sahkan & teruskan"
+  ],
+  "Verify & change password": [
+    "验证并更改密码",
+    "Sahkan & tukar kata laluan"
+  ],
+  "Verify Account": [
+    "验证账户",
+    "Sahkan akaun"
+  ],
+  "Verify Your Account": [
+    "验证您的账户",
+    "Sahkan akaun anda"
+  ],
+  "Verify your email": [
+    "验证邮箱",
+    "Sahkan e-mel anda"
+  ],
+  "View Booking": [
+    "查看预约",
+    "Lihat tempahan"
+  ],
+  "View File": [
+    "查看文件",
+    "Lihat fail"
+  ],
+  "View Reviews": [
+    "查看评价",
+    "Lihat ulasan"
+  ],
+  "View all": [
+    "查看全部",
+    "Lihat semua"
+  ],
+  "View booking": [
+    "查看预约",
+    "Lihat tempahan"
+  ],
+  "View booking & payment": [
+    "查看预约与付款",
+    "Lihat tempahan & bayaran"
+  ],
+  "View detail →": [
+    "查看详情 →",
+    "Lihat butiran →"
+  ],
+  "View earnings by day": [
+    "查看每日收入",
+    "Lihat pendapatan harian"
+  ],
+  "View earnings by month": [
+    "查看每月收入",
+    "Lihat pendapatan bulanan"
+  ],
+  "View earnings by week": [
+    "查看每周收入",
+    "Lihat pendapatan mingguan"
+  ],
+  "View on Map →": [
+    "在地图上查看 →",
+    "Lihat pada peta →"
+  ],
+  "View receipt": [
+    "查看收据",
+    "Lihat resit"
+  ],
+  "View services & book": [
+    "查看服务并预约",
+    "Lihat perkhidmatan & tempah"
+  ],
+  "View your performance metrics": [
+    "查看绩效指标",
+    "Lihat metrik prestasi anda"
+  ],
+  "View your receipt below for the verified payment record.": [
+    "在下方查看收据及已核实的付款记录。",
+    "Lihat resit di bawah untuk rekod bayaran yang disahkan."
+  ],
+  "Voice input is unavailable. Please type your message.": [
+    "语音输入不可用，请输入消息。",
+    "Input suara tidak tersedia. Sila taip mesej anda."
+  ],
+  "Voice input stopped. You can edit the text or type instead.": [
+    "语音输入已停止，您可编辑文字或直接输入。",
+    "Input suara dihentikan. Anda boleh mengedit teks atau menaip."
+  ],
+  "W": [
+    "三",
+    "R"
+  ],
+  "Waiting for provider acceptance": [
+    "等待服务商接受",
+    "Menunggu penerimaan penyedia"
+  ],
+  "Waiting for the payment result": [
+    "等待付款结果",
+    "Menunggu keputusan bayaran"
+  ],
+  "Waiting for the provider to accept your request.": [
+    "等待服务商接受您的请求。",
+    "Menunggu penyedia menerima permintaan anda."
+  ],
+  "We will email a code to confirm that this account belongs to you.": [
+    "我们将发送验证码到您的邮箱以确认账户归属。",
+    "Kami akan menghantar kod melalui e-mel untuk mengesahkan bahawa akaun ini milik anda."
+  ],
+  "Wed": [
+    "周三",
+    "Rab"
+  ],
+  "Wednesday": [
+    "星期三",
+    "Rabu"
+  ],
+  "Weekly Earnings": [
+    "每周收入",
+    "Pendapatan mingguan"
+  ],
+  "Weekly Trend": [
+    "每周趋势",
+    "Trend mingguan"
+  ],
+  "Welcome to Home Serve": [
+    "欢迎使用Home Serve",
+    "Selamat datang ke Home Serve"
+  ],
+  "Were they professional? Was the issue fixed?": [
+    "服务是否专业？问题解决了吗？",
+    "Adakah mereka profesional? Adakah masalah diselesaikan?"
+  ],
+  "What can I help you\nwith today?": [
+    "今天有什么\n可以帮您？",
+    "Apa yang boleh saya\nbantu hari ini?"
+  ],
+  "What service do you need?": [
+    "您需要什么服务？",
+    "Apakah perkhidmatan yang anda perlukan?"
+  ],
+  "What service does this photo need?": [
+    "这张照片中的问题需要什么服务？",
+    "Apakah perkhidmatan yang diperlukan dalam foto ini?"
+  ],
+  "Where do you work?": [
+    "您在哪里提供服务？",
+    "Di manakah anda bekerja?"
+  ],
+  "Where your service takes place": [
+    "服务进行的地点",
+    "Lokasi perkhidmatan anda"
+  ],
+  "Wk {0}": [
+    "第{0}周",
+    "Minggu {0}"
+  ],
+  "Working Hours": [
+    "工作时间",
+    "Waktu bekerja"
+  ],
+  "Working hours saved": [
+    "工作时间已保存",
+    "Waktu bekerja disimpan"
+  ],
+  "Write a review": [
+    "撰写评价",
+    "Tulis ulasan"
+  ],
+  "Yearly": [
+    "每年",
+    "Tahunan"
+  ],
+  "Years of Experience": [
+    "经验年数",
+    "Tahun pengalaman"
+  ],
+  "Yes, Cancel": [
+    "是，取消",
+    "Ya, batalkan"
+  ],
+  "Yesterday": [
+    "昨天",
+    "Semalam"
+  ],
+  "You": [
+    "您",
+    "Anda"
+  ],
+  "You can sign in again with your email and password.": [
+    "您可使用邮箱和密码重新登录。",
+    "Anda boleh log masuk semula dengan e-mel dan kata laluan."
+  ],
+  "You have: {0} certificate": [
+    "您拥有：{0}项证书",
+    "Anda mempunyai: {0} sijil"
+  ],
+  "Your account has been deleted. You must register again to use Home Serve.": [
+    "您的账户已删除。使用Home Serve前需要重新注册。",
+    "Akaun anda telah dipadamkan. Anda perlu mendaftar semula untuk menggunakan Home Serve."
+  ],
+  "Your account is ready.": [
+    "您的账户已准备好。",
+    "Akaun anda sedia."
+  ],
+  "Your appointments will appear here": [
+    "您的预约将显示在这里",
+    "Janji temu anda akan dipaparkan di sini"
+  ],
+  "Your birthday and gender are optional and are not shown to providers.": [
+    "生日和性别为选填，不会显示给服务商。",
+    "Tarikh lahir dan jantina adalah pilihan dan tidak dipaparkan kepada penyedia."
+  ],
+  "Your booking": [
+    "您的预约",
+    "Tempahan anda"
+  ],
+  "Your booking is not marked paid unless the payment server confirms it.": [
+    "只有付款服务器确认后，预约才会标记为已付款。",
+    "Tempahan anda hanya ditandakan dibayar selepas pelayan bayaran mengesahkannya."
+  ],
+  "Your booking request was sent. Wait for the provider to accept before paying.": [
+    "预约请求已发送，请等待服务商接受后再付款。",
+    "Permintaan tempahan anda dihantar. Tunggu penyedia menerimanya sebelum membayar."
+  ],
+  "Your booking review": [
+    "核对您的预约",
+    "Semakan tempahan anda"
+  ],
+  "Your chats": [
+    "您的聊天",
+    "Sembang anda"
+  ],
+  "Your chats will appear here.": [
+    "您的聊天将显示在这里。",
+    "Sembang anda akan dipaparkan di sini."
+  ],
+  "Your current location could not be found. Move to an open area and retry, or search for your address.": [
+    "无法获取当前位置，请前往空旷地点重试，或搜索地址。",
+    "Lokasi semasa anda tidak ditemui. Pergi ke kawasan terbuka dan cuba lagi, atau cari alamat anda."
+  ],
+  "Your email is verified. Your account is ready.": [
+    "邮箱已验证，您的账户已准备好。",
+    "E-mel anda disahkan. Akaun anda sedia."
+  ],
+  "Your full name": [
+    "您的姓名",
+    "Nama penuh anda"
+  ],
+  "Your information": [
+    "您的信息",
+    "Maklumat anda"
+  ],
+  "Your instructions": [
+    "您的备注",
+    "Arahan anda"
+  ],
+  "Your login, saved addresses, photo and personal profile will be removed. Your sent chat text and review text will be removed. Anonymized booking, payment and rating records remain for transaction history. This cannot be undone. To use this email again, you must register a new account.": [
+    "您的登录、已保存地址、照片和个人资料将被删除。您发送的聊天文字和评价文字也将被删除。匿名预约、付款及评分记录将保留以供交易历史查阅。此操作无法撤销。若再次使用此邮箱，您必须注册新账户。",
+    "Log masuk, alamat tersimpan, foto dan profil peribadi anda akan dipadamkan. Teks sembang dan ulasan yang anda hantar juga dipadamkan. Rekod tempahan, bayaran dan penilaian tanpa identiti dikekalkan untuk sejarah transaksi. Tindakan ini tidak boleh dibatalkan. Untuk menggunakan e-mel ini semula, anda mesti mendaftar akaun baharu."
+  ],
+  "Your new password is ready. Please sign in again.": [
+    "新密码已设置，请重新登录。",
+    "Kata laluan baharu anda sedia. Sila log masuk semula."
+  ],
+  "Your payment is confirmed. You can write a review here once the provider marks your service Completed.": [
+    "付款已确认。服务商将服务标记为已完成后，您可在这里评价。",
+    "Bayaran anda disahkan. Anda boleh menulis ulasan di sini selepas penyedia menandakan perkhidmatan selesai."
+  ],
+  "Your payment is recorded, but this appointment is cancelled. Check the support request below for refund review. Do not pay again.": [
+    "付款已记录，但此预约已取消。请查看下方支持请求以跟进退款审核。请勿再次付款。",
+    "Bayaran anda direkodkan tetapi janji temu ini dibatalkan. Semak permintaan sokongan di bawah untuk semakan bayaran balik. Jangan bayar lagi."
+  ],
+  "Your payment journey": [
+    "您的付款流程",
+    "Proses bayaran anda"
+  ],
+  "Your provider profile is not available. Please contact an administrator.": [
+    "您的服务商资料不可用，请联系管理员。",
+    "Profil penyedia anda tidak tersedia. Sila hubungi pentadbir."
+  ],
+  "Your receipt appears only after the payment result is verified.": [
+    "付款结果经核实后才会显示收据。",
+    "Resit anda hanya dipaparkan selepas keputusan bayaran disahkan."
+  ],
+  "Your receipt is ready below.": [
+    "您的收据已在下方准备好。",
+    "Resit anda sedia di bawah."
+  ],
+  "Your request has been sent. Once the provider accepts, you have 30 minutes to pay. We will notify you when payment is available.": [
+    "请求已发送。服务商接受后，您有30分钟付款。可以付款时我们会通知您。",
+    "Permintaan anda dihantar. Selepas penyedia menerima, anda mempunyai 30 minit untuk membayar. Kami akan memberitahu anda apabila bayaran tersedia."
+  ],
+  "Your requested appointment was accepted.": [
+    "您的预约请求已被接受。",
+    "Janji temu yang anda minta telah diterima."
+  ],
+  "Your review has been submitted.": [
+    "您的评价已提交。",
+    "Ulasan anda dihantar."
+  ],
+  "Your reviews": [
+    "您的评价",
+    "Ulasan anda"
+  ],
+  "Your service": [
+    "您的服务",
+    "Perkhidmatan anda"
+  ],
+  "Your service journey": [
+    "您的服务流程",
+    "Proses perkhidmatan anda"
+  ],
+  "Your support request has been submitted.": [
+    "您的支持请求已提交。",
+    "Permintaan sokongan anda dihantar."
+  ],
+  "Your unsaved profile changes will be lost.": [
+    "未保存的个人资料更改将丢失。",
+    "Perubahan profil yang belum disimpan akan hilang."
+  ],
+  "{0}\nMalaysia time": [
+    "{0}\n马来西亚时间",
+    "{0}\nWaktu Malaysia"
+  ],
+  "{0} (Malaysia time)": [
+    "{0}（马来西亚时间）",
+    "{0} (waktu Malaysia)"
+  ],
+  "{0} ({1} reviews)": [
+    "{0}（{1}条评价）",
+    "{0} ({1} ulasan)"
+  ],
+  "{0} MYT": [
+    "{0} MYT",
+    "{0} MYT"
+  ],
+  "{0} Retry": [
+    "{0} 重试",
+    "{0} Cuba lagi"
+  ],
+  "{0} days ago": [
+    "{0}天前",
+    "{0} hari lalu"
+  ],
+  "{0} hours ago": [
+    "{0}小时前",
+    "{0} jam lalu"
+  ],
+  "{0} is required": [
+    "请填写{0}",
+    "{0} diperlukan"
+  ],
+  "{0} km": [
+    "{0}公里",
+    "{0} km"
+  ],
+  "{0} km from {1}, {2}": [
+    "距离{1}、{2}约{0}公里",
+    "{0} km dari {1}, {2}"
+  ],
+  "{0} km radius · {1}": [
+    "半径{0}公里 · {1}",
+    "Jejari {0} km · {1}"
+  ],
+  "{0} min": [
+    "{0}分钟",
+    "{0} minit"
+  ],
+  "{0} min ago": [
+    "{0}分钟前",
+    "{0} min lalu"
+  ],
+  "{0} minutes": [
+    "{0}分钟",
+    "{0} minit"
+  ],
+  "{0} providers nearby · Tap a blue marker": [
+    "附近有{0}位服务商 · 点击蓝色标记",
+    "{0} penyedia berdekatan · Ketik penanda biru"
+  ],
+  "{0} reviews": [
+    "{0}条评价",
+    "{0} ulasan"
+  ],
+  "{0} transaction{1}": [
+    "{0}笔交易{1}",
+    "{0} transaksi{1}"
+  ],
+  "{0} years of experience": [
+    "{0}年经验",
+    "{0} tahun pengalaman"
+  ],
+  "{0} · Malaysia time": [
+    "{0} · 马来西亚时间",
+    "{0} · Waktu Malaysia"
+  ],
+  "{0} · {1} years": [
+    "{0} · {1}年",
+    "{0} · {1} tahun"
+  ],
+  "{0} ★ · {1} reviews": [
+    "{0} ★ · {1}条评价",
+    "{0} ★ · {1} ulasan"
+  ],
+  "{0}% match": [
+    "匹配度{0}%",
+    "{0}% padanan"
+  ],
+  "{0}+ stars": [
+    "{0}星以上",
+    "{0}+ bintang"
+  ],
+  "{0}, {1} kilometre service radius": [
+    "{0}，服务半径{1}公里",
+    "{0}, jejari perkhidmatan {1} kilometer"
+  ],
+  "{0}, {1} · Tap to change": [
+    "{0}，{1} · 点击更改",
+    "{0}, {1} · Ketik untuk menukar"
+  ],
+  "{0}h {1}m": [
+    "{0}小时{1}分钟",
+    "{0}j {1}m"
+  ],
+  "{0}m": [
+    "{0}分钟",
+    "{0}m"
+  ],
+  " Edit photo": [
+    " 编辑照片",
+    " Edit foto"
+  ],
+  "/hour": [
+    "/小时",
+    "/jam"
+  ],
+  "Accept Booking": [
+    "接受预约",
+    "Terima tempahan"
+  ],
+  "Completed Schedule": [
+    "已完成的日程",
+    "Jadual selesai"
+  ],
+  "Selected address in range": [
+    "所选地址在服务范围内",
+    "Alamat dipilih dalam kawasan liputan"
+  ],
+  "Selected address outside range": [
+    "所选地址不在服务范围内",
+    "Alamat dipilih di luar kawasan liputan"
+  ],
+  "An active verified provider account is required": [
+    "需要已验证且有效的服务商账户",
+    "Akaun penyedia yang aktif dan disahkan diperlukan"
+  ],
+  "Customer payment must succeed before service starts": [
+    "客户须先成功付款才能开始服务",
+    "Pelanggan mesti berjaya membayar sebelum perkhidmatan bermula"
+  ],
+  "This service is not scheduled to start yet": [
+    "尚未到达服务开始时间",
+    "Masa perkhidmatan ini belum bermula"
+  ],
+  "This booking request is no longer available": [
+    "此预约请求已失效",
+    "Permintaan tempahan ini tidak lagi tersedia"
+  ],
+  "Invalid service progress transition": [
+    "无法变更为此服务状态",
+    "Perubahan status perkhidmatan tidak sah"
+  ],
+  "Explain why the requested slot cannot be accepted": [
+    "请说明无法接受此时段的原因",
+    "Jelaskan mengapa slot diminta tidak dapat diterima"
+  ],
+  "Cancelled by provider": [
+    "服务商已取消",
+    "Dibatalkan oleh penyedia"
+  ],
+  "Booking not found or does not belong to you.": [
+    "找不到预约，或此预约不属于您。",
+    "Tempahan tidak ditemui atau bukan milik anda."
+  ],
+  "Customer payment has not been completed yet. Please wait.": [
+    "客户尚未完成付款，请稍候。",
+    "Pelanggan belum selesai membayar. Sila tunggu."
+  ],
+  "No action is available for this booking.": [
+    "此预约目前没有可用操作。",
+    "Tiada tindakan tersedia untuk tempahan ini."
+  ],
+  "Please provide a valid reason for cancellation.": [
+    "请填写有效的取消原因。",
+    "Sila berikan sebab pembatalan yang sah."
+  ],
+  "This action is not allowed at the current booking status.": [
+    "当前预约状态不允许此操作。",
+    "Tindakan ini tidak dibenarkan pada status tempahan semasa."
+  ],
+  "This booking can no longer be modified. It has already been accepted or the time slot has passed.": [
+    "此预约已被接受或时段已过，无法再修改。",
+    "Tempahan ini tidak boleh diubah lagi. Ia telah diterima atau slot masa telah berlalu."
+  ],
+  "This booking has expired. No action is available.": [
+    "此预约已过期，无法操作。",
+    "Tempahan ini telah tamat tempoh. Tiada tindakan tersedia."
+  ],
+  "This booking is completed.": [
+    "此预约已完成。",
+    "Tempahan ini telah selesai."
+  ],
+  "This booking was cancelled.": [
+    "此预约已取消。",
+    "Tempahan ini telah dibatalkan."
+  ],
+  "This service is not scheduled to start yet. Try again closer to the appointment time.": [
+    "尚未到达服务时间，请在临近预约时间时重试。",
+    "Masa perkhidmatan belum bermula. Cuba lagi apabila hampir waktu janji temu."
+  ],
+  "Your provider account is not verified or active.": [
+    "您的服务商账户尚未验证或未启用。",
+    "Akaun penyedia anda belum disahkan atau tidak aktif."
+  ],
+  "e.g. 10": [
+    "例如：10",
+    "cth. 10"
+  ],
+  "e.g. 100": [
+    "例如：100",
+    "cth. 100"
+  ],
+  "e.g. 5": [
+    "例如：5",
+    "cth. 5"
+  ],
+  "e.g. 90": [
+    "例如：90",
+    "cth. 90"
+  ],
+  "e.g. ABC Services": [
+    "例如：ABC 服务公司",
+    "cth. ABC Services"
+  ],
+  "e.g. First Aid Certificate": [
+    "例如：急救证书",
+    "cth. Sijil Pertolongan Cemas"
+  ],
+  "e.g. Kuala Lumpur": [
+    "例如：吉隆坡",
+    "cth. Kuala Lumpur"
+  ],
+  "e.g. Pipe Repair": [
+    "例如：水管维修",
+    "cth. Pembaikan Paip"
+  ],
+  "e.g. Red Crescent": [
+    "例如：红新月会",
+    "cth. Bulan Sabit Merah"
+  ],
+  "{0} hr ago": [
+    "{0}小时前",
+    "{0} jam lalu"
+  ],
+  "Provider acceptance is required. Payment is handled by you.": [
+    "需等待服务商接受预约。付款由您自行完成。",
+    "Penerimaan penyedia diperlukan. Anda sendiri menguruskan pembayaran."
+  ],
+  "Instructions: {0}": [
+    "备注：{0}",
+    "Arahan: {0}"
+  ],
+  "Cancel {0}?": [
+    "取消{0}？",
+    "Batalkan {0}?"
+  ],
+  "Reason: {0}": [
+    "原因：{0}",
+    "Sebab: {0}"
+  ],
+  "Paid bookings follow the existing support/refund process; cancellation is not a refund confirmation.": [
+    "已付款预约将按现行客服及退款流程处理；取消预约不代表退款已确认。",
+    "Tempahan berbayar mengikuti proses sokongan/bayaran balik sedia ada; pembatalan bukan pengesahan bayaran balik."
+  ],
+  "Booking requested": [
+    "已提交预约",
+    "Tempahan diminta"
+  ],
+  "Your requested slot is awaiting provider acceptance. Payment becomes available after acceptance.": [
+    "您请求的时段正在等待服务商接受。接受后即可付款。",
+    "Slot yang diminta menunggu penerimaan penyedia. Pembayaran tersedia selepas diterima."
+  ],
+  "New booking request": [
+    "新预约请求",
+    "Permintaan tempahan baharu"
+  ],
+  "Review and accept or decline the requested slot before the customer pays.": [
+    "请在客户付款前审核并接受或拒绝请求的时段。",
+    "Semak dan terima atau tolak slot diminta sebelum pelanggan membayar."
+  ],
+  "Your slot was accepted": [
+    "您的时段已被接受",
+    "Slot anda telah diterima"
+  ],
+  "The provider accepted your slot. Complete FPX payment within 30 minutes to retain it.": [
+    "服务商已接受您的时段。请在30分钟内完成FPX付款以保留时段。",
+    "Penyedia telah menerima slot anda. Selesaikan pembayaran FPX dalam 30 minit untuk mengekalkannya."
+  ],
+  "Booking declined": [
+    "预约已被拒绝",
+    "Tempahan ditolak"
+  ],
+  "Your booking was cancelled. Any collected payment remains recorded; a paid cancellation is sent to administrators for refund review.": [
+    "您的预约已取消。已收款记录将被保留；已付款的取消请求会交由管理员审核退款。",
+    "Tempahan anda dibatalkan. Bayaran diterima kekal direkodkan; pembatalan berbayar dihantar kepada pentadbir untuk semakan bayaran balik."
+  ],
+  "Customer cancelled a booking": [
+    "客户已取消预约",
+    "Pelanggan membatalkan tempahan"
+  ],
+  "Dispute submitted": [
+    "申诉已提交",
+    "Pertikaian dihantar"
+  ],
+  "Your dispute is recorded for administrator review.": [
+    "您的申诉已记录，等待管理员审核。",
+    "Pertikaian anda direkodkan untuk semakan pentadbir."
+  ],
+  "Review submitted": [
+    "评价已提交",
+    "Ulasan dihantar"
+  ],
+  "Thank you. Your verified booking review has been saved.": [
+    "谢谢，您对已验证预约的评价已保存。",
+    "Terima kasih. Ulasan tempahan disahkan anda telah disimpan."
+  ],
+  "Service Completed": [
+    "服务已完成",
+    "Perkhidmatan selesai"
+  ],
+  "Service In-Progress": [
+    "服务进行中",
+    "Perkhidmatan sedang berlangsung"
+  ],
+  "The provider marked your service completed. You can now leave a verified review or raise a dispute.": [
+    "服务商已将服务标记为完成。您现在可以发表评价或提出申诉。",
+    "Penyedia menandakan perkhidmatan anda selesai. Anda kini boleh memberi ulasan disahkan atau mengemukakan pertikaian."
+  ],
+  "The provider has started your service.": [
+    "服务商已开始提供服务。",
+    "Penyedia telah memulakan perkhidmatan anda."
+  ],
+  "Payment received; review required": [
+    "已收款，需审核",
+    "Bayaran diterima; semakan diperlukan"
+  ],
+  "Your payment is recorded but the appointment is unavailable. A refund review has been opened.": [
+    "付款已记录，但预约不可用。已开启退款审核。",
+    "Bayaran anda direkodkan tetapi janji temu tidak tersedia. Semakan bayaran balik telah dibuka."
+  ],
+  "FPX payment verified": [
+    "FPX付款已验证",
+    "Pembayaran FPX disahkan"
+  ],
+  "Your payment was verified. Your accepted appointment is now paid, and its receipt is available.": [
+    "付款已验证，已接受的预约现已付款，收据可供查看。",
+    "Bayaran anda disahkan. Janji temu diterima kini telah dibayar dan resit tersedia."
+  ],
+  "Customer payment verified": [
+    "客户付款已验证",
+    "Pembayaran pelanggan disahkan"
+  ],
+  "The accepted booking is now paid. View the booking for the scheduled service details.": [
+    "已接受的预约现已付款。请查看预约了解服务安排详情。",
+    "Tempahan diterima kini telah dibayar. Lihat tempahan untuk butiran perkhidmatan dijadualkan."
+  ],
+  "Gemini is temporarily busy. Your message is saved; please retry shortly.": [
+    "Gemini暂时繁忙。您的消息已保存，请稍后重试。",
+    "Gemini sibuk buat sementara. Mesej anda disimpan; sila cuba lagi sebentar lagi."
+  ],
+  "Gemini has reached its usage limit. Please try again later.": [
+    "Gemini已达到使用限额，请稍后重试。",
+    "Gemini telah mencapai had penggunaan. Sila cuba lagi kemudian."
+  ],
+  "The AI key was rejected by Google. The project owner needs to check the Gemini key and its API restrictions.": [
+    "Google拒绝了AI密钥。项目负责人需检查Gemini密钥及API限制。",
+    "Kunci AI ditolak oleh Google. Pemilik projek perlu menyemak kunci Gemini dan sekatan APInya."
+  ],
+  "The configured AI model is unavailable for this project. The project owner needs to check GEMINI_MODEL.": [
+    "配置的AI模型不适用于此项目。项目负责人需检查GEMINI_MODEL。",
+    "Model AI dikonfigurasi tidak tersedia untuk projek ini. Pemilik projek perlu menyemak GEMINI_MODEL."
+  ],
+  "Google rejected the AI request configuration. Please contact support.": [
+    "Google拒绝了AI请求配置，请联系客服。",
+    "Google menolak konfigurasi permintaan AI. Sila hubungi sokongan."
+  ],
+  "The assistant is temporarily unavailable.": [
+    "助手暂时不可用。",
+    "Pembantu tidak tersedia buat sementara."
+  ],
+  "A reply is already being prepared. Please retry shortly.": [
+    "正在生成回复，请稍后重试。",
+    "Balasan sedang disediakan. Sila cuba lagi sebentar lagi."
+  ],
+  "The requested app data could not be loaded. Please retry.": [
+    "无法加载请求的应用数据，请重试。",
+    "Data aplikasi diminta tidak dapat dimuatkan. Sila cuba lagi."
+  ],
+  "This record is unavailable for your account.": [
+    "您的账户无法访问此记录。",
+    "Rekod ini tidak tersedia untuk akaun anda."
+  ],
+  "The AI is taking longer than expected. Your message is saved; tap Retry.": [
+    "AI处理时间较长。您的消息已保存，请点击重试。",
+    "AI mengambil masa lebih lama. Mesej anda disimpan; ketik Cuba lagi."
+  ],
+  "The assistant connection was interrupted. Your message is saved; tap Retry.": [
+    "助手连接已中断。您的消息已保存，请点击重试。",
+    "Sambungan pembantu terputus. Mesej anda disimpan; ketik Cuba lagi."
+  ],
+  "The AI could not answer this request. Try rephrasing it.": [
+    "AI无法回答此请求，请换一种说法。",
+    "AI tidak dapat menjawab permintaan ini. Cuba ungkapkan semula."
+  ],
+  "This request needs too many steps. Please narrow it down.": [
+    "此请求需要太多步骤，请缩小范围。",
+    "Permintaan ini memerlukan terlalu banyak langkah. Sila kecilkan skopnya."
+  ],
+  "AI setup is not finished. The project owner needs to save GEMINI_API_KEY in Supabase.": [
+    "AI设置尚未完成。项目负责人需在Supabase保存GEMINI_API_KEY。",
+    "Persediaan AI belum selesai. Pemilik projek perlu menyimpan GEMINI_API_KEY dalam Supabase."
+  ],
+  "The AI model setting is invalid.": [
+    "AI模型设置无效。",
+    "Tetapan model AI tidak sah."
+  ],
+  "Chat removed. Photo cleanup is pending; retry Delete to finish.": [
+    "对话已删除，照片清理尚未完成。请再次点击删除以完成清理。",
+    "Sembang dipadam. Pembersihan foto tertangguh; cuba Padam lagi untuk selesai."
+  ],
+  "The photo could not be loaded. Attach it again.": [
+    "无法加载照片，请重新添加。",
+    "Foto tidak dapat dimuatkan. Lampirkannya semula."
+  ],
+  "Saved addresses could not be loaded.": [
+    "无法加载已保存的地址。",
+    "Alamat tersimpan tidak dapat dimuatkan."
+  ],
+  "Choose one of your saved addresses.": [
+    "请选择已保存的地址。",
+    "Pilih salah satu alamat tersimpan anda."
+  ],
+  "Too many steps. Please narrow your request.": [
+    "步骤过多，请缩小请求范围。",
+    "Terlalu banyak langkah. Sila kecilkan skop permintaan anda."
+  ],
+  "{0} transaction": [
+    "{0}笔交易",
+    "{0} transaksi"
+  ],
+  "{0} transactions": [
+    "{0}笔交易",
+    "{0} transaksi"
+  ],
+  "(Malaysia time)": [
+    "（马来西亚时间）",
+    "(waktu Malaysia)"
+  ],
+  "hrs": [
+    "小时",
+    "jam"
+  ]
+}

@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -189,8 +190,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       if ((data['addressLine'] ?? '').isEmpty) {
         await CustomerDialogs.show(
           context,
-          message:
-              'No address was found for this pin. Please enter the address details.',
+          message: tr(
+            'No address was found for this pin. Please enter the address details.',
+          ),
         );
       }
     } catch (e) {
@@ -217,8 +219,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
         setState(() => _isFetchingLocation = false);
         await CustomerDialogs.show(
           context,
-          message:
-              'Address not found in Malaysia. Try a nearby street or building.',
+          message: tr(
+            'Address not found in Malaysia. Try a nearby street or building.',
+          ),
         );
       } else {
         _select(
@@ -244,8 +247,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
         !RegExp(r'^\d{5}$').hasMatch(_postcodeController.text.trim())) {
       await CustomerDialogs.show(
         context,
-        message:
-            'Please enter the address, city, state and a five-digit Malaysian postcode.',
+        message: tr(
+          'Please enter the address, city, state and a five-digit Malaysian postcode.',
+        ),
       );
       return;
     }
@@ -265,8 +269,8 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       setState(() => _isSaving = false);
       await CustomerDialogs.show(
         context,
-        title: 'Success',
-        message: 'Address saved successfully.',
+        title: tr('Success'),
+        message: tr('Address saved successfully.'),
       );
       if (mounted) Navigator.pop(context, address);
     } catch (e) {
@@ -310,468 +314,507 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
     maxLines: label == 'Address Line / Unit No.' ? 3 : 1,
     keyboardType: numeric ? TextInputType.number : TextInputType.streetAddress,
     decoration: InputDecoration(
-      labelText: label,
+      labelText: trOrNull(label),
       floatingLabelBehavior: FloatingLabelBehavior.always,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
   );
 
   @override
-  Widget build(BuildContext context) => Theme(
-    data: CustomerTheme.lightTheme,
-    child: Scaffold(
-      appBar: AppBar(title: const Text('Add Service Location')),
-      body: SafeArea(
-        top: false,
-        child: LayoutBuilder(
-          builder: (context, bounds) {
-            final headerHeight =
-                110.0 +
-                (MediaQuery.textScalerOf(context).scale(14) - 14).clamp(0, 28);
-            final minimum = (headerHeight / bounds.maxHeight).clamp(.14, .46);
-            return Stack(
-              children: [
-                // Full, fixed map viewport. Sheet gestures never resize or pan its camera.
-                Positioned.fill(
-                  child:
-                      widget.mapBuilder?.call(context, _select) ??
-                      FlutterMap(
-                        mapController: _map,
-                        options: MapOptions(
-                          initialCenter: _initialPosition,
-                          initialZoom: 16,
-                          maxZoom: 19,
-                          onMapReady: () {
-                            _mapReady = true;
-                            _centerMap(_currentPosition, 16);
-                          },
-                          onTap: (_, point) => _select(point),
-                          onPositionChanged: (camera, gesture) {
-                            if (gesture) {
-                              _select(
-                                camera.screenOffsetToLatLng(
-                                  Offset(
-                                    camera.nonRotatedSize.width / 2,
-                                    camera.nonRotatedSize.height * .25,
-                                  ),
-                                ),
-                              );
-                            }
-                          },
-                          interactionOptions: const InteractionOptions(
-                            flags:
-                                InteractiveFlag.all & ~InteractiveFlag.rotate,
-                          ),
-                        ),
-                        children: [
-                          TileLayer(
-                            urlTemplate: const String.fromEnvironment(
-                              'MAP_TILE_URL',
-                              defaultValue:
-                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                            ),
-                            userAgentPackageName: 'com.locallife.fyp2',
-                            maxNativeZoom: 19,
-                          ),
-                          if (_showCoverage)
-                            CircleLayer(
-                              circles: _coverage
-                                  .map(
-                                    (p) => CircleMarker(
-                                      point: p.centre,
-                                      radius: p.radiusKm * 1000,
-                                      useRadiusInMeter: true,
-                                      color:
-                                          (_selectedProvider?.id == p.id
-                                                  ? Colors.blue
-                                                  : CustomerTheme.primary)
-                                              .withValues(alpha: .10),
-                                      borderColor: _selectedProvider?.id == p.id
-                                          ? Colors.blue
-                                          : CustomerTheme.primary,
-                                      borderStrokeWidth:
-                                          _selectedProvider?.id == p.id ? 2 : 1,
+  Widget build(BuildContext context) {
+    AppLanguage.watch(context);
+    return Theme(
+      data: CustomerTheme.lightTheme,
+      child: Scaffold(
+        appBar: AppBar(title: Text(tr('Add Service Location'))),
+        body: SafeArea(
+          top: false,
+          child: LayoutBuilder(
+            builder: (context, bounds) {
+              final headerHeight =
+                  110.0 +
+                  (MediaQuery.textScalerOf(context).scale(14) - 14).clamp(
+                    0,
+                    28,
+                  );
+              final minimum = (headerHeight / bounds.maxHeight).clamp(.14, .46);
+              return Stack(
+                children: [
+                  // Full, fixed map viewport. Sheet gestures never resize or pan its camera.
+                  Positioned.fill(
+                    child:
+                        widget.mapBuilder?.call(context, _select) ??
+                        FlutterMap(
+                          mapController: _map,
+                          options: MapOptions(
+                            initialCenter: _initialPosition,
+                            initialZoom: 16,
+                            maxZoom: 19,
+                            onMapReady: () {
+                              _mapReady = true;
+                              _centerMap(_currentPosition, 16);
+                            },
+                            onTap: (_, point) => _select(point),
+                            onPositionChanged: (camera, gesture) {
+                              if (gesture) {
+                                _select(
+                                  camera.screenOffsetToLatLng(
+                                    Offset(
+                                      camera.nonRotatedSize.width / 2,
+                                      camera.nonRotatedSize.height * .25,
                                     ),
-                                  )
-                                  .toList(),
+                                  ),
+                                );
+                              }
+                            },
+                            interactionOptions: const InteractionOptions(
+                              flags:
+                                  InteractiveFlag.all & ~InteractiveFlag.rotate,
                             ),
-                          MarkerLayer(
-                            markers: [
-                              if (_showCoverage)
-                                ..._coverage.map(
-                                  (p) => Marker(
-                                    point: p.centre,
-                                    width: 150,
-                                    height: 64,
-                                    child: Semantics(
-                                      label:
-                                          '${p.name}, ${p.radiusKm.toInt()} kilometre service radius',
-                                      button: true,
-                                      child: GestureDetector(
-                                        onTap: () => setState(
-                                          () => _selectedProvider = p,
+                          ),
+                          children: [
+                            TileLayer(
+                              urlTemplate: const String.fromEnvironment(
+                                'MAP_TILE_URL',
+                                defaultValue:
+                                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              ),
+                              userAgentPackageName: 'com.locallife.fyp2',
+                              maxNativeZoom: 19,
+                            ),
+                            if (_showCoverage)
+                              CircleLayer(
+                                circles: _coverage
+                                    .map(
+                                      (p) => CircleMarker(
+                                        point: p.centre,
+                                        radius: p.radiusKm * 1000,
+                                        useRadiusInMeter: true,
+                                        color:
+                                            (_selectedProvider?.id == p.id
+                                                    ? Colors.blue
+                                                    : CustomerTheme.primary)
+                                                .withValues(alpha: .10),
+                                        borderColor:
+                                            _selectedProvider?.id == p.id
+                                            ? Colors.blue
+                                            : CustomerTheme.primary,
+                                        borderStrokeWidth:
+                                            _selectedProvider?.id == p.id
+                                            ? 2
+                                            : 1,
+                                      ),
+                                    )
+                                    .toList(),
+                              ),
+                            MarkerLayer(
+                              markers: [
+                                if (_showCoverage)
+                                  ..._coverage.map(
+                                    (p) => Marker(
+                                      point: p.centre,
+                                      width: 150,
+                                      height: 64,
+                                      child: Semantics(
+                                        label: tr(
+                                          "{0}, {1} kilometre service radius",
+                                          [p.name, p.radiusKm.toInt()],
                                         ),
-                                        child: Column(
-                                          children: [
-                                            const Icon(
-                                              Icons.home_repair_service,
-                                              color: Colors.blue,
-                                              size: 26,
-                                            ),
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                    horizontal: 6,
-                                                    vertical: 3,
-                                                  ),
-                                              decoration: BoxDecoration(
-                                                color: Colors.white,
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
+                                        button: true,
+                                        child: GestureDetector(
+                                          onTap: () => setState(
+                                            () => _selectedProvider = p,
+                                          ),
+                                          child: Column(
+                                            children: [
+                                              const Icon(
+                                                Icons.home_repair_service,
+                                                color: Colors.blue,
+                                                size: 26,
                                               ),
-                                              child: Text(
-                                                p.name,
-                                                maxLines: 1,
-                                                overflow: TextOverflow.ellipsis,
-                                                style: const TextStyle(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w600,
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                      vertical: 3,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Text(
+                                                  p.name,
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: const TextStyle(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
                                                 ),
                                               ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              Marker(
-                                point: _currentPosition,
-                                width: 48,
-                                height: 48,
-                                alignment: Alignment.topCenter,
-                                child: const IgnorePointer(
-                                  child: Icon(
-                                    Icons.location_pin,
-                                    color: CustomerTheme.primary,
-                                    size: 48,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                ),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  right: 12,
-                  child: Align(
-                    alignment: Alignment.topLeft,
-                    child: FilledButton.tonalIcon(
-                      onPressed: _toggleCoverage,
-                      icon: Icon(
-                        _showCoverage
-                            ? Icons.layers_clear_outlined
-                            : Icons.layers_outlined,
-                      ),
-                      label: Text(
-                        _showCoverage
-                            ? 'Hide service areas'
-                            : 'Show service areas',
-                      ),
-                    ),
-                  ),
-                ),
-                if (_showCoverage)
-                  Positioned(
-                    top: 62,
-                    left: 12,
-                    right: 12,
-                    child: AnimatedSize(
-                      duration: MediaQuery.disableAnimationsOf(context)
-                          ? Duration.zero
-                          : const Duration(milliseconds: 200),
-                      child: Material(
-                        color: Colors.white,
-                        elevation: 2,
-                        borderRadius: BorderRadius.circular(12),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (_coverageLoading)
-                                const LinearProgressIndicator(),
-                              if (_coverageError != null)
-                                InkWell(
-                                  onTap: _loadCoverage,
-                                  child: Text(_coverageError!),
-                                )
-                              else if (_selectedProvider != null) ...[
-                                Text(
-                                  _selectedProvider!.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  '${_selectedProvider!.radiusKm.toInt()} km radius · ${_selectedProvider!.covers(_currentPosition) ? 'Selected address in range' : 'Selected address outside range'}',
-                                ),
-                                Text(
-                                  _selectedProvider!.services.join(' · '),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ] else
-                                Text(
-                                  _coverage.isEmpty
-                                      ? 'No published service areas near this address.'
-                                      : '${_coverage.length} providers nearby · Tap a blue marker',
-                                ),
-                              const Text(
-                                'Provider-declared areas. Confirm availability before booking.',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                DraggableScrollableSheet(
-                  controller: _sheet,
-                  initialChildSize: .55,
-                  minChildSize: minimum,
-                  maxChildSize: .94,
-                  snap: true,
-                  snapSizes: const [.55],
-                  snapAnimationDuration: const Duration(milliseconds: 250),
-                  builder: (context, scroll) => Material(
-                    key: const ValueKey('address-details-card'),
-                    color: Colors.white,
-                    elevation: 8,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(24),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: CustomScrollView(
-                      controller: scroll,
-                      physics: const ClampingScrollPhysics(),
-                      slivers: [
-                        SliverPersistentHeader(
-                          pinned: true,
-                          delegate: _AddressSearchHeader(
-                            height: headerHeight,
-                            child: Material(
-                              color: Colors.white,
-                              child: Column(
-                                children: [
-                                  Semantics(
-                                    label: 'Drag to resize address panel',
-                                    child: SizedBox(
-                                      key: const ValueKey(
-                                        'address-sheet-handle',
-                                      ),
-                                      height: 24,
-                                      width: double.infinity,
-                                      child: Center(
-                                        child: Container(
-                                          width: 38,
-                                          height: 4,
-                                          decoration: BoxDecoration(
-                                            color: Colors.grey.shade300,
-                                            borderRadius: BorderRadius.circular(
-                                              4,
-                                            ),
+                                            ],
                                           ),
                                         ),
                                       ),
                                     ),
                                   ),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
+                                Marker(
+                                  point: _currentPosition,
+                                  width: 48,
+                                  height: 48,
+                                  alignment: Alignment.topCenter,
+                                  child: const IgnorePointer(
+                                    child: Icon(
+                                      Icons.location_pin,
+                                      color: CustomerTheme.primary,
+                                      size: 48,
                                     ),
-                                    child: TextField(
-                                      key: const ValueKey(
-                                        'address-sheet-search',
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                  ),
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    right: 12,
+                    child: Align(
+                      alignment: Alignment.topLeft,
+                      child: FilledButton.tonalIcon(
+                        onPressed: _toggleCoverage,
+                        icon: Icon(
+                          _showCoverage
+                              ? Icons.layers_clear_outlined
+                              : Icons.layers_outlined,
+                        ),
+                        label: Text(
+                          tr(
+                            _showCoverage
+                                ? 'Hide service areas'
+                                : 'Show service areas',
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  if (_showCoverage)
+                    Positioned(
+                      top: 62,
+                      left: 12,
+                      right: 12,
+                      child: AnimatedSize(
+                        duration: MediaQuery.disableAnimationsOf(context)
+                            ? Duration.zero
+                            : const Duration(milliseconds: 200),
+                        child: Material(
+                          color: Colors.white,
+                          elevation: 2,
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (_coverageLoading)
+                                  const LinearProgressIndicator(),
+                                if (_coverageError != null)
+                                  InkWell(
+                                    onTap: _loadCoverage,
+                                    child: Text(tr(_coverageError!)),
+                                  )
+                                else if (_selectedProvider != null) ...[
+                                  Text(
+                                    _selectedProvider!.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    tr("{0} km radius · {1}", [
+                                      _selectedProvider!.radiusKm.toInt(),
+                                      tr(
+                                        _selectedProvider!.covers(
+                                              _currentPosition,
+                                            )
+                                            ? 'Selected address in range'
+                                            : 'Selected address outside range',
                                       ),
-                                      controller: _searchController,
-                                      onTap: _expandSheet,
-                                      textInputAction: TextInputAction.search,
-                                      onSubmitted: (_) => _search(),
-                                      decoration: InputDecoration(
-                                        hintText: 'Search street or building',
-                                        isDense: true,
-                                        contentPadding:
-                                            const EdgeInsets.symmetric(
-                                              vertical: 10,
+                                    ]),
+                                  ),
+                                  Text(
+                                    _selectedProvider!.services.join(' · '),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ] else
+                                  Text(
+                                    tr(
+                                      _coverage.isEmpty
+                                          ? 'No published service areas near this address.'
+                                          : tr(
+                                              "{0} providers nearby · Tap a blue marker",
+                                              [_coverage.length],
                                             ),
-                                        prefixIcon: const Icon(Icons.search),
-                                        suffixIcon: IconButton(
-                                          tooltip: 'Search address',
-                                          onPressed: _search,
-                                          icon: const Icon(Icons.arrow_forward),
-                                        ),
-                                      ),
                                     ),
                                   ),
-                                  // Attribution stays visible even when only the search dock is showing.
-                                  SizedBox(
-                                    height: 26,
-                                    child: TextButton(
-                                      style: TextButton.styleFrom(
-                                        padding: EdgeInsets.zero,
-                                        minimumSize: Size.zero,
-                                        tapTargetSize:
-                                            MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                      onPressed: () => launchUrl(
-                                        Uri.parse(
-                                          'https://www.openstreetmap.org/copyright',
-                                        ),
-                                      ),
-                                      child: const Text(
-                                        '© OpenStreetMap contributors',
-                                        style: TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.black54,
-                                        ),
-                                      ),
-                                    ),
+                                Text(
+                                  tr(
+                                    'Provider-declared areas. Confirm availability before booking.',
                                   ),
-                                ],
-                              ),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-                          sliver: SliverList.list(
-                            children: [
-                              Row(
-                                children: [
-                                  const Expanded(
-                                    child: Text(
-                                      'Address Details',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                  TextButton.icon(
-                                    onPressed: _locating ? null : _myLocation,
-                                    icon: const Icon(
-                                      Icons.my_location,
-                                      size: 18,
-                                    ),
-                                    label: Text(
-                                      _locating ? 'Locating…' : 'My location',
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              if (_isFetchingLocation || _locating)
-                                const LinearProgressIndicator(),
-                              const Padding(
-                                padding: EdgeInsets.only(top: 4, bottom: 16),
-                                child: Text(
-                                  'Add your unit or floor number if needed.',
-                                  style: TextStyle(fontSize: 12),
-                                ),
-                              ),
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 4,
-                                children: ['Home', 'Office', 'Other']
-                                    .map(
-                                      (label) => ChoiceChip(
-                                        label: Text(label),
-                                        selected: _selectedLabel == label,
-                                        selectedColor:
-                                            CustomerTheme.primarySurface,
-                                        onSelected: (_) => setState(
-                                          () => _selectedLabel = label,
+                      ),
+                    ),
+                  DraggableScrollableSheet(
+                    controller: _sheet,
+                    initialChildSize: .55,
+                    minChildSize: minimum,
+                    maxChildSize: .94,
+                    snap: true,
+                    snapSizes: const [.55],
+                    snapAnimationDuration: const Duration(milliseconds: 250),
+                    builder: (context, scroll) => Material(
+                      key: const ValueKey('address-details-card'),
+                      color: Colors.white,
+                      elevation: 8,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(24),
+                      ),
+                      clipBehavior: Clip.antiAlias,
+                      child: CustomScrollView(
+                        controller: scroll,
+                        physics: const ClampingScrollPhysics(),
+                        slivers: [
+                          SliverPersistentHeader(
+                            pinned: true,
+                            delegate: _AddressSearchHeader(
+                              height: headerHeight,
+                              child: Material(
+                                color: Colors.white,
+                                child: Column(
+                                  children: [
+                                    Semantics(
+                                      label: tr('Drag to resize address panel'),
+                                      child: SizedBox(
+                                        key: const ValueKey(
+                                          'address-sheet-handle',
+                                        ),
+                                        height: 24,
+                                        width: double.infinity,
+                                        child: Center(
+                                          child: Container(
+                                            width: 38,
+                                            height: 4,
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade300,
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    )
-                                    .toList(),
-                              ),
-                              const SizedBox(height: 20),
-                              _field(
-                                _addressLineController,
-                                'Address Line / Unit No.',
-                              ),
-                              const SizedBox(height: 20),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: _field(_cityController, 'City'),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: _field(
-                                      _postcodeController,
-                                      'Postcode',
-                                      numeric: true,
                                     ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 20),
-                              _field(_stateController, 'State'),
-                              const SizedBox(height: 12),
-                              SwitchListTile(
-                                contentPadding: EdgeInsets.zero,
-                                activeThumbColor: CustomerTheme.primary,
-                                title: const Text(
-                                  'Set as default service address',
-                                  style: TextStyle(fontSize: 14),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                      ),
+                                      child: TextField(
+                                        key: const ValueKey(
+                                          'address-sheet-search',
+                                        ),
+                                        controller: _searchController,
+                                        onTap: _expandSheet,
+                                        textInputAction: TextInputAction.search,
+                                        onSubmitted: (_) => _search(),
+                                        decoration: InputDecoration(
+                                          hintText: trOrNull(
+                                            'Search street or building',
+                                          ),
+                                          isDense: true,
+                                          contentPadding:
+                                              const EdgeInsets.symmetric(
+                                                vertical: 10,
+                                              ),
+                                          prefixIcon: const Icon(Icons.search),
+                                          suffixIcon: IconButton(
+                                            tooltip: trOrNull('Search address'),
+                                            onPressed: _search,
+                                            icon: const Icon(
+                                              Icons.arrow_forward,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    // Attribution stays visible even when only the search dock is showing.
+                                    SizedBox(
+                                      height: 26,
+                                      child: TextButton(
+                                        style: TextButton.styleFrom(
+                                          padding: EdgeInsets.zero,
+                                          minimumSize: Size.zero,
+                                          tapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                        ),
+                                        onPressed: () => launchUrl(
+                                          Uri.parse(
+                                            'https://www.openstreetmap.org/copyright',
+                                          ),
+                                        ),
+                                        child: Text(
+                                          tr('© OpenStreetMap contributors'),
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                                value: _isDefault,
-                                onChanged: (value) =>
-                                    setState(() => _isDefault = value),
                               ),
-                              const SizedBox(height: 16),
-                              ElevatedButton(
-                                key: const ValueKey('address-sheet-save'),
-                                onPressed:
-                                    _isSaving ||
-                                        _isFetchingLocation ||
-                                        _locating
-                                    ? null
-                                    : _saveAddress,
-                                child: _isSaving
-                                    ? const SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
+                            ),
+                          ),
+                          SliverPadding(
+                            padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
+                            sliver: SliverList.list(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        tr('Address Details'),
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+                                    TextButton.icon(
+                                      onPressed: _locating ? null : _myLocation,
+                                      icon: const Icon(
+                                        Icons.my_location,
+                                        size: 18,
+                                      ),
+                                      label: Text(
+                                        tr(
+                                          _locating
+                                              ? 'Locating…'
+                                              : 'My location',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                if (_isFetchingLocation || _locating)
+                                  const LinearProgressIndicator(),
+                                Padding(
+                                  padding: EdgeInsets.only(top: 4, bottom: 16),
+                                  child: Text(
+                                    tr(
+                                      'Add your unit or floor number if needed.',
+                                    ),
+                                    style: TextStyle(fontSize: 12),
+                                  ),
+                                ),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 4,
+                                  children: ['Home', 'Office', 'Other']
+                                      .map(
+                                        (label) => ChoiceChip(
+                                          label: Text(tr(label)),
+                                          selected: _selectedLabel == label,
+                                          selectedColor:
+                                              CustomerTheme.primarySurface,
+                                          onSelected: (_) => setState(
+                                            () => _selectedLabel = label,
+                                          ),
                                         ),
                                       )
-                                    : const Text('Save & Select Address'),
-                              ),
-                            ],
+                                      .toList(),
+                                ),
+                                const SizedBox(height: 20),
+                                _field(
+                                  _addressLineController,
+                                  'Address Line / Unit No.',
+                                ),
+                                const SizedBox(height: 20),
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _field(_cityController, 'City'),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: _field(
+                                        _postcodeController,
+                                        'Postcode',
+                                        numeric: true,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 20),
+                                _field(_stateController, 'State'),
+                                const SizedBox(height: 12),
+                                SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  activeThumbColor: CustomerTheme.primary,
+                                  title: Text(
+                                    tr('Set as default service address'),
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                  value: _isDefault,
+                                  onChanged: (value) =>
+                                      setState(() => _isDefault = value),
+                                ),
+                                const SizedBox(height: 16),
+                                ElevatedButton(
+                                  key: const ValueKey('address-sheet-save'),
+                                  onPressed:
+                                      _isSaving ||
+                                          _isFetchingLocation ||
+                                          _locating
+                                      ? null
+                                      : _saveAddress,
+                                  child: _isSaving
+                                      ? const SizedBox(
+                                          height: 20,
+                                          width: 20,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Text(tr('Save & Select Address')),
+                                ),
+                              ],
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 class _AddressSearchHeader extends SliverPersistentHeaderDelegate {
@@ -787,7 +830,11 @@ class _AddressSearchHeader extends SliverPersistentHeaderDelegate {
     BuildContext context,
     double shrinkOffset,
     bool overlapsContent,
-  ) => child;
+  ) {
+    AppLanguage.watch(context);
+    return child;
+  }
+
   @override
   bool shouldRebuild(covariant _AddressSearchHeader oldDelegate) =>
       oldDelegate.height != height || oldDelegate.child != child;

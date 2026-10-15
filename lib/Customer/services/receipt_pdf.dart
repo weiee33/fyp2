@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -41,22 +42,26 @@ class PaymentReceipt {
       payment['payment_timestamp']?.toString() ?? '',
     );
     return time == null
-        ? 'Unavailable'
-        : '${DateFormat('d MMM yyyy, h:mm a').format(time.toUtc().add(const Duration(hours: 8)))} MYT';
+        ? tr('Unavailable')
+        : tr("{0} MYT", [
+            DateFormat.yMMMd().add_jm().format(
+              time.toUtc().add(const Duration(hours: 8)),
+            ),
+          ]);
   }
 
   String get filename =>
-      'Local-Life-Receipt-${booking.id.replaceAll(RegExp('[^a-zA-Z0-9-]'), '')}.pdf';
+      'Home-Serve-Receipt-${booking.id.replaceAll(RegExp('[^a-zA-Z0-9-]'), '')}.pdf';
   List<(String, String)> get details => [
     ('Receipt number', number),
     ('Booking reference', booking.id),
     ('Payment reference', reference),
     ('Payment recorded', paidAt),
-    ('Payment method', method),
+    ('Payment method', tr(method)),
     ('Provider', booking.providerName),
     ('Appointment (Malaysia time)', booking.appointmentLabel),
     ('Service address', booking.address),
-    ('Booking status', booking.displayStatus),
+    ('Booking status', tr(booking.displayStatus)),
   ];
 }
 
@@ -67,9 +72,12 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
   final bold = pw.Font.ttf(
     await rootBundle.load('assets/fonts/roboto-bold.ttf'),
   );
+  final chinese = pw.Font.ttf(
+    await rootBundle.load('assets/fonts/noto-sans-sc-regular.ttf'),
+  );
   final doc = pw.Document(
-    title: 'Local Life payment receipt ${receipt.number}',
-    author: 'Local Life Service Assistant',
+    title: tr("Home Serve payment receipt {0}", [receipt.number]),
+    author: 'Home Serve',
   );
   const orange = PdfColor.fromInt(0xFFFF6B00);
   const green = PdfColor.fromInt(0xFF157347);
@@ -77,24 +85,31 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
     pw.MultiPage(
       pageFormat: PdfPageFormat.a4,
       margin: const pw.EdgeInsets.all(42),
-      theme: pw.ThemeData.withFont(base: regular, bold: bold),
+      theme: pw.ThemeData.withFont(
+        base: regular,
+        bold: bold,
+        fontFallback: [chinese],
+      ),
       footer: (context) => pw.Column(
         children: [
           pw.Divider(color: PdfColors.grey300),
           pw.Text(
-            'SANDBOX TEST RECEIPT - No real money transferred.',
+            tr('SANDBOX TEST RECEIPT - No real money transferred.'),
             style: const pw.TextStyle(fontSize: 9, color: PdfColors.grey700),
           ),
           pw.SizedBox(height: 5),
           pw.Text(
-            'Local Life Service Assistant  |  Page ${context.pageNumber} of ${context.pagesCount}',
+            tr("Home Serve  |  Page {0} of {1}", [
+              context.pageNumber,
+              context.pagesCount,
+            ]),
             style: const pw.TextStyle(fontSize: 9),
           ),
         ],
       ),
       build: (_) => [
         pw.Text(
-          'LOCAL LIFE',
+          tr('HOME SERVE'),
           style: pw.TextStyle(
             fontSize: 26,
             fontWeight: pw.FontWeight.bold,
@@ -103,7 +118,7 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
         ),
         pw.SizedBox(height: 8),
         pw.Text(
-          'PAYMENT RECEIPT',
+          tr('PAYMENT RECEIPT'),
           style: pw.TextStyle(fontSize: 16, fontWeight: pw.FontWeight.bold),
         ),
         pw.SizedBox(height: 24),
@@ -118,7 +133,7 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
             mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
             children: [
               pw.Text(
-                receipt.status,
+                tr(receipt.status),
                 style: pw.TextStyle(
                   fontSize: 16,
                   fontWeight: pw.FontWeight.bold,
@@ -137,7 +152,7 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
         ),
         pw.SizedBox(height: 24),
         pw.Text(
-          'SERVICE',
+          tr('SERVICE'),
           style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
         ),
         pw.SizedBox(height: 6),
@@ -155,7 +170,7 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
                 pw.SizedBox(
                   width: 145,
                   child: pw.Text(
-                    row.$1,
+                    tr(row.$1),
                     style: const pw.TextStyle(
                       fontSize: 10,
                       color: PdfColors.grey700,
@@ -174,14 +189,18 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
         pw.Divider(color: PdfColors.grey300),
         pw.SizedBox(height: 10),
         pw.Text(
-          receipt.refunded
-              ? 'This payment is recorded as refunded. The original payment details are retained for your records.'
-              : 'This receipt reflects the payment confirmed by the server. Keep the payment reference when contacting support.',
+          tr(
+            receipt.refunded
+                ? 'This payment is recorded as refunded. The original payment details are retained for your records.'
+                : 'This receipt reflects the payment confirmed by the server. Keep the payment reference when contacting support.',
+          ),
           style: const pw.TextStyle(fontSize: 10, lineSpacing: 3),
         ),
         pw.SizedBox(height: 10),
         pw.Text(
-          'This is a sandbox demonstration receipt, not a tax invoice or evidence of a real bank transfer.',
+          tr(
+            'This is a sandbox demonstration receipt, not a tax invoice or evidence of a real bank transfer.',
+          ),
           style: const pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
         ),
       ],
