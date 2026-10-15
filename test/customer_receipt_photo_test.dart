@@ -74,10 +74,13 @@ class PhotoChat extends ChatService {
 
 void main() {
   setUpAll(() async {
+    // Geometry assertions use the app font on CI as well as local captures.
+    await (FontLoader(
+      'Roboto',
+    )..addFont(rootBundle.load('assets/fonts/roboto-regular.ttf'))).load();
     const root = String.fromEnvironment('FLUTTER_FONT_ROOT');
     if (root.isNotEmpty) {
       for (final entry in {
-        'Roboto': 'roboto-regular.ttf',
         'MaterialIcons': 'materialicons-regular.otf',
       }.entries) {
         final loader = FontLoader(entry.key)
