@@ -965,7 +965,7 @@
   ],
   "Deep Cleaning": [
     "深度清洁",
-    "Pembersihan menyeluruh"
+    "Pembersihan Mendalam"
   ],
   "Default": [
     "默认",
@@ -4358,5 +4358,79 @@
   "hrs": [
     "小时",
     "jam"
+  ],
+  "Choose Language": [
+    "选择语言",
+    "Pilih bahasa"
+  ],
+  "Delete Your Account": [
+    "删除您的账户",
+    "Padam akaun anda"
+  ],
+  "Payment Receipt": [
+    "付款收据",
+    "Resit bayaran"
+  ],
+  "Provider Details": [
+    "服务商详情",
+    "Butiran penyedia"
+  ],
+  "Book Service": [
+    "预约服务",
+    "Tempah perkhidmatan"
+  ],
+  "Your Chats": [
+    "您的聊天",
+    "Sembang anda"
+  ],
+  "Service Categories": [
+    "服务类别",
+    "Kategori perkhidmatan"
+  ],
+  "Verified Providers": [
+    "已认证服务商",
+    "Penyedia disahkan"
+  ],
+  "Ready To Review": [
+    "可以评价",
+    "Sedia untuk diulas"
+  ],
+  "Your Reviews": [
+    "您的评价",
+    "Ulasan anda"
+  ],
+  "Reviews": ["评价", "Ulasan"],
+  "Window Cleaning": ["窗户清洁", "Pembersihan Tingkap"],
+  "General Cleaning": ["日常清洁", "Pembersihan Umum"],
+  "Home Cleaning": ["居家清洁", "Pembersihan Rumah"],
+  "Chemical Wash": ["化学清洗", "Cucian Kimia"],
+  "Gas Refill": ["煤气补充", "Isi Semula Gas"],
+  "This Cannot Be Undone": [
+    "此操作无法撤销",
+    "Tindakan Ini Tidak Boleh Dibatalkan"
+  ],
+  "Before You Continue": [
+    "继续之前",
+    "Sebelum Anda Teruskan"
+  ],
+  "Keep My Account": [
+    "保留我的账户",
+    "Kekalkan Akaun Saya"
+  ],
+  "View Receipt": [
+    "查看收据",
+    "Lihat resit"
+  ],
+  "Delete My Account": [
+    "删除我的账户",
+    "Padam akaun saya"
+  ],
+  "Reset Password": [
+    "重置密码",
+    "Tetapkan semula kata laluan"
+  ],
+  "All Services": [
+    "所有服务",
+    "Semua perkhidmatan"
   ]
 }

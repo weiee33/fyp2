@@ -136,7 +136,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
     AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: CustomerTheme.background,
-      appBar: AppBar(title: Text(tr(_category ?? 'All services'))),
+      appBar: AppBar(title: Text(tr(_category ?? 'All Services'))),
       body: Column(
         children: [
           Padding(

@@ -50,11 +50,11 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
       bottomNavigationBar: SafeArea(
         top: false,
         child: SizedBox(
-          height: 88,
+          height: 80,
           child: Stack(
             children: [
               Positioned.fill(
-                top: 20,
+                top: 0,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: Colors.white,
@@ -90,7 +90,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                         borderRadius: BorderRadius.circular(40),
                         onTap: _openAi,
                         child: SizedBox(
-                          height: 88,
+                          height: 80,
                           child: Column(
                             children: [
                               Container(
@@ -99,15 +99,17 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                                   color: Colors.white,
                                   shape: BoxShape.circle,
                                 ),
-                                child: const AiHalo(size: 54),
+                                child: const AiHalo(size: 48),
                               ),
-                              const SizedBox(height: 3),
-                              Text(
-                                tr('AI'),
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                  color: CustomerTheme.primary,
+                              const SizedBox(height: 2),
+                              RainbowInk(
+                                child: Text(
+                                  tr('AI'),
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ),
                             ],
@@ -147,7 +149,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
           onTap: () => setState(() => _currentIndex = index),
           borderRadius: BorderRadius.circular(20),
           child: SizedBox(
-            height: 66,
+            height: 72,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

@@ -417,6 +417,12 @@ void main() {
     await proof(t, 'edit-profile');
     await t.tap(find.text('Phone'));
     await t.pumpAndSettle();
+    expect(
+      t.getCenter(find.text('OK')).dy - t.getCenter(find.text('Edit Phone')).dy,
+      lessThan(240),
+    );
+    expect(t.getSize(find.byType(MalaysiaPhoneField)).height, lessThan(100));
+    await proof(t, 'edit-phone');
     expect(find.text('+60'), findsOneWidget);
     expect(
       t.widget<TextFormField>(find.byType(TextFormField)).controller!.text,

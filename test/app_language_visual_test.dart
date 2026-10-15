@@ -9,6 +9,12 @@ import 'package:fyp2/shared/localization/language_screen.dart';
 import 'package:fyp2/shared/portal_entry_screen.dart';
 import 'package:fyp2/shared/brand/brand_splash.dart';
 import 'package:fyp2/Customer/screens/profile/customer_settings_screen.dart';
+import 'package:fyp2/Customer/screens/profile/customer_delete_account_screen.dart';
+import 'package:fyp2/Customer/screens/profile/customer_profile_screen.dart';
+import 'package:fyp2/Customer/screens/profile/customer_edit_profile_screen.dart';
+import 'package:fyp2/Customer/screens/review/customer_my_reviews_screen.dart';
+import 'package:fyp2/Customer/services/customer_review_service.dart';
+import 'customer_ux_test.dart' show Account;
 import 'package:fyp2/Customer/screens/booking/customer_bookings_screen.dart';
 import 'package:fyp2/Customer/screens/booking/customer_booking_detail_screen.dart';
 import 'package:fyp2/Customer/screens/payment/customer_receipt_screen.dart';
@@ -64,6 +70,17 @@ void main() {
           'portal': const PortalEntryScreen(),
           'settings': const CustomerSettingsScreen(),
           'language': const LanguageScreen(),
+          'profile': CustomerProfileScreen(service: capture.FixtureProfile()),
+          'edit-profile': CustomerEditProfileScreen(
+            profileData: capture.FixtureProfile().data,
+            service: capture.FixtureProfile(),
+          ),
+          'delete-account': CustomerDeleteAccountScreen(service: Account()),
+          'reviews': CustomerMyReviewsScreen(
+            service: CustomerReviewService(
+              rpc: (_, _) async => <Map<String, dynamic>>[],
+            ),
+          ),
           'bookings': CustomerBookingsScreen(
             transactions: CustomerTransactionService(
               rpc: (_, _) async => [

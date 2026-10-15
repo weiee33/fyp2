@@ -283,12 +283,12 @@ void main() {
       await t.pumpWidget(app(CustomerDeleteAccountScreen(service: service)));
       await t.pumpAndSettle();
       await t.enterText(find.byType(TextField), 'fixture-password');
-      await t.tap(find.text('Delete my account'));
+      await t.tap(find.text('Delete My Account'));
       await t.pumpAndSettle();
       await t.tap(find.text('Cancel'));
       await t.pumpAndSettle();
       expect(service.calls, 0);
-      await t.tap(find.text('Delete my account'));
+      await t.tap(find.text('Delete My Account'));
       await t.pumpAndSettle();
       await t.tap(find.text('OK'));
       await t.pumpAndSettle();
@@ -305,7 +305,7 @@ void main() {
       await t.pumpWidget(app(CustomerDeleteAccountScreen(service: service)));
       await t.pumpAndSettle();
       await t.enterText(find.byType(TextField), 'fixture-password');
-      await t.tap(find.text('Delete my account'));
+      await t.tap(find.text('Delete My Account'));
       await t.pumpAndSettle();
       await t.tap(find.text('OK'));
       await t.pumpAndSettle();

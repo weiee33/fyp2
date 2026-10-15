@@ -115,7 +115,7 @@ void main() {
   );
 
   testWidgets(
-    'Done applies language to existing route and back does not save draft',
+    'Save applies language to existing route and back does not save draft',
     (tester) async {
       await tester.pumpWidget(
         LanguageScope(child: const Host(CustomerSettingsScreen())),
@@ -124,7 +124,7 @@ void main() {
       await tester.tap(find.text('Language / 语言 / Bahasa'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('简体中文'));
-      await tester.tap(find.text('Done'));
+      await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       expect(find.text('账户设置'), findsOneWidget);
       expect(find.text('简体中文'), findsOneWidget);
@@ -138,7 +138,7 @@ void main() {
       await tester.tap(find.text('Language / 语言 / Bahasa'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Bahasa Melayu'));
-      await tester.tap(find.text('完成'));
+      await tester.tap(find.text('保存'));
       await tester.pumpAndSettle();
       expect(find.text('Tetapan akaun'), findsOneWidget);
       expect(find.text('Bahasa Melayu'), findsOneWidget);

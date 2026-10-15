@@ -278,27 +278,28 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     final selected = await showGeneralDialog<Map<String, dynamic>>(
       context: context,
       barrierDismissible: true,
-      barrierLabel: 'Close chat history',
+      barrierLabel: tr('Close chat history'),
       barrierColor: Colors.black.withValues(alpha: .25),
       transitionDuration: MediaQuery.disableAnimationsOf(context)
           ? Duration.zero
           : const Duration(milliseconds: 260),
       transitionBuilder: (_, animation, _, child) => SlideTransition(
-        position: Tween<Offset>(begin: const Offset(-1, 0), end: Offset.zero)
+        position: Tween<Offset>(begin: const Offset(0, .12), end: Offset.zero)
             .animate(
               CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
             ),
         child: child,
       ),
-      pageBuilder: (c, _, _) => Align(
-        alignment: Alignment.centerLeft,
+      pageBuilder: (c, _, _) => Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 32),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         child: SizedBox(
-          width: math.min(380, MediaQuery.sizeOf(c).width * .88),
+          width: math.min(420, MediaQuery.sizeOf(c).width - 32),
+          height: math.min(720, MediaQuery.sizeOf(c).height * .82),
           child: Material(
             color: const Color(0xFFFAF9F7),
-            borderRadius: const BorderRadius.horizontal(
-              right: Radius.circular(26),
-            ),
+            borderRadius: BorderRadius.circular(26),
             clipBehavior: Clip.antiAlias,
             child: _ChatHistory(
               service: _service,
@@ -1034,15 +1035,17 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
             onPressed: _busy ? null : _history,
             icon: const Icon(Icons.menu_rounded),
           ),
+          centerTitle: true,
           title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
                 tr('Home Serve AI'),
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               Text(
-                _chatTitle,
+                _conversation == null ? tr(_chatTitle) : _chatTitle,
+                textAlign: TextAlign.center,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -1053,11 +1056,6 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
             ],
           ),
           actions: [
-            IconButton(
-              tooltip: trOrNull('New chat'),
-              onPressed: _busy ? null : _newChat,
-              icon: const Icon(Icons.edit_square, size: 21),
-            ),
             IconButton(
               tooltip: trOrNull('Close assistant'),
               onPressed: () => Navigator.pop(context),
@@ -1267,37 +1265,62 @@ class _ThinkingBubbleState extends State<_ThinkingBubble>
   }
 }
 
+/// Shared rainbow treatment for every assistant entry point.
+class RainbowInk extends StatelessWidget {
+  final Widget child;
+  const RainbowInk({super.key, required this.child});
+  static const gradient = LinearGradient(
+    colors: [
+      Color(0xFFD64765),
+      Color(0xFFCF791B),
+      Color(0xFF29986E),
+      Color(0xFF3679CF),
+      Color(0xFF9853C9),
+    ],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+  @override
+  Widget build(BuildContext context) => ShaderMask(
+    shaderCallback: gradient.createShader,
+    blendMode: BlendMode.srcIn,
+    child: child,
+  );
+}
+
 class AiHalo extends StatelessWidget {
   final double size;
   const AiHalo({super.key, this.size = 40});
   @override
-  Widget build(BuildContext context) {
-    AppLanguage.watch(context);
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          colors: [Color(0xFFFF9752), Color(0xFFAA78D6)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+  Widget build(BuildContext context) => Container(
+    width: size,
+    height: size,
+    padding: EdgeInsets.all(size * .055),
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      gradient: RainbowInk.gradient,
+      boxShadow: [
+        BoxShadow(
+          color: const Color(0xFF9853C9).withValues(alpha: .16),
+          blurRadius: 12,
+          offset: const Offset(0, 3),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFAA78D6).withValues(alpha: .22),
-            blurRadius: 14,
-            spreadRadius: 3,
-          ),
-        ],
+      ],
+    ),
+    child: DecoratedBox(
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        color: Color(0xFFFFFCFF),
       ),
-      child: Icon(
-        Icons.auto_awesome_rounded,
-        color: Colors.white,
-        size: size * .56,
+      child: RainbowInk(
+        child: Icon(
+          Icons.auto_awesome_rounded,
+          color: Colors.white,
+          size: size * .56,
+        ),
       ),
-    );
-  }
+    ),
+  );
 }
 
 class _ChatHistory extends StatefulWidget {
@@ -1445,7 +1468,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
               children: [
                 Expanded(
                   child: Text(
-                    tr('Your chats'),
+                    tr('Your Chats'),
                     style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700),
                   ),
                 ),

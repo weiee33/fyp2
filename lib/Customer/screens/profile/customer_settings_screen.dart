@@ -78,7 +78,6 @@ class CustomerSettingsScreen extends StatelessWidget {
             children: [
               AccountRow(
                 label: tr('Chats'),
-                subtitle: tr('Search, pin or delete a conversation'),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const ChatInboxScreen()),
@@ -222,7 +221,6 @@ class _SecurityState extends State<CustomerAccountSecurityScreen> {
                     ),
                     AccountRow(
                       label: tr('Change Password'),
-                      subtitle: tr('Current password and email verification'),
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -239,8 +237,7 @@ class _SecurityState extends State<CustomerAccountSecurityScreen> {
                   title: tr('Security'),
                   children: [
                     AccountRow(
-                      label: tr('Delete your account'),
-                      subtitle: tr('Permanently remove your login and profile'),
+                      label: tr('Delete Your Account'),
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
