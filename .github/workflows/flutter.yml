@@ -1,9 +1,9 @@
 name: Flutter contracts
 on:
   push:
-    paths: ['lib/**', 'test/**', 'pubspec.*', 'assets/**', 'tool/check_localization.py', '.github/workflows/flutter.yml']
+    paths: ['lib/**', 'test/**', 'pubspec.*', 'assets/**', 'supabase/migrations/**', 'tool/check_localization.py', '.github/workflows/flutter.yml']
   pull_request:
-    paths: ['lib/**', 'test/**', 'pubspec.*', 'assets/**', 'tool/check_localization.py', '.github/workflows/flutter.yml']
+    paths: ['lib/**', 'test/**', 'pubspec.*', 'assets/**', 'supabase/migrations/**', 'tool/check_localization.py', '.github/workflows/flutter.yml']
 permissions:
   contents: read
 jobs:

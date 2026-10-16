@@ -1,9 +1,9 @@
 name: FPX gateway checks
 on:
   push:
-    paths: ['supabase/functions/**', 'supabase/tests/fpx_edge.test.mjs', 'supabase/tests/customer_delivery_edge.test.mjs', '.github/workflows/fpx.yml']
+    paths: ['supabase/functions/**', 'supabase/migrations/**', 'supabase/tests/fpx_edge.test.mjs', 'supabase/tests/customer_delivery_edge.test.mjs', '.github/workflows/fpx.yml']
   pull_request:
-    paths: ['supabase/functions/**', 'supabase/tests/fpx_edge.test.mjs', 'supabase/tests/customer_delivery_edge.test.mjs', '.github/workflows/fpx.yml']
+    paths: ['supabase/functions/**', 'supabase/migrations/**', 'supabase/tests/fpx_edge.test.mjs', 'supabase/tests/customer_delivery_edge.test.mjs', '.github/workflows/fpx.yml']
 permissions:
   contents: read
 jobs:
