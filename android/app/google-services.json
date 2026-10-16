@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "866643835567",
+    "project_id": "local-life-service-assistant",
+    "storage_bucket": "local-life-service-assistant.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:866643835567:android:de7441146692f3ce01725a",
+        "android_client_info": {
+          "package_name": "com.example.fyp2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjTsF54C2KL-_BDkgnRV8-XyB1vfQxHFI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

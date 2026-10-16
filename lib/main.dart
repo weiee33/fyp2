@@ -1,3 +1,4 @@
+import 'Customer/services/customer_push_service.dart';
 import 'Customer/core/customer_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -25,6 +26,7 @@ Future<void> _initializeOnce() async {
     url: SupabaseConfig.url,
     anonKey: SupabaseConfig.anonKey,
   );
+  await CustomerPushService.instance.initialize();
 }
 
 class LocalLifeApp extends StatelessWidget {

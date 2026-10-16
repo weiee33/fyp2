@@ -136,8 +136,8 @@ export async function handleReturn(request: Request, deps: Dependencies): Promis
     const expected = await signReturn(value, required(deps, 'SUPABASE_SERVICE_ROLE_KEY'));
     let difference = 0; for (let i = 0; i < expected.length; i++) difference |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
     if (difference !== 0) throw new Error('Invalid return');
-    return new Response('Return to the Local Life app and select Check payment status. Your receipt appears only after the gateway confirms payment.', { headers });
-  } catch { return new Response('This return link is invalid or expired. Open the Local Life app to check your booking.', { status: 400, headers }); }
+    return new Response('Return to Home Serve and select Check payment status. Your receipt appears only after the gateway confirms payment.', { headers });
+  } catch { return new Response('This return link is invalid or expired. Open Home Serve to check your booking.', { status: 400, headers }); }
 }
 export async function handleWebhook(request: Request, deps: Dependencies): Promise<Response> {
   if (request.method !== 'POST') return json({ error: 'Use POST' }, 405);
@@ -158,6 +158,7 @@ export async function handleWebhook(request: Request, deps: Dependencies): Promi
     if (session?.livemode !== false || session.mode !== 'payment' || !String(session.id).startsWith('cs_test_') || !uuid.test(session.metadata?.attempt_id ?? '') || !Number.isSafeInteger(session.amount_total)) return json({ error: 'Invalid checkout event' }, 400);
     const serviceKey = required(deps, 'SUPABASE_SERVICE_ROLE_KEY');
     let method: string | null = null;
+    let receiptUrl: string | null = null;
     if (outcome === 'paid') {
       if (typeof session.payment_intent !== 'string' || !/^pi_[a-zA-Z0-9]+$/.test(session.payment_intent)) throw new Error('Missing payment identity');
       const stripeKey = required(deps, 'STRIPE_SECRET_KEY');
@@ -168,13 +169,16 @@ export async function handleWebhook(request: Request, deps: Dependencies): Promi
       if (!verified.ok) throw new Error('Payment verification unavailable');
       const intent = await verified.json();
       method = intent.latest_charge?.payment_method_details?.type;
+      receiptUrl = intent.latest_charge?.receipt_url ?? null;
       if (intent.id !== session.payment_intent || intent.livemode !== false || intent.status !== 'succeeded' ||
           intent.amount_received !== session.amount_total || intent.currency !== session.currency ||
           !['fpx', 'card', 'grabpay'].includes(method ?? '')) throw new Error('Payment details mismatch');
     }
-    const result = await rpc(deps, 'gateway_record_payment_method', { p_event_id: event.id, p_attempt_id: session.metadata.attempt_id,
+    const result = await rpc(deps, 'gateway_record_payment_delivery', { p_event_id: event.id, p_attempt_id: session.metadata.attempt_id,
       p_session_id: session.id, p_amount_sen: session.amount_total, p_currency: session.currency, p_outcome: outcome,
-      p_reference: typeof session.payment_intent === 'string' ? session.payment_intent : null, p_method: method }, serviceKey, serviceKey);
+      p_reference: typeof session.payment_intent === 'string' ? session.payment_intent : null, p_method: method,
+      p_email: typeof session.customer_details?.email === 'string' ? session.customer_details.email : null,
+      p_receipt_url: receiptUrl }, serviceKey, serviceKey);
     return json(result);
   } catch (error) {
     // Database failures must return non-2xx so Stripe retries; never acknowledge a lost payment.

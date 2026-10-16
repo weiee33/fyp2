@@ -1,3 +1,4 @@
+import '../../services/customer_push_service.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'customer_delete_account_screen.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +20,12 @@ Future<void> customerSignOut(BuildContext context) async {
   ))
     return;
   try {
+    try {
+      await CustomerPushService.instance.unregister();
+    } catch (_) {
+      // Signing out revokes the session that the delivery worker also checks.
+      // A failed token cleanup must not prevent the customer from signing out.
+    }
     await Supabase.instance.client.auth.signOut(scope: SignOutScope.local);
     if (!context.mounted) return;
     Navigator.pushAndRemoveUntil(
@@ -51,7 +58,6 @@ class CustomerSettingsScreen extends StatelessWidget {
               AccountRow(
                 label: tr('Language / 语言 / Bahasa'),
                 subtitle: AppLanguage.instance.name,
-                icon: Icons.language_rounded,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const LanguageScreen()),
@@ -76,6 +82,27 @@ class CustomerSettingsScreen extends StatelessWidget {
           AccountGroup(
             title: tr('Communication'),
             children: [
+              if (CustomerPushService.instance.supported)
+                ValueListenableBuilder<String>(
+                  valueListenable: CustomerPushService.instance.status,
+                  builder: (context, status, _) => AccountRow(
+                    label: tr('Phone Alerts'),
+                    subtitle: tr(status),
+                    onTap: () async {
+                      await CustomerPushService.instance.enable();
+                      if (!context.mounted) return;
+                      await CustomerDialogs.show(
+                        context,
+                        title: tr('Phone Alerts'),
+                        message: tr(
+                          CustomerPushService.instance.status.value == 'Enabled'
+                              ? 'Important booking and payment alerts are enabled.'
+                              : 'Allow Home Serve notifications in your phone settings. If alerts are unavailable, contact support.',
+                        ),
+                      );
+                    },
+                  ),
+                ),
               AccountRow(
                 label: tr('Chats'),
                 onTap: () => Navigator.push(
@@ -124,7 +151,6 @@ class CustomerSettingsScreen extends StatelessWidget {
             children: [
               AccountRow(
                 label: tr('Logout Your Account'),
-                icon: Icons.logout,
                 onTap: () => customerSignOut(context),
               ),
             ],

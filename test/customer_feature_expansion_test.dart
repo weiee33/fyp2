@@ -88,7 +88,7 @@ void main() {
     expect(find.text('Ready To Review'), findsOneWidget);
     expect(find.text('Completed cleaning'), findsOneWidget);
     expect(find.textContaining('Reviews unlock after payment'), findsNothing);
-    expect(find.text('Your Reviews'), findsOneWidget);
+    expect(find.text('My Reviews'), findsOneWidget);
     await capture.proof(t, 'review-ready');
     await t.drag(find.byType(TabBarView), const Offset(-500, 0));
     await t.pumpAndSettle();

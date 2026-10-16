@@ -377,7 +377,7 @@
   ],
   "Booking Update": [
     "预约更新",
-    "Kemas kini tempahan"
+    "Kemas Kini Tempahan"
   ],
   "Booking cancelled": [
     "预约已取消",
@@ -4399,12 +4399,30 @@
     "您的评价",
     "Ulasan anda"
   ],
-  "Reviews": ["评价", "Ulasan"],
-  "Window Cleaning": ["窗户清洁", "Pembersihan Tingkap"],
-  "General Cleaning": ["日常清洁", "Pembersihan Umum"],
-  "Home Cleaning": ["居家清洁", "Pembersihan Rumah"],
-  "Chemical Wash": ["化学清洗", "Cucian Kimia"],
-  "Gas Refill": ["煤气补充", "Isi Semula Gas"],
+  "Reviews": [
+    "评价",
+    "Ulasan"
+  ],
+  "Window Cleaning": [
+    "窗户清洁",
+    "Pembersihan Tingkap"
+  ],
+  "General Cleaning": [
+    "日常清洁",
+    "Pembersihan Umum"
+  ],
+  "Home Cleaning": [
+    "居家清洁",
+    "Pembersihan Rumah"
+  ],
+  "Chemical Wash": [
+    "化学清洗",
+    "Cucian Kimia"
+  ],
+  "Gas Refill": [
+    "煤气补充",
+    "Isi Semula Gas"
+  ],
   "This Cannot Be Undone": [
     "此操作无法撤销",
     "Tindakan Ini Tidak Boleh Dibatalkan"
@@ -4432,5 +4450,37 @@
   "All Services": [
     "所有服务",
     "Semua perkhidmatan"
+  ],
+  "Phone Alerts": [
+    "手机通知",
+    "Notifikasi Telefon"
+  ],
+  "Not Set Up": [
+    "尚未设置",
+    "Belum Disediakan"
+  ],
+  "Not Enabled": [
+    "尚未启用",
+    "Belum Diaktifkan"
+  ],
+  "Could Not Enable": [
+    "无法启用",
+    "Tidak Dapat Diaktifkan"
+  ],
+  "Disabled In Phone Settings": [
+    "已在手机设置中关闭",
+    "Dimatikan Dalam Tetapan Telefon"
+  ],
+  "Enabled": [
+    "已启用",
+    "Diaktifkan"
+  ],
+  "Important booking and payment alerts are enabled.": [
+    "重要的预约和付款通知已启用。",
+    "Notifikasi penting tempahan dan pembayaran telah diaktifkan."
+  ],
+  "Allow Home Serve notifications in your phone settings. If alerts are unavailable, contact support.": [
+    "请在手机设置中允许 Home Serve 发送通知。如果无法使用通知，请联系支持人员。",
+    "Benarkan notifikasi Home Serve dalam tetapan telefon anda. Jika notifikasi tidak tersedia, hubungi sokongan."
   ]
 }

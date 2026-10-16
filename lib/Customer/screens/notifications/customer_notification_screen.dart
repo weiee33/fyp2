@@ -192,13 +192,9 @@ class _CustomerNotificationScreenState
         ? _allNotifications
         : _allNotifications
               .where(
-                (n) => _activeFilter == 'Booking'
-                    ? [
-                        'New Booking',
-                        'Booking Update',
-                        'Cancellation',
-                      ].contains(n['notification_type'])
-                    : n['notification_type'] == _activeFilter,
+                (n) =>
+                    _category(n['notification_type']?.toString() ?? '') ==
+                    _activeFilter,
               )
               .toList();
 
@@ -511,27 +507,47 @@ class _CustomerNotificationScreenState
     );
   }
 
-  IconData _getIcon(String type) {
-    switch (type.toLowerCase()) {
+  String _category(String type) {
+    switch (type.trim().toLowerCase()) {
       case 'booking':
-        return Icons.handyman_rounded;
+      case 'new booking':
+      case 'booking update':
+      case 'cancellation':
+        return 'Booking';
       case 'payment':
+        return 'Payment';
+      case 'message':
+        return 'Message';
+      default:
+        return 'System';
+    }
+  }
+
+  IconData _getIcon(String type) {
+    switch (_category(type)) {
+      case 'Booking':
+        return Icons.event_available_rounded;
+      case 'Payment':
         return Icons.account_balance_wallet_rounded;
-      case 'promotion':
-        return Icons.local_offer_rounded;
+      case 'Message':
+        return Icons.chat_bubble_outline_rounded;
+      case 'System':
+        return Icons.settings_outlined;
       default:
         return Icons.info_rounded;
     }
   }
 
   Color _getIconColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'booking':
+    switch (_category(type)) {
+      case 'Booking':
         return const Color(0xFF2563EB); // Blue
-      case 'payment':
+      case 'Payment':
         return const Color(0xFF10B981); // Green
-      case 'promotion':
-        return const Color(0xFFF59E0B); // Amber
+      case 'Message':
+        return const Color(0xFF7C3AED);
+      case 'System':
+        return const Color(0xFF64748B);
       default:
         return Colors.grey.shade600;
     }

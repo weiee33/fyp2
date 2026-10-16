@@ -76,8 +76,8 @@ test('checkout completion with unpaid status does not record payment', async () 
 test('verified callback forwards exact identity, amount and reference to privileged RPC', async () => {
   let calls = 0;
   const response = await handleWebhook(webhook(event()), deps(async (url, options) => {
-    calls++; assert.ok(url.endsWith('/gateway_record_payment_method'));
-    assert.deepEqual(JSON.parse(options.body), { p_event_id: 'evt_fixture', p_attempt_id: attempt, p_session_id: 'cs_test_fixture', p_amount_sen: 18000, p_currency: 'myr', p_outcome: 'paid', p_reference: 'pi_fixture', p_method:'fpx' });
+    calls++; assert.ok(url.endsWith('/gateway_record_payment_delivery'));
+    assert.deepEqual(JSON.parse(options.body), { p_event_id: 'evt_fixture', p_attempt_id: attempt, p_session_id: 'cs_test_fixture', p_amount_sen: 18000, p_currency: 'myr', p_outcome: 'paid', p_reference: 'pi_fixture', p_method:'fpx', p_email: null, p_receipt_url: null });
     return json({ recorded: true });
   }));
   assert.equal(response.status, 200); assert.equal(calls, 1);

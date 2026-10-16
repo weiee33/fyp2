@@ -1,4 +1,5 @@
 import 'package:fyp2/shared/localization/app_language.dart';
+import '../../widgets/customer_menu.dart';
 import 'dart:async';
 import 'dart:typed_data';
 import 'dart:math' as math;
@@ -848,16 +849,27 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
             Expanded(
               child: Align(
                 alignment: Alignment.centerLeft,
-                child: PopupMenuButton<String>(
+                child: CustomerMenu<String>(
                   tooltip: trOrNull('Assistant mode'),
                   initialValue: _mode,
                   enabled: !_busy,
                   onSelected: (mode) => setState(() => _mode = mode),
                   itemBuilder: (_) => [
-                    PopupMenuItem(value: 'chat', child: Text(tr('Ask AI'))),
+                    PopupMenuItem(
+                      value: 'chat',
+                      child: CustomerMenuRow(
+                        icon: Icons.auto_awesome_outlined,
+                        label: tr('Ask AI'),
+                        selected: _mode == 'chat',
+                      ),
+                    ),
                     PopupMenuItem(
                       value: 'assist',
-                      child: Text(tr('Do it for me')),
+                      child: CustomerMenuRow(
+                        icon: Icons.task_alt_rounded,
+                        label: tr('Do it for me'),
+                        selected: _mode == 'assist',
+                      ),
                     ),
                   ],
                   child: Container(
@@ -1584,7 +1596,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
                       onTap: _loading
                           ? null
                           : () => Navigator.pop(context, row),
-                      trailing: PopupMenuButton<String>(
+                      trailing: CustomerMenu<String>(
                         tooltip: trOrNull('Chat options'),
                         enabled: !_loading,
                         icon: const Icon(Icons.more_horiz, size: 20),
@@ -1593,24 +1605,17 @@ class _ChatHistoryState extends State<_ChatHistory> {
                         itemBuilder: (_) => [
                           PopupMenuItem(
                             value: 'rename',
-                            child: ListTile(
-                              leading: Icon(Icons.edit_outlined),
-                              title: Text(tr('Rename')),
-                              contentPadding: EdgeInsets.zero,
+                            child: CustomerMenuRow(
+                              icon: Icons.edit_outlined,
+                              label: tr('Rename'),
                             ),
                           ),
                           PopupMenuItem(
                             value: 'delete',
-                            child: ListTile(
-                              leading: Icon(
-                                Icons.delete_outline,
-                                color: Colors.red,
-                              ),
-                              title: Text(
-                                tr('Delete'),
-                                style: TextStyle(color: Colors.red),
-                              ),
-                              contentPadding: EdgeInsets.zero,
+                            child: CustomerMenuRow(
+                              icon: Icons.delete_outline,
+                              label: tr('Delete'),
+                              destructive: true,
                             ),
                           ),
                         ],
