@@ -104,7 +104,7 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
               ),
               Tab(
                 height: 56,
-                child: Text(tr('Your Reviews'), textAlign: TextAlign.center),
+                child: Text(tr('My Reviews'), textAlign: TextAlign.center),
               ),
             ],
             labelColor: CustomerTheme.primary,

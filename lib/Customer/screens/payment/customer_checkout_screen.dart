@@ -460,18 +460,6 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       Text(booking.address),
                     ],
                   ),
-                  if (!paid)
-                    BookingSection(
-                      title: tr('Sandbox test payment'),
-                      icon: Icons.science_outlined,
-                      children: [
-                        Text(
-                          tr(
-                            'No real money is collected. For a successful card test, use 4242 4242 4242 4242, a future expiry and any three-digit CVC. For FPX or GrabPay, follow the test authorisation page. Return here for verified confirmation.',
-                          ),
-                        ),
-                      ],
-                    ),
                 ],
               ],
             ),

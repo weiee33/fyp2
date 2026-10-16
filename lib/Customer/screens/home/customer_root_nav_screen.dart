@@ -1,3 +1,4 @@
+import '../../services/customer_push_service.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../notifications/customer_notification_screen.dart';
@@ -30,6 +31,16 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
     super.initState();
     // Initialize the starting tab based on the parameter passed
     _currentIndex = widget.initialTab.clamp(0, 3);
+    if (widget.pages == null)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) CustomerPushService.instance.activate(context);
+      });
+  }
+
+  @override
+  void dispose() {
+    if (widget.pages == null) CustomerPushService.instance.detach(context);
+    super.dispose();
   }
 
   @override
