@@ -177,7 +177,7 @@ class _InboxState extends State<ChatInboxScreen> {
               child: CustomerRefresh(
                 onRefresh: _load,
                 child: ListView(
-                  physics: const BouncingScrollPhysics(
+                  physics: const ClampingScrollPhysics(
                     parent: AlwaysScrollableScrollPhysics(),
                   ),
                   children: [

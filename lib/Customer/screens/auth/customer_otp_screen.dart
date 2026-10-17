@@ -94,7 +94,7 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
       child: Scaffold(
         appBar: AppBar(title: Text(tr('Verify Account'))),
         body: ListView(
-          physics: const BouncingScrollPhysics(
+          physics: const ClampingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),
           padding: const EdgeInsets.all(24),

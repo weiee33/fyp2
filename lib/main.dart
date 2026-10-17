@@ -7,6 +7,7 @@ import 'shared/portal_entry_screen.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'shared/localization/app_language.dart';
 import 'shared/brand/brand_splash.dart';
+import 'shared/app_scroll_behavior.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,6 +38,7 @@ class LocalLifeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return MaterialApp(
+      scrollBehavior: const AppScrollBehavior(),
       theme: CustomerTheme.lightTheme,
       title: 'Home Serve',
       locale: AppLanguage.instance.locale,

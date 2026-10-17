@@ -317,7 +317,7 @@ void main() {
       );
     },
   );
-  testWidgets('short lists bounce and pull up from bottom refreshes once', (
+  testWidgets('short lists refresh only when pulled down from the top', (
     t,
   ) async {
     pixel(t);
@@ -330,7 +330,7 @@ void main() {
               refreshed++;
             },
             child: ListView(
-              physics: const BouncingScrollPhysics(
+              physics: const ClampingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               children: const [Text('Short list')],
@@ -340,6 +340,9 @@ void main() {
       ),
     );
     await t.drag(find.byType(ListView), const Offset(0, -400));
+    await t.pumpAndSettle();
+    expect(refreshed, 0);
+    await t.drag(find.byType(ListView), const Offset(0, 400));
     await t.pumpAndSettle();
     expect(refreshed, 1);
   });

@@ -1,6 +1,7 @@
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
+import '../../widgets/customer_nav_insets.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../../shared/chat/chat_screen.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -168,7 +169,7 @@ class _CustomerNotificationScreenState
         builder: (context) => AlertDialog(
           title: Text(tr(notification['title']?.toString() ?? 'Notification')),
           content: SingleChildScrollView(
-            physics: const BouncingScrollPhysics(
+            physics: const ClampingScrollPhysics(
               parent: AlwaysScrollableScrollPhysics(),
             ),
             child: Text(tr(notification['message']?.toString() ?? '')),
@@ -206,7 +207,7 @@ class _CustomerNotificationScreenState
           color: CustomerTheme.primary,
           onRefresh: _fetchNotifications,
           child: CustomScrollView(
-            physics: const BouncingScrollPhysics(
+            physics: const ClampingScrollPhysics(
               parent: AlwaysScrollableScrollPhysics(),
             ),
             slivers: [
@@ -296,6 +297,9 @@ class _CustomerNotificationScreenState
                     }, childCount: filteredNotifications.length),
                   ),
                 ),
+              SliverToBoxAdapter(
+                child: SizedBox(height: CustomerNavInsets.bottomOf(context)),
+              ),
             ],
           ),
         ),
@@ -310,7 +314,7 @@ class _CustomerNotificationScreenState
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(
+        physics: const ClampingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
         itemCount: _filters.length,

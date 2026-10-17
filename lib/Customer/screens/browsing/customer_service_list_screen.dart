@@ -205,7 +205,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
               onRefresh: _fetch,
               child: ListView(
                 key: const PageStorageKey('service-results'),
-                physics: const BouncingScrollPhysics(
+                physics: const ClampingScrollPhysics(
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 padding: const EdgeInsets.all(16),
@@ -378,7 +378,7 @@ class _FilterSheetState extends State<_FilterSheet> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return SingleChildScrollView(
-      physics: const BouncingScrollPhysics(
+      physics: const ClampingScrollPhysics(
         parent: AlwaysScrollableScrollPhysics(),
       ),
       padding: EdgeInsets.fromLTRB(
