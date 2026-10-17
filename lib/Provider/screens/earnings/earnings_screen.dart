@@ -208,7 +208,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false,
+        automaticallyImplyLeading: true,
       ),
       body: SafeArea(
         child: RefreshIndicator(
