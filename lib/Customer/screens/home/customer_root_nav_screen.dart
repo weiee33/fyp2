@@ -60,23 +60,22 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
       body: screens[_currentIndex],
       bottomNavigationBar: SafeArea(
         top: false,
+        minimum: const EdgeInsets.fromLTRB(12, 0, 12, 10),
         child: SizedBox(
           height: 80,
           child: Stack(
             children: [
               Positioned.fill(
-                top: 0,
+                top: 16,
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(24),
-                    ),
+                    borderRadius: BorderRadius.circular(36),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withValues(alpha: .05),
+                        color: Colors.black.withValues(alpha: .08),
                         blurRadius: 18,
-                        offset: const Offset(0, -3),
+                        offset: const Offset(0, 6),
                       ),
                     ],
                   ),
@@ -105,22 +104,38 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                           child: Column(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: const BoxDecoration(
-                                  color: Colors.white,
+                                width: 58,
+                                height: 58,
+                                decoration: BoxDecoration(
+                                  color: CustomerTheme.primary,
                                   shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 4,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: CustomerTheme.primary.withValues(
+                                        alpha: .3,
+                                      ),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
                                 ),
-                                child: const AiHalo(size: 48),
+                                child: const Icon(
+                                  Icons.auto_awesome_rounded,
+                                  color: Colors.white,
+                                  size: 28,
+                                ),
                               ),
                               const SizedBox(height: 2),
-                              RainbowInk(
-                                child: Text(
-                                  tr('AI'),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
+                              Text(
+                                tr('AI'),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: CustomerTheme.primary,
                                 ),
                               ),
                             ],
@@ -160,15 +175,15 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
           onTap: () => setState(() => _currentIndex = index),
           borderRadius: BorderRadius.circular(20),
           child: SizedBox(
-            height: 72,
+            height: 64,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 13,
-                    vertical: 4,
+                    horizontal: 8,
+                    vertical: 2,
                   ),
                   decoration: BoxDecoration(
                     color: selected

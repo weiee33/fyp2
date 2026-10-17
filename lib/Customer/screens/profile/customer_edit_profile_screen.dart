@@ -1,3 +1,4 @@
+import '../../widgets/customer_selection_sheet.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/account_widgets.dart';
 import '../../widgets/malaysia_phone_field.dart';
@@ -286,18 +287,18 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
   }
 
   Future<void> _pickGender() async {
-    final value = await showDialog<String>(
+    final value = await showCustomerSelection<String>(
       context: context,
-      builder: (ctx) => SimpleDialog(
-        title: Text(tr('Gender')),
-        children: [
-          for (final label in ['Female', 'Male', 'Prefer not to say'])
-            SimpleDialogOption(
-              onPressed: () => Navigator.pop(ctx, label),
-              child: Text(tr(label)),
-            ),
-        ],
-      ),
+      title: tr('Gender'),
+      selected: _gender,
+      choices: [
+        for (final label in ['Female', 'Male', 'Prefer not to say'])
+          CustomerChoice(
+            value: label,
+            label: tr(label),
+            icon: Icons.person_outline_rounded,
+          ),
+      ],
     );
     if (mounted && value != null)
       setState(() {

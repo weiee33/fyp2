@@ -296,7 +296,7 @@ void main() {
         ),
       );
       expect(
-        t.getCenter(find.byType(AiHalo)).dy,
+        t.getCenter(find.byIcon(Icons.auto_awesome_rounded)).dy,
         lessThan(t.getCenter(find.byIcon(Icons.explore_outlined)).dy),
       );
       await capture.proof(t, 'ai-raised-nav');

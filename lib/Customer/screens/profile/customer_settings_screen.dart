@@ -57,7 +57,6 @@ class CustomerSettingsScreen extends StatelessWidget {
             children: [
               AccountRow(
                 label: tr('Language / 语言 / Bahasa'),
-                subtitle: AppLanguage.instance.name,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(builder: (_) => const LanguageScreen()),
@@ -82,27 +81,6 @@ class CustomerSettingsScreen extends StatelessWidget {
           AccountGroup(
             title: tr('Communication'),
             children: [
-              if (CustomerPushService.instance.supported)
-                ValueListenableBuilder<String>(
-                  valueListenable: CustomerPushService.instance.status,
-                  builder: (context, status, _) => AccountRow(
-                    label: tr('Phone Alerts'),
-                    subtitle: tr(status),
-                    onTap: () async {
-                      await CustomerPushService.instance.enable();
-                      if (!context.mounted) return;
-                      await CustomerDialogs.show(
-                        context,
-                        title: tr('Phone Alerts'),
-                        message: tr(
-                          CustomerPushService.instance.status.value == 'Enabled'
-                              ? 'Important booking and payment alerts are enabled.'
-                              : 'Allow Home Serve notifications in your phone settings. If alerts are unavailable, contact support.',
-                        ),
-                      );
-                    },
-                  ),
-                ),
               AccountRow(
                 label: tr('Chats'),
                 onTap: () => Navigator.push(

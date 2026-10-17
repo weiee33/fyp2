@@ -52,6 +52,23 @@ test('alerts follow the registered device language',()=>{
  assert.match(pushCopy('Your slot was accepted','zh').title,/预约/);
  assert.equal(pushCopy('Your slot was accepted','ms').title,'Tempahan Diterima');
 });
+
+test('booking request and payment success have meaningful phone alert copy',()=>{
+ assert.equal(pushCopy('Booking requested','en').title,'Booking Requested');
+ assert.equal(pushCopy('Payment verified','en').title,'Payment Successful');
+ assert.equal(pushCopy('FPX payment verified','ms').title,'Pembayaran Berjaya');
+});
+
+test('shared Resend sender requires an owner restriction and never redirects another customer receipt',async()=>{
+ let calls=0;
+ const fetch=async(_,options)=>{calls++;assert.deepEqual(JSON.parse(options.body).to,['receipt@example.invalid']);return json({id:'sent'});};
+ const config={RECEIPT_FROM_EMAIL:'Home Serve <onboarding@resend.dev>'};
+ await assert.rejects(()=>sendReceipt(job,deps(fetch,config)),/Test recipient required/);
+ assert.equal(await sendReceipt(job,deps(fetch,{...config,RECEIPT_TEST_RECIPIENT:'someone@example.invalid'})),'rejected');
+ assert.equal(calls,0);
+ assert.equal(await sendReceipt(job,deps(fetch,{...config,RECEIPT_TEST_RECIPIENT:'receipt@example.invalid'})),'sent');
+ assert.equal(calls,1);
+});
 test('Firebase assertion is signed with messaging-only scope and a bounded lifetime',async()=>{
  const pair=generateKeyPairSync('rsa',{modulusLength:2048});
  const account={project_id:'home-serve-test',client_email:'push@home-serve-test.iam.gserviceaccount.com',private_key:pair.privateKey.export({type:'pkcs8',format:'pem'})};

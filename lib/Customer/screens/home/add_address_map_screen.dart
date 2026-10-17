@@ -310,12 +310,13 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   }) => TextField(
     controller: controller,
     onTap: _expandSheet,
-    minLines: label == 'Address Line / Unit No.' ? 2 : 1,
+    minLines: 1,
     maxLines: label == 'Address Line / Unit No.' ? 3 : 1,
     keyboardType: numeric ? TextInputType.number : TextInputType.streetAddress,
     decoration: InputDecoration(
       labelText: trOrNull(label),
       floatingLabelBehavior: FloatingLabelBehavior.always,
+      alignLabelWithHint: true,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     ),
   );
