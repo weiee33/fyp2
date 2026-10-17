@@ -1,3 +1,4 @@
+import '../../../shared/brand/brand_splash.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'customer_forgot_password_screen.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -92,13 +93,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const SizedBox(height: 12),
-                    const Center(
-                      child: Icon(
-                        Icons.lock_person_rounded,
-                        size: 64,
-                        color: CustomerTheme.primary,
-                      ),
-                    ),
+                    const Center(child: HomeServeMark(size: 80)),
                     const SizedBox(height: 16),
                     Center(
                       child: Text(
@@ -107,16 +102,6 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
                           color: CustomerTheme.textPrimary,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Center(
-                      child: Text(
-                        tr('Sign in to book household repair & cleaning'),
-                        style: TextStyle(
-                          color: CustomerTheme.textSecondary,
-                          fontSize: 14,
                         ),
                       ),
                     ),

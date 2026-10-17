@@ -1,3 +1,4 @@
+import '../../widgets/customer_selection_sheet.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_section.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -118,6 +119,43 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
     }
   }
 
+  Map<String, dynamic> get _selectedAddress => _addresses.firstWhere(
+    (address) => address['address_id'] == _addressId,
+    orElse: () => _addresses.first,
+  );
+
+  String _addressText(Map<String, dynamic> address) =>
+      [
+            address['address_line'],
+            address['city'],
+            address['state'],
+            address['postcode'],
+          ]
+          .where((part) => part != null && part.toString().trim().isNotEmpty)
+          .join(', ');
+
+  Future<void> _chooseAddress() async {
+    final value = await showCustomerSelection<String>(
+      context: context,
+      title: tr('Service Address'),
+      selected: _addressId,
+      choices: [
+        for (final address in _addresses)
+          CustomerChoice(
+            value: address['address_id'] as String,
+            label: tr(address['label'] as String? ?? 'Address'),
+            subtitle: _addressText(address),
+            icon: Icons.location_on_outlined,
+          ),
+      ],
+    );
+    if (value != null && mounted)
+      setState(() {
+        _addressId = value;
+        _requestId = CustomerTransactionService.newRequestId();
+      });
+  }
+
   Future<void> _chooseDate() async {
     final malaysia = DateTime.now().toUtc().add(const Duration(hours: 8));
     final today = DateTime(malaysia.year, malaysia.month, malaysia.day);
@@ -234,25 +272,58 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                 ] else if (_addresses.isEmpty)
                   Text(tr('Add a saved address before booking.'))
                 else
-                  DropdownButtonFormField<String>(
-                    initialValue: _addressId,
-                    isExpanded: true,
-                    items: _addresses
-                        .map(
-                          (address) => DropdownMenuItem(
-                            value: address['address_id'] as String,
-                            child: Text(
-                              '${address['label'] ?? 'Address'}: ${address['address_line']}, ${address['city']}',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                  Material(
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      side: const BorderSide(color: CustomerTheme.borderColor),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: InkWell(
+                      key: const ValueKey('service-address-picker'),
+                      onTap: _chooseAddress,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.home_outlined,
+                              color: CustomerTheme.primary,
                             ),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) => setState(() {
-                      _addressId = value;
-                      _requestId = CustomerTransactionService.newRequestId();
-                    }),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    tr(
+                                      _selectedAddress['label'] as String? ??
+                                          'Address',
+                                    ),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _addressText(_selectedAddress),
+                                    style: const TextStyle(
+                                      color: CustomerTheme.textSecondary,
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Icon(
+                              Icons.keyboard_arrow_down_rounded,
+                              color: CustomerTheme.textSecondary,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
                   ),
                 TextButton.icon(
                   onPressed: () async {

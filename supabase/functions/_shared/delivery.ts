@@ -41,6 +41,14 @@ export async function fcmAccess(deps: Dependencies): Promise<{ project: string; 
 export function pushCopy(title: string, language: string): { title: string; body: string } {
   const accepted = title === 'Your slot was accepted';
   const zh = language === 'zh', ms = language === 'ms';
+  if (title === 'Booking requested') return {
+    title: zh ? '预约已提交' : ms ? 'Tempahan Dihantar' : 'Booking Requested',
+    body: zh ? '我们会在服务商回复后通知您。' : ms ? 'Kami akan memaklumkan anda apabila penyedia membalas.' : 'We’ll notify you when the provider responds.',
+  };
+  if (title === 'Payment verified' || title === 'FPX payment verified') return {
+    title: zh ? '付款成功' : ms ? 'Pembayaran Berjaya' : 'Payment Successful',
+    body: zh ? '请打开 Home Serve 查看收据和预约。' : ms ? 'Buka Home Serve untuk resit dan tempahan anda.' : 'Open Home Serve to view your receipt and booking.',
+  };
   // Lock-screen text deliberately omits names, addresses and payment amounts.
   return {
     title: accepted ? (zh ? '预约已接受' : ms ? 'Tempahan Diterima' : 'Booking Accepted')
@@ -83,10 +91,16 @@ export function receiptMessage(payload: Record<string, any>) {
 }
 
 export async function sendReceipt(job: Job, deps: Dependencies): Promise<string> {
+  // Resend's shared testing sender can deliver only to its verified account owner.
+  // Never redirect a different customer's receipt to that mailbox.
+  const testRecipient = deps.env('RECEIPT_TEST_RECIPIENT')?.trim().toLowerCase();
+  const from = required(deps, 'RECEIPT_FROM_EMAIL');
+  if (/@resend\.dev\b/i.test(from) && !testRecipient) throw new Error('Test recipient required');
+  if (testRecipient && job.payload.email?.trim().toLowerCase() !== testRecipient) return 'rejected';
   const message = receiptMessage(job.payload);
   const response = await deps.fetch('https://api.resend.com/emails', { method: 'POST',
     headers: { Authorization: `Bearer ${required(deps, 'RESEND_API_KEY')}`, 'Content-Type': 'application/json', 'Idempotency-Key': `home-serve-receipt-${job.id}` },
-    body: JSON.stringify({ from: required(deps, 'RECEIPT_FROM_EMAIL'), to: [job.payload.email], ...message }),
+    body: JSON.stringify({ from, to: [job.payload.email], ...message }),
     signal: AbortSignal.timeout(15000) });
   return response.ok ? 'sent' : [400, 422].includes(response.status) ? 'rejected' : 'retry';
 }

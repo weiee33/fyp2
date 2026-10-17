@@ -1,3 +1,4 @@
+import '../../../shared/brand/brand_splash.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/malaysia_phone_field.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -117,6 +118,8 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const Center(child: HomeServeMark(size: 80)),
+                    const SizedBox(height: 24),
                     Text(
                       tr('Full Name'),
                       style: TextStyle(fontWeight: FontWeight.w600),

@@ -127,7 +127,8 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
       expect(find.text('账户设置'), findsOneWidget);
-      expect(find.text('简体中文'), findsOneWidget);
+      expect(AppLanguage.instance.code, 'zh');
+      expect(find.text('简体中文'), findsNothing);
       await tester.tap(find.text('Language / 语言 / Bahasa'));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Bahasa Melayu'));
@@ -141,7 +142,8 @@ void main() {
       await tester.tap(find.text('保存'));
       await tester.pumpAndSettle();
       expect(find.text('Tetapan akaun'), findsOneWidget);
-      expect(find.text('Bahasa Melayu'), findsOneWidget);
+      expect(AppLanguage.instance.code, 'ms');
+      expect(find.text('Bahasa Melayu'), findsNothing);
     },
   );
 

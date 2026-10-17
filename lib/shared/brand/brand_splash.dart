@@ -31,7 +31,7 @@ class _BrandSplashState extends State<BrandSplash>
     super.initState();
     _motion = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 850),
+      duration: const Duration(milliseconds: 1100),
     );
   }
 
@@ -69,7 +69,9 @@ class _BrandSplashState extends State<BrandSplash>
     AppLanguage.watch(context);
     final reduced = MediaQuery.disableAnimationsOf(context);
     return AnimatedSwitcher(
-      duration: reduced ? Duration.zero : const Duration(milliseconds: 300),
+      duration: reduced ? Duration.zero : const Duration(milliseconds: 450),
+      switchInCurve: Curves.easeInOutCubic,
+      switchOutCurve: Curves.easeInOutCubic,
       child: _ready
           ? KeyedSubtree(key: const ValueKey('ready'), child: widget.child)
           : Scaffold(
@@ -80,16 +82,41 @@ class _BrandSplashState extends State<BrandSplash>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      ScaleTransition(
-                        scale: reduced
+                      FadeTransition(
+                        opacity: reduced
                             ? const AlwaysStoppedAnimation(1.0)
-                            : Tween(begin: .92, end: 1.0).animate(
-                                CurvedAnimation(
-                                  parent: _motion,
-                                  curve: Curves.easeOutCubic,
+                            : CurvedAnimation(
+                                parent: _motion,
+                                curve: const Interval(
+                                  0,
+                                  .65,
+                                  curve: Curves.easeOut,
                                 ),
                               ),
-                        child: const HomeServeMark(),
+                        child: ScaleTransition(
+                          scale: reduced
+                              ? const AlwaysStoppedAnimation(1.0)
+                              : Tween(begin: .86, end: 1.0).animate(
+                                  CurvedAnimation(
+                                    parent: _motion,
+                                    curve: Curves.easeOutCubic,
+                                  ),
+                                ),
+                          child: RepaintBoundary(
+                            child: Container(
+                              width: 164,
+                              height: 164,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: RadialGradient(
+                                  colors: [Color(0xFFFFF0E2), Colors.white],
+                                ),
+                              ),
+                              alignment: Alignment.center,
+                              child: const HomeServeMark(),
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 24),
                       FadeTransition(
@@ -103,22 +130,41 @@ class _BrandSplashState extends State<BrandSplash>
                                   curve: Curves.easeOut,
                                 ),
                               ),
-                        child: Column(
-                          children: [
-                            const Text(
-                              'Home Serve',
-                              style: TextStyle(
-                                fontSize: 30,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: -.7,
+                        child: SlideTransition(
+                          position: reduced
+                              ? const AlwaysStoppedAnimation(Offset.zero)
+                              : Tween(
+                                  begin: const Offset(0, .15),
+                                  end: Offset.zero,
+                                ).animate(
+                                  CurvedAnimation(
+                                    parent: _motion,
+                                    curve: const Interval(
+                                      .2,
+                                      1,
+                                      curve: Curves.easeOutCubic,
+                                    ),
+                                  ),
+                                ),
+                          child: Column(
+                            children: [
+                              const Text(
+                                'Home Serve',
+                                style: TextStyle(
+                                  fontSize: 30,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: -.7,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              tr('A little care. A better home.'),
-                              style: const TextStyle(color: Color(0xFF6B7280)),
-                            ),
-                          ],
+                              const SizedBox(height: 8),
+                              Text(
+                                tr('A little care. A better home.'),
+                                style: const TextStyle(
+                                  color: Color(0xFF6B7280),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       if (_failed) ...[

@@ -948,14 +948,6 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                 fontWeight: FontWeight.w700,
               ),
             ),
-            const SizedBox(height: 12),
-            Text(
-              tr(
-                'Find a service. Compare providers.\nLet’s plan your next booking.',
-              ),
-              textAlign: TextAlign.center,
-              style: TextStyle(color: CustomerTheme.textSecondary, height: 1.5),
-            ),
             const SizedBox(height: 28),
             Wrap(
               alignment: WrapAlignment.center,
