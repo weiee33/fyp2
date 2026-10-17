@@ -185,7 +185,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
               child: SafeArea(
                 child: SingleChildScrollView(
                   physics: widget.requireCurrentPassword
-                      ? const BouncingScrollPhysics(
+                      ? const ClampingScrollPhysics(
                           parent: AlwaysScrollableScrollPhysics(),
                         )
                       : const ClampingScrollPhysics(),

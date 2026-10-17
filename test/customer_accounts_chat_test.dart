@@ -608,7 +608,7 @@ void main() {
     await t.pumpAndSettle();
     expect(find.text('Cleared old message'), findsOneWidget);
     cleared = 1;
-    await t.drag(find.byType(ListView).first, const Offset(0, -350));
+    await t.tap(find.byIcon(Icons.refresh_rounded));
     await t.pumpAndSettle();
     expect(find.text('Cleared old message'), findsNothing);
     expect(find.text('New reply'), findsOneWidget);

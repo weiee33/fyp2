@@ -2,6 +2,7 @@ import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_status.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
+import '../../widgets/customer_nav_insets.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../models/booking_model.dart';
@@ -81,10 +82,15 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
       body: CustomerRefresh(
         onRefresh: () => _load(reset: true),
         child: ListView(
-          physics: const BouncingScrollPhysics(
+          physics: const ClampingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(
+            16,
+            16,
+            16,
+            16 + CustomerNavInsets.bottomOf(context),
+          ),
           children: [
             if (_loading && _bookings.isEmpty)
               const Center(child: CircularProgressIndicator()),

@@ -9,7 +9,7 @@ Based on `8783442` from master, including the teammate's provider chat/profile a
 - Profile keeps the Bookings, My reviews and Chats shortcuts without the redundant heading/View all row.
 - Settings uses the same white account-card layout for `Logout Your Account`.
 - Login navigates immediately on success. Logout retains its confirmation and error handling, then returns directly to the portal without another success dialog. Verification, validation and destructive-action dialogs remain.
-- Login, registration and signed-out password reset clamp at their scroll limits. Signed-in Change Password still bounces, now in a full-height viewport so its short content is not clipped at the old viewport boundary during a drag.
+- Login, registration and password reset use full-height scroll viewports. As of 18 October 2026, signed-in Change Password also clamps at its scroll limits; see [scroll and glass navigation](customer-scroll-navigation.md).
 
 ## Teammate integration review
 

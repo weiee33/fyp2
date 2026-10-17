@@ -47,7 +47,7 @@ class CustomerSettingsScreen extends StatelessWidget {
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(title: Text(tr('Account Settings'))),
       body: ListView(
-        physics: const BouncingScrollPhysics(
+        physics: const ClampingScrollPhysics(
           parent: AlwaysScrollableScrollPhysics(),
         ),
         padding: const EdgeInsets.all(10),
@@ -199,7 +199,7 @@ class _SecurityState extends State<CustomerAccountSecurityScreen> {
                     ),
             )
           : ListView(
-              physics: const BouncingScrollPhysics(
+              physics: const ClampingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               padding: const EdgeInsets.all(10),

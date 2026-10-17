@@ -330,7 +330,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(24),
-              physics: const BouncingScrollPhysics(
+              physics: const ClampingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               children: [

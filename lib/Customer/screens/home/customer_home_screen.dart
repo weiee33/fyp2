@@ -1,6 +1,7 @@
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
+import '../../widgets/customer_nav_insets.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
@@ -135,7 +136,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             ),
             Expanded(
               child: ListView(
-                physics: const BouncingScrollPhysics(
+                physics: const ClampingScrollPhysics(
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 children: [
@@ -212,7 +213,11 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       body: CustomerRefresh(
         onRefresh: _load,
         child: ListView(
-          physics: const BouncingScrollPhysics(
+          padding: EdgeInsets.only(
+            top: MediaQuery.paddingOf(context).top,
+            bottom: CustomerNavInsets.bottomOf(context),
+          ),
+          physics: const ClampingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),
           children: [

@@ -307,7 +307,7 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
     onRefresh: _reload,
     child: ListView(
       key: PageStorageKey(key),
-      physics: const BouncingScrollPhysics(
+      physics: const ClampingScrollPhysics(
         parent: AlwaysScrollableScrollPhysics(),
       ),
       padding: const EdgeInsets.all(16),

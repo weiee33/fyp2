@@ -11,7 +11,7 @@ Built on merged PR #5 (`8086e32`). Provider business screens and AI logic are un
 - Notifications: Chats replaces Mark all as read; swipe left exposes Pin/Unpin and Delete. The overflow menu provides the same accessible actions. Pins persist and sort first. Delete requires confirmation and keeps the booking unchanged.
 - Profile: removed the top settings/chat icons, Edit your profile caption and Account & Security row. The photo still opens personal information. Settings: removed its top chat icon and duplicate My Addresses row.
 - Account & Security: Delete your account replaces Sign out all devices. Normal logout remains in Settings.
-- Booking and shared chat toolbars have no refresh icon. Pull down at the top or pull up at the bottom to refresh. Customer lists/forms use elastic overscroll, including short lists and the registration OTP page.
+- Scroll behaviour was revised on 18 October 2026: customer lists refresh only when pulled down from the top. Bottom-edge refresh and elastic page bounce are removed. Reversed conversations use an explicit refresh action alongside live updates. See [scroll and glass navigation](customer-scroll-navigation.md).
 
 ## Account deletion
 

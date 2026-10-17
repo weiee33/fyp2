@@ -133,7 +133,7 @@ class _CustomerSavedAddressesScreenState
           return CustomerRefresh(
             onRefresh: _reload,
             child: ListView(
-              physics: const BouncingScrollPhysics(
+              physics: const ClampingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
