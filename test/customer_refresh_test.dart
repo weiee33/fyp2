@@ -39,13 +39,14 @@ void main() {
       'Roboto',
     )..addFont(rootBundle.load('assets/fonts/roboto-regular.ttf'))).load();
     const root = String.fromEnvironment('FLUTTER_FONT_ROOT');
-    if (root.isNotEmpty)
+    if (root.isNotEmpty) {
       await (FontLoader('MaterialIcons')..addFont(
             File(
               '$root/materialicons-regular.otf',
             ).readAsBytes().then(ByteData.sublistView),
           ))
           .load();
+    }
   });
 
   testWidgets(
