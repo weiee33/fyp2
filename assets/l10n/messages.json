@@ -4730,5 +4730,65 @@
   "Use no more than {0} characters.": [
     "请勿超过 {0} 个字符。",
     "Gunakan tidak lebih daripada {0} aksara."
+  ],
+  "Contact Support": [
+    "联系支持团队",
+    "Hubungi sokongan"
+  ],
+  "Request Booking Support": [
+    "申请预约支持",
+    "Minta bantuan tempahan"
+  ],
+  "Keep booking": [
+    "保留预约",
+    "Kekalkan tempahan"
+  ],
+  "Ask a question, share feedback or make a complaint.": [
+    "提出问题、提供意见或提交投诉。",
+    "Tanya soalan, kongsi maklum balas atau buat aduan."
+  ],
+  "Questions, feedback or complaints.": [
+    "问题、意见或投诉。",
+    "Soalan, maklum balas atau aduan."
+  ],
+  "Linked booking": [
+    "关联预约",
+    "Tempahan berkaitan"
+  ],
+  "Your message": [
+    "您的留言",
+    "Mesej anda"
+  ],
+  "Describe the booking issue": [
+    "描述预约问题",
+    "Terangkan masalah tempahan"
+  ],
+  "Up to 3 photos · 5 MB each": [
+    "最多 3 张照片 · 每张 5 MB",
+    "Sehingga 3 foto · 5 MB setiap foto"
+  ],
+  "Replies appear in Help Centre.": [
+    "请在帮助中心查看回复。",
+    "Lihat balasan di Pusat Bantuan."
+  ],
+  "General enquiry": [
+    "一般咨询",
+    "Pertanyaan umum"
+  ],
+  "Booking support": [
+    "预约支持",
+    "Bantuan tempahan"
+  ],
+  "Malaysia time": [
+    "马来西亚时间",
+    "Waktu Malaysia"
+  ],
+  "Gallery": [
+    "相册",
+    "Galeri"
+  ],
+  "Camera": [
+    "相机",
+    "Kamera"
   ]
 }

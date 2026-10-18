@@ -18,6 +18,30 @@ class CustomerTheme {
   static const Color danger = Color(0xFFEF4444);
   static const Color success = Color(0xFF10B981);
 
+  /// Consistent, accessible actions for customer forms and booking support.
+  static ButtonStyle actionStyle({
+    bool outlined = false,
+    bool destructive = false,
+  }) {
+    final color = destructive ? danger : primary;
+    return OutlinedButton.styleFrom(
+      minimumSize: const Size(double.infinity, 48),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      foregroundColor: outlined ? color : Colors.white,
+      backgroundColor: outlined ? Colors.white : color,
+      side: BorderSide(
+        color: outlined ? color.withValues(alpha: .45) : Colors.transparent,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      textStyle: const TextStyle(
+        fontFamily: 'Roboto',
+        fontFamilyFallback: ['HomeServeCJK'],
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,

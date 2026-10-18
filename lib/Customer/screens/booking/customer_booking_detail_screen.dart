@@ -107,6 +107,8 @@ class _CustomerBookingDetailScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
         title: Text(tr('Cancel booking?')),
         content: TextField(
           controller: reason,
@@ -117,11 +119,15 @@ class _CustomerBookingDetailScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(tr('Cancel')),
+            child: Text(tr('Keep booking')),
           ),
-          TextButton(
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: CustomerTheme.danger,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(tr('OK')),
+            child: Text(tr('Cancel Booking')),
           ),
         ],
       ),
@@ -159,6 +165,7 @@ class _CustomerBookingDetailScreenState
       MaterialPageRoute(
         builder: (_) => CustomerSupportComposeScreen(
           bookingId: widget.bookingId,
+          booking: _booking,
           service: widget.supportService,
         ),
       ),
@@ -441,20 +448,31 @@ class _CustomerBookingDetailScreenState
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
+                            style: CustomerTheme.actionStyle(outlined: true),
                             onPressed: _acting || _loading
                                 ? null
                                 : _requestHelp,
                             icon: const Icon(Icons.support_agent),
-                            label: Text(tr('Request booking support')),
-                          ),
-                        ),
-                        if (booking.canCancel && !booking.needsNewBooking)
-                          TextButton(
-                            onPressed: _acting || _loading ? null : _cancel,
-                            child: Text(
-                              tr(_acting ? 'Cancelling…' : 'Cancel booking'),
+                            label: Text(
+                              tr('Request Booking Support'),
+                              textAlign: TextAlign.center,
                             ),
                           ),
+                        ),
+                        if (booking.canCancel && !booking.needsNewBooking) ...[
+                          const SizedBox(height: 12),
+                          OutlinedButton.icon(
+                            style: CustomerTheme.actionStyle(
+                              outlined: true,
+                              destructive: true,
+                            ),
+                            onPressed: _acting || _loading ? null : _cancel,
+                            icon: const Icon(Icons.event_busy_outlined),
+                            label: Text(
+                              tr(_acting ? 'Cancelling…' : 'Cancel Booking'),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ],

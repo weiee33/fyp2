@@ -450,7 +450,8 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                   AccountGroup(
                     title: tr('Service preferences'),
                     children: [
-                      Padding(
+                      Container(
+                        width: double.infinity,
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,6 +465,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                             ],
                             Wrap(
                               spacing: 8,
+                              runSpacing: 8,
                               children: _availablePreferences
                                   .map(
                                     (pref) => FilterChip(
