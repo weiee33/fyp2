@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../Customer/widgets/customer_refresh.dart';
@@ -97,6 +98,7 @@ class _InboxState extends State<ChatInboxScreen> {
       context,
       MaterialPageRoute(
         builder: (_) => ConversationScreen(
+          customer: widget.customer,
           conversationId: conversationId,
           providerId: providerId,
           service: _service,
@@ -142,7 +144,8 @@ class _InboxState extends State<ChatInboxScreen> {
     AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
-      child: Scaffold(
+      child: CustomerScaffold(
+        enabled: widget.customer,
         backgroundColor: const Color(0xFFF5F5F5),
         appBar: AppBar(title: Text(tr('Chats'))),
         body: Column(
@@ -175,11 +178,14 @@ class _InboxState extends State<ChatInboxScreen> {
             ),
             Expanded(
               child: CustomerRefresh(
+                customer: widget.customer,
                 onRefresh: _load,
                 child: ListView(
-                  physics: const ClampingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
-                  ),
+                  physics: widget.customer
+                      ? customerScrollPhysics(context)
+                      : const ClampingScrollPhysics(
+                          parent: AlwaysScrollableScrollPhysics(),
+                        ),
                   children: [
                     if (_loading)
                       const Center(child: CircularProgressIndicator()),

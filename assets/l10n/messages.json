@@ -3712,7 +3712,7 @@
     "Trend mingguan"
   ],
   "Welcome to Home Serve": [
-    "欢迎使用Home Serve",
+    "欢迎使用 Home Serve",
     "Selamat datang ke Home Serve"
   ],
   "Were they professional? Was the issue fixed?": [
@@ -4482,5 +4482,253 @@
   "Allow Home Serve notifications in your phone settings. If alerts are unavailable, contact support.": [
     "请在手机设置中允许 Home Serve 发送通知。如果无法使用通知，请联系支持人员。",
     "Benarkan notifikasi Home Serve dalam tetapan telefon anda. Jika notifikasi tidak tersedia, hubungi sokongan."
+  ],
+  "Information you provide": [
+    "您提供的信息",
+    "Maklumat yang anda berikan"
+  ],
+  "Bookings and communication": [
+    "预约与沟通",
+    "Tempahan dan komunikasi"
+  ],
+  "Payments and receipts": [
+    "付款与收据",
+    "Pembayaran dan resit"
+  ],
+  "Technology that supports the service": [
+    "服务使用的技术",
+    "Teknologi yang menyokong perkhidmatan"
+  ],
+  "Permissions and your choices": [
+    "权限与您的选择",
+    "Kebenaran dan pilihan anda"
+  ],
+  "Managing your information": [
+    "管理您的信息",
+    "Mengurus maklumat anda"
+  ],
+  "Privacy questions": [
+    "隐私问题",
+    "Pertanyaan privasi"
+  ],
+  "Household services, organised": [
+    "轻松管理家居服务",
+    "Perkhidmatan rumah yang teratur"
+  ],
+  "From request to completion": [
+    "从预约到服务完成",
+    "Daripada permintaan hingga selesai"
+  ],
+  "Help when you need it": [
+    "在您需要时提供帮助",
+    "Bantuan apabila diperlukan"
+  ],
+  "AI assistance, with you in control": [
+    "由您掌控的 AI 助手",
+    "Bantuan AI dalam kawalan anda"
+  ],
+  "Your information and choices": [
+    "您的信息与选择",
+    "Maklumat dan pilihan anda"
+  ],
+  "This notice explains how information is used across Home Serve and where you can manage it.": [
+    "本说明介绍 Home Serve 如何使用信息，以及您可以在哪里管理这些信息。",
+    "Notis ini menerangkan penggunaan maklumat dalam Home Serve dan tempat anda boleh mengurusnya."
+  ],
+  "A simpler way to find and manage help for your home.": [
+    "更轻松地寻找并管理家居服务。",
+    "Cara lebih mudah untuk mencari dan mengurus bantuan untuk kediaman anda."
+  ],
+  "How can we help?": [
+    "有什么可以帮您？",
+    "Bagaimanakah kami boleh membantu?"
+  ],
+  "Contact support": [
+    "联系支持团队",
+    "Hubungi sokongan"
+  ],
+  "Before you send": [
+    "发送前须知",
+    "Sebelum menghantar"
+  ],
+  "Booking and payment help": [
+    "预约与付款帮助",
+    "Bantuan tempahan dan pembayaran"
+  ],
+  "Account and privacy help": [
+    "账户与隐私帮助",
+    "Bantuan akaun dan privasi"
+  ],
+  "Your support requests": [
+    "您的支持请求",
+    "Permintaan sokongan anda"
+  ],
+  "No support requests yet. Your messages and support responses will appear here.": [
+    "暂无支持请求。您的消息和支持团队的回复将显示在这里。",
+    "Belum ada permintaan sokongan. Mesej anda dan respons sokongan akan dipaparkan di sini."
+  ],
+  "Photos (optional)": [
+    "照片（可选）",
+    "Foto (pilihan)"
+  ],
+  "Choose photo": [
+    "选择照片",
+    "Pilih foto"
+  ],
+  "Take photo": [
+    "拍摄照片",
+    "Ambil foto"
+  ],
+  "Support request": [
+    "支持请求",
+    "Permintaan sokongan"
+  ],
+  "Support response": [
+    "支持团队回复",
+    "Respons sokongan"
+  ],
+  "Your request is waiting for review. Pull down to check for updates.": [
+    "您的请求正在等待审核。下拉查看更新。",
+    "Permintaan anda menunggu semakan. Tarik ke bawah untuk menyemak kemas kini."
+  ],
+  "Sending request…": [
+    "正在发送请求…",
+    "Menghantar permintaan…"
+  ],
+  "Retry sending": [
+    "重试发送",
+    "Cuba hantar semula"
+  ],
+  "Send request": [
+    "发送请求",
+    "Hantar permintaan"
+  ],
+  "Choose up to 3 photos.": [
+    "最多选择 3 张照片。",
+    "Pilih sehingga 3 foto."
+  ],
+  "Sign in to send a support request.": [
+    "请登录以发送支持请求。",
+    "Log masuk untuk menghantar permintaan sokongan."
+  ],
+  "Support request not found.": [
+    "找不到支持请求。",
+    "Permintaan sokongan tidak ditemui."
+  ],
+  "Check the subject, description and photo count.": [
+    "请检查主题、描述和照片数量。",
+    "Semak tajuk, penerangan dan bilangan foto."
+  ],
+  "This request cannot be changed after sending starts.": [
+    "开始发送后，无法更改此请求。",
+    "Permintaan ini tidak boleh diubah selepas penghantaran bermula."
+  ],
+  "This booking already has an open support request.": [
+    "此预约已有待处理的支持请求。",
+    "Tempahan ini sudah mempunyai permintaan sokongan yang terbuka."
+  ],
+  "You have reached the daily support request limit. Please try again later.": [
+    "您已达到每日支持请求上限。请稍后重试。",
+    "Anda telah mencapai had harian permintaan sokongan. Sila cuba lagi kemudian."
+  ],
+  "This draft has expired. Start a new request.": [
+    "此草稿已过期。请新建请求。",
+    "Draf ini telah tamat tempoh. Mulakan permintaan baharu."
+  ],
+  "Finish uploading every photo before sending.": [
+    "请上传所有照片后再发送。",
+    "Selesaikan muat naik semua foto sebelum menghantar."
+  ],
+  "Tell us what you need help with. Include enough detail for our support team to understand your question.": [
+    "请告诉我们您需要什么帮助，并提供足够的细节，让支持团队了解您的问题。",
+    "Beritahu kami bantuan yang diperlukan. Sertakan butiran yang mencukupi supaya pasukan sokongan memahami pertanyaan anda."
+  ],
+  "This request will include your booking reference so our support team can investigate the right service.": [
+    "此请求会附上预约编号，以便支持团队核查对应的服务。",
+    "Permintaan ini akan menyertakan rujukan tempahan supaya pasukan sokongan boleh menyiasat perkhidmatan yang betul."
+  ],
+  "Send a question or describe a problem. Our support team can review your message and photos. Check your requests below for updates.": [
+    "发送问题或描述遇到的情况。支持团队可以查看您的消息和照片。请在下方查看请求的最新进展。",
+    "Hantar pertanyaan atau terangkan masalah. Pasukan sokongan boleh menyemak mesej dan foto anda. Semak permintaan di bawah untuk kemas kini."
+  ],
+  "Open Booking Details to contact your provider or request support linked to that booking. Wait for provider acceptance before paying. A chat message alone does not reserve a time slot.": [
+    "打开预约详情以联系服务商，或提交与该预约关联的支持请求。请在服务商接受后付款。仅发送聊天消息不会保留时段。",
+    "Buka Butiran Tempahan untuk menghubungi penyedia atau meminta sokongan berkaitan tempahan. Tunggu penerimaan penyedia sebelum membayar. Mesej sembang sahaja tidak menempah slot masa."
+  ],
+  "Use Profile & Preferences to update your details and Account & Security to manage your sign-in or request account deletion. Contact support here if you need help accessing or correcting your information.": [
+    "在个人资料与偏好中更新信息，在账户与安全中管理登录或申请删除账户。如需帮助访问或更正信息，请在此联系支持团队。",
+    "Gunakan Profil & Keutamaan untuk mengemas kini butiran dan Akaun & Keselamatan untuk mengurus log masuk atau memohon pemadaman akaun. Hubungi sokongan di sini untuk bantuan mengakses atau membetulkan maklumat anda."
+  ],
+  "For immediate danger or a medical emergency, contact local emergency services. Support requests are not an emergency service.": [
+    "如遇紧急危险或医疗急症，请联系当地紧急服务。支持请求不属于紧急救援服务。",
+    "Jika terdapat bahaya segera atau kecemasan perubatan, hubungi perkhidmatan kecemasan tempatan. Permintaan sokongan bukan perkhidmatan kecemasan."
+  ],
+  "Add up to 3 photos, 5 MB each. Do not include passwords, payment card details or identity documents.": [
+    "最多添加 3 张照片，每张不超过 5 MB。请勿包含密码、支付卡详情或身份证件。",
+    "Tambah sehingga 3 foto, setiap satu 5 MB. Jangan sertakan kata laluan, butiran kad pembayaran atau dokumen pengenalan."
+  ],
+  "Your request and photos are available to you and authorised administrators. Responses appear in Help Centre.": [
+    "您的请求和照片仅供您和获授权的管理员查看。回复会显示在帮助中心。",
+    "Permintaan dan foto anda tersedia kepada anda dan pentadbir yang diberi kuasa. Respons dipaparkan dalam Pusat Bantuan."
+  ],
+  "Your request has not been confirmed. Retry with the same details, or check Help Centre before starting another request.": [
+    "尚未确认请求是否成功提交。请使用相同内容重试，或先查看帮助中心，再新建请求。",
+    "Permintaan anda belum disahkan. Cuba semula dengan butiran yang sama, atau semak Pusat Bantuan sebelum memulakan permintaan lain."
+  ],
+  "Home Serve uses your account and contact details to maintain your account. Service addresses, booking instructions, messages, reviews and the photos you choose to upload support the features you use. Birthday and gender are optional profile details.": [
+    "Home Serve 使用您的账户和联系方式来维护账户。服务地址、预约说明、消息、评价及您选择上传的照片用于支持您使用的功能。生日和性别属于可选资料。",
+    "Home Serve menggunakan butiran akaun dan hubungan untuk menyelenggara akaun anda. Alamat perkhidmatan, arahan tempahan, mesej, ulasan dan foto yang anda pilih untuk dimuat naik menyokong ciri yang digunakan. Tarikh lahir dan jantina ialah butiran profil pilihan."
+  ],
+  "Providers receive the information needed to discuss and fulfil your booking, including its service address and the messages you send them. Your optional birthday and gender are not included in the provider profile view. Support messages and support photos are available to you and authorised administrators.": [
+    "服务商会收到沟通及履行预约所需的信息，包括服务地址和您发送的消息。可选的生日和性别不会显示在服务商可见的资料中。支持消息和照片仅供您及获授权的管理员查看。",
+    "Penyedia menerima maklumat yang diperlukan untuk membincangkan dan melaksanakan tempahan, termasuk alamat perkhidmatan dan mesej anda. Tarikh lahir dan jantina pilihan tidak dipaparkan dalam paparan profil penyedia. Mesej dan foto sokongan tersedia kepada anda dan pentadbir yang diberi kuasa."
+  ],
+  "Payment details are entered through Stripe. Home Serve records payment references, amounts and status to manage bookings and receipts; it does not collect your full payment card details in the app. The email address supplied during checkout may be used to deliver your receipt.": [
+    "付款详情通过 Stripe 输入。Home Serve 记录付款编号、金额和状态，以管理预约与收据；应用内不会收集完整的支付卡资料。结账时提供的电子邮箱可用于发送收据。",
+    "Butiran pembayaran dimasukkan melalui Stripe. Home Serve merekodkan rujukan, amaun dan status pembayaran untuk mengurus tempahan dan resit; aplikasi tidak mengumpulkan butiran penuh kad pembayaran. Alamat e-mel semasa pembayaran boleh digunakan untuk menghantar resit."
+  ],
+  "Home Serve uses Supabase for account, database and file services, Firebase for supported phone notifications, and email services for transactional messages. When you use the AI assistant, your messages and selected attachments are processed to generate a response. Avoid including sensitive personal information in AI conversations.": [
+    "Home Serve 使用 Supabase 提供账户、数据库及文件服务，使用 Firebase 提供支持的手机通知，并使用电子邮件服务发送交易消息。使用 AI 助手时，您的消息和所选附件会被处理以生成回复。请避免在 AI 对话中提供敏感个人信息。",
+    "Home Serve menggunakan Supabase untuk perkhidmatan akaun, pangkalan data dan fail, Firebase untuk pemberitahuan telefon yang disokong, serta perkhidmatan e-mel untuk mesej transaksi. Apabila menggunakan pembantu AI, mesej dan lampiran pilihan anda diproses untuk menjana respons. Elakkan maklumat peribadi sensitif dalam perbualan AI."
+  ],
+  "Camera, photo library, location and notification permissions support the features you choose to use. You can change these permissions in your device settings. Disabling a permission may limit its related feature. You can also enter a service address manually.": [
+    "相机、照片库、位置及通知权限用于支持您选择的功能。您可以在设备设置中更改这些权限。关闭权限可能限制相应功能。您也可以手动输入服务地址。",
+    "Kebenaran kamera, pustaka foto, lokasi dan pemberitahuan menyokong ciri yang anda pilih. Anda boleh menukarnya dalam tetapan peranti. Menyahaktifkan kebenaran mungkin mengehadkan ciri berkaitan. Anda juga boleh memasukkan alamat perkhidmatan secara manual."
+  ],
+  "You can update your details in Profile & Preferences, manage saved addresses, and request account deletion from Account & Security. Clearing a chat removes your visible history, not the other participant’s copy. Booking, payment and support records may need to remain available for transaction history, dispute handling and applicable obligations.": [
+    "您可以在个人资料与偏好中更新信息，管理已保存的地址，并在账户与安全中申请删除账户。清除聊天只会移除您可见的记录，不会删除对方的副本。为保留交易历史、处理争议及履行适用义务，预约、付款和支持记录可能需要继续保留。",
+    "Anda boleh mengemas kini butiran dalam Profil & Keutamaan, mengurus alamat tersimpan dan memohon pemadaman akaun melalui Akaun & Keselamatan. Mengosongkan sembang membuang sejarah yang anda lihat, bukan salinan peserta lain. Rekod tempahan, pembayaran dan sokongan mungkin perlu dikekalkan untuk sejarah transaksi, pengendalian pertikaian dan kewajipan yang berkenaan."
+  ],
+  "Contact support through Help Centre to ask about your information, request a correction or raise a privacy concern. Include the relevant account or booking context, but never send passwords, verification codes or full payment card details.": [
+    "如需查询个人信息、申请更正或提出隐私问题，请通过帮助中心联系支持团队。请提供相关账户或预约背景，但切勿发送密码、验证码或完整支付卡资料。",
+    "Hubungi sokongan melalui Pusat Bantuan untuk bertanya tentang maklumat anda, meminta pembetulan atau mengemukakan kebimbangan privasi. Sertakan konteks akaun atau tempahan yang berkaitan, tetapi jangan hantar kata laluan, kod pengesahan atau butiran penuh kad pembayaran."
+  ],
+  "Home Serve brings service discovery, provider communication and booking management together. Explore available services, compare provider information and customer reviews, and choose a service that fits your needs.": [
+    "Home Serve 集服务探索、服务商沟通和预约管理于一体。浏览可用服务，比较服务商信息与客户评价，并选择适合您需求的服务。",
+    "Home Serve menggabungkan pencarian perkhidmatan, komunikasi penyedia dan pengurusan tempahan. Terokai perkhidmatan tersedia, bandingkan maklumat penyedia serta ulasan pelanggan dan pilih perkhidmatan yang memenuhi keperluan anda."
+  ],
+  "Choose your service address and an available appointment, then submit a booking request. Once the provider accepts, complete payment within the time shown in Booking Details. Follow progress in the app and share a review after your service is completed.": [
+    "选择服务地址及可用时段，然后提交预约请求。服务商接受后，请在预约详情显示的期限内完成付款。在应用中跟进进度，并在服务完成后分享评价。",
+    "Pilih alamat perkhidmatan dan janji temu yang tersedia, kemudian hantar permintaan tempahan. Selepas penyedia menerima, selesaikan pembayaran dalam masa yang dipaparkan dalam Butiran Tempahan. Ikuti perkembangan dalam aplikasi dan kongsi ulasan selepas perkhidmatan selesai."
+  ],
+  "Use Chat to discuss service details with your provider. For a booking issue, submit a linked support request from Booking Details. Help Centre handles general questions and lets you follow the status of your requests and read support responses.": [
+    "使用聊天与服务商讨论服务详情。如有预约问题，请从预约详情提交关联的支持请求。帮助中心处理一般问题，并让您查看请求状态和支持回复。",
+    "Gunakan Sembang untuk membincangkan butiran perkhidmatan dengan penyedia. Untuk isu tempahan, hantar permintaan sokongan berkaitan melalui Butiran Tempahan. Pusat Bantuan mengendalikan pertanyaan umum serta membolehkan anda mengikuti status permintaan dan membaca respons sokongan."
+  ],
+  "Home Serve AI can help you explore services and plan a booking. AI responses can be inaccurate. Review the provider, price, address and appointment details before confirming any booking or payment.": [
+    "Home Serve AI 可帮助您探索服务并规划预约。AI 回复可能不准确。在确认任何预约或付款前，请核对服务商、价格、地址及预约时间。",
+    "Home Serve AI boleh membantu anda menerokai perkhidmatan dan merancang tempahan. Respons AI mungkin tidak tepat. Semak penyedia, harga, alamat dan butiran janji temu sebelum mengesahkan sebarang tempahan atau pembayaran."
+  ],
+  "Awaiting administrator review.": [
+    "等待管理员审核。",
+    "Menunggu semakan pentadbir."
+  ],
+  "This photo could not be read. Choose another photo.": [
+    "无法读取此照片。请选择另一张照片。",
+    "Foto ini tidak dapat dibaca. Pilih foto lain."
+  ],
+  "Use no more than {0} characters.": [
+    "请勿超过 {0} 个字符。",
+    "Gunakan tidak lebih daripada {0} aksara."
   ]
 }

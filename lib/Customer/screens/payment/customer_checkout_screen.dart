@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_status.dart';
 import 'dart:async';
@@ -194,7 +195,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
             ].contains(booking.status) ||
             paid);
     final error = _checkoutError ?? _statusError;
-    return Scaffold(
+    return CustomerScaffold(
       appBar: AppBar(title: Text(tr('Payment'))),
       body: booking == null && _loading
           ? const Center(child: CircularProgressIndicator())

@@ -286,7 +286,7 @@ void main() {
     'registration': () => const CustomerRegisterScreen(),
     'reset': () => CustomerForgotPasswordScreen(service: Recovery()),
   }.entries) {
-    testWidgets('${entry.key} form does not overscroll at the top', (t) async {
+    testWidgets('${entry.key} form bounces at the top without a second stretch effect', (t) async {
       fixture.pixel(t);
       await t.pumpWidget(fixture.app(entry.value()));
       expect(find.byType(StretchingOverscrollIndicator), findsNothing);
@@ -306,14 +306,14 @@ void main() {
       await t.pump();
       await gesture.moveBy(const Offset(0, 100));
       await t.pump(const Duration(milliseconds: 100));
-      expect(position.pixels, 0);
+      expect(position.pixels, lessThan(0));
       await gesture.up();
       await t.pumpAndSettle();
       expect(t.takeException(), isNull);
     });
   }
   testWidgets(
-    'signed-in change password stays within its full-height viewport',
+    'signed-in change password bounces inside its full-height viewport',
     (t) async {
       fixture.pixel(t);
       await t.pumpWidget(
@@ -341,7 +341,7 @@ void main() {
       await t.pump();
       await gesture.moveBy(const Offset(0, 80));
       await t.pump(const Duration(milliseconds: 100));
-      expect(position.pixels, 0);
+      expect(position.pixels, lessThan(0));
       await gesture.up();
       await t.ensureVisible(find.text('Confirm change password'));
       await t.pumpAndSettle();

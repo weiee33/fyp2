@@ -83,6 +83,10 @@ if ($path==='/storage/v1/object/category-icons' && $method==='DELETE') {
     if (!$verified || empty($body['prefixes'])) { respond(['message'=>'Verified cleanup required'],403); }
     respond([]);
 }
+if (str_starts_with($path,'/storage/v1/object/sign/support-photos/') && $method==='POST') {
+    if (($body['expiresIn'] ?? null)!==60) { respond(['message'=>'Invalid expiry'],400); }
+    respond(['signedURL'=>str_replace('/storage/v1','',$path).'?token=fixture-support-token']);
+}
 if ($path === '/storage/v1/object/sign/certifications/fake.pdf' && $method === 'POST') {
     if (!$verified || ($body['expiresIn'] ?? null)!==60) { respond(['message'=>'Short-lived verified access required'],403); }
     respond(['signedURL'=>'/object/sign/certifications/fake.pdf?token=fixture-signed-token']);
@@ -104,7 +108,7 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
             'categories'=>[['category_id'=>$record,'category_name'=>'Plumbing','description'=>'Household plumbing','icon_url'=>null,'color_code'=>'#F97316','parent_category_id'=>null,'parent_name'=>null,'display_order'=>1,'is_active'=>true,'status'=>'Active','service_count'=>3,'created_at'=>'2026-10-01T00:00:00+00:00','version'=>$version]],
             'bookings'=>array_map('booking',$page===1?range(1,20):($page===2?[21]:[])),
             'reviews'=>[['review_id'=>$record,'booking_id'=>$record,'customer_name'=>'Test Customer','provider_name'=>'Fixture Plumbing','rating_score'=>4,'review_comment'=>'Helpful service','is_flagged'=>true,'moderation_status'=>'visible','status'=>'Flagged','created_at'=>'2026-10-01T00:00:00+00:00','version'=>$version]],
-            'disputes'=>[['dispute_id'=>$record,'booking_id'=>$record,'opened_by_name'=>'Test Customer','subject'=>'Service incomplete','description'=>'The booked service was not completed.','status'=>'Open','created_at'=>'2026-10-01T00:00:00+00:00','version'=>$version]],
+            'disputes'=>[['dispute_id'=>$record,'booking_id'=>null,'opened_by_name'=>'Test Customer','subject'=>'Service incomplete','description'=>'The booked service was not completed.','status'=>'Open','created_at'=>'2026-10-01T00:00:00+00:00','version'=>$version]],
             'refunds'=>[['refund_id'=>$record,'booking_id'=>$record,'payment_id'=>$record,'amount'=>'80.00','reason'=>'Service cancellation by provider','status'=>'Requested','created_at'=>'2026-10-01T00:00:00+00:00']],
             'audit'=>[['log_id'=>$record,'actor_name'=>'Test Administrator','actor_role'=>'admin','action'=>'provider_verify','status'=>'provider_verify','target_table'=>'provider_profiles','target_id'=>$record,'old_values'=>['verification_status'=>'Pending'],'new_values'=>['verification_status'=>'Verified'],'created_at'=>'2026-10-01T00:00:00+00:00']],
             default=>[],
@@ -120,7 +124,7 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
             'categories'=>['category_id'=>$record,'category_name'=>'Plumbing','description'=>'Household plumbing','color_code'=>'#F97316','parent_category_id'=>null,'display_order'=>1,'is_active'=>true],
             'bookings'=>booking(1)+['payment'=>['payment_id'=>$record,'payment_status'=>'Success','payment_amount'=>'80.00','payment_method'=>'FPX','fpx_transaction_ref'=>'FPX-FIXTURE','payment_timestamp'=>'2026-10-01T00:00:00+00:00','escrow_held'=>true,'receipt_url'=>null],'history'=>[['previous_status'=>null,'new_status'=>'Pending','created_at'=>'2026-10-01T00:00:00+00:00','notes'=>'Booked by customer']],'disputes'=>[],'customer_address'=>'Petaling Jaya','special_instructions'=>'Fix leaking tap'],
             'reviews'=>['review_id'=>$record,'booking_id'=>$record,'rating_score'=>4,'review_comment'=>'Helpful service','is_flagged'=>true,'is_verified_booking'=>true,'flag_reason'=>'Potential spam','moderation_status'=>'visible','moderation_reason'=>null],
-            'disputes'=>['dispute_id'=>$record,'booking_id'=>$record,'subject'=>'Service incomplete','description'=>'The booked service was not completed.','status'=>'Open','resolution'=>null,'resolved_at'=>null],
+            'disputes'=>['attachment_paths'=>[$record.'/'.$record.'/0'],'dispute_id'=>$record,'booking_id'=>null,'subject'=>'Service incomplete','description'=>'The booked service was not completed.','status'=>'Open','resolution'=>null,'resolved_at'=>null],
             default=>[],
         };
         if ($resource==='providers' && !empty($fixtureState['expired_verified_certificate'])) {

@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'dart:typed_data';
@@ -245,7 +246,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
     AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
-      child: Scaffold(
+      child: CustomerScaffold(
         backgroundColor: CustomerTheme.background,
         appBar: AppBar(
           title: Text(tr('Rate Service')),
@@ -330,9 +331,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
           Expanded(
             child: ListView(
               padding: const EdgeInsets.all(24),
-              physics: const ClampingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
+              physics: customerScrollPhysics(context),
               children: [
                 // Header
                 Center(

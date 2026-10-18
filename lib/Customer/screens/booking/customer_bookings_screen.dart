@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_status.dart';
 import '../../widgets/customer_unread_badge.dart';
@@ -74,7 +75,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Scaffold(
+    return CustomerScaffold(
       appBar: AppBar(
         title: Text(tr('My Bookings')),
         actions: [CustomerChatButton(enabled: _transactions.usesLiveBackend)],
@@ -82,9 +83,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
       body: CustomerRefresh(
         onRefresh: () => _load(reset: true),
         child: ListView(
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
+          physics: customerScrollPhysics(context),
           padding: EdgeInsets.fromLTRB(
             16,
             16,

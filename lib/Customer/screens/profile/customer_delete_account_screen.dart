@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/customer_account_service.dart';
@@ -74,12 +75,10 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
     AppLanguage.watch(context);
     return PopScope(
       canPop: !_busy,
-      child: Scaffold(
+      child: CustomerScaffold(
         appBar: AppBar(title: Text(tr('Delete Your Account'))),
         body: ListView(
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
+          physics: customerScrollPhysics(context),
           padding: const EdgeInsets.all(20),
           children: [
             Center(

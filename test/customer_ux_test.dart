@@ -330,7 +330,7 @@ void main() {
               refreshed++;
             },
             child: ListView(
-              physics: const ClampingScrollPhysics(
+              physics: const BouncingScrollPhysics(
                 parent: AlwaysScrollableScrollPhysics(),
               ),
               children: const [Text('Short list')],

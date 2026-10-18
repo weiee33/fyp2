@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
@@ -91,12 +92,10 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
     AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
-      child: Scaffold(
+      child: CustomerScaffold(
         appBar: AppBar(title: Text(tr('Verify Account'))),
         body: ListView(
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
+          physics: customerScrollPhysics(context),
           padding: const EdgeInsets.all(24),
           children: [
             const SizedBox(height: 16),

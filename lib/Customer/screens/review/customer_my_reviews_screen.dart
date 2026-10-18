@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -93,7 +94,7 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
     AppLanguage.watch(context);
     return DefaultTabController(
       length: 2,
-      child: Scaffold(
+      child: CustomerScaffold(
         appBar: AppBar(
           title: Text(tr('Reviews')),
           bottom: TabBar(
@@ -307,9 +308,7 @@ class _CustomerMyReviewsScreenState extends State<CustomerMyReviewsScreen> {
     onRefresh: _reload,
     child: ListView(
       key: PageStorageKey(key),
-      physics: const ClampingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
+      physics: customerScrollPhysics(context),
       padding: const EdgeInsets.all(16),
       children: children,
     ),

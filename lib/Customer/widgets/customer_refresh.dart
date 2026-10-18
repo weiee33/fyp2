@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'customer_scaffold.dart';
 import '../../shared/app_scroll_behavior.dart';
 
 /// Refresh only from the top edge of the primary, forward vertical list.
@@ -7,16 +8,20 @@ class CustomerRefresh extends StatelessWidget {
   final Widget child;
   final Future<void> Function() onRefresh;
   final Color? color;
+  final bool customer;
   const CustomerRefresh({
     super.key,
     required this.child,
     required this.onRefresh,
     this.color,
+    this.customer = true,
   });
 
   @override
   Widget build(BuildContext context) => ScrollConfiguration(
-    behavior: const AppScrollBehavior(),
+    behavior: customer
+        ? const CustomerScrollBehavior()
+        : const AppScrollBehavior(),
     child: RefreshIndicator(
       color: color,
       onRefresh: onRefresh,

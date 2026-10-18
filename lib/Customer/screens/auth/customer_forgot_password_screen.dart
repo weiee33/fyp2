@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -167,7 +168,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
       data: CustomerTheme.lightTheme,
       child: PopScope(
         canPop: !_committing,
-        child: Scaffold(
+        child: CustomerScaffold(
           appBar: AppBar(
             title: Text(
               tr(
@@ -184,11 +185,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
             child: SizedBox.expand(
               child: SafeArea(
                 child: SingleChildScrollView(
-                  physics: widget.requireCurrentPassword
-                      ? const ClampingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        )
-                      : const ClampingScrollPhysics(),
+                  physics: customerScrollPhysics(context),
                   padding: const EdgeInsets.all(24),
                   child: Form(
                     key: _form,

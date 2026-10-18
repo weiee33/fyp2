@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -134,7 +135,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Scaffold(
+    return CustomerScaffold(
       backgroundColor: CustomerTheme.background,
       appBar: AppBar(title: Text(tr(_category ?? 'All Services'))),
       body: Column(
@@ -205,9 +206,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
               onRefresh: _fetch,
               child: ListView(
                 key: const PageStorageKey('service-results'),
-                physics: const ClampingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
+                physics: customerScrollPhysics(context),
                 padding: const EdgeInsets.all(16),
                 children: [
                   if (_loading && _services.isEmpty)
@@ -378,9 +377,7 @@ class _FilterSheetState extends State<_FilterSheet> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return SingleChildScrollView(
-      physics: const ClampingScrollPhysics(
-        parent: AlwaysScrollableScrollPhysics(),
-      ),
+      physics: customerScrollPhysics(context),
       padding: EdgeInsets.fromLTRB(
         20,
         20,

@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import '../../widgets/customer_selection_sheet.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_section.dart';
@@ -220,14 +221,12 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
               .toString(),
         ) ??
         0;
-    return Scaffold(
+    return CustomerScaffold(
       appBar: AppBar(title: Text(tr('Book Service'))),
       body: AbsorbPointer(
         absorbing: _saving,
         child: ListView(
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
+          physics: customerScrollPhysics(context),
           padding: const EdgeInsets.all(20),
           children: [
             BookingSection(

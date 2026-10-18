@@ -41,6 +41,7 @@ class NotificationDetailScreen extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (_) => ConversationScreen(
+                        customer: false,
                         conversationId: chatLink.substring(5),
                       ),
                     ),

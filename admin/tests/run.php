@@ -229,6 +229,18 @@ try {
             assertThat($entry['token']==='fixture-access-aal2' && $entry['body']['action_name']==='certificate_verify' && $entry['body']['expected_version']===$version && $entry['body']['payload']['verified']==='false','Credential revocation did not preserve authenticated versioned mutation semantics.');
         } finally { file_put_contents($runtime.'/fixture-state.json','{}'); }
     });
+    test('general support renders photos and signs only the selected attachment',function() use ($record,$environment): void {
+        $response=request('GET',['page'=>'disputes','id'=>$record]); expectStatus($response,200);
+        assertThat(str_contains($response['body'],'General support request'),'General support context missing.');
+        assertThat(str_contains($response['body'],'View attached photo 1'),'Photo link missing.');
+        $response=request('GET',['page'=>'support-photo','id'=>$record,'slot'=>'0']); expectStatus($response,303);
+        $path='/storage/v1/object/sign/support-photos/'.$record.'/'.$record.'/0';
+        assertThat(($response['headers']['location'][0]??'')===$environment['SUPABASE_URL'].$path.'?token=fixture-support-token','Photo did not use the trusted bucket.');
+        $entries=logs($path);
+        assertThat(end($entries)['token']==='fixture-access-aal2','Photo signing did not use the MFA session.');
+        foreach(['../0','3','-1'] as $slot) { expectStatus(request('GET',['page'=>'support-photo','id'=>$record,'slot'=>$slot]),400); }
+        expectStatus(request('GET',['page'=>'support-photo','id'=>$record,'slot'=>'1']),404);
+    });
     test('credential document uses a 60-second authenticated storage link',function() use ($record,$environment): void {
         $response=request('GET',['page'=>'document','id'=>$record]); expectStatus($response,303);
         assertThat(($response['headers']['location'][0]??'')===$environment['SUPABASE_URL'].'/storage/v1/object/sign/certifications/fake.pdf?token=fixture-signed-token','Document redirect does not use the trusted bucket.');

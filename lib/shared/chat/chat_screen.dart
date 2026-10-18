@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,6 +14,7 @@ import 'chat_service.dart';
 class ConversationScreen extends StatefulWidget {
   final String? conversationId, providerId, bookingId;
   final ChatService? service;
+  final bool customer;
   final Future<XFile?> Function(ImageSource)? pickPhoto;
   const ConversationScreen({
     super.key,
@@ -21,6 +23,7 @@ class ConversationScreen extends StatefulWidget {
     this.bookingId,
     this.service,
     this.pickPhoto,
+    this.customer = true,
   });
   @override
   State<ConversationScreen> createState() => _ConversationState();
@@ -407,20 +410,22 @@ class _ConversationState extends State<ConversationScreen> {
     AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
-      child: Scaffold(
+      child: CustomerScaffold(
+        enabled: widget.customer,
         backgroundColor: const Color(0xFFF5F5F5),
         appBar: AppBar(
           title: Text(_name, overflow: TextOverflow.ellipsis),
           actions: [
-            // A reversed chat starts at its visual bottom. Use an explicit
-            // refresh action so browsing older/newer messages never reloads it.
-            IconButton(
-              tooltip: MaterialLocalizations.of(
-                context,
-              ).refreshIndicatorSemanticLabel,
-              onPressed: _loading ? null : (_id == null ? _start : _refresh),
-              icon: const Icon(Icons.refresh_rounded),
-            ),
+            if (!widget.customer)
+              // A reversed chat starts at its visual bottom. Use an explicit
+              // refresh action so browsing older/newer messages never reloads it.
+              IconButton(
+                tooltip: MaterialLocalizations.of(
+                  context,
+                ).refreshIndicatorSemanticLabel,
+                onPressed: _loading ? null : (_id == null ? _start : _refresh),
+                icon: const Icon(Icons.refresh_rounded),
+              ),
           ],
         ),
         body: SafeArea(
@@ -440,11 +445,14 @@ class _ConversationState extends State<ConversationScreen> {
                 child: _loading
                     ? const Center(child: CircularProgressIndicator())
                     : CustomerRefresh(
+                        customer: widget.customer,
                         onRefresh: _id == null ? _start : _refresh,
                         child: ListView.builder(
-                          physics: const ClampingScrollPhysics(
-                            parent: AlwaysScrollableScrollPhysics(),
-                          ),
+                          physics: widget.customer
+                              ? customerScrollPhysics(context)
+                              : const ClampingScrollPhysics(
+                                  parent: AlwaysScrollableScrollPhysics(),
+                                ),
                           controller: _scroll,
                           reverse: true,
                           padding: const EdgeInsets.all(12),

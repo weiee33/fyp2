@@ -569,51 +569,63 @@ void main() {
     expect(find.text('Kuala Lumpur'), findsOneWidget);
     expect(t.takeException(), isNull);
   });
-  testWidgets('chat refresh removes history cleared on another device', (
-    t,
-  ) async {
-    pixel(t);
-    var cleared = 0;
-    final service = ChatService(
-      rpc: (name, p) async {
-        if (name == 'chat_manage') return null;
-        if (name == 'chat_history')
-          return {
-            'peer_name': 'Provider',
-            'can_send': true,
-            'blocked': false,
-            'cleared_through': cleared,
-            'messages': [
-              {
-                'message_id': 2,
-                'body': 'New reply',
-                'is_mine': false,
-                'created_at': '2026-10-03T10:01:00Z',
-              },
-              if (cleared == 0)
+  testWidgets(
+    'customer chat resumes without a refresh icon and removes cleared history',
+    (t) async {
+      pixel(t);
+      var cleared = 0;
+      final service = ChatService(
+        rpc: (name, p) async {
+          if (name == 'chat_manage') return null;
+          if (name == 'chat_history')
+            return {
+              'peer_name': 'Provider',
+              'can_send': true,
+              'blocked': false,
+              'cleared_through': cleared,
+              'messages': [
                 {
-                  'message_id': 1,
-                  'body': 'Cleared old message',
-                  'is_mine': true,
-                  'created_at': '2026-10-03T10:00:00Z',
+                  'message_id': 2,
+                  'body': 'New reply',
+                  'is_mine': false,
+                  'created_at': '2026-10-03T10:01:00Z',
                 },
-            ],
-          };
-        throw StateError(name);
-      },
-    );
-    await t.pumpWidget(
-      app(ConversationScreen(conversationId: 'chat', service: service)),
-    );
-    await t.pumpAndSettle();
-    expect(find.text('Cleared old message'), findsOneWidget);
-    cleared = 1;
-    await t.tap(find.byIcon(Icons.refresh_rounded));
-    await t.pumpAndSettle();
-    expect(find.text('Cleared old message'), findsNothing);
-    expect(find.text('New reply'), findsOneWidget);
-    expect(t.takeException(), isNull);
-  });
+                if (cleared == 0)
+                  {
+                    'message_id': 1,
+                    'body': 'Cleared old message',
+                    'is_mine': true,
+                    'created_at': '2026-10-03T10:00:00Z',
+                  },
+              ],
+            };
+          throw StateError(name);
+        },
+      );
+      await t.pumpWidget(
+        app(ConversationScreen(conversationId: 'chat', service: service)),
+      );
+      await t.pumpAndSettle();
+      expect(find.text('Cleared old message'), findsOneWidget);
+      cleared = 1;
+      expect(find.byIcon(Icons.refresh_rounded), findsNothing);
+      for (final state in [
+        AppLifecycleState.inactive,
+        AppLifecycleState.hidden,
+        AppLifecycleState.paused,
+        AppLifecycleState.hidden,
+        AppLifecycleState.inactive,
+        AppLifecycleState.resumed,
+      ]) {
+        t.binding.handleAppLifecycleStateChanged(state);
+      }
+      await t.pump(const Duration(milliseconds: 400));
+      await t.pumpAndSettle();
+      expect(find.text('Cleared old message'), findsNothing);
+      expect(find.text('New reply'), findsOneWidget);
+      expect(t.takeException(), isNull);
+    },
+  );
   for (final customer in [true, false]) {
     testWidgets(
       'chat swipe cards align and blocking is absent (customer=$customer)',

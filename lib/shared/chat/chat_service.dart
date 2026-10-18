@@ -139,8 +139,8 @@ class ChatUpdates extends WidgetsBindingObserver {
   Timer? _debounce, _poll;
   bool _closed = false;
   ChatUpdates(this.service, this.refresh, {this.conversationId}) {
-    if (!service.isLive) return;
     WidgetsBinding.instance.addObserver(this);
+    if (!service.isLive) return;
     _poll = Timer.periodic(const Duration(seconds: 20), (_) => _schedule());
     unawaited(_subscribe());
   }
@@ -181,7 +181,11 @@ class ChatUpdates extends WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed) {
       _schedule();
-      _poll ??= Timer.periodic(const Duration(seconds: 20), (_) => _schedule());
+      if (service.isLive)
+        _poll ??= Timer.periodic(
+          const Duration(seconds: 20),
+          (_) => _schedule(),
+        );
     } else {
       _poll?.cancel();
       _poll = null;
