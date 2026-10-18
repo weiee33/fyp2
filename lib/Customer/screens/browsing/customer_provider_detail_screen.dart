@@ -107,7 +107,7 @@ class _CustomerProviderDetailScreenState
       body: CustomerRefresh(
         onRefresh: _fetch,
         child: ListView(
-          physics: const BouncingScrollPhysics(
+          physics: const ClampingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),
           padding: const EdgeInsets.all(20),

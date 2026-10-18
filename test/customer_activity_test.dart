@@ -313,7 +313,7 @@ void main() {
     });
   }
   testWidgets(
-    'signed-in change password bounces inside a full-height viewport',
+    'signed-in change password stays within its full-height viewport',
     (t) async {
       fixture.pixel(t);
       await t.pumpWidget(
@@ -341,13 +341,14 @@ void main() {
       await t.pump();
       await gesture.moveBy(const Offset(0, 80));
       await t.pump(const Duration(milliseconds: 100));
-      expect(position.pixels, lessThan(0));
+      expect(position.pixels, 0);
+      await gesture.up();
+      await t.ensureVisible(find.text('Confirm change password'));
+      await t.pumpAndSettle();
       expect(
         find.text('Confirm change password').hitTestable(),
         findsOneWidget,
       );
-      await gesture.up();
-      await t.pumpAndSettle();
       expect(t.takeException(), isNull);
     },
   );

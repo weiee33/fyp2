@@ -409,7 +409,20 @@ class _ConversationState extends State<ConversationScreen> {
       data: CustomerTheme.lightTheme,
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F5F5),
-        appBar: AppBar(title: Text(_name, overflow: TextOverflow.ellipsis)),
+        appBar: AppBar(
+          title: Text(_name, overflow: TextOverflow.ellipsis),
+          actions: [
+            // A reversed chat starts at its visual bottom. Use an explicit
+            // refresh action so browsing older/newer messages never reloads it.
+            IconButton(
+              tooltip: MaterialLocalizations.of(
+                context,
+              ).refreshIndicatorSemanticLabel,
+              onPressed: _loading ? null : (_id == null ? _start : _refresh),
+              icon: const Icon(Icons.refresh_rounded),
+            ),
+          ],
+        ),
         body: SafeArea(
           child: Column(
             children: [
@@ -429,7 +442,7 @@ class _ConversationState extends State<ConversationScreen> {
                     : CustomerRefresh(
                         onRefresh: _id == null ? _start : _refresh,
                         child: ListView.builder(
-                          physics: const BouncingScrollPhysics(
+                          physics: const ClampingScrollPhysics(
                             parent: AlwaysScrollableScrollPhysics(),
                           ),
                           controller: _scroll,

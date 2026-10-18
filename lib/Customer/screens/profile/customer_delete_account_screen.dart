@@ -77,7 +77,7 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
       child: Scaffold(
         appBar: AppBar(title: Text(tr('Delete Your Account'))),
         body: ListView(
-          physics: const BouncingScrollPhysics(
+          physics: const ClampingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),
           padding: const EdgeInsets.all(20),

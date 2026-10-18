@@ -157,7 +157,7 @@ class _CustomerBookingDetailScreenState
       builder: (ctx) => AlertDialog(
         title: Text(tr('Request booking support')),
         content: SingleChildScrollView(
-          physics: const BouncingScrollPhysics(
+          physics: const ClampingScrollPhysics(
             parent: AlwaysScrollableScrollPhysics(),
           ),
           child: Form(
@@ -255,7 +255,7 @@ class _CustomerBookingDetailScreenState
           : CustomerRefresh(
               onRefresh: _load,
               child: ListView(
-                physics: const BouncingScrollPhysics(
+                physics: const ClampingScrollPhysics(
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 padding: const EdgeInsets.all(16),
