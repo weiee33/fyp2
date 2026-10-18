@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
@@ -136,9 +137,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             ),
             Expanded(
               child: ListView(
-                physics: const ClampingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
+                physics: customerScrollPhysics(context),
                 children: [
                   if (_addresses.isEmpty)
                     Padding(
@@ -208,7 +207,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Scaffold(
+    return CustomerScaffold(
       backgroundColor: CustomerTheme.background,
       body: CustomerRefresh(
         onRefresh: _load,
@@ -217,9 +216,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             top: MediaQuery.paddingOf(context).top,
             bottom: CustomerNavInsets.bottomOf(context),
           ),
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
+          physics: customerScrollPhysics(context),
           children: [
             _header(),
             if (_loading) const LinearProgressIndicator(),

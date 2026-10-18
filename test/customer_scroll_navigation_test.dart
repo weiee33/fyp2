@@ -17,7 +17,7 @@ import 'customer_ui_polish_test.dart' as home;
 import 'customer_ux_test.dart' as ux;
 import 'customer_workflow_test.dart' as booking;
 
-const physics = ClampingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
+const physics = BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics());
 
 class LongHome extends home.HomeFixture {
   LongHome(super.client);
@@ -55,7 +55,7 @@ void main() {
   });
 
   testWidgets(
-    'long drag at bottom never refreshes or moves beyond bounds; top refresh stays single flight',
+    'long drag at bottom bounces without refreshing; top refresh stays single flight',
     (t) async {
       capture.pixel(t);
       final controller = ScrollController();
@@ -87,7 +87,7 @@ void main() {
       final gesture = await t.startGesture(const Offset(180, 500));
       await gesture.moveBy(const Offset(0, -350));
       await t.pump(const Duration(milliseconds: 800));
-      expect(controller.offset, controller.position.maxScrollExtent);
+      expect(controller.offset, greaterThan(controller.position.maxScrollExtent));
       expect(find.byType(StretchingOverscrollIndicator), findsNothing);
       await gesture.up();
       await t.pumpAndSettle(

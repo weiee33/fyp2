@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
@@ -85,14 +86,12 @@ class _ProfileState extends State<CustomerProfileScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     final photo = _profile?['profile_photo_url']?.toString() ?? '';
-    return Scaffold(
+    return CustomerScaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       body: CustomerRefresh(
         onRefresh: _load,
         child: ListView(
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
+          physics: customerScrollPhysics(context),
           padding: EdgeInsets.only(bottom: CustomerNavInsets.bottomOf(context)),
           children: [
             Container(
@@ -101,55 +100,76 @@ class _ProfileState extends State<CustomerProfileScreen> {
                 bottom: false,
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
-                  child: Column(
-                    children: [
-                      Column(
+                  child: InkWell(
+                    onTap: _profile == null ? null : _edit,
+                    borderRadius: BorderRadius.circular(20),
+                    child: Semantics(
+                      button: true,
+                      label: tr('Edit profile photo and personal details'),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          InkWell(
-                            onTap: _profile == null ? null : _edit,
-                            child: Semantics(
-                              button: true,
-                              label: tr(
-                                'Edit profile photo and personal details',
-                              ),
-                              child: CircleAvatar(
-                                radius: 34,
-                                backgroundColor: Colors.white,
-                                backgroundImage: photo.isEmpty
-                                    ? null
-                                    : NetworkImage(photo),
-                                child: photo.isEmpty
-                                    ? const Icon(
-                                        Icons.person,
-                                        color: CustomerTheme.primary,
-                                        size: 42,
-                                      )
-                                    : null,
-                              ),
-                            ),
+                          CircleAvatar(
+                            radius: 36,
+                            backgroundColor: Colors.white,
+                            backgroundImage: photo.isEmpty
+                                ? null
+                                : NetworkImage(photo),
+                            child: photo.isEmpty
+                                ? const Icon(
+                                    Icons.person_outline_rounded,
+                                    color: CustomerTheme.primary,
+                                    size: 42,
+                                  )
+                                : null,
                           ),
-                          const SizedBox(height: 12),
-                          InkWell(
-                            onTap: _profile == null ? null : _edit,
+                          const SizedBox(width: 18),
+                          Expanded(
                             child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   _profile?['full_name']?.toString() ??
                                       tr('My account'),
-                                  textAlign: TextAlign.center,
                                   style: const TextStyle(
                                     color: Colors.white,
-                                    fontSize: 22,
+                                    fontSize: 24,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
+                                if ((_profile?['email']?.toString() ?? '')
+                                    .isNotEmpty) ...[
+                                  const SizedBox(height: 7),
+                                  Text(
+                                    maskedEmail(_profile!['email'].toString()),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
+                                if ((_profile?['phone']?.toString() ?? '')
+                                    .isNotEmpty) ...[
+                                  const SizedBox(height: 5),
+                                  Text(
+                                    maskedPhone(_profile!['phone'].toString()),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                ],
                               ],
                             ),
                           ),
+                          const SizedBox(width: 8),
+                          const Icon(
+                            Icons.chevron_right_rounded,
+                            color: Colors.white,
+                          ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
@@ -177,10 +197,18 @@ class _ProfileState extends State<CustomerProfileScreen> {
                             'Bookings',
                             const CustomerBookingsScreen(),
                           ),
+                          const SizedBox(
+                            height: 42,
+                            child: VerticalDivider(width: 1),
+                          ),
                           _shortcut(
                             Icons.rate_review_outlined,
                             'Reviews',
                             const CustomerMyReviewsScreen(),
+                          ),
+                          const SizedBox(
+                            height: 42,
+                            child: VerticalDivider(width: 1),
                           ),
                           _shortcut(
                             Icons.chat_bubble_outline,

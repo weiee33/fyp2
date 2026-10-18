@@ -10,6 +10,7 @@ $publicPages = ['login','signup','verify-email','forgot','callback'];
 $resources = ['users','providers','categories','bookings','reviews','disputes','refunds','audit'];
 $titles = ['dashboard'=>'Overview','users'=>'User management','providers'=>'Provider verification','categories'=>'Service categories','bookings'=>'Bookings & orders','reviews'=>'Review moderation','disputes'=>'Disputes','refunds'=>'Refund requests','analytics'=>'Analytics & reports','audit'=>'Audit trail','login'=>'Welcome back','signup'=>'Activate admin account','mfa'=>'Verify your identity','forgot'=>'Reset your password','reset'=>'Choose a new password','callback'=>'Account verification','document'=>'Credential document'];
 $redirect = static function(string $destination): never { header('Location: ' . $destination, true, 303); exit; };
+$titles['support-photo'] = 'Support photo';
 $titles['verify-email'] = 'Verify your email';
 try {
     $config = new Config(dirname(__DIR__));
@@ -66,6 +67,17 @@ try {
     if ($page === 'callback') { $auth->callback((string)($_GET['code'] ?? '')); $redirect(url('mfa')); }
     if (!in_array($page,$publicPages,true)) {
         $admin = $auth->requireSession($page !== 'mfa');
+        if ($page === 'support-photo') {
+            $record=$api->rpc('admin_detail',['resource'=>'disputes','record_id'=>Security::uuid((string)($_GET['id'] ?? ''))]);
+            $slot=(string)($_GET['slot'] ?? '');
+            if (!preg_match('/^[0-2]$/',$slot)) { throw new ApiException(400,'Invalid photo.'); }
+            $path=$record['attachment_paths'][(int)$slot] ?? null;
+            if (!is_string($path) || !preg_match('~^[a-f0-9-]{36}/[a-f0-9-]{36}/[0-2]$~',$path)) { throw new ApiException(404,'Photo not found.'); }
+            $signed=$api->request('POST','/storage/v1/object/sign/support-photos/'.$path,['expiresIn'=>60],$_SESSION['auth']['access_token']);
+            $signedPath=$signed['signedURL'] ?? $signed['signedUrl'] ?? '';
+            if (!str_starts_with($signedPath,'/object/sign/support-photos/')) { throw new ApiException(502,'Unable to open this photo.'); }
+            $redirect($config->supabaseUrl.'/storage/v1'.$signedPath);
+        }
         if ($page === 'document') {
             $document=$api->rpc('admin_document',['record_id'=>Security::uuid((string)($_GET['id'] ?? ''))]);
             $path=$document['path'];   

@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import '../../widgets/customer_selection_sheet.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/account_widgets.dart';
@@ -343,7 +344,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
           });
         }
       },
-      child: Scaffold(
+      child: CustomerScaffold(
         backgroundColor: const Color(0xFFF5F5F5),
         appBar: AppBar(
           title: Text(tr('Edit Profile')),
@@ -357,9 +358,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
         body: _isSaving
             ? const Center(child: CircularProgressIndicator())
             : ListView(
-                physics: const ClampingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
+                physics: customerScrollPhysics(context),
                 padding: const EdgeInsets.all(10),
                 children: [
                   AccountGroup(

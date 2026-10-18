@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -97,7 +98,7 @@ class _CustomerSavedAddressesScreenState
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Scaffold(
+    return CustomerScaffold(
       appBar: AppBar(title: Text(tr('Saved Addresses'))),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _busy
@@ -133,9 +134,7 @@ class _CustomerSavedAddressesScreenState
           return CustomerRefresh(
             onRefresh: _reload,
             child: ListView(
-              physics: const ClampingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
+              physics: customerScrollPhysics(context),
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
               children: [
                 if (_busy) const LinearProgressIndicator(),

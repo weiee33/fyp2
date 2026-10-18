@@ -139,7 +139,7 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (_) => ConversationScreen(bookingId: widget.bookingId),
+                builder: (_) => ConversationScreen(customer: false, bookingId: widget.bookingId),
               ),
             ),
           ),

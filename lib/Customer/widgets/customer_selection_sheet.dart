@@ -1,3 +1,4 @@
+import 'customer_scaffold.dart';
 import 'package:flutter/material.dart';
 import '../../shared/localization/app_language.dart';
 import '../core/customer_theme.dart';
@@ -64,6 +65,7 @@ Future<T?> showCustomerSelection<T>({
               const SizedBox(height: 12),
               Flexible(
                 child: ListView.separated(
+                  physics: customerScrollPhysics(context),
                   shrinkWrap: true,
                   itemCount: choices.length,
                   separatorBuilder: (_, _) => const SizedBox(height: 10),

@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
 import '../../widgets/customer_refresh.dart';
@@ -169,9 +170,7 @@ class _CustomerNotificationScreenState
         builder: (context) => AlertDialog(
           title: Text(tr(notification['title']?.toString() ?? 'Notification')),
           content: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
+            physics: customerScrollPhysics(context),
             child: Text(tr(notification['message']?.toString() ?? '')),
           ),
           actions: [
@@ -201,15 +200,13 @@ class _CustomerNotificationScreenState
 
     return Theme(
       data: CustomerTheme.lightTheme,
-      child: Scaffold(
+      child: CustomerScaffold(
         backgroundColor: CustomerTheme.background,
         body: CustomerRefresh(
           color: CustomerTheme.primary,
           onRefresh: _fetchNotifications,
           child: CustomScrollView(
-            physics: const ClampingScrollPhysics(
-              parent: AlwaysScrollableScrollPhysics(),
-            ),
+            physics: customerScrollPhysics(context),
             slivers: [
               // Mobile-native Elastic AppBar
               SliverAppBar(
@@ -314,9 +311,7 @@ class _CustomerNotificationScreenState
       child: ListView.separated(
         padding: const EdgeInsets.symmetric(horizontal: 16),
         scrollDirection: Axis.horizontal,
-        physics: const ClampingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
+        physics: customerScrollPhysics(context),
         itemCount: _filters.length,
         separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {

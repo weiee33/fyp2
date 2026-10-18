@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import '../../../shared/brand/brand_splash.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/malaysia_phone_field.dart';
@@ -105,13 +106,13 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
     AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
-      child: Scaffold(
+      child: CustomerScaffold(
         appBar: AppBar(title: Text(tr('Create Customer Account'))),
         body: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
           child: SafeArea(
             child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
+              physics: customerScrollPhysics(context),
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,

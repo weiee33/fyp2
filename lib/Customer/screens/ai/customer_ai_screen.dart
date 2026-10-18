@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_menu.dart';
 import 'dart:async';
@@ -458,6 +459,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
           ),
         ),
         content: SingleChildScrollView(
+          physics: customerScrollPhysics(context),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -929,6 +931,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
 
   Widget _welcome() => LayoutBuilder(
     builder: (context, bounds) => SingleChildScrollView(
+      physics: customerScrollPhysics(context),
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
       child: ConstrainedBox(
         constraints: BoxConstraints(
@@ -998,6 +1001,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
   );
 
   Widget _conversationList() => ListView.builder(
+    physics: customerScrollPhysics(context),
     controller: _scroll,
     padding: const EdgeInsets.fromLTRB(16, 20, 16, 16),
     itemCount:
@@ -1029,7 +1033,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
-      child: Scaffold(
+      child: CustomerScaffold(
         backgroundColor: const Color(0xFFFCFBF9),
         appBar: AppBar(
           backgroundColor: const Color(0xFFFCFBF9),
@@ -1269,29 +1273,7 @@ class _ThinkingBubbleState extends State<_ThinkingBubble>
   }
 }
 
-/// Shared rainbow treatment for every assistant entry point.
-class RainbowInk extends StatelessWidget {
-  final Widget child;
-  const RainbowInk({super.key, required this.child});
-  static const gradient = LinearGradient(
-    colors: [
-      Color(0xFFD64765),
-      Color(0xFFCF791B),
-      Color(0xFF29986E),
-      Color(0xFF3679CF),
-      Color(0xFF9853C9),
-    ],
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-  );
-  @override
-  Widget build(BuildContext context) => ShaderMask(
-    shaderCallback: gradient.createShader,
-    blendMode: BlendMode.srcIn,
-    child: child,
-  );
-}
-
+/// Matches the orange assistant entry point in customer navigation.
 class AiHalo extends StatelessWidget {
   final double size;
   const AiHalo({super.key, this.size = 40});
@@ -1299,30 +1281,22 @@ class AiHalo extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     width: size,
     height: size,
-    padding: EdgeInsets.all(size * .055),
     decoration: BoxDecoration(
       shape: BoxShape.circle,
-      gradient: RainbowInk.gradient,
+      color: CustomerTheme.primary,
+      border: Border.all(color: Colors.white, width: 2),
       boxShadow: [
         BoxShadow(
-          color: const Color(0xFF9853C9).withValues(alpha: .16),
-          blurRadius: 12,
-          offset: const Offset(0, 3),
+          color: CustomerTheme.primary.withValues(alpha: .22),
+          blurRadius: 16,
+          offset: const Offset(0, 4),
         ),
       ],
     ),
-    child: DecoratedBox(
-      decoration: const BoxDecoration(
-        shape: BoxShape.circle,
-        color: Color(0xFFFFFCFF),
-      ),
-      child: RainbowInk(
-        child: Icon(
-          Icons.auto_awesome_rounded,
-          color: Colors.white,
-          size: size * .56,
-        ),
-      ),
+    child: Icon(
+      Icons.auto_awesome_rounded,
+      color: Colors.white,
+      size: size * .54,
     ),
   );
 }
@@ -1533,6 +1507,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
             ),
           Expanded(
             child: ListView.builder(
+              physics: customerScrollPhysics(context),
               padding: const EdgeInsets.symmetric(horizontal: 12),
               itemCount: rows.isEmpty ? 1 : rows.length,
               itemBuilder: (_, i) {

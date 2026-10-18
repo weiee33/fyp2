@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'dart:ui' as ui;
 import '../../services/customer_push_service.dart';
 import '../../widgets/customer_nav_insets.dart';
@@ -62,7 +63,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     final bottomGap =
         MediaQuery.viewPaddingOf(context).bottom + CustomerNavInsets.margin;
-    return Scaffold(
+    return CustomerScaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [

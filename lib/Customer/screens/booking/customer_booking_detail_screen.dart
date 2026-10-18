@@ -1,3 +1,6 @@
+import '../support/customer_support_screen.dart';
+import '../../services/customer_support_service.dart';
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_status.dart';
 import 'dart:async';
@@ -21,10 +24,12 @@ import '../review/customer_submit_review_screen.dart';
 class CustomerBookingDetailScreen extends StatefulWidget {
   final String bookingId;
   final CustomerTransactionService? transactions;
+  final CustomerSupportService? supportService;
   const CustomerBookingDetailScreen({
     super.key,
     required this.bookingId,
     this.transactions,
+    this.supportService,
   });
   @override
   State<CustomerBookingDetailScreen> createState() =>
@@ -149,92 +154,34 @@ class _CustomerBookingDetailScreenState
   }
 
   Future<void> _requestHelp() async {
-    final subject = TextEditingController();
-    final description = TextEditingController();
-    final form = GlobalKey<FormState>();
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(tr('Request booking support')),
-        content: SingleChildScrollView(
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-          child: Form(
-            key: form,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextFormField(
-                  controller: subject,
-                  maxLength: 150,
-                  decoration: InputDecoration(labelText: trOrNull('Subject')),
-                  validator: (value) => trOrNull(
-                    ((value) => (value?.trim().length ?? 0) >= 3
-                        ? null
-                        : 'Enter at least 3 characters')(value),
-                  ),
-                ),
-                TextFormField(
-                  controller: description,
-                  minLines: 3,
-                  maxLines: 6,
-                  maxLength: 4000,
-                  decoration: InputDecoration(
-                    labelText: trOrNull('Describe the problem'),
-                  ),
-                  validator: (value) => trOrNull(
-                    ((value) => (value?.trim().length ?? 0) >= 10
-                        ? null
-                        : 'Enter at least 10 characters')(value),
-                  ),
-                ),
-              ],
-            ),
-          ),
+    final id = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => CustomerSupportComposeScreen(
+          bookingId: widget.bookingId,
+          service: widget.supportService,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: Text(tr('Cancel')),
-          ),
-          FilledButton(
-            onPressed: () {
-              if (form.currentState!.validate()) Navigator.pop(ctx, true);
-            },
-            child: Text(tr('OK')),
-          ),
-        ],
       ),
     );
-    final title = subject.text.trim(), message = description.text.trim();
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-    subject.dispose();
-    description.dispose();
-    if (!mounted || confirmed != true) return;
-    setState(() => _acting = true);
-    try {
-      await _transactions.requestSupport(widget.bookingId, title, message);
-      if (mounted) {
-        setState(() => _acting = false);
-        await CustomerDialogs.show(
-          context,
-          message: tr('Your support request has been submitted.'),
-        );
-      }
-      if (mounted) await _load();
-    } catch (error) {
-      if (mounted) CustomerDialogs.show(context, message: bookingError(error));
-    } finally {
-      if (mounted) setState(() => _acting = false);
-    }
+    if (!mounted || id == null) return;
+    await _load();
+    if (mounted)
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CustomerSupportDetailScreen(
+            id: id,
+            service: widget.supportService ?? CustomerSupportService(),
+          ),
+        ),
+      );
   }
 
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     final booking = _booking;
-    return Scaffold(
+    return CustomerScaffold(
       appBar: AppBar(
         title: Text(tr('Booking Details')),
         actions: [
@@ -255,9 +202,7 @@ class _CustomerBookingDetailScreenState
           : CustomerRefresh(
               onRefresh: _load,
               child: ListView(
-                physics: const ClampingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
+                physics: customerScrollPhysics(context),
                 padding: const EdgeInsets.all(16),
                 children: [
                   if (_error != null) ...[
@@ -488,11 +433,9 @@ class _CustomerBookingDetailScreenState
                             in (booking.data['disputes'] as List? ?? []))
                           ListTile(
                             contentPadding: EdgeInsets.zero,
-                            title: Text(tr(dispute['subject'].toString())),
+                            title: Text(dispute['subject'].toString()),
                             subtitle: Text(
-                              tr(
-                                '${dispute['status']}\n${dispute['resolution'] ?? 'Awaiting administrator review.'}',
-                              ),
+                              '${tr(dispute['status'].toString())}\n${dispute['resolution'] ?? tr('Awaiting administrator review.')}',
                             ),
                           ),
                         SizedBox(

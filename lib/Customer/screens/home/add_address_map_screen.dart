@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -326,7 +327,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
     AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
-      child: Scaffold(
+      child: CustomerScaffold(
         appBar: AppBar(title: Text(tr('Add Service Location'))),
         body: SafeArea(
           top: false,
@@ -595,7 +596,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                       clipBehavior: Clip.antiAlias,
                       child: CustomScrollView(
                         controller: scroll,
-                        physics: const ClampingScrollPhysics(),
+                        physics: customerScrollPhysics(context),
                         slivers: [
                           SliverPersistentHeader(
                             pinned: true,

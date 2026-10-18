@@ -1,3 +1,6 @@
+import '../support/customer_support_screen.dart';
+import '../support/customer_information_screen.dart';
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import '../../services/customer_push_service.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'customer_delete_account_screen.dart';
@@ -43,13 +46,11 @@ class CustomerSettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Scaffold(
+    return CustomerScaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(title: Text(tr('Account Settings'))),
       body: ListView(
-        physics: const ClampingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
+        physics: customerScrollPhysics(context),
         padding: const EdgeInsets.all(10),
         children: [
           AccountGroup(
@@ -59,7 +60,12 @@ class CustomerSettingsScreen extends StatelessWidget {
                 label: tr('Language / 语言 / Bahasa'),
                 onTap: () => Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const LanguageScreen()),
+                  MaterialPageRoute(
+                    builder: (_) => const ScrollConfiguration(
+                      behavior: CustomerScrollBehavior(),
+                      child: LanguageScreen(),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -95,31 +101,29 @@ class CustomerSettingsScreen extends StatelessWidget {
             children: [
               AccountRow(
                 label: tr('Help Centre'),
-                onTap: () => CustomerDialogs.show(
+                onTap: () => Navigator.push(
                   context,
-                  title: tr('Booking help'),
-                  message: tr(
-                    '1. Choose a service and address.\n2. Discuss your preferred time using Chat.\n3. Submit the booking and wait for the provider to accept.\n4. Pay from the accepted booking.\n5. Track progress, then review the completed service.\n\nChat agreements do not reserve a time slot. Always use the booking screen.',
+                  MaterialPageRoute(
+                    builder: (_) => const CustomerSupportScreen(),
                   ),
                 ),
               ),
               AccountRow(
                 label: tr('Privacy'),
-                onTap: () => CustomerDialogs.show(
+                onTap: () => Navigator.push(
                   context,
-                  title: tr('Your information'),
-                  message: tr(
-                    'Providers receive the details needed for your bookings and the messages you send them. Your optional birthday and gender are not part of the provider profile view. Deleting a chat clears your visible history; it does not delete the other person’s copy.',
+                  MaterialPageRoute(
+                    builder: (_) =>
+                        const CustomerInformationScreen(privacy: true),
                   ),
                 ),
               ),
               AccountRow(
                 label: tr('About Home Serve'),
-                onTap: () => CustomerDialogs.show(
+                onTap: () => Navigator.push(
                   context,
-                  title: tr('Home Serve'),
-                  message: tr(
-                    'Home Serve\nHousehold services, bookings and provider communication.\n\nFYP mobile application.',
+                  MaterialPageRoute(
+                    builder: (_) => const CustomerInformationScreen(),
                   ),
                 ),
               ),
@@ -186,7 +190,7 @@ class _SecurityState extends State<CustomerAccountSecurityScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
-    return Scaffold(
+    return CustomerScaffold(
       backgroundColor: const Color(0xFFF5F5F5),
       appBar: AppBar(title: Text(tr('Account & Security'))),
       body: _profile == null
@@ -199,9 +203,7 @@ class _SecurityState extends State<CustomerAccountSecurityScreen> {
                     ),
             )
           : ListView(
-              physics: const ClampingScrollPhysics(
-                parent: AlwaysScrollableScrollPhysics(),
-              ),
+              physics: customerScrollPhysics(context),
               padding: const EdgeInsets.all(10),
               children: [
                 AccountGroup(

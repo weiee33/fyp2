@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -82,7 +83,7 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     final receipt = _receipt;
-    return Scaffold(
+    return CustomerScaffold(
       appBar: AppBar(title: Text(tr('Payment Receipt'))),
       body: ListView(
         padding: const EdgeInsets.all(16),

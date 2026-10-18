@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -84,7 +85,7 @@ class _CustomerProviderDetailScreenState
     final reviews = _rows('reviews');
     final rating = (provider?['overall_rating'] as num?)?.toDouble() ?? 0;
     final reviewCount = (provider?['total_reviews'] as num?)?.toInt() ?? 0;
-    return Scaffold(
+    return CustomerScaffold(
       backgroundColor: CustomerTheme.background,
       appBar: AppBar(
         title: Text(tr('Provider Details')),
@@ -107,9 +108,7 @@ class _CustomerProviderDetailScreenState
       body: CustomerRefresh(
         onRefresh: _fetch,
         child: ListView(
-          physics: const ClampingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
+          physics: customerScrollPhysics(context),
           padding: const EdgeInsets.all(20),
           children: [
             if (_loading) const LinearProgressIndicator(),

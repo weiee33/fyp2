@@ -1,3 +1,4 @@
+import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import '../../../shared/brand/brand_splash.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'customer_forgot_password_screen.dart';
@@ -73,7 +74,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
     AppLanguage.watch(context);
     return Theme(
       data: CustomerTheme.lightTheme,
-      child: Scaffold(
+      child: CustomerScaffold(
         appBar: AppBar(
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
@@ -85,7 +86,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
           behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
           child: SafeArea(
             child: SingleChildScrollView(
-              physics: const ClampingScrollPhysics(),
+              physics: customerScrollPhysics(context),
               padding: const EdgeInsets.all(24),
               child: Form(
                 key: _formKey,
