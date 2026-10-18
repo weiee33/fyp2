@@ -13,13 +13,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:fyp2/Customer/screens/support/customer_support_screen.dart';
 import 'package:fyp2/Customer/screens/support/customer_information_screen.dart';
 import 'package:fyp2/Customer/services/customer_support_service.dart';
+import 'package:fyp2/Customer/models/booking_model.dart';
+import 'package:fyp2/Customer/screens/booking/customer_booking_detail_screen.dart';
+import 'package:fyp2/Customer/services/customer_transaction_service.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'customer_accounts_chat_test.dart' as capture;
+import 'customer_workflow_test.dart' as workflow;
 
 class SupportFixture extends CustomerSupportService {
   int attempts = 0;
   final ids = <String>[];
+  final bookingIds = <String?>[];
   List<SupportPhoto> photos = [];
   @override
   Future<String> send({
@@ -31,6 +36,7 @@ class SupportFixture extends CustomerSupportService {
   }) async {
     attempts++;
     ids.add(requestId);
+    bookingIds.add(bookingId);
     this.photos = photos;
     if (attempts == 1)
       throw const FormatException(
@@ -198,7 +204,67 @@ void main() {
       await t.pumpAndSettle();
       expect(result, 'ticket-1');
       expect(service.ids.toSet().length, 1);
+      expect(service.bookingIds, ['booking-1', 'booking-1']);
       expect(t.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'booking support retains its booking and cancellation needs confirmation',
+    (t) async {
+      capture.pixel(t);
+      final data = workflow.booking(status: 'Confirmed', paid: true);
+      final support = SupportFixture();
+      final calls = <String>[];
+      await t.pumpWidget(
+        capture.app(
+          CustomerBookingDetailScreen(
+            bookingId: data['booking_id'],
+            supportService: support,
+            transactions: CustomerTransactionService(
+              rpc: (name, params) async {
+                calls.add(name);
+                return data;
+              },
+            ),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      await t.scrollUntilVisible(
+        find.text('Cancel Booking'),
+        300,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await t.pumpAndSettle();
+      await t.ensureVisible(find.text('Cancel Booking'));
+      await t.pumpAndSettle();
+      await capture.proof(t, 'booking-support-actions');
+      await t.tap(find.text('Cancel Booking'));
+      await t.pumpAndSettle();
+      await t.tap(find.text('Keep booking'));
+      await t.pumpAndSettle();
+      expect(calls.every((name) => name == 'customer_booking_detail'), isTrue);
+      await t.tap(find.text('Request Booking Support'));
+      await t.pumpAndSettle();
+      expect(find.text('House cleaning'), findsOneWidget);
+      expect(find.text('Local Cleaners'), findsOneWidget);
+      await t.enterText(
+        find.byKey(const ValueKey('support-subject')),
+        'Service quality question',
+      );
+      await t.enterText(
+        find.byKey(const ValueKey('support-description')),
+        'Please review the work completed for this booking.',
+      );
+      FocusManager.instance.primaryFocus?.unfocus();
+      await t.pumpAndSettle();
+      await t.ensureVisible(find.text('Send request'));
+      await t.tap(find.text('Send request'));
+      await t.pumpAndSettle();
+      expect(support.bookingIds, [data['booking_id']]);
+      expect(t.takeException(), isNull);
+      await t.pumpWidget(const SizedBox());
     },
   );
 
@@ -215,8 +281,8 @@ void main() {
         ),
       ),
     );
-    await t.ensureVisible(find.text('Choose photo'));
-    await t.tap(find.text('Choose photo'));
+    await t.ensureVisible(find.text('Gallery'));
+    await t.tap(find.text('Gallery'));
     await t.pumpAndSettle();
     expect(
       find.textContaining('Choose a JPEG, PNG or WebP photo.'),
@@ -239,9 +305,9 @@ void main() {
         ),
       ),
     );
-    await t.ensureVisible(find.text('Choose photo'));
+    await t.ensureVisible(find.text('Gallery'));
     await t.runAsync(() async {
-      await t.tap(find.text('Choose photo'));
+      await t.tap(find.text('Gallery'));
       await Future<void>.delayed(const Duration(milliseconds: 150));
     });
     await t.pumpAndSettle();
@@ -263,6 +329,17 @@ void main() {
         for (final screen in <Widget>[
           CustomerSupportScreen(service: SupportFixture()),
           CustomerSupportComposeScreen(service: SupportFixture()),
+          CustomerSupportComposeScreen(
+            service: SupportFixture(),
+            bookingId: 'booking-1',
+            booking: CustomerBooking.fromJson({
+              'booking_id': 'booking-1',
+              'service_name': 'Fix Leaking Faucet',
+              'business_name': 'Home Repair Services',
+              'booking_date': '2026-11-18',
+              'scheduled_time': '14:30:00',
+            }),
+          ),
           CustomerSupportDetailScreen(
             id: 'ticket-1',
             service: SupportFixture(),
@@ -273,8 +350,19 @@ void main() {
           await t.pumpWidget(capture.app(screen));
           await t.pumpAndSettle();
           expect(t.takeException(), isNull);
-          if (language == 'en')
-            await capture.proof(t, 'support-${screen.runtimeType}');
+          if (screen is CustomerSupportComposeScreen &&
+              screen.bookingId != null) {
+            expect(find.text('Fix Leaking Faucet'), findsOneWidget);
+            expect(find.text('Home Repair Services'), findsOneWidget);
+          }
+          if (language == 'en') {
+            final suffix =
+                screen is CustomerSupportComposeScreen &&
+                    screen.bookingId != null
+                ? '-booking'
+                : '';
+            await capture.proof(t, 'support-${screen.runtimeType}$suffix');
+          }
           await t.drag(find.byType(ListView).first, const Offset(0, -600));
           await t.pumpAndSettle();
           expect(t.takeException(), isNull);

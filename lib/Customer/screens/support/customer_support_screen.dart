@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../shared/localization/app_language.dart';
 import '../../core/customer_theme.dart';
+import '../../models/booking_model.dart';
 import '../../services/customer_support_service.dart';
 import '../../services/customer_transaction_service.dart';
 import '../../widgets/customer_dialogs.dart';
@@ -100,15 +101,14 @@ class _SupportState extends State<CustomerSupportScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    tr(
-                      'Send a question or describe a problem. Our support team can review your message and photos. Check your requests below for updates.',
-                    ),
+                    tr('Ask a question, share feedback or make a complaint.'),
                   ),
                   const SizedBox(height: 18),
                   FilledButton.icon(
+                    style: CustomerTheme.actionStyle(),
                     onPressed: _compose,
                     icon: const Icon(Icons.edit_outlined),
-                    label: Text(tr('Contact support')),
+                    label: Text(tr('Contact Support')),
                   ),
                 ],
               ),
@@ -167,8 +167,10 @@ class _SupportState extends State<CustomerSupportScreen> {
                 child: SupportCard(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: const Icon(
-                      Icons.support_agent_rounded,
+                    leading: Icon(
+                      row['booking_id'] == null
+                          ? Icons.support_agent_rounded
+                          : Icons.event_note_outlined,
                       color: CustomerTheme.primary,
                     ),
                     title: Text(
@@ -177,7 +179,7 @@ class _SupportState extends State<CustomerSupportScreen> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     subtitle: Text(
-                      '${tr(row['status'] as String)} · ${_date(row['created_at'])}',
+                      '${tr(row['booking_id'] == null ? 'General enquiry' : 'Booking support')}\n${tr(row['status'] as String)} · ${_date(row['created_at'])}',
                     ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => _open(row['dispute_id'] as String),
@@ -227,14 +229,16 @@ class _HelpTopic extends StatelessWidget {
 
 class CustomerSupportComposeScreen extends StatefulWidget {
   final String? bookingId;
+  final CustomerBooking? booking;
   final CustomerSupportService? service;
   final Future<XFile?> Function(ImageSource)? pickPhoto;
-  const CustomerSupportComposeScreen({
+  CustomerSupportComposeScreen({
     super.key,
     this.bookingId,
+    this.booking,
     this.service,
     this.pickPhoto,
-  });
+  }) : assert(booking == null || bookingId == booking.id);
   @override
   State<CustomerSupportComposeScreen> createState() => _ComposeState();
 }
@@ -349,8 +353,8 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
           title: Text(
             tr(
               widget.bookingId == null
-                  ? 'Contact support'
-                  : 'Request booking support',
+                  ? 'Contact Support'
+                  : 'Request Booking Support',
             ),
           ),
         ),
@@ -359,29 +363,61 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
           child: ListView(
             padding: const EdgeInsets.all(20),
             children: [
-              SupportCard(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.support_agent_rounded,
-                      color: CustomerTheme.primary,
-                      size: 30,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        tr(
-                          widget.bookingId == null
-                              ? 'Tell us what you need help with. Include enough detail for our support team to understand your question.'
-                              : 'This request will include your booking reference so our support team can investigate the right service.',
+              if (widget.bookingId != null)
+                SupportCard(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.event_note_outlined,
+                        color: CustomerTheme.primary,
+                        size: 30,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tr('Linked booking'),
+                              style: Theme.of(context).textTheme.labelLarge
+                                  ?.copyWith(color: CustomerTheme.primaryDark),
+                            ),
+                            const SizedBox(height: 6),
+                            if (widget.booking case final booking?) ...[
+                              Text(
+                                booking.serviceName,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(booking.providerName),
+                              const SizedBox(height: 6),
+                              Text(
+                                '${booking.appointmentLabel} · ${tr('Malaysia time')}',
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 6),
+                              Text(
+                                booking.shortId,
+                                style: Theme.of(context).textTheme.labelMedium,
+                              ),
+                            ] else
+                              Text(widget.bookingId!),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
+              if (widget.bookingId == null)
+                Text(
+                  tr('Questions, feedback or complaints.'),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: CustomerTheme.textSecondary,
+                  ),
+                ),
+              const SizedBox(height: 20),
               TextFormField(
                 key: const ValueKey('support-subject'),
                 controller: _subject,
@@ -401,7 +437,11 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
                 maxLength: 4000,
                 textCapitalization: TextCapitalization.sentences,
                 decoration: InputDecoration(
-                  labelText: tr('Describe the problem'),
+                  labelText: tr(
+                    widget.bookingId == null
+                        ? 'Your message'
+                        : 'Describe the booking issue',
+                  ),
                   alignLabelWithHint: true,
                 ),
                 validator: (v) => _validateText(v, 10, 4000),
@@ -412,11 +452,7 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 6),
-              Text(
-                tr(
-                  'Add up to 3 photos, 5 MB each. Do not include passwords, payment card details or identity documents.',
-                ),
-              ),
+              Text(tr('Up to 3 photos · 5 MB each')),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 10,
@@ -455,31 +491,44 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
                 ],
               ),
               if (!_locked && _photos.length < 3)
-                Wrap(
-                  spacing: 12,
-                  children: [
-                    OutlinedButton.icon(
-                      onPressed: _picking
-                          ? null
-                          : () => _pick(ImageSource.gallery),
-                      icon: const Icon(Icons.photo_library_outlined),
-                      label: Text(tr('Choose photo')),
-                    ),
-                    OutlinedButton.icon(
-                      onPressed: _picking
-                          ? null
-                          : () => _pick(ImageSource.camera),
-                      icon: const Icon(Icons.camera_alt_outlined),
-                      label: Text(tr('Take photo')),
-                    ),
-                  ],
+                IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: CustomerTheme.actionStyle(outlined: true),
+                          onPressed: _picking
+                              ? null
+                              : () => _pick(ImageSource.gallery),
+                          icon: const Icon(Icons.photo_library_outlined),
+                          label: Text(
+                            tr('Gallery'),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          style: CustomerTheme.actionStyle(outlined: true),
+                          onPressed: _picking
+                              ? null
+                              : () => _pick(ImageSource.camera),
+                          icon: const Icon(Icons.camera_alt_outlined),
+                          label: Text(
+                            tr('Camera'),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               if (_picking) const LinearProgressIndicator(),
               const SizedBox(height: 20),
               Text(
-                tr(
-                  'Your request and photos are available to you and authorised administrators. Responses appear in Help Centre.',
-                ),
+                tr('Replies appear in Help Centre.'),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               AnimatedSize(
@@ -504,6 +553,7 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
               ),
               const SizedBox(height: 24),
               FilledButton.icon(
+                style: CustomerTheme.actionStyle(),
                 onPressed: _sending || _picking ? null : _send,
                 icon: _sending
                     ? const SizedBox(
