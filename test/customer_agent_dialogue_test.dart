@@ -45,7 +45,7 @@ void main() {
                 identity: () => 'customer',
                 predict: (p) async {
                   requests.add(p);
-                  return requests.length == 1
+                  return requests.length == 1 || requests.length == 3
                       ? {
                           'action': 'ask_user',
                           'rationale': 'Which day would you like your service?',
@@ -81,6 +81,18 @@ void main() {
         greaterThan(before.dy + 100),
       );
       expect(c.panelInteracting, isFalse);
+      final originalSize = t.getSize(find.byKey(const ValueKey('agent-panel')));
+      await t.drag(
+        find.byKey(const ValueKey('agent-resize-handle')),
+        const Offset(-60, 55),
+      );
+      await t.pump();
+      final resized = t.getSize(find.byKey(const ValueKey('agent-panel')));
+      expect(resized.width, lessThan(originalSize.width));
+      expect(resized.height, greaterThan(originalSize.height));
+      expect(c.waiting, isTrue);
+      expect(c.panelInteracting, isFalse);
+
       await capture.proof(t, 'agent-question-panel');
       await t.enterText(
         find.byKey(const ValueKey('agent-answer')),
@@ -103,10 +115,61 @@ void main() {
         'result',
       ]);
       expect(c.answer('late'), isFalse);
+      await t.pump(const Duration(milliseconds: 400));
+      await capture.proof(t, 'agent-restart-panel');
+      await t.enterText(
+        find.byKey(const ValueKey('agent-answer')),
+        'Show my bookings',
+      );
+      await t.ensureVisible(find.text('Start task'));
+      await t.tap(find.text('Start task'));
+      await t.pump(const Duration(milliseconds: 500));
+      await t.pump(const Duration(milliseconds: 100));
+      expect(c.waiting, isTrue);
+      await t.enterText(
+        find.byKey(const ValueKey('agent-answer')),
+        'My upcoming bookings',
+      );
+      await t.ensureVisible(find.text('Send answer'));
+      await t.tap(find.text('Send answer'));
+      await fixture.advance(t, c);
+      expect(requests.length, 4);
+      expect(
+        (requests.last['history'] as List).single['reply'],
+        'My upcoming bookings',
+      );
+      expect(requests.last['goal'], 'Show my bookings');
+      expect(requests.last['run_id'], isNot(requests.first['run_id']));
+      expect(saved.last, 'result:Please review the booking details.');
+      expect(saved.where((s) => s.startsWith('goal:')).length, 2);
+
       expect(t.takeException(), isNull);
       await t.pumpWidget(const SizedBox());
     },
   );
+
+  testWidgets('stop cancels a panel restart before viewport capture', (
+    t,
+  ) async {
+    await fixture.mount(t, const Text('Services'));
+    var predictions = 0;
+    final c = AgentOverlayController(
+      capture: fixture.FrameFixture(t.view.viewId),
+      identity: () => 'customer',
+      predict: (_) async {
+        predictions++;
+        return {'action': 'handoff', 'rationale': 'Review your booking.'};
+      },
+    );
+    final run = c.run('Show bookings', settleViewport: true);
+    expect(c.active, isTrue);
+    c.stop();
+    await t.pump(const Duration(milliseconds: 500));
+    await run;
+    expect(c.active, isFalse);
+    expect(predictions, 0);
+    c.dispose();
+  });
 
   testWidgets(
     'stop cancels waiting and failed history retries the same event without duplicates',

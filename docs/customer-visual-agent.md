@@ -1,6 +1,6 @@
 # Customer visual AI Agent
 
-AI chat preserves conversational history, photo questions, voice input and explicit action-card confirmation. AI Agent is a separate, screenshot-driven customer workflow. Start it from the customer navigation bar, choose **AI Agent**, describe a task and accept screenshot sharing.
+AI Chat preserves conversational history, photo questions, voice input and explicit action-card confirmation. AI Agent is a separate, screenshot-driven customer workflow. Start it from the customer navigation bar, choose **AI Agent**, describe a task and send it. The agent starts directly without a confirmation dialog.
 
 ## Architecture
 
@@ -35,9 +35,9 @@ The independent `CustomPainter` uses animation listenables, a sweep gradient and
 
 ## Clarification panel and history
 
-The orange panel can be dragged by its header, stays inside safe-area/keyboard bounds, and scrolls internally on small screens. Dragging it pauses action dispatch; fresh hit tests and blocked-rectangle checks prevent a subsequent tap or drag from hitting the panel. Its changing rectangle is supplied to Gemini as `blocked_bounds`. The border adds a diffuse multicolour halo and three flowing highlights on an isolated canvas.
+The orange panel can be dragged by its header, can be resized using its lower-right handle, stays inside safe-area/keyboard bounds, and scrolls internally on small screens. Dragging it pauses action dispatch; fresh hit tests and blocked-rectangle checks prevent a subsequent tap or drag from hitting the panel. Its changing rectangle is supplied to Gemini as `blocked_bounds`. The border adds a diffuse multicolour halo and three flowing highlights on an isolated canvas.
 
-`ask_user` enters a waiting state with a question and a 500-character answer field. Sending an answer resumes with a fresh screenshot and question/reply context. At most three clarifications are allowed within the existing 12-step/five-minute run budget. Stop cancels the pending answer; late answers cannot restart the run. Sensitive information and final transaction confirmation remain outside this workflow.
+`ask_user` enters a waiting state with a question and a 500-character answer field. Sending an answer resumes with a fresh screenshot and question/reply context. After stopping, its composer accepts a new AI Agent task in the same conversation; no return to the AI page is required. A new task gets a fresh run ID and quota reservation. Restarting after an account change requires reopening AI from that account. At most three clarifications are allowed within the existing 12-step/five-minute run budget. Stop cancels the pending answer; late answers cannot restart the run. Sensitive information and final transaction confirmation remain outside this workflow.
 
 `customer_ai_agent_event` saves ordered events to the owned chat with stable UUIDs for idempotent retries. Events cannot contain executable action cards or image paths. The existing message pager retains live action-card statuses and adds origin/kind tags. Agent history is rendered as **AI Agent** activity, while the chat gateway treats all client-written agent content as untrusted user context rather than trusted model messages. A failed write remains queued in memory and exposes **Retry saving**; keep the app open until that warning clears. Screenshots are not part of saved history. Deleted chats cannot be recreated by late event retries.
 
@@ -63,3 +63,11 @@ Quota: 12 steps/run, five-minute run expiry, one-second minimum between reservat
 Device-specific edge clipping, keyboard behavior and end-to-end multi-step model accuracy still need acceptance testing on physical phones. This is an app-scoped assistant, not an OS accessibility service.
 
 Additional validation covers question/reply continuation, draggable panel interaction, keyboard/large-text layout, ordered retry events, untrusted history classification, and transactional transcript ownership/deletion checks.
+
+## Availability diagnosis and recovery (19 October 2026)
+
+Live application logs around 15:14–15:18 UTC showed Gemini `503 UNAVAILABLE` for both configured models, with an intervening successful agent response. These observations indicate intermittent upstream availability rather than evidence of exhausted tokens. The agent gateway now makes up to three bounded attempts (primary, fallback, primary), uses exponential backoff and jitter, respects Retry-After and a 50-second overall deadline, and reserves only one database step. It never replays an executed gesture during a network retry. Quota, authentication/key, model/configuration and transport failures have distinct messages and sanitized diagnostic codes; logs exclude prompts, images, keys and upstream free-form messages.
+
+A guarded synthetic-screen probe of this implementation recovered from a primary timeout and fallback 503 to a valid third-attempt `click` at (500,300). The probe was retired to HTTP 410 immediately afterward. This confirms recovery works when a later attempt succeeds; it cannot guarantee availability during a sustained Google outage.
+
+The Payment Receipt screen omits its sandbox explanatory footer. Exported PDF test labels and payment environment metadata are unchanged.

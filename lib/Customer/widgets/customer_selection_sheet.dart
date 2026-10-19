@@ -1,7 +1,6 @@
 import '../agent/agent_surface.dart';
 import 'customer_scaffold.dart';
 import 'package:flutter/material.dart';
-import '../../shared/localization/app_language.dart';
 import '../core/customer_theme.dart';
 
 class CustomerChoice<T> {
@@ -48,24 +47,17 @@ Future<T?> showCustomerSelection<T>({
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 22,
-                          fontWeight: FontWeight.w700,
-                          color: CustomerTheme.textPrimary,
-                        ),
-                      ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: CustomerTheme.textPrimary,
                     ),
-                    IconButton(
-                      tooltip: tr('Close'),
-                      onPressed: () => Navigator.pop(sheetContext),
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                  ],
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Flexible(
