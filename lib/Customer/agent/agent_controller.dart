@@ -9,6 +9,9 @@ import 'agent_capture.dart';
 import 'agent_protocol.dart';
 import 'agent_surface.dart';
 
+typedef AgentRecord =
+    Future<void> Function(String eventId, String kind, String content);
+
 typedef AgentPredict =
     Future<Map<String, dynamic>> Function(Map<String, dynamic> request);
 
@@ -23,6 +26,94 @@ class AgentOverlayController extends ChangeNotifier
   String status = '', result = '';
   int step = 0, _epoch = 0;
   bool _disposed = false;
+  bool panelInteracting = false, historyError = false, _savingHistory = false;
+  String question = '';
+  Completer<String?>? _answer;
+  AgentRecord? _recorder;
+  String? _runUser;
+  DateTime? _deadline;
+  final _pendingHistory =
+      <
+        ({
+          String id,
+          String kind,
+          String content,
+          String user,
+          AgentRecord write,
+        })
+      >[];
+  void setRecorder(AgentRecord recorder) => _recorder = recorder;
+  void _record(String kind, String content) {
+    final user = identity(), write = _recorder;
+    if (write == null ||
+        user == null ||
+        user != _runUser ||
+        content.trim().isEmpty) {
+      return;
+    }
+    _pendingHistory.add((
+      id: CustomerTransactionService.newRequestId(),
+      kind: kind,
+      content: content,
+      user: user,
+      write: write,
+    ));
+    unawaited(retryHistory());
+  }
+
+  Future<void> retryHistory() async {
+    if (_savingHistory || _disposed) return;
+    _savingHistory = true;
+    historyError = false;
+    try {
+      while (_pendingHistory.isNotEmpty && !_disposed) {
+        final event = _pendingHistory.first;
+        if (identity() != event.user) {
+          _pendingHistory.removeAt(0);
+          continue;
+        }
+        try {
+          await event
+              .write(event.id, event.kind, event.content)
+              .timeout(const Duration(seconds: 12));
+          _pendingHistory.removeAt(0);
+        } catch (_) {
+          historyError = true;
+          break;
+        }
+      }
+    } finally {
+      _savingHistory = false;
+      if (!_disposed) notifyListeners();
+    }
+  }
+
+  bool get waiting => state == AgentState.waiting;
+  bool answer(String value) {
+    final text = value.trim();
+    if (!waiting ||
+        _answer == null ||
+        _answer!.isCompleted ||
+        text.isEmpty ||
+        text.length > 500) {
+      return false;
+    }
+    _answer!.complete(text);
+    return true;
+  }
+
+  Future<void> _waitForPanel(int epoch, String user) async {
+    while (panelInteracting && _valid(epoch, user)) {
+      if (_deadline != null && !DateTime.now().isBefore(_deadline!)) {
+        stop(
+          'Step or time limit reached. Review the screen before continuing.',
+        );
+        return;
+      }
+      await Future<void>.delayed(const Duration(milliseconds: 50));
+    }
+  }
+
   Rect? stopBounds;
   Rect? viewport;
   Future<void> Function(Offset)? moveCursor;
@@ -56,7 +147,10 @@ class AgentOverlayController extends ChangeNotifier
 
   bool get active => state != AgentState.idle;
   void _onPointer(PointerEvent event) {
-    if (active && event is PointerDownEvent && event.pointer != pointerId) {
+    if (active &&
+        event is PointerDownEvent &&
+        event.pointer != pointerId &&
+        stopBounds?.contains(event.position) != true) {
       stop('You took control.');
     }
   }
@@ -69,6 +163,10 @@ class AgentOverlayController extends ChangeNotifier
   }
 
   void stop([String reason = 'AI Agent stopped.']) {
+    if (active) _record('result', reason);
+    if (_answer?.isCompleted == false) _answer!.complete(null);
+    _answer = null;
+    question = '';
     _epoch++;
     state = AgentState.idle;
     result = reason;
@@ -112,15 +210,22 @@ class AgentOverlayController extends ChangeNotifier
     final epoch = ++_epoch;
     final runId = CustomerTransactionService.newRequestId();
     final deadline = DateTime.now().add(const Duration(minutes: 5));
+    _deadline = deadline;
+    _runUser = user;
     final history = <Map<String, dynamic>>[];
     result = '';
+    question = '';
+    _record('goal', goal.trim());
     step = 0;
+    var questions = 0;
     _phase(AgentState.thinking, 'Looking at the screen…');
     var unchanged = 0;
     try {
       while (_valid(epoch, user) &&
           step < 12 &&
           DateTime.now().isBefore(deadline)) {
+        await _waitForPanel(epoch, user);
+        if (!_valid(epoch, user)) return;
         final surface = AgentSurface.current;
         if (surface == null ||
             !{
@@ -166,7 +271,28 @@ class AgentOverlayController extends ChangeNotifier
               'bounds': [tl.dx, tl.dy, br.dx, br.dy],
             };
           }).toList(),
-          'history': history.take(12).toList(),
+          'history': history
+              .skip(history.length > 12 ? history.length - 12 : 0)
+              .toList(),
+          if (stopBounds != null)
+            'blocked_bounds': [
+              AgentAction.normalize(
+                stopBounds!.intersect(frame.viewport).topLeft,
+                frame.viewport,
+              ).dx,
+              AgentAction.normalize(
+                stopBounds!.intersect(frame.viewport).topLeft,
+                frame.viewport,
+              ).dy,
+              AgentAction.normalize(
+                stopBounds!.intersect(frame.viewport).bottomRight,
+                frame.viewport,
+              ).dx,
+              AgentAction.normalize(
+                stopBounds!.intersect(frame.viewport).bottomRight,
+                frame.viewport,
+              ).dy,
+            ],
         };
         notifyListeners();
         final action = AgentAction.parse(await predict(payload));
@@ -181,6 +307,39 @@ class AgentOverlayController extends ChangeNotifier
             'action': 'stale',
             'result': 'Screen changed; no action executed.',
           });
+          continue;
+        }
+        if (action.action == 'ask_user') {
+          if (++questions > 3) {
+            stop('Please continue this task yourself.');
+            return;
+          }
+          cursor.value = null;
+          question = action.rationale;
+          final pendingAnswer = Completer<String?>();
+          _answer = pendingAnswer;
+          _record('question', question);
+          _phase(AgentState.waiting, 'Waiting for your answer');
+          final remaining = deadline.difference(DateTime.now());
+          final reply = await pendingAnswer.future.timeout(
+            remaining.isNegative ? Duration.zero : remaining,
+            onTimeout: () => null,
+          );
+          if (identical(_answer, pendingAnswer)) _answer = null;
+          if (!_valid(epoch, user)) return;
+          if (reply == null) {
+            stop('Reply time expired. Start AI Agent again when ready.');
+            return;
+          }
+          _record('reply', reply);
+          history.add({
+            'action': 'ask_user',
+            'question': question,
+            'reply': reply,
+          });
+          question = '';
+          _phase(AgentState.thinking, 'Looking at the screen…');
+          await Future<void>.delayed(const Duration(milliseconds: 400));
           continue;
         }
         if (action.action == 'done' || action.action == 'handoff') {
@@ -217,20 +376,26 @@ class AgentOverlayController extends ChangeNotifier
           stop('AI Agent could not safely scroll here.');
           return;
         }
+        await _waitForPanel(epoch, user);
+        if (!_valid(epoch, user)) return;
         _phase(AgentState.executing, action.rationale);
         await moveCursor?.call(point);
         if (!_valid(epoch, user)) return;
         // Layout may change during the cursor tween. Never tap the replacement.
+        await _waitForPanel(epoch, user);
+        if (!_valid(epoch, user)) return;
         final arrived = await capture.capture();
         if (!_valid(epoch, user)) return;
         if (!frame.matches(arrived) ||
             !identical(surface, AgentSurface.current)) {
           continue;
         }
+        if (stopBounds?.contains(point) == true) continue;
         if (target != null && !identical(_resolve(point, frame), target)) {
           continue;
         }
         if (end != null) {
+          if (!_safeDrag(point, end, frame)) continue;
           await _drag(point, end, frame.viewId, () => _valid(epoch, user));
         } else {
           await tapRipple?.call();
@@ -257,6 +422,7 @@ class AgentOverlayController extends ChangeNotifier
         final after = await capture.capture();
         if (!_valid(epoch, user)) return;
         final changed = !frame.matches(after);
+        if (changed) _record('progress', action.rationale);
         unchanged = changed ? 0 : unchanged + 1;
         history.add({
           'action': action.action,
@@ -318,7 +484,9 @@ class AgentOverlayController extends ChangeNotifier
         (start.dx - end.dx).abs() < v.width * .15 &&
         (start.dy - end.dy).abs() >= 30 &&
         stopBounds?.contains(start) != true &&
-        stopBounds?.contains(end) != true;
+        stopBounds?.contains(end) != true &&
+        (stopBounds == null ||
+            !Rect.fromPoints(start, end).inflate(8).overlaps(stopBounds!));
   }
 
   void _tap(Offset p, int view) {
@@ -386,6 +554,7 @@ class AgentOverlayController extends ChangeNotifier
 
   @override
   void dispose() {
+    if (_answer?.isCompleted == false) _answer!.complete(null);
     _disposed = true;
     _epoch++;
     GestureBinding.instance.pointerRouter.removeGlobalRoute(_onPointer);

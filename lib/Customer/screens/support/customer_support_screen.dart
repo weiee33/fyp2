@@ -85,7 +85,7 @@ class _SupportState extends State<CustomerSupportScreen> {
           children: [
             SupportCard(
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   const Icon(
                     Icons.support_agent_rounded,
@@ -95,6 +95,7 @@ class _SupportState extends State<CustomerSupportScreen> {
                   const SizedBox(height: 12),
                   Text(
                     tr('How can we help?'),
+                    textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
@@ -102,6 +103,7 @@ class _SupportState extends State<CustomerSupportScreen> {
                   const SizedBox(height: 8),
                   Text(
                     tr('Ask a question, share feedback or make a complaint.'),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 18),
                   FilledButton.icon(
@@ -199,12 +201,6 @@ class _SupportState extends State<CustomerSupportScreen> {
                 child: Text(tr('Load more')),
               ),
             const SizedBox(height: 16),
-            Text(
-              tr(
-                'For immediate danger or a medical emergency, contact local emergency services. Support requests are not an emergency service.',
-              ),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
             SizedBox(height: MediaQuery.paddingOf(context).bottom),
           ],
         ),
@@ -410,14 +406,7 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
                     ],
                   ),
                 ),
-              if (widget.bookingId == null)
-                Text(
-                  tr('Questions, feedback or complaints.'),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: CustomerTheme.textSecondary,
-                  ),
-                ),
-              const SizedBox(height: 20),
+              if (widget.bookingId != null) const SizedBox(height: 20),
               TextFormField(
                 key: const ValueKey('support-subject'),
                 controller: _subject,
@@ -621,7 +610,7 @@ class _DetailState extends State<CustomerSupportDetailScreen> {
     AppLanguage.watch(context);
     final row = _row;
     return CustomerScaffold(
-      appBar: AppBar(title: Text(tr('Support request'))),
+      appBar: AppBar(title: Text(tr('Support Request'))),
       body: CustomerRefresh(
         onRefresh: _load,
         child: ListView(
@@ -644,8 +633,19 @@ class _DetailState extends State<CustomerSupportDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Chip(
-                      label: Text(tr(row['status'] as String)),
-                      avatar: const Icon(Icons.support_agent, size: 18),
+                      label: Text(
+                        tr(row['status'] as String),
+                        style: const TextStyle(
+                          color: CustomerTheme.primaryDark,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      side: const BorderSide(color: CustomerTheme.primary),
+                      avatar: const Icon(
+                        Icons.support_agent,
+                        size: 18,
+                        color: CustomerTheme.primary,
+                      ),
                       backgroundColor: CustomerTheme.primary.withValues(
                         alpha: .08,
                       ),
@@ -653,7 +653,10 @@ class _DetailState extends State<CustomerSupportDetailScreen> {
                     const SizedBox(height: 12),
                     Text(
                       row['subject'] as String,
-                      style: Theme.of(context).textTheme.titleLarge,
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: CustomerTheme.primaryDark,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Text(
@@ -683,33 +686,59 @@ class _DetailState extends State<CustomerSupportDetailScreen> {
                 ),
               SupportCard(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Row(
                       children: [
-                        const Icon(
-                          Icons.mark_chat_read_outlined,
-                          color: CustomerTheme.primary,
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: CustomerTheme.primary.withValues(alpha: .1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.mark_chat_read_outlined,
+                            color: CustomerTheme.primary,
+                            size: 22,
+                          ),
                         ),
-                        const SizedBox(width: 10),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             tr('Support response'),
-                            style: Theme.of(context).textTheme.titleMedium,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: CustomerTheme.primaryDark,
+                                  fontWeight: FontWeight.w700,
+                                ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 12),
-                    SelectableText(
-                      row['resolution'] as String? ??
-                          tr(
-                            'Your request is waiting for review. Pull down to check for updates.',
-                          ),
+                    Divider(
+                      height: 28,
+                      color: CustomerTheme.primary.withValues(alpha: .2),
                     ),
+                    if ((row['resolution'] as String?)?.trim().isNotEmpty ==
+                        true)
+                      SelectableText(
+                        row['resolution'] as String,
+                        style: const TextStyle(height: 1.5),
+                      )
+                    else
+                      Text(
+                        tr(
+                          'Your request is waiting for review. Pull down to check for updates.',
+                        ),
+                        style: const TextStyle(
+                          height: 1.5,
+                          color: CustomerTheme.textSecondary,
+                        ),
+                      ),
                   ],
                 ),
               ),
+              const SizedBox(height: 16),
             ],
             SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
           ],

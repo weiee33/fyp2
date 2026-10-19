@@ -177,7 +177,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,
-                            color: CustomerTheme.primary,
+                            color: CustomerTheme.textSecondary,
                           ),
                         ),
                       ],

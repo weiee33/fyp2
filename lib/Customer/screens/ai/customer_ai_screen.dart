@@ -235,6 +235,24 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     if (!mounted || start != true) return;
     await _speech.cancel();
     if (!mounted) return;
+    setState(() => _busy = true);
+    try {
+      _conversation ??= (await _service.create(_createId))['id'].toString();
+      final conversation = _conversation!, service = _service;
+      controller?.setRecorder(
+        (event, kind, text) =>
+            service.recordAgentEvent(conversation, event, kind, text),
+      );
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _busy = false;
+          _error = _message(e);
+        });
+      }
+      return;
+    }
+    if (!mounted) return;
     final callback = widget.onStartAgent;
     Navigator.pop(context);
     if (callback != null) {
@@ -700,11 +718,17 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              tr(user ? 'You' : 'Home Serve AI'),
+              tr(
+                user
+                    ? 'You'
+                    : row['origin'] == 'agent'
+                    ? 'AI Agent'
+                    : 'Home Serve AI',
+              ),
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: user
+                color: user || row['origin'] == 'agent'
                     ? CustomerTheme.primaryDark
                     : const Color(0xFF7454B8),
               ),

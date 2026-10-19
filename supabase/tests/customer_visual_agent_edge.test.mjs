@@ -160,3 +160,22 @@ test("invalid model output never becomes an action", async () => {
   });
   assert.equal((await handleVisualAgent(request(), d)).status, 502);
 });
+
+test("clarification and customer reply stay in bounded untrusted context", async () => {
+  const d = fixture({reply:{action:"ask_user",rationale:"Which day works for you?"}});
+  const history = [{action:"ask_user",question:"Which address?",reply:"My default home address"}];
+  const r = await handleVisualAgent(request({...payload, history, blocked_bounds:[10,20,800,300]}),d);
+  assert.equal(r.status,200);
+  assert.equal((await r.json()).action,"ask_user");
+  const context=JSON.parse(JSON.parse(d.calls[2].init.body).contents[0].parts[0].text);
+  assert.deepEqual(context.history,history);
+  assert.deepEqual(context.blocked_bounds,[10,20,800,300]);
+  assert.match(SYSTEM_INSTRUCTION,/Never ask for passwords/);
+});
+test("invalid panel rectangles are rejected before reserving quota", async () => {
+  for(const bounds of [[0,0,0,20],[10,20,9,50],[0,50,20,10],[0,0,1001,300],null]) {
+    const d=fixture();
+    assert.equal((await handleVisualAgent(request({...payload,blocked_bounds:bounds}),d)).status,400);
+    assert.equal(d.calls.length,1);
+  }
+});
