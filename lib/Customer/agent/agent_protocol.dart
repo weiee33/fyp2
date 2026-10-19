@@ -1,6 +1,6 @@
 import 'dart:ui';
 
-enum AgentState { idle, thinking, executing }
+enum AgentState { idle, thinking, executing, waiting }
 
 class AgentAction {
   final String action, rationale, text;
@@ -34,6 +34,7 @@ class AgentAction {
           'input_text',
           'done',
           'handoff',
+          'ask_user',
         }.contains(action) ||
         rationale is! String ||
         rationale.isEmpty ||

@@ -88,7 +88,7 @@ class CustomerInformationScreen extends StatelessWidget {
         children: [
           SupportCard(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Icon(
                   privacy
@@ -104,6 +104,7 @@ class CustomerInformationScreen extends StatelessWidget {
                         ? 'Your information and choices'
                         : 'Welcome to Home Serve',
                   ),
+                  textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -115,6 +116,7 @@ class CustomerInformationScreen extends StatelessWidget {
                         ? 'This notice explains how information is used across Home Serve and where you can manage it.'
                         : 'A simpler way to find and manage help for your home.',
                   ),
+                  textAlign: TextAlign.justify,
                 ),
               ],
             ),
@@ -133,7 +135,11 @@ class CustomerInformationScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 10),
-                    Text(body, style: const TextStyle(height: 1.55)),
+                    Text(
+                      body,
+                      textAlign: TextAlign.justify,
+                      style: const TextStyle(height: 1.55),
+                    ),
                   ],
                 ),
               ),

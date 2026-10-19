@@ -81,6 +81,20 @@ class CustomerAiService {
     }
   }
 
+  Future<void> recordAgentEvent(
+    String conversation,
+    String eventId,
+    String kind,
+    String content,
+  ) async {
+    await _call('customer_ai_agent_event', {
+      'p_conversation_id': conversation,
+      'p_event_id': eventId,
+      'p_kind': kind,
+      'p_content': content,
+    });
+  }
+
   Future<void> rename(String id, String title) async {
     await _call('customer_ai_rename_conversation', {
       'p_conversation_id': id,

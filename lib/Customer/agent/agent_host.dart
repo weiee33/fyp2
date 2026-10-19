@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../../shared/localization/app_language.dart';
+import 'agent_panel.dart';
 import 'agent_capture.dart';
 import 'agent_controller.dart';
 import 'agent_protocol.dart';
@@ -90,7 +90,7 @@ class _AgentHostState extends State<AgentHost> with TickerProviderStateMixin {
       if (!reduced) {
         _fade.forward();
         final duration = controller.state == AgentState.executing
-            ? const Duration(seconds: 2)
+            ? const Duration(seconds: 3)
             : const Duration(seconds: 6);
         if (!_flow.isAnimating || _flow.duration != duration) {
           _flow.duration = duration;
@@ -122,68 +122,7 @@ class _AgentHostState extends State<AgentHost> with TickerProviderStateMixin {
             ),
           ),
         ),
-        ListenableBuilder(
-          listenable: controller,
-          builder: (context, _) {
-            final top = MediaQuery.viewPaddingOf(context).top;
-            controller.stopBounds = Rect.fromLTWH(
-              60,
-              top,
-              MediaQuery.sizeOf(context).width - 68,
-              110,
-            );
-            if (!controller.active && controller.result.isEmpty) {
-              return const SizedBox.shrink();
-            }
-            return Positioned(
-              top: top + 4,
-              left: 60,
-              right: 8,
-              child: Material(
-                color: const Color(0xFF111827),
-                elevation: 4,
-                borderRadius: BorderRadius.circular(18),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        child: Semantics(
-                          liveRegion: true,
-                          child: Text(
-                            controller.active
-                                ? '${tr('AI Agent')} · ${controller.step}/12\n${tr(controller.status)}'
-                                : tr(controller.result),
-                            maxLines: 3,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              height: 1.3,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: controller.active
-                          ? () => controller.stop()
-                          : controller.dismiss,
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(76, 48),
-                      ),
-                      child: Text(tr(controller.active ? 'Stop' : 'Close')),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
+        Positioned.fill(child: AgentPanel(controller: controller)),
       ],
     ),
   );
@@ -238,15 +177,15 @@ class _AgentPainter extends CustomPainter {
     if (fade.value <= 0) return;
     final rect = (Offset.zero & size).deflate(3);
     final border = RRect.fromRectAndRadius(rect, const Radius.circular(28));
-    final breathing = controller.state == AgentState.thinking
-        ? .5 + .25 * math.sin(flow.value * math.pi * 2)
-        : .9;
+    final breathing = .72 + .24 * math.sin(flow.value * math.pi * 2);
     final alpha = fade.value * breathing;
     final shader = SweepGradient(
       colors: const [
         Color(0xFF18DFFF),
         Color(0xFF635BFF),
         Color(0xFFEF4BFF),
+        Color(0xFFFF8A17),
+        Color(0xFFFF55A8),
         Color(0xFF18DFFF),
       ],
       transform: GradientRotation(flow.value * math.pi * 2),
@@ -257,19 +196,39 @@ class _AgentPainter extends CustomPainter {
       border,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 9
+        ..strokeWidth = 22
         ..shader = shader
-        ..color = Colors.white.withValues(alpha: alpha * .5)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8),
+        ..color = Colors.white.withValues(alpha: alpha * .7)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14),
     );
     canvas.drawRRect(
       border,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 4
+        ..strokeWidth = 5
         ..shader = shader
         ..color = Colors.white.withValues(alpha: alpha),
     );
+    // Soft moving highlights follow the rounded perimeter without rotating its geometry.
+    final path = Path()..addRRect(border);
+    final metric = path.computeMetrics().first;
+    for (var i = 0; i < 3; i++) {
+      final start = ((flow.value + i / 3) % 1) * metric.length;
+      final end = math.min(metric.length, start + metric.length * .13);
+      canvas.drawPath(
+        metric.extractPath(start, end),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 8
+          ..strokeCap = StrokeCap.round
+          ..color = [
+            const Color(0xFF85F5FF),
+            const Color(0xFFFFB0E4),
+            const Color(0xFFFFBC75),
+          ][i].withValues(alpha: alpha * .8)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5),
+      );
+    }
     final globalPoint = controller.cursor.value;
     final point = globalPoint == null
         ? null

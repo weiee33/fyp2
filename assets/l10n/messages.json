@@ -4934,5 +4934,41 @@
   "AI Agent is not configured.": [
     "AI 智能体尚未配置。",
     "Ejen AI belum dikonfigurasi."
+  ],
+  "Support Request": [
+    "支持请求",
+    "Permintaan Sokongan"
+  ],
+  "Your turn": [
+    "请您回答",
+    "Giliran anda"
+  ],
+  "Your answer": [
+    "您的回答",
+    "Jawapan anda"
+  ],
+  "Send answer": [
+    "发送回答",
+    "Hantar jawapan"
+  ],
+  "History not saved": [
+    "记录尚未保存",
+    "Sejarah belum disimpan"
+  ],
+  "Retry saving": [
+    "重新保存",
+    "Cuba simpan semula"
+  ],
+  "Waiting for your answer": [
+    "等待您的回答",
+    "Menunggu jawapan anda"
+  ],
+  "Please continue this task yourself.": [
+    "请自行继续此任务。",
+    "Sila teruskan tugas ini sendiri."
+  ],
+  "Reply time expired. Start AI Agent again when ready.": [
+    "回答时间已过。准备好后请重新启动 AI 智能体。",
+    "Masa menjawab tamat. Mulakan AI Agent semula apabila bersedia."
   ]
 }
