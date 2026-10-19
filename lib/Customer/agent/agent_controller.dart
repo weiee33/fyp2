@@ -30,7 +30,7 @@ class AgentOverlayController extends ChangeNotifier
   String question = '';
   Completer<String?>? _answer;
   AgentRecord? _recorder;
-  String? _runUser;
+  String? _runUser, _recorderUser;
   DateTime? _deadline;
   final _pendingHistory =
       <
@@ -42,7 +42,11 @@ class AgentOverlayController extends ChangeNotifier
           AgentRecord write,
         })
       >[];
-  void setRecorder(AgentRecord recorder) => _recorder = recorder;
+  void setRecorder(AgentRecord recorder) {
+    _recorder = recorder;
+    _recorderUser = identity();
+  }
+
   void _record(String kind, String content) {
     final user = identity(), write = _recorder;
     if (write == null ||
@@ -200,11 +204,15 @@ class AgentOverlayController extends ChangeNotifier
         return hit.path.any((entry) => identical(entry.target, t.box));
       }).toList();
 
-  Future<void> run(String goal) async {
+  Future<void> run(String goal, {bool settleViewport = false}) async {
     if (active || goal.trim().isEmpty || goal.length > 4000) return;
     final user = identity();
     if (user == null) {
       stop('Sign in to use AI Agent.');
+      return;
+    }
+    if (_recorder != null && _recorderUser != user) {
+      stop('Open AI Agent from the customer navigation bar.');
       return;
     }
     final epoch = ++_epoch;
@@ -221,6 +229,11 @@ class AgentOverlayController extends ChangeNotifier
     _phase(AgentState.thinking, 'Looking at the screen…');
     var unchanged = 0;
     try {
+      if (settleViewport) {
+        // Activate immediately so Stop cancels even while the keyboard closes.
+        await Future<void>.delayed(const Duration(milliseconds: 400));
+        if (!_valid(epoch, user)) return;
+      }
       while (_valid(epoch, user) &&
           step < 12 &&
           DateTime.now().isBefore(deadline)) {

@@ -4970,5 +4970,37 @@
   "Reply time expired. Start AI Agent again when ready.": [
     "回答时间已过。准备好后请重新启动 AI 智能体。",
     "Masa menjawab tamat. Mulakan AI Agent semula apabila bersedia."
+  ],
+  "AI Chat": [
+    "AI 聊天",
+    "Sembang AI"
+  ],
+  "Give AI Agent a new task": [
+    "给 AI 智能体一个新任务",
+    "Beri AI Agent tugas baharu"
+  ],
+  "Start task": [
+    "开始任务",
+    "Mulakan tugas"
+  ],
+  "Resize panel": [
+    "调整面板大小",
+    "Ubah saiz panel"
+  ],
+  "AI Agent is temporarily busy. Please try again shortly.": [
+    "AI 智能体暂时繁忙，请稍后重试。",
+    "AI Agent sibuk buat sementara waktu. Sila cuba sebentar lagi."
+  ],
+  "AI Agent took too long to respond. Please try again shortly.": [
+    "AI 智能体响应超时，请稍后重试。",
+    "AI Agent mengambil masa terlalu lama untuk membalas. Sila cuba sebentar lagi."
+  ],
+  "The AI key was rejected by Google. Please contact support.": [
+    "Google 拒绝了 AI 密钥。请联系支持团队。",
+    "Kunci AI ditolak oleh Google. Sila hubungi sokongan."
+  ],
+  "The configured AI model is unavailable. Please contact support.": [
+    "配置的 AI 模型不可用。请联系支持团队。",
+    "Model AI yang dikonfigurasi tidak tersedia. Sila hubungi sokongan."
   ]
 }

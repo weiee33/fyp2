@@ -211,32 +211,10 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       );
       return;
     }
-    final start = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(tr('Start AI Agent?')),
-        content: Text(
-          tr(
-            'AI Agent sends screenshots of supported Home Serve screens to Gemini to carry out your request. Watch the cursor, tap Stop or touch the screen to take control. You confirm bookings, payments and other changes yourself.',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(tr('Cancel')),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(tr('Start')),
-          ),
-        ],
-      ),
-    );
-    if (!mounted || start != true) return;
-    await _speech.cancel();
-    if (!mounted) return;
     setState(() => _busy = true);
     try {
+      await _speech.cancel();
+      if (!mounted) return;
       _conversation ??= (await _service.create(_createId))['id'].toString();
       final conversation = _conversation!, service = _service;
       controller?.setRecorder(
@@ -929,16 +907,16 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                     PopupMenuItem(
                       value: 'chat',
                       child: CustomerMenuRow(
-                        icon: Icons.auto_awesome_outlined,
-                        label: tr('AI chat'),
+                        label: tr('AI Chat'),
+                        showCheck: false,
                         selected: _mode == 'chat',
                       ),
                     ),
                     PopupMenuItem(
                       value: 'assist',
                       child: CustomerMenuRow(
-                        icon: Icons.task_alt_rounded,
                         label: tr('AI Agent'),
+                        showCheck: false,
                         selected: _mode == 'assist',
                       ),
                     ),
@@ -963,7 +941,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                         const SizedBox(width: 5),
                         Flexible(
                           child: Text(
-                            tr(_mode == 'chat' ? 'AI chat' : 'AI Agent'),
+                            tr(_mode == 'chat' ? 'AI Chat' : 'AI Agent'),
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 12,

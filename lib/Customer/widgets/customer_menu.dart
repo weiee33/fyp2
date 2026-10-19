@@ -46,15 +46,17 @@ class CustomerMenu<T> extends StatelessWidget {
 class CustomerMenuRow extends StatelessWidget {
   const CustomerMenuRow({
     super.key,
-    required this.icon,
+    this.icon,
     required this.label,
     this.selected = false,
     this.destructive = false,
+    this.showCheck = true,
   });
-  final IconData icon;
+  final IconData? icon;
   final String label;
   final bool selected;
   final bool destructive;
+  final bool showCheck;
 
   @override
   Widget build(BuildContext context) {
@@ -67,15 +69,17 @@ class CustomerMenuRow extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: .08),
-              borderRadius: BorderRadius.circular(10),
+          if (icon != null) ...[
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: .08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 20, color: color),
             ),
-            child: Icon(icon, size: 20, color: color),
-          ),
-          const SizedBox(width: 12),
+            const SizedBox(width: 12),
+          ],
           Expanded(
             child: Text(
               label,
@@ -86,7 +90,7 @@ class CustomerMenuRow extends StatelessWidget {
               ),
             ),
           ),
-          if (selected) ...[
+          if (selected && showCheck) ...[
             const SizedBox(width: 8),
             Icon(Icons.check_rounded, size: 18, color: color),
           ],

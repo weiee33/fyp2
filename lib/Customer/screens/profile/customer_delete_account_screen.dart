@@ -122,6 +122,7 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
             const SizedBox(height: 24),
             Text(
               tr('Before You Continue'),
+              textAlign: TextAlign.center,
               style: Theme.of(
                 context,
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
@@ -131,6 +132,7 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
               tr(
                 'Finish or cancel active bookings and resolve pending payments or disputes first. Anonymized transaction and rating records are retained.',
               ),
+              textAlign: TextAlign.center,
               style: const TextStyle(height: 1.5),
             ),
             const SizedBox(height: 24),

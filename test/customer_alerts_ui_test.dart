@@ -38,7 +38,7 @@ void main() {
       await t.tap(find.byTooltip('Assistant mode'));
       await t.pumpAndSettle();
       expect(find.byType(CustomerMenuRow), findsNWidgets(2));
-      expect(find.byIcon(Icons.check_rounded), findsOneWidget);
+      expect(find.byIcon(Icons.check_rounded), findsNothing);
       expect(t.takeException(), isNull);
       await capture.proof(t, 'polished-ai-mode-menu');
       await t.tap(find.text('AI Agent'));

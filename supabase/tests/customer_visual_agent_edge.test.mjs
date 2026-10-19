@@ -32,6 +32,7 @@ function fixture({
   const calls = [];
   return {
     calls,
+    sleep: async () => {},
     env: (n) =>
       ({
         SUPABASE_URL: "https://fixture.invalid",
@@ -138,13 +139,13 @@ test("rejects oversized or unauthorized screen requests before quota reservation
 });
 test("provider failures redact secrets, bounded transient retry only", async () => {
   for (const [status, count] of [
-    [503, 4],
+    [503, 5],
     [429, 3],
     [400, 3],
   ]) {
     const d = fixture({ upstream: status });
     const r = await handleVisualAgent(request(), d);
-    assert.equal(r.status, 503);
+    assert.equal(r.status, status === 429 ? 429 : 503);
     assert.ok(!(await r.text()).includes("secret-fixture"));
     assert.equal(d.calls.length, count);
   }
@@ -178,4 +179,32 @@ test("invalid panel rectangles are rejected before reserving quota", async () =>
     assert.equal((await handleVisualAgent(request({...payload,blocked_bounds:bounds}),d)).status,400);
     assert.equal(d.calls.length,1);
   }
+});
+
+
+test("transient recovery backs off, switches model and reserves quota once", async () => {
+  const d=fixture(); const original=d.fetch; let modelCalls=0;const delays=[];const events=[];
+  d.sleep=async ms=>delays.push(ms);d.log=e=>events.push(e);
+  d.fetch=async(url,init)=>{
+    if(url.includes('googleapis') && modelCalls++===0){d.calls.push({url,init});return Response.json({error:{status:'UNAVAILABLE',message:'private content'}},{status:503});}
+    return original(url,init);
+  };
+  assert.equal((await handleVisualAgent(request(),d)).status,200);
+  assert.equal(delays.length,1);assert.ok(delays[0]>=1000);
+  assert.match(d.calls.at(-1).url,/gemini-3.1-flash-lite/);
+  assert.equal(d.calls.filter(c=>c.url.includes('/rpc/')).length,1);
+  assert.equal(events[0].upstream_status,'UNAVAILABLE');
+  assert.ok(!JSON.stringify(events).includes('private content'));
+});
+test("quota, key and model errors have distinct customer messages without retries",async()=>{
+  for(const [status,pattern] of [[429,/usage limit/],[403,/key was rejected/],[404,/model is unavailable/],[400,/request configuration/]]){
+    const d=fixture({upstream:status});const r=await handleVisualAgent(request(),d);
+    assert.match((await r.json()).error,pattern);assert.equal(d.calls.length,3);
+  }
+});
+test("long Retry-After does not exceed the request deadline",async()=>{
+  const d=fixture();const original=d.fetch;let slept=false;
+  d.sleep=async()=>{slept=true;};
+  d.fetch=(url,init)=>url.includes('googleapis')?Promise.resolve(new Response('',{status:503,headers:{'retry-after':'60'}})):original(url,init);
+  assert.equal((await handleVisualAgent(request(),d)).status,503);assert.equal(slept,false);
 });

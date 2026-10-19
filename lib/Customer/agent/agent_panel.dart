@@ -15,6 +15,7 @@ class AgentPanel extends StatefulWidget {
 class _AgentPanelState extends State<AgentPanel> {
   final _reply = TextEditingController();
   Offset? _position;
+  Size? _size;
   String _previousQuestion = '';
   @override
   void dispose() {
@@ -22,11 +23,21 @@ class _AgentPanelState extends State<AgentPanel> {
     super.dispose();
   }
 
-  void _send() {
-    if (widget.controller.answer(_reply.text)) {
-      _reply.clear();
-      FocusScope.of(context).unfocus();
+  Future<void> _send() async {
+    final c = widget.controller;
+    final text = _reply.text.trim();
+    if (text.isEmpty) return;
+    if (c.waiting) {
+      if (c.answer(text)) {
+        _reply.clear();
+        FocusScope.of(context).unfocus();
+      }
+      return;
     }
+    if (c.active || text.length > 4000) return;
+    _reply.clear();
+    FocusScope.of(context).unfocus();
+    await c.run(text, settleViewport: true);
   }
 
   @override
@@ -48,18 +59,24 @@ class _AgentPanelState extends State<AgentPanel> {
           final safeTop = media.viewPadding.top + 10;
           final safeBottom =
               math.max(media.viewInsets.bottom, media.viewPadding.bottom) + 10;
-          final width = math.min(340.0, constraints.maxWidth - 24);
+          final maxWidth = math.max(1.0, constraints.maxWidth - 24);
+          final width = (_size?.width ?? 340.0)
+              .clamp(math.min(260.0, maxWidth), maxWidth)
+              .toDouble();
           final available = math.max(
             80.0,
             constraints.maxHeight - safeTop - safeBottom,
           );
           final scale = media.textScaler.scale(1).clamp(1.0, 2.0);
-          final height = math.min(
-            available,
-            (c.waiting ? 260.0 : 118.0) +
-                (scale - 1) * 60 +
-                (c.historyError ? 54 : 0),
-          );
+          final composing = c.waiting || !c.active;
+          final minHeight = composing ? 250.0 : 140.0;
+          final preferredHeight =
+              (composing ? 290.0 : 140.0) +
+              (scale - 1) * 60 +
+              (c.historyError ? 54 : 0);
+          final height = (_size?.height ?? preferredHeight)
+              .clamp(math.min(minHeight, available), available)
+              .toDouble();
           final maxX = math.max(12.0, constraints.maxWidth - width - 12),
               maxY = math.max(
                 safeTop,
@@ -208,18 +225,22 @@ class _AgentPanelState extends State<AgentPanel> {
                                       ),
                                     ),
                                   ),
-                                  if (c.waiting) ...[
+                                  if (composing) ...[
                                     const SizedBox(height: 10),
                                     TextField(
                                       key: const ValueKey('agent-answer'),
                                       controller: _reply,
                                       minLines: 1,
                                       maxLines: 2,
-                                      maxLength: 500,
+                                      maxLength: c.waiting ? 500 : 4000,
                                       textInputAction: TextInputAction.send,
                                       onSubmitted: (_) => _send(),
                                       decoration: InputDecoration(
-                                        hintText: tr('Your answer'),
+                                        hintText: tr(
+                                          c.waiting
+                                              ? 'Your answer'
+                                              : 'Give AI Agent a new task',
+                                        ),
                                         counterText: '',
                                         filled: true,
                                         fillColor: Colors.white,
@@ -239,7 +260,13 @@ class _AgentPanelState extends State<AgentPanel> {
                                         Icons.arrow_upward_rounded,
                                         size: 18,
                                       ),
-                                      label: Text(tr('Send answer')),
+                                      label: Text(
+                                        tr(
+                                          c.waiting
+                                              ? 'Send answer'
+                                              : 'Start task',
+                                        ),
+                                      ),
                                       style: FilledButton.styleFrom(
                                         minimumSize: const Size.fromHeight(42),
                                         backgroundColor: CustomerTheme.primary,
@@ -270,6 +297,41 @@ class _AgentPanelState extends State<AgentPanel> {
                                       ],
                                     ),
                                 ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Semantics(
+                            label: tr('Resize panel'),
+                            child: GestureDetector(
+                              key: const ValueKey('agent-resize-handle'),
+                              behavior: HitTestBehavior.opaque,
+                              onPanDown: (_) => c.panelInteracting = true,
+                              onPanStart: (_) => c.panelInteracting = true,
+                              onPanUpdate: (details) => setState(() {
+                                final current = _size ?? Size(width, height);
+                                _size = Size(
+                                  (current.width + details.delta.dx).clamp(
+                                    math.min(260.0, maxWidth),
+                                    maxWidth,
+                                  ),
+                                  (current.height + details.delta.dy).clamp(
+                                    math.min(minHeight, available),
+                                    available,
+                                  ),
+                                );
+                              }),
+                              onPanEnd: (_) => c.panelInteracting = false,
+                              onPanCancel: () => c.panelInteracting = false,
+                              child: const Padding(
+                                padding: EdgeInsets.fromLTRB(16, 0, 10, 6),
+                                child: Icon(
+                                  Icons.open_in_full_rounded,
+                                  size: 18,
+                                  color: CustomerTheme.primary,
+                                ),
                               ),
                             ),
                           ),

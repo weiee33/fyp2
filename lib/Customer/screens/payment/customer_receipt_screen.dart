@@ -195,18 +195,6 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                         ],
                       ),
                     ),
-                  const Divider(),
-                  Text(
-                    tr('SANDBOX TEST RECEIPT'),
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    tr(
-                      'No real money transferred. This demonstration receipt is not a tax invoice.',
-                    ),
-                    style: TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
                 ],
               ),
             ),

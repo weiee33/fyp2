@@ -143,9 +143,7 @@ class FakeAi extends CustomerAiService {
 }
 
 void main() {
-  testWidgets('AI Agent requires screenshot consent and preserves AI chat', (
-    t,
-  ) async {
+  testWidgets('AI Agent starts directly and preserves AI Chat', (t) async {
     capture.pixel(t);
     final service = FakeAi();
     final goals = <String>[];
@@ -172,7 +170,7 @@ void main() {
     );
     await t.tap(find.text('Open assistant'));
     await t.pumpAndSettle();
-    expect(find.text('AI chat'), findsOneWidget);
+    expect(find.text('AI Chat'), findsOneWidget);
     await t.tap(find.byTooltip('Assistant mode'));
     await t.pumpAndSettle();
     await t.tap(find.text('AI Agent'));
@@ -180,15 +178,7 @@ void main() {
     await t.enterText(find.byType(TextField), 'Find plumbing');
     await t.tap(find.byTooltip('Send message'));
     await t.pumpAndSettle();
-    expect(find.text('Start AI Agent?'), findsOneWidget);
-    expect(goals, isEmpty);
-    await t.tap(find.text('Cancel'));
-    await t.pumpAndSettle();
-    expect(goals, isEmpty);
-    await t.tap(find.byTooltip('Send message'));
-    await t.pumpAndSettle();
-    await t.tap(find.text('Start'));
-    await t.pumpAndSettle();
+    expect(find.text('Start AI Agent?'), findsNothing);
     expect(goals, ['Find plumbing']);
     expect(t.takeException(), isNull);
   });
