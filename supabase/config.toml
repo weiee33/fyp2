@@ -18,6 +18,9 @@ verify_jwt = true
 [functions.customer-assistant]
 verify_jwt = true
 
+[functions.customer-visual-agent]
+verify_jwt = true
+
 # Authenticated using a dedicated worker secret, never a customer JWT.
 [functions.customer-delivery]
 verify_jwt = false

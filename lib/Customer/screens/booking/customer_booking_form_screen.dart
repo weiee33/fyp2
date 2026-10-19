@@ -1,3 +1,4 @@
+import '../../agent/agent_surface.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import '../../widgets/customer_selection_sheet.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
@@ -137,6 +138,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
 
   Future<void> _chooseAddress() async {
     final value = await showCustomerSelection<String>(
+      agentChoices: true,
       context: context,
       title: tr('Service Address'),
       selected: _addressId,
@@ -161,6 +163,8 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
     final malaysia = DateTime.now().toUtc().add(const Duration(hours: 8));
     final today = DateTime(malaysia.year, malaysia.month, malaysia.day);
     final date = await showDatePicker(
+      builder: (context, child) =>
+          AgentSurface(name: 'date_picker', localChoices: true, child: child!),
       context: context,
       initialDate: _date,
       firstDate: today,
@@ -222,7 +226,12 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
         ) ??
         0;
     return CustomerScaffold(
-      appBar: AppBar(title: Text(tr('Book Service'))),
+      agentScreen: 'booking_form',
+      agentReady: !_saving && !_loadingSlots && !_loadingAddresses,
+      appBar: AppBar(
+        leading: BackButton().agent('Back'),
+        title: Text(tr('Book Service')),
+      ),
       body: AbsorbPointer(
         absorbing: _saving,
         child: ListView(
@@ -322,7 +331,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                           ],
                         ),
                       ),
-                    ),
+                    ).agent('Choose service address'),
                   ),
                 TextButton.icon(
                   onPressed: () async {
@@ -352,7 +361,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                   ),
                   trailing: const Icon(Icons.calendar_month),
                   onTap: _chooseDate,
-                ),
+                ).agent('Choose appointment date'),
                 const SizedBox(height: 12),
                 Text(
                   tr('Available times'),
@@ -393,7 +402,7 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                               _requestId =
                                   CustomerTransactionService.newRequestId();
                             }),
-                          ),
+                          ).agent(slot.label),
                         )
                         .toList(),
                   ),
@@ -413,6 +422,11 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                   ),
                   onChanged: (_) =>
                       _requestId = CustomerTransactionService.newRequestId(),
+                ).agent(
+                  'Booking instructions',
+                  capability: AgentCapability.input,
+                  controller: _instructions,
+                  maxLength: 500,
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -428,28 +442,32 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(20),
-          child: FilledButton(
-            onPressed:
-                _saving ||
-                    _loadingSlots ||
-                    _loadingAddresses ||
-                    _time == null ||
-                    _addressId == null ||
-                    _slotsError != null ||
-                    _addressError != null
-                ? null
-                : _book,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: _saving
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(tr('Create booking')),
-            ),
-          ),
+          child:
+              FilledButton(
+                onPressed:
+                    _saving ||
+                        _loadingSlots ||
+                        _loadingAddresses ||
+                        _time == null ||
+                        _addressId == null ||
+                        _slotsError != null ||
+                        _addressError != null
+                    ? null
+                    : _book,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: _saving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(tr('Create booking')),
+                ),
+              ).agent(
+                'Create booking — customer confirmation required',
+                capability: AgentCapability.handoff,
+              ),
         ),
       ),
     );

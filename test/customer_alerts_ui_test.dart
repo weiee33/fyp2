@@ -41,9 +41,9 @@ void main() {
       expect(find.byIcon(Icons.check_rounded), findsOneWidget);
       expect(t.takeException(), isNull);
       await capture.proof(t, 'polished-ai-mode-menu');
-      await t.tap(find.text('Do it for me'));
+      await t.tap(find.text('AI Agent'));
       await t.pumpAndSettle();
-      expect(find.text('Do it for me'), findsOneWidget);
+      expect(find.text('AI Agent'), findsOneWidget);
       await t.tap(find.byTooltip('Chat history'));
       await t.pumpAndSettle();
       await t.tap(find.byTooltip('Chat options'));

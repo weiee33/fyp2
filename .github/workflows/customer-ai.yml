@@ -1,9 +1,9 @@
 name: Customer AI checks
 on:
   push:
-    paths: ['supabase/functions/customer-assistant/**', 'supabase/functions/_shared/customer_ai.ts', 'supabase/tests/customer_ai_edge.test.mjs', '.github/workflows/customer-ai.yml']
+    paths: ['supabase/functions/customer-assistant/**', 'supabase/functions/customer-visual-agent/**', 'supabase/functions/_shared/customer_visual_agent.ts', 'supabase/tests/customer_visual_agent_edge.test.mjs', 'supabase/functions/_shared/customer_ai.ts', 'supabase/tests/customer_ai_edge.test.mjs', '.github/workflows/customer-ai.yml']
   pull_request:
-    paths: ['supabase/functions/customer-assistant/**', 'supabase/functions/_shared/customer_ai.ts', 'supabase/tests/customer_ai_edge.test.mjs', '.github/workflows/customer-ai.yml']
+    paths: ['supabase/functions/customer-assistant/**', 'supabase/functions/customer-visual-agent/**', 'supabase/functions/_shared/customer_visual_agent.ts', 'supabase/tests/customer_visual_agent_edge.test.mjs', 'supabase/functions/_shared/customer_ai.ts', 'supabase/tests/customer_ai_edge.test.mjs', '.github/workflows/customer-ai.yml']
 permissions:
   contents: read
 jobs:
@@ -14,4 +14,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --experimental-strip-types --test supabase/tests/customer_ai_edge.test.mjs
+      - run: node --experimental-strip-types --test supabase/tests/customer_ai_edge.test.mjs supabase/tests/customer_visual_agent_edge.test.mjs
