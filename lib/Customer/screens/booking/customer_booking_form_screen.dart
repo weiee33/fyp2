@@ -426,6 +426,8 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                   'Booking instructions',
                   capability: AgentCapability.input,
                   controller: _instructions,
+                  onInput: (_) =>
+                      _requestId = CustomerTransactionService.newRequestId(),
                   maxLength: 500,
                 ),
                 const SizedBox(height: 12),

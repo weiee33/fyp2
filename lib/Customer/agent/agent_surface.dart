@@ -55,6 +55,7 @@ class AgentTarget extends StatefulWidget {
   final Widget child;
   final AgentCapability capability;
   final TextEditingController? controller;
+  final ValueChanged<String>? onInput;
   final int maxLength;
   final bool enabled;
   const AgentTarget({
@@ -63,6 +64,7 @@ class AgentTarget extends StatefulWidget {
     required this.child,
     this.capability = AgentCapability.click,
     this.controller,
+    this.onInput,
     this.maxLength = 120,
     this.enabled = true,
   });
@@ -115,12 +117,14 @@ extension AgentWidget on Widget {
     String label, {
     AgentCapability capability = AgentCapability.click,
     TextEditingController? controller,
+    ValueChanged<String>? onInput,
     int maxLength = 120,
     bool enabled = true,
   }) => AgentTarget(
     label: label,
     capability: capability,
     controller: controller,
+    onInput: onInput,
     maxLength: maxLength,
     enabled: enabled,
     child: this,

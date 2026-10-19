@@ -261,13 +261,17 @@ void main() {
     t,
   ) async {
     final text = TextEditingController();
+    String? changed;
     await mount(
       t,
       SizedBox(
         width: 280,
-        child: TextField(
+        child: TextField(controller: text).agent(
+          'Search',
+          capability: AgentCapability.input,
           controller: text,
-        ).agent('Search', capability: AgentCapability.input, controller: text),
+          onInput: (value) => changed = value,
+        ),
       ),
     );
     var calls = 0;
@@ -282,6 +286,7 @@ void main() {
     unawaited(c.run('Find plumbing'));
     await advance(t, c);
     expect(text.text, 'plumbing');
+    expect(changed, 'plumbing');
     expect(t.takeException(), isNull);
     c.dispose();
     await t.pumpWidget(const SizedBox());

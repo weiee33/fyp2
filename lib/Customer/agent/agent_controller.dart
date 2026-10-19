@@ -243,6 +243,7 @@ class AgentOverlayController extends ChangeNotifier
               text: action.text,
               selection: TextSelection.collapsed(offset: action.text.length),
             );
+            target.widget.onInput?.call(action.text);
             FocusManager.instance.primaryFocus?.unfocus();
           }
         }
