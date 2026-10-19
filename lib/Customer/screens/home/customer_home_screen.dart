@@ -1,3 +1,4 @@
+import '../../agent/agent_surface.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
@@ -208,6 +209,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return CustomerScaffold(
+      agentScreen: 'explore',
+      agentReady: !_loading,
       backgroundColor: CustomerTheme.background,
       body: CustomerRefresh(
         onRefresh: _load,
@@ -253,7 +256,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                             _browse();
                           },
                           child: Text(tr('View all')),
-                        ),
+                        ).agent('All services'),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -329,7 +332,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                                           ],
                                         ),
                                       ),
-                                    ),
+                                    ).agent(category['category_name'] as String),
                                   ),
                                 ),
                               )
@@ -440,8 +443,12 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
               tooltip: trOrNull('Search services'),
               onPressed: () => _browse(),
               icon: const Icon(Icons.arrow_forward),
-            ),
+            ).agent('Search services'),
           ),
+        ).agent(
+          'Service search',
+          capability: AgentCapability.input,
+          controller: _search,
         ),
       ],
     ),
@@ -528,7 +535,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             ],
           ),
         ),
-      ),
+      ).agent(provider['business_name'] as String),
     );
   }
 

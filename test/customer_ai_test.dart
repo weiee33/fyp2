@@ -143,39 +143,55 @@ class FakeAi extends CustomerAiService {
 }
 
 void main() {
-  testWidgets(
-    'Assist opens app screens but never automatically opens payment',
-    (t) async {
-      capture.pixel(t);
-      final service = FakeAi()..navigationScreen = 'bookings';
-      final opened = <String>[];
-      await t.pumpWidget(
-        capture.app(
-          CustomerAiScreen(
-            service: service,
-            speech: FakeSpeech(),
-            onNavigate: (action) async {
-              opened.add(action['screen'] as String);
-            },
+  testWidgets('AI Agent requires screenshot consent and preserves AI chat', (
+    t,
+  ) async {
+    capture.pixel(t);
+    final service = FakeAi();
+    final goals = <String>[];
+    await t.pumpWidget(
+      capture.app(
+        Builder(
+          builder: (context) => ElevatedButton(
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => CustomerAiScreen(
+                  service: service,
+                  speech: FakeSpeech(),
+                  onStartAgent: (goal) async {
+                    goals.add(goal);
+                  },
+                ),
+              ),
+            ),
+            child: const Text('Open assistant'),
           ),
         ),
-      );
-      await t.tap(find.byTooltip('Assistant mode'));
-      await t.pumpAndSettle();
-      await t.tap(find.text('Do it for me'));
-      await t.pumpAndSettle();
-      await t.enterText(find.byType(TextField), 'Open my bookings');
-      await t.tap(find.byTooltip('Send message'));
-      await t.pumpAndSettle();
-      expect(opened, ['bookings']);
-      service.navigationScreen = 'payment';
-      await t.enterText(find.byType(TextField), 'Show payment');
-      await t.tap(find.byTooltip('Send message'));
-      await t.pumpAndSettle();
-      expect(opened, ['bookings']);
-      expect(t.takeException(), isNull);
-    },
-  );
+      ),
+    );
+    await t.tap(find.text('Open assistant'));
+    await t.pumpAndSettle();
+    expect(find.text('AI chat'), findsOneWidget);
+    await t.tap(find.byTooltip('Assistant mode'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('AI Agent'));
+    await t.pumpAndSettle();
+    await t.enterText(find.byType(TextField), 'Find plumbing');
+    await t.tap(find.byTooltip('Send message'));
+    await t.pumpAndSettle();
+    expect(find.text('Start AI Agent?'), findsOneWidget);
+    expect(goals, isEmpty);
+    await t.tap(find.text('Cancel'));
+    await t.pumpAndSettle();
+    expect(goals, isEmpty);
+    await t.tap(find.byTooltip('Send message'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Start'));
+    await t.pumpAndSettle();
+    expect(goals, ['Find plumbing']);
+    expect(t.takeException(), isNull);
+  });
   testWidgets(
     'pending reply displays sent bubble and animated assistant bubble',
     (t) async {
@@ -256,7 +272,7 @@ void main() {
     );
     await t.tap(find.byTooltip('Assistant mode'));
     await t.pumpAndSettle();
-    await t.tap(find.text('Do it for me'));
+    await t.tap(find.text('AI Agent'));
     await t.pumpAndSettle();
     await t.enterText(find.byType(TextField), 'Help me book');
     await t.pump();

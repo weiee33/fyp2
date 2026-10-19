@@ -4790,5 +4790,149 @@
   "Camera": [
     "相机",
     "Kamera"
+  ],
+  "AI chat": [
+    "AI 聊天",
+    "Sembang AI"
+  ],
+  "AI Agent": [
+    "AI 智能体",
+    "Ejen AI"
+  ],
+  "Start AI Agent?": [
+    "启动 AI 智能体？",
+    "Mulakan Ejen AI?"
+  ],
+  "Start": [
+    "开始",
+    "Mula"
+  ],
+  "Stop": [
+    "停止",
+    "Henti"
+  ],
+  "AI Agent sends screenshots of supported Home Serve screens to Gemini to carry out your request. Watch the cursor, tap Stop or touch the screen to take control. You confirm bookings, payments and other changes yourself.": [
+    "AI 智能体会将支持的 Home Serve 页面截图发送给 Gemini，以执行您的请求。您可以观看光标操作，点击停止或触摸屏幕接管。预订、付款及其他变更由您亲自确认。",
+    "Ejen AI menghantar tangkapan skrin Home Serve yang disokong kepada Gemini untuk melaksanakan permintaan anda. Ikuti kursor, ketik Henti atau sentuh skrin untuk mengambil alih. Anda sendiri mengesahkan tempahan, pembayaran dan perubahan lain."
+  ],
+  "Use AI chat to ask about an attached photo.": [
+    "请使用 AI 聊天询问附件照片。",
+    "Gunakan Sembang AI untuk bertanya tentang foto yang dilampirkan."
+  ],
+  "Open AI Agent from the customer navigation bar.": [
+    "请从客户导航栏打开 AI 智能体。",
+    "Buka Ejen AI daripada bar navigasi pelanggan."
+  ],
+  "Looking at the screen…": [
+    "正在查看屏幕…",
+    "Sedang melihat skrin…"
+  ],
+  "You took control.": [
+    "您已接管操作。",
+    "Anda telah mengambil alih."
+  ],
+  "AI Agent stopped when the app left the foreground.": [
+    "应用离开前台，AI 智能体已停止。",
+    "Ejen AI berhenti apabila aplikasi meninggalkan latar depan."
+  ],
+  "AI Agent stopped.": [
+    "AI 智能体已停止。",
+    "Ejen AI telah berhenti."
+  ],
+  "Sign in to use AI Agent.": [
+    "请登录以使用 AI 智能体。",
+    "Log masuk untuk menggunakan Ejen AI."
+  ],
+  "This screen needs your control.": [
+    "此页面需要您亲自操作。",
+    "Skrin ini memerlukan kawalan anda."
+  ],
+  "This control needs your attention.": [
+    "此操作需要您处理。",
+    "Kawalan ini memerlukan perhatian anda."
+  ],
+  "AI Agent could not safely identify that control.": [
+    "AI 智能体无法安全识别该控件。",
+    "Ejen AI tidak dapat mengenal pasti kawalan itu dengan selamat."
+  ],
+  "Please review and confirm this action yourself.": [
+    "请亲自检查并确认此操作。",
+    "Sila semak dan sahkan tindakan ini sendiri."
+  ],
+  "This text field needs your control.": [
+    "此文本框需要您亲自填写。",
+    "Medan teks ini memerlukan kawalan anda."
+  ],
+  "AI Agent could not safely scroll here.": [
+    "AI 智能体无法在此安全滚动。",
+    "Ejen AI tidak dapat menatal di sini dengan selamat."
+  ],
+  "Continue on this screen yourself.": [
+    "请在此页面继续操作。",
+    "Sila teruskan sendiri pada skrin ini."
+  ],
+  "The screen is not changing. Please take control.": [
+    "屏幕没有变化，请接管操作。",
+    "Skrin tidak berubah. Sila ambil alih."
+  ],
+  "Step or time limit reached. Review the screen before continuing.": [
+    "已达到步骤或时间限制，请检查屏幕后继续。",
+    "Had langkah atau masa dicapai. Semak skrin sebelum meneruskan."
+  ],
+  "AI Agent could not continue. Please try again.": [
+    "AI 智能体无法继续，请重试。",
+    "Ejen AI tidak dapat meneruskan. Sila cuba lagi."
+  ],
+  "Your sign-in changed. AI Agent stopped.": [
+    "登录状态已改变，AI 智能体已停止。",
+    "Status log masuk anda berubah. Ejen AI telah berhenti."
+  ],
+  "The app screen is not ready.": [
+    "应用页面尚未就绪。",
+    "Skrin aplikasi belum sedia."
+  ],
+  "Unable to capture the app screen.": [
+    "无法截取应用页面。",
+    "Tidak dapat menangkap skrin aplikasi."
+  ],
+  "The screen image is too large.": [
+    "屏幕图像过大。",
+    "Imej skrin terlalu besar."
+  ],
+  "Unsupported agent response.": [
+    "智能体响应不受支持。",
+    "Respons ejen tidak disokong."
+  ],
+  "Invalid agent coordinates.": [
+    "智能体坐标无效。",
+    "Koordinat ejen tidak sah."
+  ],
+  "Invalid agent input.": [
+    "智能体输入无效。",
+    "Input ejen tidak sah."
+  ],
+  "AI Agent is unavailable. Please try again.": [
+    "AI 智能体暂不可用，请重试。",
+    "Ejen AI tidak tersedia. Sila cuba lagi."
+  ],
+  "AI Agent limit reached or run expired. Please try again later.": [
+    "AI 智能体已达使用上限或任务已过期，请稍后再试。",
+    "Had Ejen AI dicapai atau sesi tamat. Sila cuba lagi nanti."
+  ],
+  "AI Agent is taking too long. Please try again.": [
+    "AI 智能体响应超时，请重试。",
+    "Ejen AI mengambil masa terlalu lama. Sila cuba lagi."
+  ],
+  "AI Agent could not complete this step.": [
+    "AI 智能体无法完成此步骤。",
+    "Ejen AI tidak dapat melengkapkan langkah ini."
+  ],
+  "AI Agent returned an invalid action.": [
+    "AI 智能体返回了无效操作。",
+    "Ejen AI memberikan tindakan tidak sah."
+  ],
+  "AI Agent is not configured.": [
+    "AI 智能体尚未配置。",
+    "Ejen AI belum dikonfigurasi."
   ]
 }

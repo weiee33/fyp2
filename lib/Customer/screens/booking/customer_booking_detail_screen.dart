@@ -1,3 +1,4 @@
+import '../../agent/agent_surface.dart';
 import '../support/customer_support_screen.dart';
 import '../../services/customer_support_service.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
@@ -189,7 +190,10 @@ class _CustomerBookingDetailScreenState
     AppLanguage.watch(context);
     final booking = _booking;
     return CustomerScaffold(
+      agentScreen: 'booking_detail',
+      agentReady: !_loading && !_acting,
       appBar: AppBar(
+        leading: BackButton().agent('Back'),
         title: Text(tr('Booking Details')),
         actions: [
           IconButton(

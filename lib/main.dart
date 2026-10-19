@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'shared/localization/app_language.dart';
 import 'shared/brand/brand_splash.dart';
 import 'shared/app_scroll_behavior.dart';
+import 'Customer/agent/agent_host.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,6 +39,8 @@ class LocalLifeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return MaterialApp(
+      builder: (context, child) =>
+          AgentHost(child: child ?? const SizedBox.shrink()),
       scrollBehavior: const AppScrollBehavior(),
       theme: CustomerTheme.lightTheme,
       title: 'Home Serve',

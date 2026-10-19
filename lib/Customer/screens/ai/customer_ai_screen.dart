@@ -20,18 +20,21 @@ import '../profile/customer_profile_screen.dart';
 import '../profile/customer_saved_addresses_screen.dart';
 import '../review/customer_my_reviews_screen.dart';
 import '../payment/customer_checkout_screen.dart';
+import '../../agent/agent_host.dart';
 
 class CustomerAiScreen extends StatefulWidget {
   final CustomerAiService? service;
   final CustomerAiSpeech? speech;
   final Future<Uint8List?> Function(ImageSource)? pickPhoto;
   final Future<void> Function(Map<String, dynamic>)? onNavigate;
+  final Future<void> Function(String)? onStartAgent;
   const CustomerAiScreen({
     super.key,
     this.service,
     this.speech,
     this.pickPhoto,
     this.onNavigate,
+    this.onStartAgent,
   });
   @override
   State<CustomerAiScreen> createState() => _CustomerAiScreenState();
@@ -109,6 +112,14 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       setState(() => _error = 'Keep your message under 4000 characters.');
       return;
     }
+    if (_mode == 'assist') {
+      if (_photo != null) {
+        setState(() => _error = 'Use AI chat to ask about an attached photo.');
+        return;
+      }
+      await _startAgent(message);
+      return;
+    }
     if (_requestId == null || _retryText != message || _retryMode != _mode) {
       _requestId = CustomerTransactionService.newRequestId();
       _retryText = message;
@@ -175,14 +186,6 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
         _requestId = null;
       });
       _bottom();
-      if (_mode == 'assist') {
-        final navigation = (reply['actions'] as List? ?? [])
-            .whereType<Map>()
-            .where((a) => a['kind'] == 'navigate' && a['screen'] != 'payment');
-        if (navigation.isNotEmpty) {
-          await _navigate(Map<String, dynamic>.from(navigation.first));
-        }
-      }
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -197,6 +200,48 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
           _sending = false;
         });
       }
+    }
+  }
+
+  Future<void> _startAgent(String goal) async {
+    final controller = AgentHost.of(context);
+    if (controller == null && widget.onStartAgent == null) {
+      setState(
+        () => _error = 'Open AI Agent from the customer navigation bar.',
+      );
+      return;
+    }
+    final start = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(tr('Start AI Agent?')),
+        content: Text(
+          tr(
+            'AI Agent sends screenshots of supported Home Serve screens to Gemini to carry out your request. Watch the cursor, tap Stop or touch the screen to take control. You confirm bookings, payments and other changes yourself.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(tr('Cancel')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(tr('Start')),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || start != true) return;
+    await _speech.cancel();
+    if (!mounted) return;
+    final callback = widget.onStartAgent;
+    Navigator.pop(context);
+    if (callback != null) {
+      unawaited(callback(goal));
+    } else {
+      await Future<void>.delayed(const Duration(milliseconds: 500));
+      unawaited(controller!.run(goal));
     }
   }
 
@@ -861,7 +906,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                       value: 'chat',
                       child: CustomerMenuRow(
                         icon: Icons.auto_awesome_outlined,
-                        label: tr('Ask AI'),
+                        label: tr('AI chat'),
                         selected: _mode == 'chat',
                       ),
                     ),
@@ -869,7 +914,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                       value: 'assist',
                       child: CustomerMenuRow(
                         icon: Icons.task_alt_rounded,
-                        label: tr('Do it for me'),
+                        label: tr('AI Agent'),
                         selected: _mode == 'assist',
                       ),
                     ),
@@ -894,7 +939,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                         const SizedBox(width: 5),
                         Flexible(
                           child: Text(
-                            tr(_mode == 'chat' ? 'Ask AI' : 'Do it for me'),
+                            tr(_mode == 'chat' ? 'AI chat' : 'AI Agent'),
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(
                               fontSize: 12,

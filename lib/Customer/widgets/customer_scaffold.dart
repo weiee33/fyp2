@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../shared/app_scroll_behavior.dart';
+import '../agent/agent_surface.dart';
 
 /// One elastic effect, without Android's additional glow/stretch decoration.
 /// Explicit physics are also used by lists inside modal routes.
@@ -27,6 +28,8 @@ class CustomerScaffold extends StatelessWidget {
   final Widget? body, bottomNavigationBar, floatingActionButton;
   final Color? backgroundColor;
   final bool enabled;
+  final String? agentScreen;
+  final bool agentReady;
   const CustomerScaffold({
     super.key,
     this.appBar,
@@ -35,6 +38,8 @@ class CustomerScaffold extends StatelessWidget {
     this.floatingActionButton,
     this.backgroundColor,
     this.enabled = true,
+    this.agentScreen,
+    this.agentReady = true,
   });
 
   @override
@@ -42,12 +47,19 @@ class CustomerScaffold extends StatelessWidget {
     behavior: enabled
         ? const CustomerScrollBehavior()
         : const AppScrollBehavior(),
-    child: Scaffold(
-      appBar: appBar,
-      body: body,
-      backgroundColor: backgroundColor,
-      bottomNavigationBar: bottomNavigationBar,
-      floatingActionButton: floatingActionButton,
-    ),
+    child: agentScreen == null
+        ? _scaffold()
+        : AgentSurface(
+            name: agentScreen!,
+            ready: agentReady,
+            child: _scaffold(),
+          ),
+  );
+  Widget _scaffold() => Scaffold(
+    appBar: appBar,
+    body: body,
+    backgroundColor: backgroundColor,
+    bottomNavigationBar: bottomNavigationBar,
+    floatingActionButton: floatingActionButton,
   );
 }

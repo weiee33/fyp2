@@ -1,3 +1,4 @@
+import '../../agent/agent_surface.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/booking_status.dart';
@@ -76,6 +77,8 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return CustomerScaffold(
+      agentScreen: 'bookings',
+      agentReady: !_loading,
       appBar: AppBar(
         title: Text(tr('My Bookings')),
         actions: [CustomerChatButton(enabled: _transactions.usesLiveBackend)],
@@ -211,7 +214,7 @@ class _CustomerBookingsScreenState extends State<CustomerBookingsScreen> {
                       ],
                     ),
                   ),
-                ),
+                ).agent('Open booking details'),
               ),
             ),
             if (_bookings.isNotEmpty && _hasMore)

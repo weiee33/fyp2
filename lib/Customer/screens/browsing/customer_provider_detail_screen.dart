@@ -1,3 +1,4 @@
+import '../../agent/agent_surface.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_refresh.dart';
@@ -86,8 +87,11 @@ class _CustomerProviderDetailScreenState
     final rating = (provider?['overall_rating'] as num?)?.toDouble() ?? 0;
     final reviewCount = (provider?['total_reviews'] as num?)?.toInt() ?? 0;
     return CustomerScaffold(
+      agentScreen: 'provider',
+      agentReady: !_loading,
       backgroundColor: CustomerTheme.background,
       appBar: AppBar(
+        leading: BackButton().agent('Back'),
         title: Text(tr('Provider Details')),
         actions: [
           IconButton(
@@ -328,7 +332,7 @@ class _CustomerProviderDetailScreenState
                       if (mounted) await _fetch();
                     },
               child: Text(tr('Choose date & book')),
-            ),
+            ).agent('Choose date and prepare booking'),
           ],
         ),
       ),

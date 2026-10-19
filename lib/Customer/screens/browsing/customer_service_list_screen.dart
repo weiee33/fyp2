@@ -1,3 +1,4 @@
+import '../../agent/agent_surface.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_refresh.dart';
@@ -136,8 +137,13 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return CustomerScaffold(
+      agentScreen: 'services',
+      agentReady: !_loading,
       backgroundColor: CustomerTheme.background,
-      appBar: AppBar(title: Text(tr(_category ?? 'All Services'))),
+      appBar: AppBar(
+        leading: BackButton().agent('Back'),
+        title: Text(tr(_category ?? 'All Services')),
+      ),
       body: Column(
         children: [
           Padding(
@@ -145,22 +151,27 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
             child: Row(
               children: [
                 Expanded(
-                  child: TextField(
-                    controller: _search,
-                    maxLength: 120,
-                    textInputAction: TextInputAction.search,
-                    onSubmitted: (_) => _fetch(),
-                    decoration: InputDecoration(
-                      counterText: '',
-                      hintText: trOrNull('Search services or providers'),
-                      prefixIcon: const Icon(Icons.search),
-                      suffixIcon: IconButton(
-                        tooltip: trOrNull('Search services'),
-                        onPressed: () => _fetch(),
-                        icon: const Icon(Icons.arrow_forward),
+                  child:
+                      TextField(
+                        controller: _search,
+                        maxLength: 120,
+                        textInputAction: TextInputAction.search,
+                        onSubmitted: (_) => _fetch(),
+                        decoration: InputDecoration(
+                          counterText: '',
+                          hintText: trOrNull('Search services or providers'),
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: IconButton(
+                            tooltip: trOrNull('Search services'),
+                            onPressed: () => _fetch(),
+                            icon: const Icon(Icons.arrow_forward),
+                          ).agent('Search services'),
+                        ),
+                      ).agent(
+                        'Service search',
+                        capability: AgentCapability.input,
+                        controller: _search,
                       ),
-                    ),
-                  ),
                 ),
                 IconButton(
                   tooltip: trOrNull('Filter services'),
@@ -248,7 +259,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
                       child: Text(
                         tr(_loading ? 'Loading…' : 'Load more services'),
                       ),
-                    ),
+                    ).agent('Load more services'),
                 ],
               ),
             ),
@@ -332,7 +343,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
             ],
           ),
         ),
-      ),
+      ).agent(service.name),
     );
   }
 }
