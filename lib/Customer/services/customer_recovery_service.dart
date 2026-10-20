@@ -86,14 +86,16 @@ class CustomerRecoveryService {
     return data;
   }
 
-  Future<void> _requireCustomer(String token) async {
+  Future<void> _requireMobileAccount(String token) async {
     final identity = await _request(
       '/rest/v1/rpc/account_identity',
       {},
       token: token,
     );
-    if (identity['role'] != 'customer') {
-      throw const AuthException('This account cannot use the customer portal.');
+    if (!const ['customer', 'provider'].contains(identity['role'])) {
+      throw const AuthException(
+        'This account cannot access the mobile app. Administrators use the website.',
+      );
     }
   }
 
@@ -138,7 +140,7 @@ class CustomerRecoveryService {
             throw const AuthException('Current password is incorrect.');
           }
           _ensureOpen();
-          await _requireCustomer(token);
+          await _requireMobileAccount(token);
           _ensureOpen();
         } on AuthException catch (e) {
           if (e.statusCode == '400' || e.statusCode == '401') {
@@ -174,7 +176,7 @@ class CustomerRecoveryService {
         throw const AuthException('Please request a new verification code.');
       }
       _ensureOpen();
-      await _requireCustomer(_recoveryToken!);
+      await _requireMobileAccount(_recoveryToken!);
       _ensureOpen();
       _verifiedEmail = address;
     }

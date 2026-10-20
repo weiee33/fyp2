@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:fyp2/main.dart';
 
 void main() {
-  testWidgets('Pixel 3a entry exposes customer/provider portals only', (
+  testWidgets('Pixel 3a opens shared login without a role selection step', (
     tester,
   ) async {
     tester.view.physicalSize = const Size(393, 808);
@@ -12,8 +12,10 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(LocalLifeApp(initialize: () async {}));
     await tester.pumpAndSettle();
-    expect(find.text('Consumer Portal'), findsOneWidget);
-    expect(find.text('Provider Portal'), findsOneWidget);
+    expect(find.text('Login'), findsNWidgets(2));
+    expect(find.text('Email Address'), findsOneWidget);
+    expect(find.text('Consumer Portal'), findsNothing);
+    expect(find.text('Provider Portal'), findsNothing);
     expect(find.text('Admin Portal'), findsNothing);
     expect(tester.takeException(), isNull);
   });

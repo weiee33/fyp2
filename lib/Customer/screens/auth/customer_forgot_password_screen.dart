@@ -85,7 +85,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
         context,
         title: tr('Check your email'),
         message: tr(
-          'A verification code has been requested for your registered customer email. Check your inbox and spam folder. Your password has not changed yet.',
+          'A verification code has been requested for your registered email. Check your inbox and spam folder. Your password has not changed yet.',
         ),
       );
     } catch (e) {

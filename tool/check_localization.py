@@ -33,6 +33,16 @@ for path in (ROOT / 'lib').rglob('*.dart'):
         if key not in catalog and key not in literals and re.search('[A-Za-z]', key):
             line = source.count('\n', 0, match.start()) + 1
             errors.append(f'{path.relative_to(ROOT)}:{line}: Missing key {key!r}')
+    # Catch fixed display text that accidentally bypasses translation entirely.
+    # Interpolated/authored values are reviewed separately; numeric examples,
+    # password masks, currency amounts and brands intentionally remain literal.
+    display = re.compile(r'''\b(?:Text\(\s*|(?:hintText|labelText|tooltip):\s*)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')''')
+    for match in display.finditer(source):
+        key = ast.literal_eval(match.group(1).replace('\\$', '$'))
+        if '$' in key or key in literals or not re.search('[A-Za-z]', key):
+            continue
+        line = source.count('\n', 0, match.start()) + 1
+        errors.append(f'{path.relative_to(ROOT)}:{line}: Untranslated display text {key!r}')
 if errors:
     print('\n'.join(errors))
     sys.exit(1)

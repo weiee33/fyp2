@@ -2,11 +2,11 @@
 
 The mobile app displays Home Serve on Android and iOS. Its existing package and bundle identifiers are unchanged so this remains an update to the same app. The original logo attachment was unavailable, so the committed artwork is an original orange house/checkmark design. `tool/generate_brand_assets.py` reproduces launcher, adaptive, monochrome, launch, and web images from the source design with Pillow.
 
-Startup shows the native logo before Flutter, then an 850 ms scale/fade and a 300 ms transition to the portal. Reduced-motion users get a static mark. Startup errors expose Retry; startup work is shared while a previous attempt is still pending so retries do not initialize Supabase twice.
+Startup shows the native logo before Flutter, then an 850 ms scale/fade and a 300 ms transition to shared Login. Reduced-motion users get a static mark. Startup errors expose Retry; startup work is shared while a previous attempt is still pending so retries do not initialize Supabase twice.
 
 ## Language selection
 
-Customer: Account Settings → Language / 语言 / Bahasa. Provider: language icon in My Profile. Signed-out users can use the portal's language icon. Select English, 简体中文 or Bahasa Melayu, then Done. Back discards the draft. English is the first-launch default; the saved device preference applies to both portals and survives restarts and sign-out.
+Customer: Account Settings → Language / 语言 / Bahasa. Provider: language icon in My Profile. Signed-out users can use Login's language icon. Select English, 简体中文 or Bahasa Melayu, then Done. Back discards the draft. English is the first-launch default; the saved device preference applies to both account types and survives restarts and sign-out.
 
 The mobile translation catalog covers navigation, forms, validation, booking/payment status, receipts, chat controls, notifications, customer AI controls, and provider screens. Flutter's locale delegates translate its date/time pickers and standard controls. Dates use the active locale while appointment times retain the existing Malaysia-time interpretation. Noto Sans SC supplies Chinese glyphs in the app and exported PDFs; its SIL Open Font License is bundled.
 
@@ -26,7 +26,7 @@ flutter test --no-pub
 node --experimental-strip-types --test supabase/tests/customer_ai_edge.test.mjs supabase/tests/customer_account_edge.test.mjs supabase/tests/customer_recovery_edge.test.mjs supabase/tests/fpx_edge.test.mjs
 ```
 
-The catalog check validates literal translation keys and matching placeholders. It deliberately does not interpret dynamic/user-authored strings; additions to screen copy still need review. Widget tests cover persisted preferences, default English, saving versus cancelling a selection, updates to an existing route, larger text on narrow screens, startup retry/reduced motion, and authoritative booking values. `app_language_visual_test.dart` checks English/Chinese/Malay portal, settings, language, booking, details, and receipt screens plus PDF generation.
+The catalog check validates literal translation keys, matching placeholders and fixed display text that bypasses translation. It deliberately does not interpret dynamic/user-authored strings; additions to screen copy still need review. Widget tests cover persisted preferences, default English, saving versus cancelling a selection, updates to an existing route, larger text on narrow screens, startup retry/reduced motion, and authoritative booking values. `app_language_visual_test.dart` checks English/Chinese/Malay login, settings, language, booking, details, and receipt screens plus PDF generation. See [shared mobile authentication](shared-mobile-auth.md) for role routing and recovery.
 
 Optional screenshot/PDF capture:
 
@@ -36,7 +36,7 @@ flutter test test/app_language_visual_test.dart --dart-define=CAPTURE_UI=true --
 
 Capture output is ignored under `.tools/customer-ui/`. Test receipts contain fixture data and are not customer records.
 
-## Integration and verification
+## Original branding rollout
 
 This branch includes teammate commit `e9c99bf` (provider Schedule/Profile). The provider's BookingService RPC implementation is retained; integration changes affect display copy and language access. No database migration or payment-gateway change is required. Deploy `customer-assistant` before distributing the updated app because it adds an optional, validated `locale` request field; older clients remain supported. The deployed function retains JWT verification and server-side booking confirmation controls.
 

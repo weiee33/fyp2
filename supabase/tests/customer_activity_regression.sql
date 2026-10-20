@@ -25,7 +25,7 @@ select pg_temp.test_assert('personal info recorded',exists(select 1 from public.
 reset role;
 select pg_temp.test_assert('unknown recovery email rejected', (public.customer_recovery_check('__missing_activity_fixture@example.invalid',repeat('a',64))->>'registered')::boolean=false);
 select pg_temp.test_assert('registered recovery email accepted', (public.customer_recovery_check((select email from auth.users where id=pg_temp.fixture_id('customer_auth')),repeat('b',64))->>'registered')::boolean=true);
-select pg_temp.test_assert('provider cannot use customer recovery', (public.customer_recovery_check((select email from auth.users where id=pg_temp.fixture_id('provider_auth')),repeat('c',64))->>'registered')::boolean=false);
+select pg_temp.test_assert('provider can use shared mobile recovery', (public.customer_recovery_check((select email from auth.users where id=pg_temp.fixture_id('provider_auth')),repeat('c',64))->>'registered')::boolean=true);
 do $$begin for i in 1..5 loop perform public.customer_recovery_check('__missing_activity_fixture@example.invalid',repeat('a',64)); end loop; end $$;
 select pg_temp.test_assert('recovery throttles repeated lookup',(public.customer_recovery_check('__missing_activity_fixture@example.invalid',repeat('a',64))->>'allowed')::boolean=false);
 update auth.users set encrypted_password='fixture-hash-changed' where id=pg_temp.fixture_id('customer_auth');

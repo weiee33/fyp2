@@ -48,6 +48,8 @@ class MalaysiaPhoneField extends StatelessWidget {
         labelText: trOrNull('Mobile number'),
         hintText: '102049818',
         helperText: trOrNull('Malaysia · omit the first 0'),
+        helperMaxLines: 3,
+        errorMaxLines: 3,
         prefixIcon: SizedBox(
           width: 64,
           height: 48,

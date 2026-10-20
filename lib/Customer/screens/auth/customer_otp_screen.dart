@@ -4,12 +4,19 @@ import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/customer_theme.dart';
-import '../../services/customer_auth_service.dart';
-import '../home/customer_root_nav_screen.dart';
+import '../../../shared/mobile_auth_service.dart';
+import '../../../shared/mobile_account_home.dart';
 
 class CustomerOtpScreen extends StatefulWidget {
   final String email;
-  const CustomerOtpScreen({super.key, required this.email});
+  final MobileAuthService? service;
+  final Widget Function(MobileAccountRole)? homeBuilder;
+  const CustomerOtpScreen({
+    super.key,
+    required this.email,
+    this.service,
+    this.homeBuilder,
+  });
 
   @override
   State<CustomerOtpScreen> createState() => _CustomerOtpScreenState();
@@ -17,7 +24,7 @@ class CustomerOtpScreen extends StatefulWidget {
 
 class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
   final _otpController = TextEditingController();
-  final _authService = CustomerAuthService();
+  late final _authService = widget.service ?? MobileAuthService();
   bool _loading = false;
   bool _resending = false;
 
@@ -28,6 +35,7 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
   }
 
   Future<void> _verifyOtp() async {
+    if (_loading || _resending) return;
     final code = _otpController.text.trim();
     if (!RegExp(r'^\d{6,10}$').hasMatch(code)) {
       await CustomerDialogs.show(
@@ -39,7 +47,10 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
 
     setState(() => _loading = true);
     try {
-      await _authService.verifyOtp(email: widget.email, token: code);
+      final role = await _authService.verifyOtp(
+        email: widget.email,
+        token: code,
+      );
 
       if (!mounted) return;
       await CustomerDialogs.show(
@@ -50,15 +61,14 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const CustomerRootNavScreen()),
+        MaterialPageRoute(
+          builder: (_) => (widget.homeBuilder ?? mobileAccountHome)(role),
+        ),
         (_) => false,
       );
     } on AuthException catch (e) {
       if (!mounted) return;
-      await CustomerDialogs.show(
-        context,
-        message: tr("Verification Failed: {0}", [e.message]),
-      );
+      await CustomerDialogs.show(context, message: tr(e.message));
     } catch (e) {
       if (!mounted) return;
       await CustomerDialogs.show(context, message: tr("Error: {0}", [e]));
@@ -68,6 +78,7 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
   }
 
   Future<void> _resendCode() async {
+    if (_loading || _resending) return;
     setState(() => _resending = true);
     try {
       await _authService.resendOtp(widget.email);
@@ -151,7 +162,7 @@ class _CustomerOtpScreenState extends State<CustomerOtpScreen> {
             ),
             const SizedBox(height: 12),
             TextButton(
-              onPressed: _resending ? null : _resendCode,
+              onPressed: _resending || _loading ? null : _resendCode,
               child: _resending
                   ? const SizedBox(
                       height: 16,
