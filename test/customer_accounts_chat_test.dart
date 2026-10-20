@@ -161,9 +161,15 @@ void main() {
       expect(() => MalaysiaPhone.international('123'), throwsFormatException);
     },
   );
-  for (final scenario in ['success', 'bad_code', 'provider', 'update_retry']) {
+  for (final scenario in [
+    'success',
+    'bad_code',
+    'provider',
+    'admin',
+    'update_retry',
+  ]) {
     test(
-      'password recovery $scenario enforces OTP then customer identity then update',
+      'password recovery $scenario enforces OTP then mobile account identity then update',
       () async {
         final calls = <String>[];
         var verifyCalls = 0, updates = 0;
@@ -196,7 +202,9 @@ void main() {
           }
           if (request.url.path.endsWith('/account_identity'))
             return response({
-              'role': scenario == 'provider' ? 'provider' : 'customer',
+              'role': ['provider', 'admin'].contains(scenario)
+                  ? scenario
+                  : 'customer',
               'user_id': 'different-app-id',
             });
           if (request.url.path.endsWith('/user')) {
@@ -223,7 +231,7 @@ void main() {
           code: '123456',
           password: 'fixture-new-password',
         );
-        if (scenario == 'bad_code' || scenario == 'provider') {
+        if (scenario == 'bad_code' || scenario == 'admin') {
           await expectLater(change(), throwsA(isA<AuthException>()));
           expect(updates, 0);
         } else if (scenario == 'update_retry') {

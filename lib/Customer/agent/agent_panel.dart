@@ -44,6 +44,7 @@ class _AgentPanelState extends State<AgentPanel> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: widget.controller,
     builder: (context, _) {
+      AppLanguage.watch(context);
       final c = widget.controller;
       if (!c.active && c.result.isEmpty && !c.historyError) {
         c.stopBounds = null;

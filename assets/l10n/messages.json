@@ -1152,8 +1152,8 @@
     "E-mel diperlukan"
   ],
   "Email not confirmed": [
-    "邮箱未验证",
-    "E-mel belum disahkan"
+    "请先验证您的邮箱。",
+    "Sila sahkan e-mel anda terlebih dahulu."
   ],
   "Email verification code": [
     "邮箱验证码",
@@ -1572,8 +1572,8 @@
     "Arahan (pilihan)"
   ],
   "Invalid login credentials": [
-    "登录凭据无效",
-    "Maklumat log masuk tidak sah"
+    "邮箱或密码不正确。",
+    "E-mel atau kata laluan tidak betul."
   ],
   "Ipoh": [
     "怡保",
@@ -3984,7 +3984,7 @@
     "{0} · Waktu Malaysia"
   ],
   "{0} · {1} years": [
-    "{0} · {1}年",
+    "{0} · {1}年经验",
     "{0} · {1} tahun"
   ],
   "{0} ★ · {1} reviews": [
@@ -5002,5 +5002,125 @@
   "The configured AI model is unavailable. Please contact support.": [
     "配置的 AI 模型不可用。请联系支持团队。",
     "Model AI yang dikonfigurasi tidak tersedia. Sila hubungi sokongan."
+  ],
+  "A verification code has been requested for your registered email. Check your inbox and spam folder. Your password has not changed yet.": [
+    "已向您的注册邮箱请求发送验证码。请检查收件箱和垃圾邮件文件夹。您的密码尚未更改。",
+    "Kod pengesahan telah diminta untuk e-mel berdaftar anda. Semak peti masuk dan folder spam. Kata laluan anda belum berubah."
+  ],
+  "Account type": [
+    "账户类型",
+    "Jenis akaun"
+  ],
+  "Book services for your home.": [
+    "为您的住家预约服务。",
+    "Tempah perkhidmatan untuk kediaman anda."
+  ],
+  "Booking & Payment Alerts": [
+    "预约与付款提醒",
+    "Makluman tempahan dan pembayaran"
+  ],
+  "Done (Wk)": [
+    "本周完成",
+    "Selesai (minggu)"
+  ],
+  "Failed to load profile. Please try again.": [
+    "无法加载个人资料，请重试。",
+    "Profil tidak dapat dimuatkan. Sila cuba lagi."
+  ],
+  "For security purposes, you can only request this after {0} seconds.": [
+    "为保障安全，请在{0}秒后重试。",
+    "Untuk keselamatan, sila cuba lagi selepas {0} saat."
+  ],
+  "New password should be different from the old password.": [
+    "新密码不能与旧密码相同。",
+    "Kata laluan baharu mesti berbeza daripada kata laluan lama."
+  ],
+  "No active, verified account was found for this email.": [
+    "此邮箱没有已启用且已验证的账户。",
+    "Tiada akaun aktif yang telah disahkan ditemui untuk e-mel ini."
+  ],
+  "No active, verified customer or provider account was found for this email.": [
+    "此邮箱没有已启用且已验证的客户或服务商账户。",
+    "Tiada akaun pelanggan atau penyedia yang aktif dan telah disahkan ditemui untuk e-mel ini."
+  ],
+  "Offer services and manage your jobs.": [
+    "提供服务并管理工作。",
+    "Tawarkan perkhidmatan dan urus tugasan anda."
+  ],
+  "Password should be at least 6 characters.": [
+    "密码必须至少包含6个字符。",
+    "Kata laluan mestilah sekurang-kurangnya 6 aksara."
+  ],
+  "Quick Actions": [
+    "快捷操作",
+    "Tindakan pantas"
+  ],
+  "This account cannot access the mobile app. Administrators use the website.": [
+    "此账户无法使用移动应用。管理员请使用网站。",
+    "Akaun ini tidak boleh mengakses aplikasi mudah alih. Pentadbir menggunakan laman web."
+  ],
+  "Time-sensitive booking and payment updates": [
+    "需及时关注的预约与付款更新",
+    "Kemas kini tempahan dan pembayaran yang memerlukan perhatian segera"
+  ],
+  "Token has expired or is invalid": [
+    "验证码无效或已过期，请重新获取。",
+    "Kod pengesahan tidak sah atau telah tamat tempoh. Sila minta kod baharu."
+  ],
+  "User already registered": [
+    "此邮箱已注册，请登录或重设密码。",
+    "E-mel ini telah didaftarkan. Sila log masuk atau tetapkan semula kata laluan."
+  ],
+  "{0} · {1} km radius": [
+    "{0} · 服务半径{1}公里",
+    "{0} · Radius {1} km"
+  ],
+  "Name, bio, phone, and profile photo": [
+    "姓名、简介、电话和头像",
+    "Nama, bio, telefon dan foto profil"
+  ],
+  "Upload and manage your certificates": [
+    "上传并管理证书",
+    "Muat naik dan urus sijil anda"
+  ],
+  "SERVICE SETTINGS": [
+    "服务设置",
+    "TETAPAN PERKHIDMATAN"
+  ],
+  "Services you offer to customers": [
+    "您向客户提供的服务",
+    "Perkhidmatan yang anda tawarkan kepada pelanggan"
+  ],
+  "Where you work and travel radius": [
+    "服务地区和出行半径",
+    "Kawasan kerja dan radius perjalanan anda"
+  ],
+  "Set your weekly availability": [
+    "设置每周可预约时间",
+    "Tetapkan ketersediaan mingguan anda"
+  ],
+  "Earnings Dashboard": [
+    "收入概览",
+    "Papan pemuka pendapatan"
+  ],
+  "View your income and payouts": [
+    "查看收入与款项发放",
+    "Lihat pendapatan dan bayaran anda"
+  ],
+  "Your Area": [
+    "您的服务地区",
+    "Kawasan anda"
+  ],
+  "Pending Requests": [
+    "待处理请求",
+    "Permintaan menunggu"
+  ],
+  "No pending requests": [
+    "暂无待处理请求",
+    "Tiada permintaan menunggu"
+  ],
+  "No active, verified customer or provider account is registered with this email. Please check your email or register first.": [
+    "此邮箱没有已启用且已验证的客户或服务商账户。请检查邮箱地址或先注册。",
+    "Tiada akaun pelanggan atau penyedia yang aktif dan telah disahkan berdaftar dengan e-mel ini. Sila semak e-mel anda atau daftar dahulu."
   ]
 }

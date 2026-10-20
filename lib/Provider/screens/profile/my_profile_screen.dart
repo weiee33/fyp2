@@ -1,3 +1,5 @@
+import 'package:fyp2/shared/localization/app_language.dart';
+import 'package:fyp2/shared/localization/language_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../../shared/chat/chat_inbox_screen.dart';
@@ -65,7 +67,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Failed to load profile: $e'),
+          content: Text(tr('Failed to load profile. Please try again.')),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -77,17 +79,17 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Log Out'),
-        content: const Text('Are you sure you want to log out?'),
+        title: Text(tr('Log Out')),
+        content: Text(tr('Are you sure you want to log out?')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(tr('Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Log Out'),
+            child: Text(tr('Log Out')),
           ),
         ],
       ),
@@ -194,7 +196,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                 children: [
                                   const Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 20),
                                   const SizedBox(width: 12),
-                                  const Text('AI Job Matching', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  Text(tr('AI Job Matching'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                 ],
                               ),
                             ),
@@ -213,7 +215,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                 children: [
                                   const Icon(Icons.schedule, color: Colors.blue, size: 20),
                                   const SizedBox(width: 12),
-                                  const Text('AI Smart Schedule', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+                                  Text(tr('AI Smart Schedule'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
                                 ],
                               ),
                             ),
@@ -241,6 +243,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     if (_loading) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
@@ -266,14 +269,19 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Text(
-          'Profile',
+        title: Text(tr('Profile'),
           style: TextStyle(fontWeight: FontWeight.w600),
         ),
         actions: [
           IconButton(
+            icon: const Icon(Icons.language_rounded),
+            tooltip: tr('Language / 语言 / Bahasa'),
+            onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const LanguageScreen())),
+          ),
+          IconButton(
             icon: const Icon(Icons.chat_bubble_outline),
-            tooltip: 'Chats',
+            tooltip: tr('Chats'),
             onPressed: _openChats,
           ),
           FutureBuilder<List<Map<String, dynamic>>>(
@@ -286,7 +294,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    tooltip: 'Notifications',
+                    tooltip: tr('Notifications'),
                     onPressed: _openNotifications,
                   ),
                   if (unread > 0)
@@ -418,8 +426,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               size: 26,
             ),
             const SizedBox(height: 4),
-            Text(
-              label,
+            Text(tr(label),
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
@@ -434,7 +441,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
   // ==================== Profile Tab Content ====================
   Widget _buildProfileTab() {
-    final name = _profile?['business_name'] ?? 'My Business';
+    final name = _profile?['business_name'] ?? tr('My Business');
     final bio = _profile?['bio'] ?? 'No bio yet';
     final rating = _profile?['overall_rating'] ?? 0;
     final years = _profile?['years_experience'] ?? 0;
@@ -502,7 +509,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                       color: Colors.orange, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
-                                    '$rating · $years years',
+                                    tr('{0} · {1} years', [rating, years]),
                                     style: const TextStyle(
                                       color: Colors.orange,
                                       fontSize: 13,
@@ -544,8 +551,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       child: OutlinedButton.icon(
                         onPressed: _logout,
                         icon: const Icon(Icons.logout, size: 18),
-                        label: const Text(
-                          'Log Out',
+                        label: Text(tr('Log Out'),
                           style: TextStyle(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -663,12 +669,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Row(
+                        content: Row(
                           children: [
                             Icon(Icons.check_circle,
                                 color: Colors.white, size: 20),
                             SizedBox(width: 8),
-                            Text('Submitted for verification'),
+                            Text(tr('Submitted for verification')),
                           ],
                         ),
                         backgroundColor: Colors.green.shade600,
@@ -681,8 +687,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     _load();
                   },
                   icon: const Icon(Icons.verified_outlined),
-                  label: const Text(
-                    'Submit for Verification',
+                  label: Text(tr('Submit for Verification'),
                     style:
                     TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
@@ -705,8 +710,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   Widget _sectionLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        text,
+      child: Text(tr(text),
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.bold,
@@ -769,8 +773,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
+                  Text(tr(title),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -778,8 +781,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(
-                    subtitle,
+                  Text(tr(subtitle),
                     style: TextStyle(
                       fontSize: 11.5,
                       color: Colors.grey.shade600,
@@ -834,8 +836,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         children: [
           Icon(icon, size: 14, color: fg),
           const SizedBox(width: 4),
-          Text(
-            status,
+          Text(tr(status),
             style: TextStyle(
               color: fg,
               fontSize: 12,

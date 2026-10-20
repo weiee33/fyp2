@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -126,6 +127,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    AppLanguage.watch(context);
     if (_loading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator(color: _primaryOrange)));
     }
@@ -138,12 +140,12 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
             children: [
               const Icon(Icons.error_outline, size: 48, color: Colors.grey),
               const SizedBox(height: 12),
-              Text('Failed to load: $_error', style: const TextStyle(color: Colors.grey)),
+              Text(tr('Please check your connection and try again.'), style: const TextStyle(color: Colors.grey)),
               const SizedBox(height: 16),
               ElevatedButton(
                 onPressed: _loadData,
                 style: ElevatedButton.styleFrom(backgroundColor: _primaryOrange),
-                child: const Text('Retry', style: TextStyle(color: Colors.white)),
+                child: Text(tr('Retry'), style: TextStyle(color: Colors.white)),
               )
             ],
           ),
@@ -151,8 +153,8 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       );
     }
 
-    final name = _profile?['business_name'] ?? 'Provider';
-    final region = _profile?['region'] ?? 'Your Area';
+    final name = _profile?['business_name'] ?? tr('Provider');
+    final region = _profile?['region'] ?? tr('Your Area');
     final radius = _profile?['service_radius_km'] ?? 10;
 
     return Scaffold(
@@ -184,8 +186,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              'Good day,',
+                            Text(tr('Good day,'),
                               style: TextStyle(color: Colors.white70, fontSize: 14),
                             ),
                             Text(
@@ -253,7 +254,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              '$region · ${radius}km radius',
+                              tr('{0} · {1} km radius', [region, radius]),
                               style: const TextStyle(color: Colors.white, fontSize: 13),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -278,8 +279,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text(
-                                'Today\'s Earnings',
+                              Text(tr('Today\'s Earnings'),
                                 style: TextStyle(color: Colors.grey, fontSize: 13),
                               ),
                               const SizedBox(height: 4),
@@ -320,7 +320,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                     const SizedBox(height: 24),
 
                     // Quick Actions
-                    const Text('Quick Actions', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                    Text(tr('Quick Actions'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -339,10 +339,10 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text('Pending Requests', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        Text(tr('Pending Requests'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
                         TextButton(
                           onPressed: () => widget.onNavigateToTab(1),
-                          child: const Text('View all', style: TextStyle(color: _primaryOrange, fontSize: 13)),
+                          child: Text(tr('View all'), style: TextStyle(color: _primaryOrange, fontSize: 13)),
                         ),
                       ],
                     ),
@@ -353,11 +353,11 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
-                        child: const Column(
+                        child: Column(
                           children: [
                             Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
                             SizedBox(height: 12),
-                            Text('No pending requests', style: TextStyle(color: Colors.grey)),
+                            Text(tr('No pending requests'), style: TextStyle(color: Colors.grey)),
                           ],
                         ),
                       )
@@ -408,8 +408,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color),
             ),
             const SizedBox(height: 4),
-            Text(
-              label,
+            Text(tr(label),
               style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
               textAlign: TextAlign.center,
             ),
@@ -435,7 +434,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
             children: [
               Icon(icon, color: _primaryOrange, size: 24),
               const SizedBox(height: 8),
-              Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87)),
+              Text(tr(label), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87)),
             ],
           ),
         ),

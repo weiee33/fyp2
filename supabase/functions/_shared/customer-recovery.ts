@@ -19,7 +19,7 @@ export async function handleRecovery(request: Request,deps: Dependencies): Promi
   if(!check.ok)return json({error:'Could not validate the account. Please retry.'},503);
   const result=await check.json();
   if(result.allowed!==true)return json({error:'Too many recovery attempts. Please try again in one hour.'},429);
-  if(result.registered!==true)return json({error:'No active, verified customer account is registered with this email. Please check your email or register first.'},404);
+  if(result.registered!==true)return json({error:'No active, verified customer or provider account is registered with this email. Please check your email or register first.'},404);
   // Supabase sends the configured recovery OTP. No user creation or admin password update.
   const sent=await deps.fetch(url+'/auth/v1/recover',{method:'POST',headers:{apikey:anon,'Content-Type':'application/json'},body:JSON.stringify({email}),signal:AbortSignal.timeout(15000)});
   if(!sent.ok)return json({error:sent.status===429?'Please wait before requesting another verification code.':'The verification email could not be sent. Please retry.'},sent.status===429?429:503);

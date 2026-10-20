@@ -5,12 +5,15 @@ import 'customer_forgot_password_screen.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import '../../core/customer_theme.dart';
-import '../../services/customer_auth_service.dart';
+import '../../../shared/mobile_auth_service.dart';
+import '../../../shared/mobile_account_home.dart';
+import '../../../shared/localization/language_screen.dart';
 import 'customer_register_screen.dart';
-import '../home/customer_root_nav_screen.dart';
 
 class CustomerLoginScreen extends StatefulWidget {
-  const CustomerLoginScreen({super.key});
+  final MobileAuthService? service;
+  final Widget Function(MobileAccountRole)? homeBuilder;
+  const CustomerLoginScreen({super.key, this.service, this.homeBuilder});
 
   @override
   State<CustomerLoginScreen> createState() => _CustomerLoginScreenState();
@@ -20,7 +23,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  late final _authService = CustomerAuthService();
+  late final _authService = widget.service ?? MobileAuthService();
 
   bool _loading = false;
   bool _obscurePassword = true;
@@ -33,6 +36,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
   }
 
   Future<void> _handleLogin() async {
+    if (_loading) return;
     FocusScope.of(context).unfocus();
     if (_formKey.currentState?.validate() != true) {
       await CustomerDialogs.show(
@@ -44,7 +48,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
 
     setState(() => _loading = true);
     try {
-      await _authService.login(
+      final role = await _authService.login(
         email: _emailController.text,
         password: _passwordController.text,
       );
@@ -52,12 +56,14 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       if (!mounted) return;
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const CustomerRootNavScreen()),
+        MaterialPageRoute(
+          builder: (_) => (widget.homeBuilder ?? mobileAccountHome)(role),
+        ),
         (_) => false,
       );
     } catch (e) {
       if (!mounted) return;
-      String message = e.toString();
+      String message = CustomerDialogs.errorMessage(e);
       if (message.contains('Invalid login credentials')) {
         message = 'Incorrect email or password.';
       } else if (message.contains('Email not confirmed')) {
@@ -76,11 +82,20 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
       data: CustomerTheme.lightTheme,
       child: CustomerScaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
-          title: Text(tr('Customer Login')),
+          automaticallyImplyLeading: false,
+          title: Text(tr('Login')),
+          actions: [
+            IconButton(
+              tooltip: tr('Language / 语言 / Bahasa'),
+              icon: const Icon(Icons.language_rounded),
+              onPressed: _loading
+                  ? null
+                  : () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const LanguageScreen()),
+                    ),
+            ),
+          ],
         ),
         body: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
@@ -99,6 +114,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     Center(
                       child: Text(
                         tr('Welcome to Home Serve'),
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 22,
                           fontWeight: FontWeight.bold,
@@ -187,8 +203,9 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                           : Text(tr('Login')),
                     ),
                     const SizedBox(height: 20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(
                           tr("New here? "),
@@ -201,8 +218,10 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) =>
-                                          const CustomerRegisterScreen(),
+                                      builder: (_) => CustomerRegisterScreen(
+                                        service: widget.service,
+                                        homeBuilder: widget.homeBuilder,
+                                      ),
                                     ),
                                   );
                                 },

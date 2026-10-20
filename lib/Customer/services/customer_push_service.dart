@@ -20,10 +20,10 @@ Future<void> homeServeBackgroundMessage(RemoteMessage message) async {
 class CustomerPushService with WidgetsBindingObserver {
   CustomerPushService._();
   static final instance = CustomerPushService._();
-  static const channel = AndroidNotificationChannel(
+  static AndroidNotificationChannel get channel => AndroidNotificationChannel(
     'booking_alerts',
-    'Booking & Payment Alerts',
-    description: 'Time-sensitive booking and payment updates',
+    tr('Booking & Payment Alerts'),
+    description: tr('Time-sensitive booking and payment updates'),
     importance: Importance.high,
   );
   final status = ValueNotifier<String>('Not Set Up');
@@ -206,10 +206,10 @@ class CustomerPushService with WidgetsBindingObserver {
         id.hashCode & 0x7fffffff,
         message.notification?.title ?? tr('Booking Update'),
         message.notification?.body,
-        const NotificationDetails(
+        NotificationDetails(
           android: AndroidNotificationDetails(
             'booking_alerts',
-            'Booking & Payment Alerts',
+            tr('Booking & Payment Alerts'),
             importance: Importance.high,
             priority: Priority.high,
             icon: 'ic_stat_home_serve',

@@ -88,6 +88,7 @@ class CustomerTheme {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        errorMaxLines: 3,
         filled: true,
         fillColor: Colors.white,
         contentPadding: const EdgeInsets.symmetric(

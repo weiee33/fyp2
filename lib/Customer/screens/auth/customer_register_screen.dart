@@ -6,12 +6,14 @@ import '../../widgets/customer_dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../core/customer_theme.dart';
-import '../../services/customer_auth_service.dart';
+import '../../../shared/mobile_auth_service.dart';
+import '../../../shared/mobile_account_home.dart';
 import 'customer_otp_screen.dart';
-import '../home/customer_root_nav_screen.dart';
 
 class CustomerRegisterScreen extends StatefulWidget {
-  const CustomerRegisterScreen({super.key});
+  final MobileAuthService? service;
+  final Widget Function(MobileAccountRole)? homeBuilder;
+  const CustomerRegisterScreen({super.key, this.service, this.homeBuilder});
 
   @override
   State<CustomerRegisterScreen> createState() => _CustomerRegisterScreenState();
@@ -23,7 +25,8 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  late final _authService = CustomerAuthService();
+  late final _authService = widget.service ?? MobileAuthService();
+  MobileAccountRole _role = MobileAccountRole.customer;
 
   bool _loading = false;
   bool _obscurePassword = true;
@@ -38,6 +41,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
   }
 
   Future<void> _handleRegister() async {
+    if (_loading) return;
     FocusScope.of(context).unfocus();
     if (_formKey.currentState?.validate() != true) {
       await CustomerDialogs.show(
@@ -49,12 +53,14 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
 
     setState(() => _loading = true);
     try {
-      final res = await _authService.register(
+      final registration = await _authService.register(
         email: _emailController.text,
         password: _passwordController.text,
         fullName: _nameController.text,
         phone: _phoneController.text,
+        accountRole: _role,
       );
+      final res = registration.response;
 
       if (!mounted) return;
 
@@ -79,20 +85,29 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
         ),
       );
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => res.session != null
-              ? const CustomerRootNavScreen()
-              : CustomerOtpScreen(email: _emailController.text.trim()),
-        ),
-      );
+      if (registration.role case final role?) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (_) => (widget.homeBuilder ?? mobileAccountHome)(role),
+          ),
+          (_) => false,
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => CustomerOtpScreen(
+              email: _emailController.text.trim(),
+              service: _authService,
+              homeBuilder: widget.homeBuilder,
+            ),
+          ),
+        );
+      }
     } on AuthException catch (e) {
       if (!mounted) return;
-      await CustomerDialogs.show(
-        context,
-        message: tr("Auth Error: {0}", [e.message]),
-      );
+      await CustomerDialogs.show(context, message: tr(e.message));
     } catch (e) {
       if (!mounted) return;
       await CustomerDialogs.error(context, e);
@@ -107,7 +122,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
     return Theme(
       data: CustomerTheme.lightTheme,
       child: CustomerScaffold(
-        appBar: AppBar(title: Text(tr('Create Customer Account'))),
+        appBar: AppBar(title: Text(tr('Create Account'))),
         body: ScrollConfiguration(
           behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
           child: SafeArea(
@@ -122,12 +137,87 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                     const Center(child: HomeServeMark(size: 80)),
                     const SizedBox(height: 24),
                     Text(
+                      tr('Account type'),
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    LayoutBuilder(
+                      builder: (context, constraints) => Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          for (final role in MobileAccountRole.values)
+                            SizedBox(
+                              width: constraints.maxWidth < 320
+                                  ? constraints.maxWidth
+                                  : (constraints.maxWidth - 12) / 2,
+                              child: Semantics(
+                                selected: _role == role,
+                                child: OutlinedButton.icon(
+                                  key: ValueKey('register-${role.name}'),
+                                  style: OutlinedButton.styleFrom(
+                                    minimumSize: const Size.fromHeight(52),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 12,
+                                    ),
+                                    alignment: Alignment.centerLeft,
+                                    backgroundColor: _role == role
+                                        ? CustomerTheme.primarySurface
+                                        : Colors.white,
+                                    foregroundColor: _role == role
+                                        ? CustomerTheme.primary
+                                        : CustomerTheme.textSecondary,
+                                    side: BorderSide(
+                                      color: _role == role
+                                          ? CustomerTheme.primary
+                                          : CustomerTheme.borderColor,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  icon: Icon(
+                                    _role == role
+                                        ? Icons.radio_button_checked
+                                        : Icons.radio_button_off,
+                                  ),
+                                  label: Text(
+                                    tr(
+                                      role == MobileAccountRole.customer
+                                          ? 'Customer'
+                                          : 'Provider',
+                                    ),
+                                  ),
+                                  onPressed: _loading
+                                      ? null
+                                      : () => setState(() => _role = role),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      tr(
+                        _role == MobileAccountRole.customer
+                            ? 'Book services for your home.'
+                            : 'Offer services and manage your jobs.',
+                      ),
+                      style: const TextStyle(
+                        color: CustomerTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
                       tr('Full Name'),
                       style: TextStyle(fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _nameController,
+                      enabled: !_loading,
                       validator: (value) => trOrNull(
                         ((v) => (v == null || v.trim().isEmpty)
                             ? 'Name is required'
@@ -146,6 +236,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _emailController,
+                      enabled: !_loading,
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) => trOrNull(
                         ((v) => (v == null || !v.contains('@'))
@@ -175,6 +266,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _passwordController,
+                      enabled: !_loading,
                       obscureText: _obscurePassword,
                       validator: (value) => trOrNull(
                         ((v) => (v == null || v.length < 6)
