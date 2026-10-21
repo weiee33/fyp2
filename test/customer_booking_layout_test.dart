@@ -81,8 +81,15 @@ void main() {
         250,
         scrollable: find.byType(Scrollable).first,
       );
+      await t.pumpAndSettle();
+      await t.ensureVisible(
+        find.widgetWithText(OutlinedButton, 'Cancel Booking'),
+      );
+      await t.pumpAndSettle();
+      expect(find.text('Cancel Booking').hitTestable(), findsOneWidget);
       await t.tap(find.text('Cancel Booking'));
       await t.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
       await capture.proof(t, 'buttons-cancel-booking');
       await t.enterText(find.byType(TextField), 'Plans changed');
       t.view.viewInsets = const FakeViewPadding(bottom: 260);
@@ -92,6 +99,12 @@ void main() {
       await t.pumpAndSettle();
       expect(cancellations, isEmpty);
       t.view.resetViewInsets();
+      await t.pumpAndSettle();
+      await t.scrollUntilVisible(
+        find.text('Cancel Booking'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
       await t.pumpAndSettle();
       await t.tap(find.text('Cancel Booking'));
       await t.pumpAndSettle();
