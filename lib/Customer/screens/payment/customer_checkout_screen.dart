@@ -315,7 +315,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       1,
                       'Provider acceptance',
                       accepted
-                          ? 'Your requested appointment was accepted.'
+                          ? null
                           : 'Waiting for the provider to accept your request.',
                       done: accepted,
                       current: !accepted,
@@ -324,7 +324,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       2,
                       'Secure payment',
                       paid
-                          ? 'Payment recorded.'
+                          ? null
                           : _openedGateway
                           ? 'Complete the secure payment page, then return here. Opening it does not mean payment succeeded.'
                           : 'Choose FPX online banking, or cards and GrabPay. Payment details are entered securely on Stripe.',
@@ -337,7 +337,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                       refunded
                           ? 'The payment was refunded. Your updated receipt is ready.'
                           : paid
-                          ? 'Verified by the payment server. Your receipt is ready.'
+                          ? null
                           : 'Your receipt appears only after the payment result is verified.',
                       done: paid,
                       current: false,
@@ -506,14 +506,16 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
   Widget _step(
     int number,
     String title,
-    String subtitle, {
+    String? subtitle, {
     required bool done,
     required bool current,
     bool last = false,
   }) => Padding(
     padding: EdgeInsets.only(bottom: last ? 0 : 20),
     child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: subtitle == null
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         CircleAvatar(
           radius: 16,
@@ -540,15 +542,17 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                 tr(title),
                 style: const TextStyle(fontWeight: FontWeight.w600),
               ),
-              const SizedBox(height: 4),
-              Text(
-                tr(subtitle),
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: CustomerTheme.textSecondary,
-                  height: 1.4,
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  tr(subtitle),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: CustomerTheme.textSecondary,
+                    height: 1.4,
+                  ),
                 ),
-              ),
+              ],
             ],
           ),
         ),

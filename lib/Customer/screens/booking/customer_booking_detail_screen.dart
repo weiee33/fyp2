@@ -306,10 +306,10 @@ class _CustomerBookingDetailScreenState
                           ? const Color(0xFFB42318)
                           : null,
                       children: [
-                        Text(tr(_nextStepMessage(booking))),
+                        if (_nextStepMessage(booking) case final message?)
+                          Text(tr(message)),
                         if (booking.canPay &&
                             booking.paymentDeadline != null) ...[
-                          const SizedBox(height: 10),
                           PaymentCountdown(deadline: booking.paymentDeadline!),
                           const SizedBox(height: 10),
                           Text(
@@ -555,7 +555,7 @@ class _CustomerBookingDetailScreenState
     return 'Booking status';
   }
 
-  String _nextStepMessage(CustomerBooking booking) {
+  String? _nextStepMessage(CustomerBooking booking) {
     if (booking.hasReceipt &&
         booking.status == 'Cancelled' &&
         booking.paymentStatus != 'Refunded') {
@@ -568,7 +568,7 @@ class _CustomerBookingDetailScreenState
       return 'This unpaid reservation has expired. The request or payment deadline has passed, or the appointment time is already over. Choose a new available appointment to book again.';
     }
     if (booking.canPay) {
-      return 'Next: pay by FPX, card or GrabPay to keep your appointment. Use the payment button below. Availability is checked again before checkout.';
+      return null;
     }
     if (booking.status == 'Pending') {
       return 'Your request has been sent. Once the provider accepts, you have 30 minutes to pay. We will notify you when payment is available.';

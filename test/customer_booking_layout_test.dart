@@ -185,9 +185,10 @@ void main() {
   for (final expired in [false, true]) {
     testWidgets('booking detail visual state expired=$expired', (t) async {
       capture.pixel(t);
+      final appointment = DateTime.now().toUtc().add(const Duration(days: 2));
       final data = fixtures.booking(status: 'Confirmed')
-        ..['booking_date'] = '2026-10-20'
-        ..['scheduled_datetime'] = '2026-10-20T01:00:00Z'
+        ..['booking_date'] = appointment.toIso8601String().split('T').first
+        ..['scheduled_datetime'] = appointment.toIso8601String()
         ..['reservation_expires_at'] = DateTime.now()
             .add(Duration(minutes: expired ? -1 : 30))
             .toUtc()
@@ -201,6 +202,14 @@ void main() {
         ),
       );
       await t.pumpAndSettle();
+      expect(
+        find.text(
+          expired
+              ? 'Payment is no longer available'
+              : 'Provider accepted your booking',
+        ),
+        findsOneWidget,
+      );
       await capture.proof(t, expired ? 'booking-expired' : 'booking-pay');
       expect(t.takeException(), isNull);
       await t.pumpWidget(const SizedBox());
