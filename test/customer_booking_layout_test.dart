@@ -49,6 +49,78 @@ void main() {
       }
     }
   });
+  testWidgets(
+    'cancellation stays usable with a keyboard and submits only after confirmation',
+    (t) async {
+      capture.pixel(t);
+      t.view.physicalSize = const Size(320, 720);
+      t.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+      addTearDown(t.view.resetViewInsets);
+      final data = fixtures.booking();
+      final cancellations = <Map<String, dynamic>>[];
+      await t.pumpWidget(
+        capture.app(
+          CustomerBookingDetailScreen(
+            bookingId: data['booking_id'],
+            transactions: CustomerTransactionService(
+              rpc: (name, params) async {
+                if (name == 'customer_cancel_booking') {
+                  cancellations.add(params);
+                  return fixtures.booking(status: 'Cancelled');
+                }
+                return data;
+              },
+            ),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      await t.scrollUntilVisible(
+        find.text('Cancel Booking'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await t.pumpAndSettle();
+      await t.ensureVisible(
+        find.widgetWithText(OutlinedButton, 'Cancel Booking'),
+      );
+      await t.pumpAndSettle();
+      expect(find.text('Cancel Booking').hitTestable(), findsOneWidget);
+      await t.tap(find.text('Cancel Booking'));
+      await t.pumpAndSettle();
+      expect(find.byType(AlertDialog), findsOneWidget);
+      await capture.proof(t, 'buttons-cancel-booking');
+      await t.enterText(find.byType(TextField), 'Plans changed');
+      t.view.viewInsets = const FakeViewPadding(bottom: 260);
+      await t.pumpAndSettle();
+      expect(t.takeException(), isNull);
+      await t.tap(find.text('Keep booking'));
+      await t.pumpAndSettle();
+      expect(cancellations, isEmpty);
+      t.view.resetViewInsets();
+      await t.pumpAndSettle();
+      await t.scrollUntilVisible(
+        find.text('Cancel Booking'),
+        250,
+        scrollable: find.byType(Scrollable).first,
+      );
+      await t.pumpAndSettle();
+      await t.tap(find.text('Cancel Booking'));
+      await t.pumpAndSettle();
+      await t.enterText(
+        find.byType(TextField),
+        '  Appointment no longer needed  ',
+      );
+      await t.tap(find.widgetWithText(FilledButton, 'Cancel Booking'));
+      await t.pumpAndSettle();
+      expect(cancellations.single['p_reason'], 'Appointment no longer needed');
+      expect(cancellations.single['p_booking_id'], data['booking_id']);
+      await t.tap(find.text('OK'));
+      await t.pumpAndSettle();
+      expect(t.takeException(), isNull);
+    },
+  );
   for (final width in [360.0, 393.0]) {
     testWidgets(
       'booking form remains usable at $width with keyboard and no slots',

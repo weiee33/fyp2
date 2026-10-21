@@ -23,6 +23,8 @@ Future<T?> showCustomerSelection<T>({
   required List<CustomerChoice<T>> choices,
   T? selected,
   bool agentChoices = false,
+  WidgetBuilder? footerBuilder,
+  String? emptyMessage,
 }) {
   return showModalBottomSheet<T>(
     context: context,
@@ -60,6 +62,11 @@ Future<T?> showCustomerSelection<T>({
                   ),
                 ),
                 const SizedBox(height: 12),
+                if (choices.isEmpty && emptyMessage != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text(emptyMessage, textAlign: TextAlign.center),
+                  ),
                 Flexible(
                   child: ListView.separated(
                     physics: customerScrollPhysics(context),
@@ -144,6 +151,10 @@ Future<T?> showCustomerSelection<T>({
                     },
                   ),
                 ),
+                if (footerBuilder != null) ...[
+                  const SizedBox(height: 16),
+                  CustomerActionTheme(child: Builder(builder: footerBuilder)),
+                ],
               ],
             ),
           ),

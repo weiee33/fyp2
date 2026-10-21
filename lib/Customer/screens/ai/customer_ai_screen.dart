@@ -1,3 +1,4 @@
+import '../../widgets/customer_dialogs.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_menu.dart';
@@ -344,17 +345,19 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
             color: const Color(0xFFFAF9F7),
             borderRadius: BorderRadius.circular(26),
             clipBehavior: Clip.antiAlias,
-            child: _ChatHistory(
-              service: _service,
-              currentId: _conversation,
-              onRenamed: (id, title) {
-                if (mounted && id == _conversation) {
-                  setState(() => _chatTitle = title);
-                }
-              },
-              onDeleted: (id) {
-                if (mounted && id == _conversation) _newChat();
-              },
+            child: CustomerActionTheme(
+              child: _ChatHistory(
+                service: _service,
+                currentId: _conversation,
+                onRenamed: (id, title) {
+                  if (mounted && id == _conversation) {
+                    setState(() => _chatTitle = title);
+                  }
+                },
+                onDeleted: (id) {
+                  if (mounted && id == _conversation) _newChat();
+                },
+              ),
             ),
           ),
         ),
@@ -489,7 +492,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
   Future<void> _confirm(Map<String, dynamic> action) async {
     if (_busy) return;
     final booking = action['kind'] == 'booking';
-    final ok = await showDialog<bool>(
+    final ok = await showCustomerDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         title: Text(
@@ -624,7 +627,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     future: _loadPhoto(path),
     builder: (c, s) => s.hasData
         ? GestureDetector(
-            onTap: () => showDialog(
+            onTap: () => showCustomerDialog(
               context: c,
               builder: (_) => Dialog(
                 child: InteractiveViewer(child: Image.memory(s.data!)),
@@ -1177,7 +1180,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                 child: GestureDetector(
-                  onTap: () => showDialog<void>(
+                  onTap: () => showCustomerDialog<void>(
                     context: context,
                     builder: (c) => AlertDialog(
                       title: Text(tr('Using Home Serve AI')),
@@ -1409,7 +1412,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
   }
 
   Future<void> _rename(Map<String, dynamic> row) async {
-    final title = await showDialog<String>(
+    final title = await showCustomerDialog<String>(
       context: context,
       builder: (_) => _RenameChatDialog(
         service: widget.service,
@@ -1423,7 +1426,7 @@ class _ChatHistoryState extends State<_ChatHistory> {
   }
 
   Future<void> _delete(Map<String, dynamic> row) async {
-    final yes = await showDialog<bool>(
+    final yes = await showCustomerDialog<bool>(
       context: context,
       builder: (c) => AlertDialog(
         title: Text(tr('Delete this chat?')),

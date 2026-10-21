@@ -70,7 +70,7 @@ class _CustomerSavedAddressesScreenState
   }
 
   Future<void> _delete(Map<String, dynamic> row) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showCustomerDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Text(tr('Delete saved address?')),

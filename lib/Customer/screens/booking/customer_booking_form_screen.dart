@@ -163,8 +163,13 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
     final malaysia = DateTime.now().toUtc().add(const Duration(hours: 8));
     final today = DateTime(malaysia.year, malaysia.month, malaysia.day);
     final date = await showDatePicker(
-      builder: (context, child) =>
-          AgentSurface(name: 'date_picker', localChoices: true, child: child!),
+      builder: (context, child) => CustomerActionTheme(
+        child: AgentSurface(
+          name: 'date_picker',
+          localChoices: true,
+          child: child!,
+        ),
+      ),
       context: context,
       initialDate: _date,
       firstDate: today,

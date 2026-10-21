@@ -44,6 +44,28 @@ class AddressFixture extends CustomerAddressService {
   Future<List<Map<String, dynamic>>> getSavedAddresses() async => [];
 }
 
+class SelectableAddresses extends AddressFixture {
+  SelectableAddresses(super.client);
+  String selected = 'home';
+  @override
+  Future<List<Map<String, dynamic>>> getSavedAddresses() async => [
+    for (final id in ['home', 'office'])
+      {
+        'address_id': id,
+        'label': id == 'home' ? 'Home' : 'Office',
+        'address_line': 'Maju Tower, Jalan Tuanku Abdul Rahman',
+        'city': 'Kuala Lumpur',
+        'state': 'Kuala Lumpur',
+        'postcode': '50370',
+        'is_default': selected == id,
+      },
+  ];
+  @override
+  Future<void> setDefaultAddress(String id, String address) async {
+    selected = id;
+  }
+}
+
 void main() {
   late SupabaseClient client;
   setUpAll(() async {
@@ -74,6 +96,58 @@ void main() {
   });
   tearDownAll(() => client.dispose());
   tearDown(() => AppLanguage.instance.select('en'));
+  testWidgets(
+    'Explore address cards preserve selection and keep add action reachable',
+    (t) async {
+      capture.pixel(t);
+      t.view.physicalSize = const Size(320, 720);
+      t.platformDispatcher.textScaleFactorTestValue = 1.3;
+      addTearDown(t.platformDispatcher.clearTextScaleFactorTestValue);
+      final addresses = SelectableAddresses(client);
+      await t.pumpWidget(
+        capture.app(
+          CustomerHomeScreen(
+            homeService: HomeFixture(client),
+            addressService: addresses,
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      await t.tap(find.text('Kuala Lumpur'));
+      await t.pumpAndSettle();
+      expect(find.text('Service Address'), findsOneWidget);
+      expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
+      expect(find.text('Add service address').hitTestable(), findsOneWidget);
+      await capture.proof(t, 'buttons-explore-address');
+      await t.scrollUntilVisible(
+        find.text('Office'),
+        100,
+        scrollable: find
+            .descendant(
+              of: find.byType(BottomSheet),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await t.tap(find.text('Office'));
+      await t.pumpAndSettle();
+      expect(addresses.selected, 'office');
+      expect(find.byType(BottomSheet), findsNothing);
+      await t.tap(find.text('Kuala Lumpur'));
+      await t.pumpAndSettle();
+      final selected = find.ancestor(
+        of: find.text('Office'),
+        matching: find.byType(Semantics),
+      );
+      expect(
+        selected.evaluate().any(
+          (e) => (e.widget as Semantics).properties.selected == true,
+        ),
+        isTrue,
+      );
+      expect(t.takeException(), isNull);
+    },
+  );
   for (final locale in ['en', 'zh', 'ms']) {
     testWidgets(
       '$locale category cards align and navigation is a single surface',

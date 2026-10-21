@@ -105,30 +105,54 @@ class _CustomerBookingDetailScreenState
 
   Future<void> _cancel() async {
     final reason = TextEditingController();
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showCustomerDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
         backgroundColor: Colors.white,
         surfaceTintColor: Colors.transparent,
+        scrollable: true,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        icon: const Icon(
+          Icons.event_busy_outlined,
+          color: CustomerTheme.danger,
+          size: 32,
+        ),
         title: Text(tr('Cancel booking?')),
+        titleTextStyle: Theme.of(dialogContext).textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: CustomerTheme.textPrimary,
+        ),
+        contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
         content: TextField(
           controller: reason,
           maxLength: 500,
-          maxLines: 3,
-          decoration: InputDecoration(labelText: trOrNull('Reason (optional)')),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text(tr('Keep booking')),
+          minLines: 3,
+          maxLines: 5,
+          textCapitalization: TextCapitalization.sentences,
+          decoration: InputDecoration(
+            labelText: trOrNull('Reason (optional)'),
+            floatingLabelBehavior: FloatingLabelBehavior.always,
+            alignLabelWithHint: true,
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: CustomerTheme.danger,
-              foregroundColor: Colors.white,
-            ),
-            onPressed: () => Navigator.pop(dialogContext, true),
-            child: Text(tr('Cancel Booking')),
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+        actions: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              OutlinedButton(
+                style: CustomerTheme.actionStyle(outlined: true),
+                onPressed: () => Navigator.pop(dialogContext, false),
+                child: Text(tr('Keep booking')),
+              ),
+              const SizedBox(height: 10),
+              FilledButton(
+                style: CustomerTheme.actionStyle(destructive: true),
+                onPressed: () => Navigator.pop(dialogContext, true),
+                child: Text(tr('Cancel Booking')),
+              ),
+            ],
           ),
         ],
       ),

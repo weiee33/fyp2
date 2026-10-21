@@ -229,7 +229,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       },
     );
     final form = GlobalKey<FormState>();
-    final value = await showDialog<String>(
+    final value = await showCustomerDialog<String>(
       context: context,
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
@@ -312,6 +312,7 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
     final now = DateTime.now();
     final date = await showDatePicker(
       context: context,
+      builder: (_, child) => CustomerActionTheme(child: child!),
       initialDate:
           DateTime.tryParse(_birthday ?? '') ?? DateTime(now.year - 18),
       firstDate: DateTime(1900),

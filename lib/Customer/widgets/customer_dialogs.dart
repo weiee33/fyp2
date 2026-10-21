@@ -1,6 +1,18 @@
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../core/customer_theme.dart';
+
+/// Dialogs use the root navigator, outside the customer scaffold's local theme.
+Future<T?> showCustomerDialog<T>({
+  required BuildContext context,
+  required WidgetBuilder builder,
+  bool barrierDismissible = true,
+}) => showDialog<T>(
+  context: context,
+  barrierDismissible: barrierDismissible,
+  builder: (_) => CustomerActionTheme(child: Builder(builder: builder)),
+);
 
 /// Customer feedback always stays visible until acknowledged.
 class CustomerDialogs {
@@ -18,7 +30,7 @@ class CustomerDialogs {
       return;
     }
     try {
-      await showDialog<void>(
+      await showCustomerDialog<void>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => PopScope(
@@ -45,7 +57,7 @@ class CustomerDialogs {
     required String message,
     required String title,
   }) async =>
-      await showDialog<bool>(
+      await showCustomerDialog<bool>(
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
