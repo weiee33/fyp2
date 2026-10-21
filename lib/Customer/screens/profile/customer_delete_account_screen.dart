@@ -132,7 +132,7 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
               tr(
                 'Finish or cancel active bookings and resolve pending payments or disputes first. Anonymized transaction and rating records are retained.',
               ),
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.justify,
               style: const TextStyle(height: 1.5),
             ),
             const SizedBox(height: 24),
@@ -158,7 +158,11 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
                 tr(_busy ? 'Deleting account…' : 'Delete My Account'),
               ),
             ),
-            TextButton(
+            const SizedBox(height: 12),
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
               onPressed: _busy ? null : () => Navigator.maybePop(context),
               child: Text(tr('Keep My Account')),
             ),

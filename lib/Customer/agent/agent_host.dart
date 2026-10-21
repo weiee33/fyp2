@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'agent_panel.dart';
+import '../core/customer_theme.dart';
 import 'agent_capture.dart';
 import 'agent_controller.dart';
 import 'agent_protocol.dart';
@@ -122,7 +123,9 @@ class _AgentHostState extends State<AgentHost> with TickerProviderStateMixin {
             ),
           ),
         ),
-        Positioned.fill(child: AgentPanel(controller: controller)),
+        Positioned.fill(
+          child: CustomerActionTheme(child: AgentPanel(controller: controller)),
+        ),
       ],
     ),
   );

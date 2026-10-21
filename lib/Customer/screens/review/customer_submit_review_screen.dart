@@ -192,7 +192,7 @@ class _CustomerSubmitReviewScreenState extends State<CustomerSubmitReviewScreen>
       HapticFeedback.heavyImpact();
 
       // Show Success Modal
-      await showDialog(
+      await showCustomerDialog(
         context: context,
         barrierDismissible: false,
         builder: (_) => AlertDialog(

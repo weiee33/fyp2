@@ -165,7 +165,7 @@ class _CustomerNotificationScreenState
         ),
       );
     } else {
-      await showDialog<void>(
+      await showCustomerDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
           title: Text(tr(notification['title']?.toString() ?? 'Notification')),
@@ -333,7 +333,7 @@ class _CustomerNotificationScreenState
             selectedColor: CustomerTheme.primary,
             backgroundColor: Colors.white,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: CustomerTheme.actionShape.borderRadius,
               side: BorderSide(
                 color: isSelected
                     ? CustomerTheme.primary

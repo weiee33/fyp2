@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../shared/app_scroll_behavior.dart';
 import '../agent/agent_surface.dart';
+import '../core/customer_theme.dart';
 
 /// One elastic effect, without Android's additional glow/stretch decoration.
 /// Explicit physics are also used by lists inside modal routes.
@@ -43,7 +44,10 @@ class CustomerScaffold extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => ScrollConfiguration(
+  Widget build(BuildContext context) =>
+      enabled ? CustomerActionTheme(child: _content()) : _content();
+
+  Widget _content() => ScrollConfiguration(
     behavior: enabled
         ? const CustomerScrollBehavior()
         : const AppScrollBehavior(),

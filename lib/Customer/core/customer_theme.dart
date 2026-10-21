@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 
 class CustomerTheme {
+  static const actionShape = RoundedRectangleBorder(
+    borderRadius: BorderRadius.all(Radius.circular(12)),
+  );
+  static const actionOutline = ButtonStyle(
+    shape: WidgetStatePropertyAll(actionShape),
+  );
   // Service Orange Palette
   static const Color primary = Color(0xFFFF6B00);
   static const Color primaryDark = Color(0xFFE05300);
@@ -32,7 +38,7 @@ class CustomerTheme {
       side: BorderSide(
         color: outlined ? color.withValues(alpha: .45) : Colors.transparent,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      shape: actionShape,
       textStyle: const TextStyle(
         fontFamily: 'Roboto',
         fontFamilyFallback: ['HomeServeCJK'],
@@ -113,6 +119,37 @@ class CustomerTheme {
         ),
         hintStyle: const TextStyle(color: textSecondary, fontSize: 14),
       ),
+    );
+  }
+}
+
+/// Shape-only overrides scoped to customer surfaces, including modal routes.
+/// Colors, disabled states and sizing continue to come from the existing theme.
+class CustomerActionTheme extends StatelessWidget {
+  final Widget child;
+  const CustomerActionTheme({super.key, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    ButtonStyle shaped(ButtonStyle? style) =>
+        (style ?? const ButtonStyle()).merge(CustomerTheme.actionOutline);
+    return Theme(
+      data: theme.copyWith(
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: shaped(theme.elevatedButtonTheme.style),
+        ),
+        filledButtonTheme: FilledButtonThemeData(
+          style: shaped(theme.filledButtonTheme.style),
+        ),
+        outlinedButtonTheme: OutlinedButtonThemeData(
+          style: shaped(theme.outlinedButtonTheme.style),
+        ),
+        textButtonTheme: TextButtonThemeData(
+          style: shaped(theme.textButtonTheme.style),
+        ),
+      ),
+      child: child,
     );
   }
 }

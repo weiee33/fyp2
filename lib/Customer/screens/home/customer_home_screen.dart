@@ -1,3 +1,4 @@
+import '../../widgets/customer_selection_sheet.dart';
 import '../../agent/agent_surface.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
@@ -110,78 +111,39 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
 
   Future<void> _pickAddress() async {
-    final selected = await showModalBottomSheet<String>(
+    final selected = await showCustomerSelection<String>(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      backgroundColor: Colors.white,
-      builder: (sheetContext) => SizedBox(
-        height: MediaQuery.sizeOf(sheetContext).height * .65,
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      tr('Service address'),
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: ListView(
-                physics: customerScrollPhysics(context),
-                children: [
-                  if (_addresses.isEmpty)
-                    Padding(
-                      padding: EdgeInsets.all(20),
-                      child: Text(
-                        tr('Add an address to use when making a booking.'),
-                      ),
-                    ),
-                  ..._addresses.map(
-                    (address) => ListTile(
-                      leading: const Icon(
-                        Icons.location_on_outlined,
-                        color: CustomerTheme.primary,
-                      ),
-                      title: Text(tr(address['label'] as String? ?? 'Address')),
-                      subtitle: Text(
-                        '${address['address_line']}, ${address['city']}',
-                      ),
-                      trailing: address['is_default'] == true
-                          ? const Icon(
-                              Icons.check_circle,
-                              color: CustomerTheme.primary,
-                            )
-                          : null,
-                      onTap: () => Navigator.pop(
-                        sheetContext,
-                        address['address_id'] as String,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: OutlinedButton.icon(
-                onPressed: () => Navigator.pop(sheetContext, 'add'),
-                icon: const Icon(Icons.add_location_alt_outlined),
-                label: Text(tr('Add service address')),
-              ),
-            ),
-          ],
-        ),
+      title: tr('Service Address'),
+      selected: _addresses
+          .where((address) => address['is_default'] == true)
+          .map((address) => address['address_id'] as String)
+          .firstOrNull,
+      emptyMessage: tr('Add an address to use when making a booking.'),
+      choices: [
+        for (final address in _addresses)
+          CustomerChoice(
+            value: address['address_id'] as String,
+            label: tr(address['label'] as String? ?? 'Address'),
+            subtitle:
+                [
+                      address['address_line'],
+                      address['city'],
+                      address['state'],
+                      address['postcode'],
+                    ]
+                    .where(
+                      (part) =>
+                          part != null && part.toString().trim().isNotEmpty,
+                    )
+                    .join(', '),
+            icon: Icons.location_on_outlined,
+          ),
+      ],
+      footerBuilder: (sheetContext) => OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+        onPressed: () => Navigator.pop(sheetContext, 'add'),
+        icon: const Icon(Icons.add_location_alt_outlined),
+        label: Text(tr('Add service address')),
       ),
     );
     if (!mounted || selected == null) return;

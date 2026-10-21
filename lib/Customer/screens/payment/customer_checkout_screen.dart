@@ -260,7 +260,6 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Text(tr('Your receipt is ready below.')),
                         ],
                       ),
                     ),
@@ -290,24 +289,14 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                               value: 'fpx',
                               enabled: !busy && !methodLocked,
                               title: Text(tr('FPX online banking')),
-                              subtitle: Text(tr('Choose your Malaysian bank')),
                             ),
                             RadioListTile<String>(
                               value: 'wallet_card',
                               enabled: !busy && !methodLocked,
                               title: Text(tr('Debit / credit card or GrabPay')),
-                              subtitle: Text(
-                                tr('Choose on the secure Stripe page'),
-                              ),
                             ),
                           ],
                         ),
-                      ),
-                      Text(
-                        tr(
-                          'Card number, expiry and CVC are validated by Stripe. Your card details are never stored in this app.',
-                        ),
-                        style: TextStyle(fontSize: 12),
                       ),
                       if (methodLocked)
                         Text(

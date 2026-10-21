@@ -109,11 +109,13 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
-      builder: (_) => _FilterSheet(
-        initial: _ServiceFilters(
-          city: _city,
-          maxPrice: _maxPrice,
-          minRating: _minRating,
+      builder: (_) => CustomerActionTheme(
+        child: _FilterSheet(
+          initial: _ServiceFilters(
+            city: _city,
+            maxPrice: _maxPrice,
+            minRating: _minRating,
+          ),
         ),
       ),
     );
