@@ -21,6 +21,14 @@ Delivery is retried with backoff, a five-minute lease and a maximum of eight att
 
 The verified Stripe webhook records payment and queues a receipt atomically. The recipient is the email collected by Stripe Checkout. Only validated Stripe receipt links are included; retries use a stable Resend idempotency key. Duplicate Stripe events do not create duplicate receipt jobs. Sandbox receipts explicitly state that no real money was collected.
 
+### Finding a receipt email
+
+Stripe does not automatically email customers in sandboxes by default ([Stripe testing guide](https://docs.stripe.com/testing-use-cases#test-email)). This app instead sends its verified sandbox receipt through Resend, with subject **Home Serve — Payment Receipt (Sandbox)** and the Home Serve sender described above. Search that subject in All Mail, Spam and Promotions, using the mailbox entered during Checkout; it can differ from the app account's email.
+
+For a delivery investigation, locate the payment's `receipt:<payment_id>` outbox job. Its payload holds the Checkout email and Stripe receipt link. A null `payments.receipt_url` alone does not prove that the receipt link is missing. Queue state `sent` means the email API accepted the request; check the corresponding Resend email's delivery event and recipient as well. A `delivered` event confirms delivery to the recipient's mail server, not placement in the inbox or that the customer read it. Do not resend while investigating without an explicit request.
+
+The shared testing sender only supports the configured owner mailbox. To deliver to arbitrary customer emails, complete the verified-domain steps below. For a future live Stripe integration, configure **Successful payments** under [Stripe Customer emails](https://dashboard.stripe.com/settings/emails); entering an email in a sandbox checkout does not enable live receipt delivery or remove sandbox restrictions. See [Stripe receipts](https://docs.stripe.com/receipts).
+
 To expand email delivery beyond the verified account owner:
 
 1. Add an owned sending domain in Resend and publish its required DNS records.
