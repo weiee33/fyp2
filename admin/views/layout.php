@@ -43,23 +43,27 @@ function viewSafeLink(mixed $value, string $label = 'Open document'): void {
 $authPage = in_array($page, ['login','signup','verify-email','forgot','reset','callback','mfa'], true);
 $navigation = ['dashboard'=>['Overview','grid'],'users'=>['Users','users'],'providers'=>['Providers','shield'],'categories'=>['Service categories','layers'],'bookings'=>['Bookings & orders','calendar'],'reviews'=>['Reviews','star'],'disputes'=>['Disputes','alert'],'refunds'=>['Refund requests','wallet'],'analytics'=>['Analytics & reports','chart'],'audit'=>['Audit trail','history']];
 if (($admin['role_level'] ?? '') !== 'super_admin') { unset($navigation['audit']); }
+else { $navigation['team']=['Admin team','users']; }
 $descriptions = ['dashboard'=>'A clear view of your service community.','users'=>'Manage customer and provider access with an accountable record of every decision.','providers'=>'Review provider credentials and help customers book with confidence.','categories'=>'Keep your service catalogue organised and easy to discover.','bookings'=>'Follow each service from request to completion.','reviews'=>'Protect useful, fair feedback across your community.','disputes'=>'Review service issues and document clear resolutions.','refunds'=>'Track refund requests and their payment processing status.','analytics'=>'Understand demand, performance and collected payments.','audit'=>'Review the actions taken by your administrative team.'];
+$descriptions['team']='Invite colleagues and manage their access to account activation.';
+$navigation['disputes'][0]='Support & disputes';
+$descriptions['disputes']='Answer customer questions, review complaints and resolve booking issues.';
 ?>
 <!doctype html>
 <html lang="en">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title><?= e($titles[$page] ?? 'Administration') ?> · Local Life</title><link rel="stylesheet" href="/assets/admin.css"><script src="/assets/admin.js" defer></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title><?= e($titles[$page] ?? 'Administration') ?> · Home Serve</title><link rel="stylesheet" href="/assets/admin.css"><script src="/assets/admin.js" defer></script></head>
 <body class="<?= $authPage ? 'auth-page' : 'app-page' ?>">
 <a class="skip-link" href="#main">Skip to content</a>
 <?php if ($authPage): ?>
     <main id="main" class="auth-shell">
-        <section class="auth-story" aria-label="Local Life administration">
-            <a class="brand brand-light" href="<?= e(url('login')) ?>"><span class="brand-mark"><?= viewIcon('layers') ?></span><span>Local Life<span class="brand-sub">ADMINISTRATION</span></span></a>
+        <section class="auth-story" aria-label="Home Serve administration">
+            <a class="brand brand-light" href="<?= e(url('login')) ?>"><span class="brand-mark"><?= viewIcon('layers') ?></span><span>Home Serve<span class="brand-sub">ADMINISTRATION</span></span></a>
             <div class="auth-story-copy"><span class="eyebrow">BETTER SERVICES. STRONGER COMMUNITIES.</span><h1>Good service<br>starts with<br>great care.</h1><p>The space to support your providers, look after your customers and keep everyday life moving.</p><div class="auth-story-note"><?= viewIcon('shield') ?><span>Secure access for your admin team</span></div></div>
             <div class="auth-art" aria-hidden="true"><div class="art-ring ring-one"></div><div class="art-ring ring-two"></div><div class="art-ring ring-three"></div><span class="art-card art-house">⌂</span><span class="art-card art-check"><?= viewIcon('check') ?></span></div>
-            <p class="auth-footer">Local Life Service Assistant · Malaysia</p>
+            <p class="auth-footer">Home Serve · Malaysia</p>
         </section>
         <section class="auth-content"><div class="auth-card">
-            <div class="mobile-brand brand"><span class="brand-mark"><?= viewIcon('layers') ?></span><span>Local Life</span></div>
+            <div class="mobile-brand brand"><span class="brand-mark"><?= viewIcon('layers') ?></span><span>Home Serve</span></div>
             <?php if ($flash): ?><div class="notice notice-success" role="status"><?= viewIcon('check') ?><span><?= e($flash) ?></span></div><?php endif; ?>
             <?php if ($error): ?><div class="notice notice-error" role="alert"><?= viewIcon('alert') ?><span><?= e($error) ?></span></div><?php endif; ?>
             <?php require __DIR__.'/auth.php'; ?>
@@ -67,7 +71,7 @@ $descriptions = ['dashboard'=>'A clear view of your service community.','users'=
     </main>
 <?php else: ?>
     <aside id="sidebar" class="sidebar" aria-label="Primary navigation">
-        <a class="brand" href="<?= e(url('dashboard')) ?>"><span class="brand-mark"><?= viewIcon('layers') ?></span><span>Local Life<span class="brand-sub">ADMINISTRATION</span></span></a>
+        <a class="brand" href="<?= e(url('dashboard')) ?>"><span class="brand-mark"><?= viewIcon('layers') ?></span><span>Home Serve<span class="brand-sub">ADMINISTRATION</span></span></a>
         <p class="nav-label">WORKSPACE</p><nav>
         <?php foreach ($navigation as $route=>$item): ?>
             <?php if ($route==='reviews'): ?><p class="nav-label">TRUST & SUPPORT</p><?php elseif($route==='analytics'): ?><p class="nav-label">INSIGHTS</p><?php endif; ?>
@@ -76,11 +80,11 @@ $descriptions = ['dashboard'=>'A clear view of your service community.','users'=
         <div class="sidebar-bottom"><div class="admin-avatar"><?= e(strtoupper(mb_substr($admin['full_name'] ?? 'A',0,1))) ?></div><div class="admin-person"><strong><?= e($admin['full_name'] ?? 'Administrator') ?></strong><span><?= ($admin['role_level'] ?? '')==='super_admin'?'Super Admin':'Staff Admin' ?></span></div><form method="post" action="<?= e(url($page)) ?>"><?= viewFields('logout') ?><button class="icon-button" title="Sign out" aria-label="Sign out"><?= viewIcon('logout') ?></button></form></div>
     </aside>
     <div class="workspace"><header class="topbar"><div class="topbar-leading"><button type="button" class="icon-button nav-toggle" data-toggle-nav aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation"><?= viewIcon('menu') ?></button><span class="breadcrumb">Workspace <span>/</span> <strong><?= e($titles[$page]) ?></strong></span></div><div class="topbar-meta"><span class="secure-pill"><?= viewIcon('shield') ?> Secure session</span><span class="topbar-date"><?= e(date('d M Y')) ?></span></div></header>
-    <main id="main" class="main-content"><div class="page-heading"><div><span class="eyebrow">LOCAL LIFE ADMIN</span><h1><?= e($titles[$page]) ?></h1><p><?= e($descriptions[$page] ?? '') ?></p></div><?php if($page==='categories'): ?><a class="button button-primary" href="<?= e(url('categories',['new'=>'1'])) ?>"><?= viewIcon('plus') ?> Add category</a><?php elseif($page==='analytics'): ?><a class="button button-secondary" href="<?= e(url('analytics',['from'=>$_GET['from'] ?? date('Y-m-01'),'to'=>$_GET['to'] ?? date('Y-m-d'),'category_id'=>$_GET['category_id'] ?? '','region'=>$_GET['region'] ?? '','provider_id'=>$_GET['provider_id'] ?? '','export'=>'1'])) ?>"><?= viewIcon('download') ?> Export CSV</a><?php endif; ?></div>
+    <main id="main" class="main-content"><div class="page-heading"><div><span class="eyebrow">HOME SERVE ADMIN</span><h1><?= e($titles[$page]) ?></h1><p><?= e($descriptions[$page] ?? '') ?></p></div><?php if($page==='categories'): ?><a class="button button-primary" href="<?= e(url('categories',['new'=>'1'])) ?>"><?= viewIcon('plus') ?> Add category</a><?php elseif($page==='analytics'): ?><a class="button button-secondary" href="<?= e(url('analytics',['from'=>$_GET['from'] ?? date('Y-m-01'),'to'=>$_GET['to'] ?? date('Y-m-d'),'category_id'=>$_GET['category_id'] ?? '','region'=>$_GET['region'] ?? '','provider_id'=>$_GET['provider_id'] ?? '','export'=>'1'])) ?>"><?= viewIcon('download') ?> Export CSV</a><?php endif; ?></div>
     <?php if ($flash): ?><div class="notice notice-success" role="status"><?= viewIcon('check') ?><span><?= e($flash) ?></span></div><?php endif; ?>
     <?php if ($error): ?><div class="notice notice-error" role="alert"><?= viewIcon('alert') ?><span><?= e($error) ?></span></div><?php endif; ?>
-    <?php if (!$error || $data): ?><?php require __DIR__.(in_array($page,['dashboard','analytics'],true)?'/analytics.php':'/resources.php'); ?><?php endif; ?>
-    <footer class="workspace-footer"><span>Local Life Service Assistant</span><span>All times shown in Malaysia time (MYT).</span></footer>
+    <?php if (!$error || $data || ($page==='team' && ($admin['role_level'] ?? '')==='super_admin')): ?><?php require __DIR__.($page==='team'?'/team.php':(in_array($page,['dashboard','analytics'],true)?'/analytics.php':'/resources.php')); ?><?php endif; ?>
+    <footer class="workspace-footer"><span>Home Serve</span><span>All times shown in Malaysia time (MYT).</span></footer>
     </main></div>
 <?php endif; ?>
 </body></html>
