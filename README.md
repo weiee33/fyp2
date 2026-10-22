@@ -1,56 +1,73 @@
-# Local Life Service Assistant
+# Home Serve
 
-FYP 2 implementation for Ang Wei Ee and Lam Yi Ming. The dedicated **PHP admin website** is implemented first, with an orange-and-white theme and Supabase Auth, PostgreSQL and Storage. The latest teammate provider code on `master` is preserved. Its compatibility changes for the hardened database are recorded in [provider integration review](docs/provider-integration-review.md), for the subsequent mobile phase.
+Home Serve connects customers with local household service providers. The Flutter app serves customers and providers; a separate PHP website handles administration. Supabase provides authentication, PostgreSQL and storage, with Stripe sandbox checkout, Firebase customer notifications and Gemini-powered assistance.
 
-## Run the admin website on Windows
+## Three connected experiences
 
-Open this repository in Android Studio, then use its PowerShell terminal:
+| Part | Main features |
+| --- | --- |
+| Customer | Discover services, manage addresses, request appointments, pay after provider acceptance, download receipts, chat, review completed services and contact support. AI Chat and AI Agent assist with supported tasks. |
+| Provider | Manage business details, credentials, services and availability; accept requests, track jobs and communicate with customers. |
+| Admin | Verify providers, manage users and categories, monitor bookings, moderate reviews, respond to customer support, record refund requests, review analytics and manage admin invitations. |
+
+The normal flow is **customer requests → provider accepts → customer pays → provider completes → customer reviews**. Customers and providers share the mobile login; the stored account role determines their destination. Registration includes the account-type choice. Admin accounts use the dedicated website and require MFA.
+
+## Run the mobile app
+
+Prerequisites: Flutter **3.38.8**, its bundled Dart SDK, Android Studio/Android SDK, and a device or emulator. Run from the repository root:
+
+```powershell
+flutter pub get
+flutter run
+```
+
+The current project uses `lib/Provider/core/supabase_config.dart` for its public Supabase URL/key. Android Firebase configuration is in `android/app/google-services.json`. If using your own backend, replace these public project settings and configure the matching Auth, Storage and Edge Functions. Never put service-role, Stripe secret, Gemini or email API keys in the app.
+
+English, Chinese and Malay interface translations are supported. User-written chat messages, reviews and AI conversations retain their own language.
+
+## Run the admin website
+
+PHP **8.4** with cURL, OpenSSL, mbstring and fileinfo is required. No Composer or JavaScript build is needed. On Windows:
 
 ```powershell
 .\scripts\Setup-AdminRuntime.ps1
-# Only if admin/.env does not already exist:
+# Only when admin/.env does not exist:
 Copy-Item admin/.env.example admin/.env
-# Edit admin/.env to set your Supabase publishable or legacy anon key.
+# Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in admin/.env.
 .\scripts\Start-Admin.ps1
 ```
 
-Open **http://127.0.0.1:8088** in your browser. PHP runs independently of the Flutter emulator; Android Studio is the editor. The script installs a checksum-verified repository-local PHP runtime.
+Open **http://127.0.0.1:8088**. Use an existing administrator account and its authenticator code.
 
-Administrator: **angethan765@gmail.com**. Sign in with your existing password and the code from your enrolled authenticator. **weiee0303@gmail.com is a customer account.** No password is set or supplied by this repository. See [admin setup](docs/admin-setup.md) for recovery.
+To add another administrator, a Super Admin opens **Admin team**, creates an invitation and shares the activation link. The recipient verifies the invited email and sets up an authenticator. Invitations expire after seven days and can be renewed or revoked before acceptance. Invitation emails are not sent automatically. For access from another computer, deploy the website with HTTPS and configure its public `APP_URL`; a localhost link is only local.
 
-## Customer modules and FPX testing
+Serve only `admin/public` as the web root. Keep `admin/.env` and `admin/var` private. See [admin setup](docs/admin-setup.md) for Auth templates, redirects, MFA, deployment and recovery.
 
-Customer modules 5–10 now use guarded database APIs for discovery, profile/address management, provider-approved bookings, payment receipts, reviews and persisted notifications. The flow is **request a slot → provider accepts → customer pays → provider performs service → customer reviews**.
+## Backend and integrations
 
-Read [customer integration and verification](docs/customer-modules.md) and [Stripe FPX test setup](docs/fpx-test-setup.md). Test checkout requires your own Stripe test account and server-side secrets. Payment cannot be marked successful by the app. Background push/email delivery and AI remain outside this completed integration pass.
+- **Database:** `supabase/migrations` contains upgrades to the existing FYP schema, not a complete empty-project bootstrap. Check applied migration history before upgrading; do not replay installed migrations.
+- **Payments:** Stripe remains in sandbox mode. Payment success is recorded by verified gateway events, never by the client. Admin refund requests record an intention; they do not themselves move money. See [payment setup](docs/fpx-test-setup.md).
+- **Notifications and receipts:** customer push and receipt-email delivery use the delivery worker. The shared email test sender supports only its configured owner mailbox; other recipients require a verified domain. See [delivery setup](docs/customer-alerts-and-receipts.md).
+- **Support:** customer questions, complaints and booking requests appear in **Support & disputes**. Admin responses appear on the customer's matching request in its separate Support response card.
 
-## Admin modules
+Additional guides: [customer workflows](docs/customer-modules.md), [account and chat](docs/customer-account-chat.md), [provider integration](docs/provider-integration-review.md), [admin modules](docs/admin-modules.md), and [database verification](docs/database-audit/test-plan.md). Older review documents describe their dated implementation pass; use the current code and migration history for deployment state.
 
-- Administrator sign-in, invited activation, password recovery and TOTP MFA.
-- User management, provider/credential verification and review moderation.
-- Category/subcategory management and icon uploads.
-- Booking monitoring, controlled transitions, attributed history and disputes.
-- Super Admin refund requests and audit trail.
-- Analytics with date/category/region/provider filters, revenue/popularity charts, provider performance, CSV and booking reports saved as PDF through the browser.
-
-Refund requests do not move funds. Notifications are recorded and email delivery is queued; gateway processing and an email worker remain external integration work.
-
-See [Chapter 4 coverage and added features](docs/admin-modules.md), [database audit](docs/database-audit/README.md), and [setup/deployment](docs/admin-setup.md).
-
-See [Customer location and account UX fixes](docs/customer-ux-fixes.md) for OpenStreetMap, notification gestures, account deletion and device checks.
-
-## Verification
-
-Customer account, recovery, settings and provider chat setup/acceptance checks are in [Customer account and chat](docs/customer-account-chat.md). The Supabase recovery email template is versioned in `supabase/templates/recovery.html`.
+## Verify changes
 
 ```powershell
+flutter test --no-pub
+flutter test --no-pub --platform chrome test/customer_recovery_web_test.dart
+python tool/check_localization.py
 .\.tools\php\php.exe -d "extension_dir=$PWD/.tools/php/ext" admin/tests/run.php
 ```
 
-HTTP tests use a local stub and isolated temporary application, never live records. Database tests run inside `BEGIN`/`ROLLBACK`; see [test plan](docs/database-audit/test-plan.md). GitHub Actions runs PHP lint and HTTP tests.
+The PHP tests use isolated local fixtures and send no real email. Database regression scripts use synthetic records inside a transaction that must end in `ROLLBACK`; follow [the test plan](docs/database-audit/test-plan.md). GitHub Actions runs the suites relevant to each changed area.
 
-`admin/public` is the sole web document root. Server code is in `admin/src` and `admin/views`. Database upgrades/tests are in `supabase`; the existing Flutter starter is in its original folders.
+## Repository map
 
-Migrations upgrade the existing FYP schema; they are not an empty-project bootstrap. Do not reapply recorded migrations. Never commit `admin/.env`, sessions, passwords or Supabase secret/service-role keys.
+- `lib/Customer`, `lib/Provider`, `lib/shared` — Flutter screens, services and shared authentication/localization.
+- `admin/public`, `admin/src`, `admin/views` — PHP website, server code and templates.
+- `supabase/migrations`, `supabase/functions`, `supabase/tests` — database changes, trusted backend endpoints and regression checks.
+- `docs`, `scripts`, `test` — operational guides, local setup and Flutter tests.
 
-Customer address errors, activity badges and password validation: [implementation and verification](docs/customer-address-activity-password.md).
+Keep passwords, sessions, `.env` files and server credentials out of Git.

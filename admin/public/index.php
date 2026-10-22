@@ -12,6 +12,8 @@ $titles = ['dashboard'=>'Overview','users'=>'User management','providers'=>'Prov
 $redirect = static function(string $destination): never { header('Location: ' . $destination, true, 303); exit; };
 $titles['support-photo'] = 'Support photo';
 $titles['verify-email'] = 'Verify your email';
+$titles['team'] = 'Admin team';
+$titles['disputes'] = 'Support & disputes';
 try {
     $config = new Config(dirname(__DIR__));
     Security::start($config);
@@ -36,6 +38,19 @@ try {
         if ($action === 'verify') { $auth->verify((string)($_POST['factor_id'] ?? ''), trim((string)($_POST['code'] ?? ''))); $redirect(url(!empty($_SESSION['password_recovery']) ? 'reset' : 'dashboard')); }
         if ($action === 'reset') { $auth->resetPassword((string)($_POST['password'] ?? ''), (string)($_POST['confirm'] ?? '')); $_SESSION['flash']='Password updated. Sign in with your new password.'; $redirect(url('login')); }
         $admin = $auth->requireSession();
+        if (str_starts_with($action, 'invitation_')) {
+            if (($admin['role_level'] ?? '') !== 'super_admin') { throw new ApiException(403,'Only a Super Admin can manage administrator invitations.'); }
+            $operation = substr($action, strlen('invitation_'));
+            if (!is_string($_POST['email'] ?? '') || !is_string($_POST['role_level'] ?? 'staff')) { throw new ApiException(400,'Enter a valid email address and admin role.'); }
+            $email = strtolower(trim($_POST['email'] ?? ''));
+            $role = $_POST['role_level'] ?? 'staff';
+            $invitationVersion = $_POST['version'] ?? null;
+            if (!in_array($operation, ['create','renew','revoke'], true) || !filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email)>254 || !in_array($role,['staff','super_admin'],true)) { throw new ApiException(400,'Enter a valid email address and admin role.'); }
+            if ($operation !== 'create' && (!is_string($invitationVersion) || !preg_match('/^[a-f0-9]{32}$/',$invitationVersion))) { throw new ApiException(400,'Refresh the invitation before trying again.'); }
+            $result = $api->rpc('admin_invitation_manage', ['p_action'=>$operation,'p_email'=>$email,'p_role'=>$role,'p_version'=>$operation==='create'?null:$invitationVersion]);
+            $_SESSION['flash'] = $result['message'];
+            $redirect(url('team'));
+        }
         $mutations = ['user_status','provider_verify','certificate_verify','category_save','category_delete','booking_status','review_moderate','dispute_open','dispute_resolve','refund_request'];
         if (!in_array($action, $mutations, true)) { throw new ApiException(400,'Unknown action.'); }
         $id = trim((string)($_POST['record_id'] ?? ''));
@@ -67,6 +82,11 @@ try {
     if ($page === 'callback') { $auth->callback((string)($_GET['code'] ?? '')); $redirect(url('mfa')); }
     if (!in_array($page,$publicPages,true)) {
         $admin = $auth->requireSession($page !== 'mfa');
+        if ($page === 'team') {
+            if (($admin['role_level'] ?? '') !== 'super_admin') { throw new ApiException(403,'Only a Super Admin can manage administrator invitations.'); }
+            if (!is_string($_GET['q'] ?? '') || !is_scalar($_GET['p'] ?? 1)) { throw new ApiException(400,'Enter a valid search or page.'); }
+            $data = $api->rpc('admin_team', ['p_search'=>mb_substr($_GET['q'] ?? '',0,100),'p_page'=>max(1,(int)($_GET['p'] ?? 1))]);
+        }
         if ($page === 'support-photo') {
             $record=$api->rpc('admin_detail',['resource'=>'disputes','record_id'=>Security::uuid((string)($_GET['id'] ?? ''))]);
             $slot=(string)($_GET['slot'] ?? '');

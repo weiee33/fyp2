@@ -1,9 +1,9 @@
 name: Admin checks
 on:
   push:
-    paths: ['admin/**', '.github/workflows/admin.yml']
+    paths: ['admin/**', 'scripts/*Admin*.ps1', '.github/workflows/admin.yml']
   pull_request:
-    paths: ['admin/**', '.github/workflows/admin.yml']
+    paths: ['admin/**', 'scripts/*Admin*.ps1', '.github/workflows/admin.yml']
 permissions:
   contents: read
 jobs:
@@ -18,5 +18,7 @@ jobs:
           coverage: none
       - name: Check PHP syntax
         run: find admin -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Check browser script syntax
+        run: node --check admin/public/assets/admin.js
       - name: Test isolated admin workflows
         run: php admin/tests/run.php

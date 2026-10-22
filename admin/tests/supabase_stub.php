@@ -94,10 +94,19 @@ if ($path === '/storage/v1/object/sign/certifications/fake.pdf' && $method === '
 if ($path === '/rest/v1/rpc/admin_identity') {
     if ($token==='fixture-customer-token') { respond(['code'=>'42501','message'=>'An active administrator account is required'],403); }
     if (!in_array($token,['fixture-access-aal1','fixture-access-aal2'],true)) { respond(['code'=>'42501','message'=>'Authentication required'],401); }
-    respond(['user_id'=>$record,'email'=>'admin@example.test','full_name'=>'Test Administrator','role_level'=>'super_admin','mfa_verified'=>$verified]);
+    respond(['user_id'=>$record,'email'=>'admin@example.test','full_name'=>'Test Administrator','role_level'=>(!empty($fixtureState['staff_admin'])?'staff':'super_admin'),'mfa_verified'=>$verified]);
 }
 if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
     if (!$verified) { respond(['code'=>'42501','message'=>'Complete authenticator verification first'],403); }
+    if ($path === '/rest/v1/rpc/admin_team') {
+        if (!empty($fixtureState['staff_admin'])) { respond(['code'=>'42501','message'=>'Only a Super Admin can manage administrator invitations.'],403); }
+        respond(['items'=>[['invitation_id'=>$record,'email'=>'colleague@example.test','role_level'=>'staff','status'=>'Pending','created_at'=>'2026-10-21T12:00:00Z','expires_at'=>'2026-10-28T12:00:00Z','accepted_at'=>null,'invited_by_name'=>'Test Administrator','version'=>$version]],'total'=>1,'page'=>1,'page_size'=>20]);
+    }
+    if ($path === '/rest/v1/rpc/admin_invitation_manage') {
+        if (!empty($fixtureState['staff_admin'])) { respond(['code'=>'42501','message'=>'Only a Super Admin can manage administrator invitations.'],403); }
+        if (!empty($fixtureState['invitation_conflict'])) { respond(['code'=>'40001','message'=>'This invitation changed. Refresh the page and try again.'],409); }
+        respond(['email'=>$body['p_email'],'message'=>'Invitation saved. Share the activation link; no email was sent.']);
+    }
     if ($path === '/rest/v1/rpc/admin_list') {
         $page = (int)($body['page_number'] ?? 1);
         $resource = $body['resource'] ?? '';

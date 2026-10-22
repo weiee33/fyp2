@@ -197,6 +197,54 @@ try {
         expectRedirect(request('GET',['page'=>'reset']),'dashboard');
         $csrf=csrfToken(request('GET',['page'=>'dashboard']));
     });
+    test('admin team renders invitation and copy-link controls',function() use (&$csrf): void {
+        $response=request('GET',['page'=>'team']); expectStatus($response,200); $csrf=csrfToken($response);
+        foreach(['Create invitation','Copy link','colleague@example.test','Renew','Revoke','No invitation email is sent'] as $text) {
+            assertThat(str_contains($response['body'],$text),'Missing invitation UI: '.$text);
+        }
+    });
+    test('invitation create normalizes email and forwards only permitted fields',function() use (&$csrf): void {
+        expectRedirect(request('POST',['page'=>'team'],['csrf'=>$csrf,'action'=>'invitation_create','email'=>'  New@Example.test ','role_level'=>'staff','accepted_by'=>'forged']),'team');
+        $calls=logs('/rest/v1/rpc/admin_invitation_manage'); $last=end($calls);
+        assertThat($last['body']===['p_action'=>'create','p_email'=>'new@example.test','p_role'=>'staff','p_version'=>null],'Unsafe invitation payload.');
+        assertThat($last['token']==='fixture-access-aal2','Invitation used unverified token.');
+    });
+    test('invitation revoke preserves optimistic concurrency',function() use (&$csrf,$version): void {
+        expectRedirect(request('POST',['page'=>'team'],['csrf'=>$csrf,'action'=>'invitation_revoke','email'=>'colleague@example.test','role_level'=>'staff','version'=>$version]),'team');
+        $calls=logs('/rest/v1/rpc/admin_invitation_manage');
+        assertThat(end($calls)['body']['p_version']===$version,'Missing invitation concurrency version.');
+    });
+    test('invalid invitation input and CSRF never reach invitation RPC',function() use (&$csrf): void {
+        $count=count(logs('/rest/v1/rpc/admin_invitation_manage'));
+        expectStatus(request('POST',['page'=>'team'],['csrf'=>'bad','action'=>'invitation_create','email'=>'person@example.test']),403);
+        expectStatus(request('POST',['page'=>'team'],['csrf'=>$csrf,'action'=>'invitation_create','email'=>'invalid']),400);
+        expectStatus(request('POST',['page'=>'team'],['csrf'=>$csrf,'action'=>'invitation_create','email'=>'person@example.test','role_level'=>'owner']),400);
+        expectStatus(request('POST',['page'=>'team'],['csrf'=>$csrf,'action'=>'invitation_revoke','email'=>'person@example.test','version'=>'bad']),400);
+        expectStatus(request('POST',['page'=>'team'],['csrf'=>$csrf,'action'=>'invitation_create','email'=>['person@example.test']]),400);
+        expectStatus(request('POST',['page'=>'team'],['csrf'=>$csrf,'action'=>'invitation_create','email'=>'person@example.test','role_level'=>['staff']]),400);
+        expectStatus(request('GET',['page'=>'team','q'=>['unexpected']]),400);
+        assertThat(count(logs('/rest/v1/rpc/admin_invitation_manage'))===$count,'Invalid input reached RPC.');
+    });
+    test('staff cannot render or post invitation management',function() use (&$csrf,$runtime): void {
+        file_put_contents($runtime.'/fixture-state.json',json_encode(['staff_admin'=>true]));
+        try {
+            $response=request('GET',['page'=>'dashboard']); expectStatus($response,200);
+            assertThat(!str_contains($response['body'],'href="/?page=team"'),'Staff saw team navigation.');
+            expectStatus(request('GET',['page'=>'team']),403);
+            $count=count(logs('/rest/v1/rpc/admin_invitation_manage'));
+            expectStatus(request('POST',['page'=>'team'],['csrf'=>$csrf,'action'=>'invitation_create','email'=>'person@example.test']),403);
+            assertThat(count(logs('/rest/v1/rpc/admin_invitation_manage'))===$count,'Staff posted invitation RPC.');
+        } finally { file_put_contents($runtime.'/fixture-state.json','{}'); }
+    });
+    test('stale invitation error keeps entered email and does not claim success',function() use (&$csrf,$runtime): void {
+        file_put_contents($runtime.'/fixture-state.json',json_encode(['invitation_conflict'=>true]));
+        try {
+            $response=request('POST',['page'=>'team'],['csrf'=>$csrf,'action'=>'invitation_create','email'=>'retry@example.test','role_level'=>'staff']);
+            expectStatus($response,409);
+            assertThat(str_contains($response['body'],'This invitation changed'),'Missing stale invitation message.');
+            assertThat(str_contains($response['body'],'value="retry@example.test"'),'Lost typed email.');
+        } finally { file_put_contents($runtime.'/fixture-state.json','{}'); }
+    });
     test('all administrative modules render realistic nonempty records',function(): void {
         foreach (['users','providers','categories','bookings','reviews','disputes','refunds','analytics','audit'] as $page) {
             $response=request('GET',['page'=>$page]); expectStatus($response,200);

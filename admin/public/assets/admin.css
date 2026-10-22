@@ -510,7 +510,32 @@ td > strong { color: #334155; font-size: 12px; }
     .analytics-filters > .analytics-filter-dates { flex-basis: 100%; }
     .analytics-filters > .button { width: 100%; }
 }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; } }
+/* Shared interaction and legibility across every administration module. */
+.team-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 24px; margin-bottom: 24px; }
+.team-form { padding: 0 24px 24px; }
+.activation-steps { padding-left: 22px; margin: 0 0 22px; color: var(--text); }
+.activation-steps li + li { margin-top: 10px; }
+.copy-field { display: flex; gap: 10px; }
+.copy-field input { min-width: 0; }
+.copy-field + .field-note { min-height: 22px; margin-top: 8px; }
+.invitation-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.email-text { overflow-wrap: anywhere; }
+.confirm-dialog { width: min(440px,calc(100% - 32px)); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; color: var(--ink); box-shadow: 0 18px 60px #0f172a33; }
+.confirm-dialog::backdrop { background: #15213380; }
+.confirm-dialog p { margin-top: 14px; color: var(--text); overflow-wrap: anywhere; }
+.confirm-dialog .form-actions { justify-content: flex-end; flex-wrap: wrap; margin-top: 24px; }
+.confirm-dialog[open] { animation: dialog-enter .16s ease-out; }
+@keyframes dialog-enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+.button { white-space: normal; text-align: center; }
+.button:active:not(:disabled) { transform: translateY(1px); }
+.button[aria-busy="true"] { cursor: progress; }
+.panel-heading p, .page-heading p, .cell-sub, .field-note, .breadcrumb, .topbar-date, .workspace-footer { color: var(--muted); }
+.field-note, .panel-heading p, .page-heading p { font-size: 13px; }
+.badge-accepted { color: #166534; background: #edf9f0; }
+.badge-revoked, .badge-expired { color: #9f3030; background: #fff0f0; }
+@media (max-width: 1000px) { .team-grid { grid-template-columns: minmax(0,1fr); } }
+@media (max-width: 480px) { .copy-field { flex-direction: column; } .team-form { padding: 0 17px 20px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
 @media print {
     .sidebar, .topbar, .button, .filter-bar, .date-range-bar, .workspace-footer, .page-heading > a, .detail-panel form, .chart-data { display: none !important; }
     .workspace { margin: 0; }
