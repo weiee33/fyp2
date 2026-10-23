@@ -3,7 +3,8 @@
 document.querySelectorAll('[data-print-report]').forEach((button) => {
     button.addEventListener('click', () => window.print());
 });
-document.querySelector('[data-refresh]')?.addEventListener('click', () => window.location.reload());
+// Navigate with GET even when the current document followed a rejected POST.
+document.querySelector('[data-refresh]')?.addEventListener('click', () => window.location.assign(window.location.href));
 
 const pinNavigation = document.querySelector('[data-pin-nav]');
 const setPinned = (pinned) => {
