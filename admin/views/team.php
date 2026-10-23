@@ -5,18 +5,18 @@ $localLink=in_array(strtolower((string)parse_url($config->appUrl,PHP_URL_HOST)),
 $enteredEmail=is_string($_POST['email'] ?? '')?($_POST['email'] ?? ''):'';
 ?>
 <div class="team-grid">
-<section class="panel" aria-labelledby="invite-title"><div class="panel-heading"><div><h2 id="invite-title">Invite an administrator</h2><p>Use an email that is not already a customer or provider account.</p></div></div>
+<section class="panel" aria-labelledby="invite-title"><div class="panel-heading"><div><h2 id="invite-title">Invite an administrator</h2><p>Use a separate admin email.</p></div></div>
 <form method="post" action="<?= e(url('team')) ?>" class="stack-form team-form" data-confirm="Create this invitation with the selected role? Share the activation link only with the intended colleague.">
 <?= viewFields('invitation_create') ?>
 <div><label for="invite-email">Email address</label><input id="invite-email" name="email" type="email" autocomplete="off" required maxlength="254" placeholder="colleague@example.com" value="<?= e(($_POST['action'] ?? '')==='invitation_create'?$enteredEmail:'') ?>"></div>
-<div><label for="invite-role">Admin role</label><select id="invite-role" name="role_level"><option value="staff">Staff Admin</option><option value="super_admin" <?= ($_POST['role_level'] ?? '')==='super_admin'?'selected':'' ?>>Super Admin</option></select><p class="field-note">Staff manage day-to-day operations. Super Admins can also invite administrators, view the audit trail and request refunds.</p></div>
-<p class="field-note">Valid for 7 days. Activation requires email verification and an authenticator. No invitation email is sent.</p>
+<div><label for="invite-role">Admin role</label><select id="invite-role" name="role_level"><option value="staff">Staff Admin</option><option value="super_admin" <?= ($_POST['role_level'] ?? '')==='super_admin'?'selected':'' ?>>Super Admin</option></select><p class="field-note">Super Admins also manage invitations, audit history and refund requests.</p></div>
+<p class="field-note">Expires in 7 days · email verification and MFA required. No invitation email is sent.</p>
 <button class="button button-primary" type="submit"><?= viewIcon('plus') ?> Create invitation</button></form></section>
 <section class="panel" aria-labelledby="activation-title"><div class="panel-heading"><h2 id="activation-title">Share the activation link</h2></div><div class="team-form">
-<ol class="activation-steps"><li>Create an invitation for your colleague's email.</li><li>Share this link and ask them to activate using that exact email.</li><li>They verify their email code, then set up an authenticator.</li></ol>
+<details class="inline-guide"><summary>How activation works</summary><ol class="activation-steps"><li>Create an invitation for your colleague's email.</li><li>Share this link and ask them to activate using that exact email.</li><li>They verify their email code, then set up an authenticator.</li></ol></details>
 <label for="activation-link">Activation link</label><div class="copy-field"><input id="activation-link" type="text" readonly value="<?= e($activationLink) ?>"><button type="button" class="button button-secondary" data-copy="activation-link">Copy link</button></div><p class="field-note" id="copy-status" role="status" aria-live="polite"></p>
-<?php if($localLink): ?><div class="notice notice-warning">This address runs on your computer. For colleagues on other devices, deploy the admin website and set APP_URL to its HTTPS address.</div><?php endif; ?>
-<p class="field-note">The link alone grants no access. Only an invited, verified email can activate. Revoking an unused invitation blocks activation; it does not suspend an existing administrator.</p>
+<?php if($localLink): ?><div class="notice notice-warning">Local link: colleagues on other devices need your deployed HTTPS admin address.</div><?php endif; ?>
+<p class="field-note">Only invited, verified emails can activate. Revoking an invitation does not suspend an activated account.</p>
 </div></section></div>
 <?php if($data): ?>
 <section class="panel resource-panel" aria-labelledby="invitations-title"><div class="panel-heading"><h2 id="invitations-title">Invitations <span class="count-tag"><?= number_format($total) ?></span></h2></div>

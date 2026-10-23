@@ -262,6 +262,53 @@ try {
         $response=request('GET',['page'=>'providers','id'=>$record]); expectStatus($response,200);
         assertThat(preg_match('~<dt>Monday</dt>\s*<dd>09:00–17:00</dd>~u',$response['body'])===1,'Day-zero working hours were assigned to the wrong weekday.');
     });
+    test('record actions open accessible dialogs and retain list context',function() use ($record): void {
+        foreach (['users','providers','categories','bookings','reviews','disputes'] as $page) {
+            $response=request('GET',['page'=>$page,'id'=>$record,'q'=>'Fixture','p'=>'2']); expectStatus($response,200);
+            assertThat(str_contains($response['body'],'id="record-detail"') && str_contains($response['body'],'aria-labelledby="detail-title"'),'Missing accessible record dialog on '.$page);
+            preg_match_all('/<form[^>]+method="post"[^>]+action="([^"]+)"/',$response['body'],$matches);
+            preg_match('/data-record-id="([^"]+)"/',$response['body'],$identity);
+            $actions=array_filter($matches[1],static fn(string $value): bool=>str_contains($value,'id='.($identity[1]??'missing')));
+            assertThat((bool)$actions,'No record-context form on '.$page);
+            foreach($actions as $action) { assertThat(str_contains($action,'q=Fixture') && str_contains($action,'p=2'),'List context lost on '.$page); }
+        }
+    });
+    test('successful action returns to the filtered results',function() use (&$csrf,$record,$version): void {
+        $response=request('POST',['page'=>'users','id'=>$record,'q'=>'Fixture','status'=>'Active','p'=>'2'],['csrf'=>$csrf,'action'=>'user_status','record_id'=>$record,'version'=>$version,'active'=>'false','reason'=>'Testing filtered result navigation']);
+        expectStatus($response,303);
+        assertThat(($response['headers']['location'][0]??'')==='/?page=users&q=Fixture&status=Active&p=2','Successful action lost filters or retained an open record.');
+    });
+    test('stale action restores visible input with fresh version and escaped content',function() use (&$csrf,$record,$version): void {
+        $reason='Review <script>alert("unsafe")</script> carefully';
+        $response=request('POST',['page'=>'users','id'=>$record,'q'=>'Fixture'],['csrf'=>$csrf,'action'=>'user_status','record_id'=>$record,'version'=>str_repeat('b',32),'active'=>'false','reason'=>$reason]);
+        expectStatus($response,409);
+        assertThat(str_contains($response['body'],'class="notice notice-error record-error"'),'Error was not shown inside the record dialog.');
+        preg_match('/data-recovery="([^"]*)"/',$response['body'],$match);
+        $recovery=json_decode(html_entity_decode($match[1]??'',ENT_QUOTES,'UTF-8'),true,512,JSON_THROW_ON_ERROR);
+        assertThat($recovery['values']===['active'=>'false','reason'=>$reason],'Visible input was lost or sensitive fields were restored.');
+        assertThat(!str_contains($response['body'],'<script>alert') && str_contains($response['body'],'name="version" value="'.$version.'"'),'Unsafe content or stale version rendered.');
+    });
+    test('invalid new category stays open and restores its entered name',function() use (&$csrf): void {
+        $response=request('POST',['page'=>'categories','new'=>'1'],['csrf'=>$csrf,'action'=>'category_save','record_id'=>'','version'=>'invalid','name'=>'New category draft']);
+        expectStatus($response,400);
+        assertThat(str_contains($response['body'],'data-record-dialog') && str_contains($response['body'],'New category draft'),'New category draft was lost on validation failure.');
+    });
+    test('concurrent closure retains draft but does not recreate a prohibited action',function() use (&$csrf,$record,$version,$runtime): void {
+        file_put_contents($runtime.'/fixture-state.json',json_encode(['mutation_conflict'=>true,'closed_support'=>true]));
+        try {
+            $response=request('POST',['page'=>'disputes','id'=>$record],['csrf'=>$csrf,'action'=>'dispute_resolve','record_id'=>$record,'version'=>$version,'status'=>'Under Review','reason'=>'Draft response retained for reference']);
+            expectStatus($response,409);
+            assertThat(str_contains($response['body'],'Draft response retained for reference'),'Draft was lost when another administrator closed the request.');
+            assertThat(!str_contains($response['body'],'name="action" value="dispute_resolve"'),'A closed request exposed a prohibited mutation form.');
+            assertThat(str_contains($response['body'],'latest details are shown below'),'Conflict did not explain the fresh record state.');
+        } finally { file_put_contents($runtime.'/fixture-state.json','{}'); }
+    });
+    test('CSRF rejection never reloads a record or restores privileged input',function() use ($record,$version): void {
+        $before=count(logs('/rest/v1/rpc/admin_detail'));
+        $response=request('POST',['page'=>'users','id'=>$record],['csrf'=>'invalid','action'=>'user_status','record_id'=>$record,'version'=>$version,'reason'=>'Rejected request draft']);
+        expectStatus($response,403);
+        assertThat(count(logs('/rest/v1/rpc/admin_detail'))===$before && !str_contains($response['body'],'data-record-dialog'),'CSRF rejection loaded a privileged record.');
+    });
     test('expired verified credentials retain a safe revoke-verification form',function() use ($record,$version,$runtime): void {
         file_put_contents($runtime.'/fixture-state.json',json_encode(['expired_verified_certificate'=>true]));
         try {
