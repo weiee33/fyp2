@@ -140,6 +140,10 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
             $detail['certifications'][0]['expiry_date']='2020-01-01';
             $detail['certifications'][0]['is_verified']=true;
         }
+        if ($resource==='disputes' && !empty($fixtureState['closed_support'])) {
+            $detail['status']='Resolved';
+            $detail['resolution']='Already resolved by another administrator.';
+        }
         respond($detail);
     }
     if ($path === '/rest/v1/rpc/admin_analytics') {
@@ -155,7 +159,7 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
         respond($analytics);
     }
     if ($path === '/rest/v1/rpc/admin_mutate') {
-        if (($body['expected_version'] ?? '') === str_repeat('b',32)) { respond(['code'=>'40001','message'=>'This record changed. Reload before saving.'],409); }
+        if (!empty($fixtureState['mutation_conflict']) || ($body['expected_version'] ?? '') === str_repeat('b',32)) { respond(['code'=>'40001','message'=>'This record changed. Reload before saving.'],409); }
         respond(['id'=>$record,'message'=>'Changes saved.']);
     }
     if ($path === '/rest/v1/rpc/admin_document') { respond(['path'=>'fake.pdf']); }

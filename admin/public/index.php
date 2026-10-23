@@ -2,8 +2,9 @@
 declare(strict_types=1);
 require dirname(__DIR__) . '/src/bootstrap.php';
 
-use LocalLife\{ApiException, Auth, Config, Security, SupabaseClient};
+use LocalLife\{ApiException, Auth, Config, Security, SupabaseClient, Workspace};
 
+$formRecovery = []; $recoverResource = false;
 $error = null; $admin = null; $data = []; $detail = null; $factors = [];
 $page = is_string($_GET['page'] ?? null) ? $_GET['page'] : 'dashboard';
 $publicPages = ['login','signup','verify-email','forgot','callback'];
@@ -53,6 +54,7 @@ try {
         }
         $mutations = ['user_status','provider_verify','certificate_verify','category_save','category_delete','booking_status','review_moderate','dispute_open','dispute_resolve','refund_request'];
         if (!in_array($action, $mutations, true)) { throw new ApiException(400,'Unknown action.'); }
+        $recoverResource = in_array($page,$resources,true) && (!empty($_GET['id']) || ($page==='categories' && isset($_GET['new'])));
         $id = trim((string)($_POST['record_id'] ?? ''));
         $version = $_POST['version'] ?? null;
         if ($version === '') { $version = null; }
@@ -77,7 +79,7 @@ try {
             throw $failure;
         }
         $_SESSION['flash']=$result['message'];
-        $redirect(url(in_array($page,$resources,true) ? $page : 'dashboard'));
+        $redirect(url(in_array($page,$resources,true) ? $page : 'dashboard',Workspace::filters($_GET)));
     }
     if ($page === 'callback') { $auth->callback((string)($_GET['code'] ?? '')); $redirect(url('mfa')); }
     if (!in_array($page,$publicPages,true)) {
@@ -119,16 +121,7 @@ try {
             if(mb_strlen($region)>100) { throw new ApiException(400,'Choose a valid region.'); }
             $data=$api->rpc('admin_analytics',['date_from'=>$from,'date_to'=>$to,'category_filter'=>$category===''?null:Security::uuid($category),'region_filter'=>$region===''?null:$region,'provider_filter'=>$provider===''?null:Security::uuid($provider)]);
         } elseif (in_array($page,$resources,true)) {
-            $data=$api->rpc('admin_list',['resource'=>$page,'search'=>mb_substr((string)($_GET['q'] ?? ''),0,100),'status_filter'=>(string)($_GET['status'] ?? ''),'page_number'=>max(1,(int)($_GET['p'] ?? 1))]);
-            if (!empty($_GET['id'])) { $detail=$api->rpc('admin_detail',['resource'=>$page,'record_id'=>Security::uuid((string)$_GET['id'])]); }
-            if ($page==='categories') {
-                $categoryChoices=[];
-                for($i=1;$i<=100;$i++) {
-                    $chunk=$api->rpc('admin_list',['resource'=>'categories','page_number'=>$i]);
-                    $categoryChoices=array_merge($categoryChoices,$chunk['items']);
-                    if(count($categoryChoices)>=$chunk['total']) { break; }
-                }
-            }
+            [$data,$detail,$categoryChoices]=Workspace::resource($api,$page,$_GET);
         }
         if (isset($_GET['export'])) {
             if (!in_array($page,['analytics','bookings'],true)) { throw new ApiException(400,'Export is unavailable for this page.'); }
@@ -171,6 +164,18 @@ try {
     if ($exception->status===401 && !in_array($page,$publicPages,true)) { $_SESSION['flash']=$exception->getMessage(); $redirect(url('login')); }
     http_response_code($exception->status >= 400 && $exception->status < 600 ? $exception->status : 400);
     $error=$exception->getMessage();
+    if ($recoverResource && $admin && in_array($exception->status,[400,409,422],true)) {
+        try {
+            [$data,$detail,$categoryChoices]=Workspace::resource($api,$page,$_GET);
+            $formRecovery=Workspace::recovery($_POST);
+            if ($exception->status===409) { $error='This record changed since you opened it. The latest details are shown below; review your changes before saving again.'; }
+            if (!empty($_FILES['icon_file']) && $_FILES['icon_file']['error']!==UPLOAD_ERR_NO_FILE) { $error.=' Select the icon file again before retrying.'; }
+        } catch (Throwable) {
+            $data=[]; $detail=null;
+            $error.=' Reopen the record to try again.';
+        }
+    }
+
     if ($page==='mfa' && !empty($_SESSION['auth'])) {
         try { $admin=$auth->requireSession(false); $factors=$auth->factors(); }
         catch (ApiException) { unset($_SESSION['auth'],$_SESSION['admin'],$_SESSION['enrollment']); $redirect(url('login')); }

@@ -18,6 +18,8 @@ It exercises account activation, authenticator enrollment and verification, stal
 
 Temporary directories are removed on success. On failure their logs remain in the reported temporary location for diagnosis; each failed case includes a reason, and the command exits with status 1.
 
+Record workflow cases also cover preserving filters after mutations, modal form context, safe input recovery after validation/conflicts, concurrent support closure, and ensuring CSRF rejection cannot reload privileged records. See [the workspace review](../../docs/admin-workspace-review.md) for database and browser verification boundaries.
+
 For a persistent Windows browser preview with synthetic data:
 
 ```powershell

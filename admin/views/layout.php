@@ -30,8 +30,8 @@ function viewFields(string $action, ?string $id = null, ?string $version = null)
 }
 function viewReason(string $id, string $label = 'Reason for this action'): void { ?>
     <label for="<?= e($id) ?>"><?= e($label) ?> <span class="required">*</span></label>
-    <textarea id="<?= e($id) ?>" name="reason" required minlength="10" maxlength="1000" rows="3" placeholder="Explain the decision so the team and affected user can understand it."></textarea>
-    <p class="field-note">10–1,000 characters. Recorded in the audit trail.</p>
+    <textarea id="<?= e($id) ?>" name="reason" required minlength="10" maxlength="1000" rows="3" placeholder="Explain your decision."></textarea>
+    <p class="field-note">10–1,000 characters · saved to audit history.</p>
 <?php }
 function viewPair(string $label, mixed $value): void { ?><div class="detail-pair"><dt><?= e($label) ?></dt><dd><?= e($value ?? '—') ?></dd></div><?php }
 function viewSafeLink(mixed $value, string $label = 'Open document'): void {
@@ -44,10 +44,7 @@ $authPage = in_array($page, ['login','signup','verify-email','forgot','reset','c
 $navigation = ['dashboard'=>['Overview','grid'],'users'=>['Users','users'],'providers'=>['Providers','shield'],'categories'=>['Service categories','layers'],'bookings'=>['Bookings & orders','calendar'],'reviews'=>['Reviews','star'],'disputes'=>['Disputes','alert'],'refunds'=>['Refund requests','wallet'],'analytics'=>['Analytics & reports','chart'],'audit'=>['Audit trail','history']];
 if (($admin['role_level'] ?? '') !== 'super_admin') { unset($navigation['audit']); }
 else { $navigation['team']=['Admin team','users']; }
-$descriptions = ['dashboard'=>'A clear view of your service community.','users'=>'Manage customer and provider access with an accountable record of every decision.','providers'=>'Review provider credentials and help customers book with confidence.','categories'=>'Keep your service catalogue organised and easy to discover.','bookings'=>'Follow each service from request to completion.','reviews'=>'Protect useful, fair feedback across your community.','disputes'=>'Review service issues and document clear resolutions.','refunds'=>'Track refund requests and their payment processing status.','analytics'=>'Understand demand, performance and collected payments.','audit'=>'Review the actions taken by your administrative team.'];
-$descriptions['team']='Invite colleagues and manage their access to account activation.';
 $navigation['disputes'][0]='Support & disputes';
-$descriptions['disputes']='Answer customer questions, review complaints and resolve booking issues.';
 ?>
 <!doctype html>
 <html lang="en">
@@ -58,7 +55,7 @@ $descriptions['disputes']='Answer customer questions, review complaints and reso
     <main id="main" class="auth-shell">
         <section class="auth-story" aria-label="Home Serve administration">
             <a class="brand brand-light" href="<?= e(url('login')) ?>"><span class="brand-mark"><?= viewIcon('layers') ?></span><span>Home Serve<span class="brand-sub">ADMINISTRATION</span></span></a>
-            <div class="auth-story-copy"><span class="eyebrow">BETTER SERVICES. STRONGER COMMUNITIES.</span><h1>Good service<br>starts with<br>great care.</h1><p>The space to support your providers, look after your customers and keep everyday life moving.</p><div class="auth-story-note"><?= viewIcon('shield') ?><span>Secure access for your admin team</span></div></div>
+            <div class="auth-story-copy"><h1>Home Serve<br>Admin</h1><p>Manage services, bookings and customer support.</p><div class="auth-story-note"><?= viewIcon('shield') ?><span>Secure access for your admin team</span></div></div>
             <div class="auth-art" aria-hidden="true"><div class="art-ring ring-one"></div><div class="art-ring ring-two"></div><div class="art-ring ring-three"></div><span class="art-card art-house">⌂</span><span class="art-card art-check"><?= viewIcon('check') ?></span></div>
             <p class="auth-footer">Home Serve · Malaysia</p>
         </section>
@@ -72,19 +69,23 @@ $descriptions['disputes']='Answer customer questions, review complaints and reso
 <?php else: ?>
     <aside id="sidebar" class="sidebar" aria-label="Primary navigation">
         <a class="brand" href="<?= e(url('dashboard')) ?>"><span class="brand-mark"><?= viewIcon('layers') ?></span><span>Home Serve<span class="brand-sub">ADMINISTRATION</span></span></a>
-        <p class="nav-label">WORKSPACE</p><nav>
+        <div class="sidebar-tools"><button type="button" class="icon-button" data-pin-nav aria-label="Pin sidebar" aria-pressed="false" title="Pin sidebar"><?= viewIcon('menu') ?></button><span class="sidebar-hint">Pin navigation</span></div><nav>
         <?php foreach ($navigation as $route=>$item): ?>
             <?php if ($route==='reviews'): ?><p class="nav-label">TRUST & SUPPORT</p><?php elseif($route==='analytics'): ?><p class="nav-label">INSIGHTS</p><?php endif; ?>
-            <a class="nav-link <?= $page===$route?'active':'' ?>" href="<?= e(url($route)) ?>" <?= $page===$route?'aria-current="page"':'' ?>><?= viewIcon($item[1]) ?><span><?= e($item[0]) ?></span></a>
+            <a class="nav-link <?= $page===$route?'active':'' ?>" href="<?= e(url($route)) ?>" title="<?= e($item[0]) ?>" <?= $page===$route?'aria-current="page"':'' ?>><?= viewIcon($item[1]) ?><span><?= e($item[0]) ?></span></a>
         <?php endforeach; ?></nav>
         <div class="sidebar-bottom"><div class="admin-avatar"><?= e(strtoupper(mb_substr($admin['full_name'] ?? 'A',0,1))) ?></div><div class="admin-person"><strong><?= e($admin['full_name'] ?? 'Administrator') ?></strong><span><?= ($admin['role_level'] ?? '')==='super_admin'?'Super Admin':'Staff Admin' ?></span></div><form method="post" action="<?= e(url($page)) ?>"><?= viewFields('logout') ?><button class="icon-button" title="Sign out" aria-label="Sign out"><?= viewIcon('logout') ?></button></form></div>
     </aside>
-    <div class="workspace"><header class="topbar"><div class="topbar-leading"><button type="button" class="icon-button nav-toggle" data-toggle-nav aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation"><?= viewIcon('menu') ?></button><span class="breadcrumb">Workspace <span>/</span> <strong><?= e($titles[$page]) ?></strong></span></div><div class="topbar-meta"><span class="secure-pill"><?= viewIcon('shield') ?> Secure session</span><span class="topbar-date"><?= e(date('d M Y')) ?></span></div></header>
-    <main id="main" class="main-content"><div class="page-heading"><div><span class="eyebrow">HOME SERVE ADMIN</span><h1><?= e($titles[$page]) ?></h1><p><?= e($descriptions[$page] ?? '') ?></p></div><?php if($page==='categories'): ?><a class="button button-primary" href="<?= e(url('categories',['new'=>'1'])) ?>"><?= viewIcon('plus') ?> Add category</a><?php elseif($page==='analytics'): ?><a class="button button-secondary" href="<?= e(url('analytics',['from'=>$_GET['from'] ?? date('Y-m-01'),'to'=>$_GET['to'] ?? date('Y-m-d'),'category_id'=>$_GET['category_id'] ?? '','region'=>$_GET['region'] ?? '','provider_id'=>$_GET['provider_id'] ?? '','export'=>'1'])) ?>"><?= viewIcon('download') ?> Export CSV</a><?php endif; ?></div>
+    <div class="workspace"><header class="topbar"><div class="topbar-leading"><button type="button" class="icon-button nav-toggle" data-toggle-nav aria-controls="sidebar" aria-expanded="false" aria-label="Open navigation"><?= viewIcon('menu') ?></button><span class="breadcrumb"><strong><?= e($titles[$page]) ?></strong></span></div><div class="topbar-meta"><button type="button" class="button button-secondary button-small" data-open-switcher><?= viewIcon('search') ?><span>Find page</span><kbd>Ctrl K</kbd></button><button type="button" class="icon-button" data-refresh title="Refresh page" aria-label="Refresh page"><?= viewIcon('history') ?></button><span class="secure-pill"><?= viewIcon('shield') ?> Secure session</span><span class="topbar-date"><?= e(date('d M Y')) ?></span></div></header>
+    <main id="main" class="main-content"><div class="page-heading"><div><h1><?= e($titles[$page]) ?></h1></div><?php if($page==='categories'): ?><a class="button button-primary" href="<?= e(url('categories',['new'=>'1'])) ?>"><?= viewIcon('plus') ?> Add category</a><?php elseif($page==='analytics'): ?><a class="button button-secondary" href="<?= e(url('analytics',['from'=>$_GET['from'] ?? date('Y-m-01'),'to'=>$_GET['to'] ?? date('Y-m-d'),'category_id'=>$_GET['category_id'] ?? '','region'=>$_GET['region'] ?? '','provider_id'=>$_GET['provider_id'] ?? '','export'=>'1'])) ?>"><?= viewIcon('download') ?> Export CSV</a><?php endif; ?></div>
     <?php if ($flash): ?><div class="notice notice-success" role="status"><?= viewIcon('check') ?><span><?= e($flash) ?></span></div><?php endif; ?>
-    <?php if ($error): ?><div class="notice notice-error" role="alert"><?= viewIcon('alert') ?><span><?= e($error) ?></span></div><?php endif; ?>
+    <?php if ($error && !$detail && !($page==='categories' && isset($_GET['new']) && $data)): ?><div class="notice notice-error" role="alert"><?= viewIcon('alert') ?><span><?= e($error) ?></span></div><?php endif; ?>
     <?php if (!$error || $data || ($page==='team' && ($admin['role_level'] ?? '')==='super_admin')): ?><?php require __DIR__.($page==='team'?'/team.php':(in_array($page,['dashboard','analytics'],true)?'/analytics.php':'/resources.php')); ?><?php endif; ?>
     <footer class="workspace-footer"><span>Home Serve</span><span>All times shown in Malaysia time (MYT).</span></footer>
     </main></div>
+    <dialog class="page-switcher" aria-labelledby="switcher-title" data-page-switcher>
+        <div class="record-heading"><h2 id="switcher-title">Find a page</h2><button type="button" class="icon-button" data-close-switcher aria-label="Close page search">×</button></div>
+        <div class="switcher-content"><label class="sr-only" for="page-search">Search admin pages</label><input id="page-search" type="search" placeholder="Search pages…" autocomplete="off"><nav aria-label="Page results"><?php foreach($navigation as $route=>$item): ?><a class="switcher-link" href="<?= e(url($route)) ?>"><?= viewIcon($item[1]) ?><span><?= e($item[0]) ?></span><?= viewIcon('arrow') ?></a><?php endforeach; ?></nav><p class="muted" data-no-pages hidden>No matching pages.</p></div>
+    </dialog>
 <?php endif; ?>
 </body></html>
