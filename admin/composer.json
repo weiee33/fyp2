@@ -1,0 +1,6 @@
+{
+    "name": "homeserve/admin",
+    "type": "project",
+    "require": {"php": ">=8.4", "dompdf/dompdf": "3.1.6"},
+    "config": {"sort-packages": true, "allow-plugins": false}
+}

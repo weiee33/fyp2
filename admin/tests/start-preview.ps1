@@ -16,9 +16,11 @@ foreach ($port in @($AppPort, $StubPort)) {
 $previewRoot = Join-Path ([IO.Path]::GetTempPath()) ('locallife-admin-preview-' + [Guid]::NewGuid().ToString('N'))
 $siteRoot = Join-Path $previewRoot 'site'
 $null = New-Item -ItemType Directory -Path $siteRoot -Force
-foreach ($directory in @('src', 'public', 'views')) {
+foreach ($directory in @('src', 'public', 'views', 'vendor')) {
     Copy-Item -LiteralPath (Join-Path $adminRoot $directory) -Destination (Join-Path $siteRoot $directory) -Recurse
 }
+New-Item -ItemType Directory -Path (Join-Path $previewRoot 'assets') | Out-Null
+Copy-Item -LiteralPath (Join-Path $repoRoot 'assets/fonts') -Destination (Join-Path $previewRoot 'assets/fonts') -Recurse
 
 # Only this copied site gets the fixture label. No production source, .env or Auth bypass is changed.
 $layoutPath = Join-Path $siteRoot 'views\layout.php'
@@ -53,7 +55,7 @@ try {
         [Environment]::SetEnvironmentVariable($key, $fixtureEnvironment[$key], 'Process')
     }
     $extensionDir = Join-Path $repoRoot '.tools\php\ext'
-    $phpArguments = @('-n', '-d', "extension_dir=`"$extensionDir`"", '-d', 'extension=curl', '-d', 'extension=mbstring', '-d', 'extension=fileinfo', '-d', 'display_errors=0', '-d', 'log_errors=1', '-d', 'date.timezone=Asia/Kuala_Lumpur')
+    $phpArguments = @('-n', '-d', "extension_dir=`"$extensionDir`"", '-d', 'extension=curl', '-d', 'extension=mbstring', '-d', 'extension=fileinfo', '-d', 'memory_limit=512M', '-d', 'display_errors=0', '-d', 'log_errors=1', '-d', 'date.timezone=Asia/Kuala_Lumpur')
     $stubRouter = Join-Path $PSScriptRoot 'supabase_stub.php'
     $stub = Start-Process -FilePath $php -ArgumentList ($phpArguments + @('-S', "127.0.0.1:$StubPort", "`"$stubRouter`"")) -WorkingDirectory $PSScriptRoot -WindowStyle Hidden -RedirectStandardOutput (Join-Path $previewRoot 'stub.stdout.log') -RedirectStandardError (Join-Path $previewRoot 'stub.stderr.log') -PassThru
     $processes += $stub

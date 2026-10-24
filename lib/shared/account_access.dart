@@ -1,5 +1,6 @@
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../Customer/services/customer_access.dart';
 
 /// Navigation follows the database identity; RLS remains the authority.
 class AccountAccess {
@@ -21,6 +22,7 @@ class AccountAccess {
               ),
         );
       }
+      CustomerAccess.instance.accept(identity);
       return identity;
     } on AuthException {
       await client.auth.signOut(scope: SignOutScope.local);

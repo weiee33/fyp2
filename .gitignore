@@ -50,6 +50,7 @@ admin/.env
 admin/var/*
 !admin/var/.gitkeep
 admin/tests/output/
+admin/vendor/
 supabase/.temp/
 
 # Widget Preview related

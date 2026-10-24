@@ -1,0 +1,55 @@
+-- Run after admin_regression.sql, in the same transaction; always ROLLBACK.
+reset role;
+update public.users set is_active=false where user_id=pg_temp.fixture_id('customer_user');
+set local role authenticated;
+select pg_temp.login_as('customer_auth','aal1');
+select pg_temp.test_assert('suspension identity is view only',public.account_identity()->>'is_active'='false');
+select pg_temp.test_assert('suspended actor remains inactive',private.current_user_id() is null);
+select pg_temp.test_assert('suspended customer reads only own profile',(select count(*)=1 from public.customer_profiles));
+select pg_temp.test_assert('suspended customer reads own bookings',jsonb_typeof(public.customer_bookings())='array');
+select pg_temp.test_assert('suspended customer views own booking detail',public.customer_booking_detail(pg_temp.fixture_id('booking_paid'))->>'booking_id'=pg_temp.fixture_id('booking_paid')::text);
+select pg_temp.test_error('suspended customer cannot read another booking',$$select public.customer_booking_detail('dddddddd-1111-4000-8000-000000000099')$$,'42501');
+select pg_temp.test_error('suspended booking creation denied',$$select public.customer_create_booking(null,null,current_date,'14:00',null,'Medium',gen_random_uuid())$$,'42501');
+select pg_temp.test_error('suspended booking cancellation denied',$$select public.customer_cancel_booking(pg_temp.fixture_id('booking_paid'),'Cannot attend')$$,'42501');
+select pg_temp.test_error('suspended payment creation denied',$$select public.customer_prepare_payment_checkout(pg_temp.fixture_id('booking_paid'),'fpx')$$,'42501');
+select pg_temp.test_error('suspended address change denied',$$select public.customer_save_address('Home','Test Street','KL','WP','50000',3,101,false)$$,'42501');
+select pg_temp.test_error('suspended default address change denied',$$select public.customer_set_default_address(gen_random_uuid())$$,'42501');
+select pg_temp.test_error('suspended profile edit denied',$$select public.customer_profile_update('Changed','+60123456789','{}',null)$$,'42501');
+select pg_temp.test_error('suspended AI conversation denied',$$select public.customer_ai_create_conversation(gen_random_uuid())$$,'42501');
+select pg_temp.test_error('suspended notification edit denied',$$select public.customer_notification_pin(gen_random_uuid(),true)$$,'42501');
+do $$ declare changed integer; begin
+ update public.users set full_name='Suspension bypass' where user_id=pg_temp.fixture_id('customer_user');
+ get diagnostics changed=row_count; perform pg_temp.test_assert('direct suspended profile update blocked',changed=0);
+end $$;
+select pg_temp.test_error('direct suspended customer update blocked',$$update public.customer_profiles set bio='Suspension bypass' where user_id=pg_temp.fixture_id('customer_user')$$,'42501');
+
+-- A support request is the only new write exception. It remains bounded and private.
+select public.customer_prepare_support('eeeeeeee-1111-4000-8000-000000000001',null,'Suspension appeal','Please review the suspension on my account.',0);
+select public.customer_submit_support('eeeeeeee-1111-4000-8000-000000000001');
+select pg_temp.test_assert('suspended customer reads support history',exists(select 1 from jsonb_array_elements(public.customer_support_requests()) r where r->>'subject'='Suspension appeal'));
+select public.customer_prepare_support('eeeeeeee-1111-4000-8000-000000000002',null,'Suspension evidence','Please review this evidence for my account.',1);
+select pg_temp.test_assert('suspended customer may upload reserved support photo',private.support_photo_access(pg_temp.fixture_id('customer_auth')::text||'/eeeeeeee-1111-4000-8000-000000000002/0',true));
+select pg_temp.test_assert('suspended customer cannot upload unreserved photo',not private.support_photo_access(pg_temp.fixture_id('customer_auth')::text||'/eeeeeeee-1111-4000-8000-000000000002/1',true));
+select pg_temp.test_error('suspended support still validates input',$$select public.customer_prepare_support(gen_random_uuid(),null,'Hi','short',0)$$,'22023');
+select pg_temp.test_error('suspended support cannot link another booking',$$select public.customer_prepare_support(gen_random_uuid(),'dddddddd-1111-4000-8000-000000000099','Booking question','Please review this booking for my account.',0)$$,'42501');
+reset role;
+create temporary table suspension_ticket as select dispute_id from public.booking_disputes where request_id='eeeeeeee-1111-4000-8000-000000000001';
+grant select on suspension_ticket to authenticated;
+set local role authenticated;
+select pg_temp.login_as('staff_auth','aal2');
+select public.admin_mutate('dispute_resolve',(select dispute_id from suspension_ticket),public.admin_detail('disputes',(select dispute_id from suspension_ticket))->>'version','{"status":"Resolved","reason":"We have reviewed your appeal. Please contact us with any further information."}');
+select pg_temp.login_as('customer_auth','aal1');
+select pg_temp.test_assert('suspended customer reads separate admin response',public.customer_support_requests((select dispute_id from suspension_ticket))->0->>'resolution' like 'We have reviewed%');
+select pg_temp.login_as('provider_auth','aal1');
+select pg_temp.test_error('provider cannot use suspension support exception','select public.customer_support_requests()','42501');
+reset role;
+update public.users set is_active=false where user_id=pg_temp.fixture_id('provider_user');
+set local role authenticated;
+select pg_temp.test_error('suspended provider still denied login identity','select public.account_identity()','42501');
+reset role;
+update public.users set is_active=true where user_id in (pg_temp.fixture_id('provider_user'),pg_temp.fixture_id('customer_user'));
+set local role authenticated;
+select pg_temp.login_as('customer_auth','aal1');
+select pg_temp.test_assert('reactivation restores active identity',public.account_identity()->>'is_active'='true' and private.current_user_id()=pg_temp.fixture_id('customer_user'));
+reset role;
+select jsonb_build_object('passed',count(*)) as suspension_regression from pg_temp.admin_regression_results;

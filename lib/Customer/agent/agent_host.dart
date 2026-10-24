@@ -7,6 +7,7 @@ import '../core/customer_theme.dart';
 import 'agent_capture.dart';
 import 'agent_controller.dart';
 import 'agent_protocol.dart';
+import '../services/customer_access.dart';
 
 class AgentHost extends StatefulWidget {
   final Widget child;
@@ -46,6 +47,7 @@ class _AgentHostState extends State<AgentHost> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     controller.addListener(_stateChanged);
+    CustomerAccess.instance.addListener(_accessChanged);
     controller.moveCursor = (target) async {
       _from =
           controller.cursor.value ?? (controller.viewport?.center ?? target);
@@ -111,6 +113,15 @@ class _AgentHostState extends State<AgentHost> with TickerProviderStateMixin {
     }
   }
 
+  void _accessChanged() {
+    if (CustomerAccess.instance.restricted) {
+      controller.stop(
+        'Your account is view-only. Contact support in Help Centre.',
+      );
+    }
+    if (mounted) setState(() {});
+  }
+
   Widget _overlay(BuildContext context) => Positioned.fill(
     child: Stack(
       children: [
@@ -136,12 +147,16 @@ class _AgentHostState extends State<AgentHost> with TickerProviderStateMixin {
       fit: StackFit.expand,
       children: [
         RepaintBoundary(key: _captureKey, child: widget.child),
-        Overlay(initialEntries: [_entry]),
+        Offstage(
+          offstage: CustomerAccess.instance.restricted,
+          child: Overlay(initialEntries: [_entry]),
+        ),
       ],
     ),
   );
   @override
   void dispose() {
+    CustomerAccess.instance.removeListener(_accessChanged);
     _entry.remove();
     _entry.dispose();
     controller.removeListener(_stateChanged);

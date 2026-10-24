@@ -28,7 +28,7 @@ reset role;
 update public.users set is_active=false where user_id=pg_temp.fixture_id('customer_user');
 set local role authenticated;
 select pg_temp.login_as('customer_auth','aal1');
-select pg_temp.test_error('suspended account identity is denied','select public.account_identity()','42501');
+select pg_temp.test_assert('suspended customer can identify view-only access',(public.account_identity()->>'is_active')::boolean=false);
 select pg_temp.test_error('suspended account address writes denied',
  $$select public.customer_save_address('Home','Test Street','KL','WP','50000',3,101,false)$$,'42501');
 reset role;

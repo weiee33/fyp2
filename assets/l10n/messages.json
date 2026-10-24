@@ -5122,5 +5122,33 @@
   "No active, verified customer or provider account is registered with this email. Please check your email or register first.": [
     "此邮箱没有已启用且已验证的客户或服务商账户。请检查邮箱地址或先注册。",
     "Tiada akaun pelanggan atau penyedia yang aktif dan telah disahkan berdaftar dengan e-mel ini. Sila semak e-mel anda atau daftar dahulu."
+  ],
+  "Refresh": [
+    "刷新",
+    "Muat semula"
+  ],
+  "Sign out": [
+    "退出登录",
+    "Log keluar"
+  ],
+  "Account suspended": [
+    "账户已被暂停",
+    "Akaun digantung"
+  ],
+  "Account suspended · View only": [
+    "账户已被暂停 · 仅供查看",
+    "Akaun digantung · Paparan sahaja"
+  ],
+  "Unable to verify account access": [
+    "无法验证账户访问权限",
+    "Tidak dapat mengesahkan akses akaun"
+  ],
+  "Your account is view-only. Go to Help Centre to contact support.": [
+    "您的账户仅供查看。请前往帮助中心联系支持团队。",
+    "Akaun anda untuk paparan sahaja. Pergi ke Pusat Bantuan untuk menghubungi sokongan."
+  ],
+  "Your account is view-only. Contact support in Help Centre.": [
+    "您的账户仅供查看。请在帮助中心联系支持团队。",
+    "Akaun anda untuk paparan sahaja. Hubungi sokongan di Pusat Bantuan."
   ]
 }

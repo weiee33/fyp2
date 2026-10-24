@@ -622,3 +622,17 @@ td > strong { color: #334155; font-size: 12px; }
     .record-dialog .detail-grid { grid-template-columns: minmax(0,1fr); }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+/* Applied-report exploration; keyboard and pointer share the same exact values. */
+.chart-hit{fill:#f97316;fill-opacity:.15;stroke:#c44808;stroke-width:1;cursor:pointer}
+.chart-hit:hover,.chart-hit:focus{fill-opacity:1;stroke-width:3;outline:none}
+.chart-booking-line,.chart-users-line,.trend-chart polygon{pointer-events:none}
+.chart-segment{cursor:pointer;pointer-events:visiblePainted;transition:stroke-width .15s}
+.chart-segment:hover,.chart-segment:focus{stroke-width:29;outline:none}
+.chart-detail-dialog{border:1px solid #e2e8f0;border-radius:16px;padding:24px;width:min(480px,calc(100% - 32px));color:#243041}
+.chart-detail-dialog::backdrop{background:#15203380}
+.chart-detail-dialog dl{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px 0}
+.chart-detail-dialog dt{font-weight:600}.chart-detail-dialog dd{margin:0;text-align:right}
+.header-actions{display:flex;flex-wrap:wrap;gap:8px}
+button.metric-card{text-align:left;font:inherit;color:inherit;cursor:pointer}
+button.metric-card:hover,button.metric-card:focus-visible{border-color:#f97316;box-shadow:0 0 0 2px #ffedd5}
+@media(prefers-reduced-motion:reduce){.chart-segment{transition:none}}

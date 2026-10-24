@@ -125,7 +125,14 @@ try {
         }
         if (isset($_GET['export'])) {
             if (!in_array($page,['analytics','bookings'],true)) { throw new ApiException(400,'Export is unavailable for this page.'); }
-            if (!in_array($_GET['export'],['1','csv','print'],true) || ($page!=='bookings' && $_GET['export']==='print')) { throw new ApiException(400,'Choose a supported report format.'); }
+            if (!in_array($_GET['export'],$page==='analytics'?['1','csv','pdf']:['1','csv','print'],true)) { throw new ApiException(400,'Choose a supported report format.'); }
+            if ($page==='analytics' && $_GET['export']==='pdf') {
+                $pdf=\LocalLife\AnalyticsPdf::render($data);
+                header('Content-Type: application/pdf');
+                header('Content-Disposition: attachment; filename="home-serve-analytics-'.$from.'-'.$to.'.pdf"');
+                header('Content-Length: '.strlen($pdf));
+                echo $pdf; exit;
+            }
             if ($page==='bookings' && $data['total']>10000) { throw new ApiException(400,'Narrow your filters to export at most 10,000 bookings.'); }
             $reportItems=[];
             if($page==='bookings') {

@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../Customer/widgets/malaysia_phone_field.dart';
+import '../Customer/services/customer_access.dart';
 
 enum MobileAccountRole { customer, provider }
 
@@ -13,6 +14,9 @@ class MobileAuthService {
   Future<MobileAccountRole> resolveRole() async {
     try {
       final value = await _client.rpc('account_identity');
+      if (value is Map) {
+        CustomerAccess.instance.accept(Map<String, dynamic>.from(value));
+      }
       final role = value is Map ? value['role'] : null;
       return switch (role) {
         'customer' => MobileAccountRole.customer,
