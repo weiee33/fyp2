@@ -10,6 +10,7 @@ import '../../services/customer_transaction_service.dart';
 import '../../widgets/customer_dialogs.dart';
 import '../../widgets/customer_refresh.dart';
 import '../../widgets/customer_scaffold.dart';
+import '../../widgets/customer_access_host.dart';
 
 class CustomerSupportScreen extends StatefulWidget {
   final CustomerSupportService? service;
@@ -55,6 +56,7 @@ class _SupportState extends State<CustomerSupportScreen> {
     final id = await Navigator.push<String>(
       context,
       MaterialPageRoute(
+        settings: const RouteSettings(name: customerSupportRoute),
         builder: (_) => CustomerSupportComposeScreen(service: _service),
       ),
     );
@@ -67,6 +69,7 @@ class _SupportState extends State<CustomerSupportScreen> {
     await Navigator.push(
       context,
       MaterialPageRoute(
+        settings: const RouteSettings(name: customerSupportRoute),
         builder: (_) => CustomerSupportDetailScreen(id: id, service: _service),
       ),
     );

@@ -27,10 +27,11 @@ English, Chinese and Malay interface translations are supported. User-written ch
 
 ## Run the admin website
 
-PHP **8.4** with cURL, OpenSSL, mbstring and fileinfo is required. No Composer or JavaScript build is needed. On Windows:
+PHP **8.4** with cURL, OpenSSL, mbstring, DOM and fileinfo is required. PDF exports use locked Composer dependencies; no JavaScript build is needed. On Windows:
 
 ```powershell
 .\scripts\Setup-AdminRuntime.ps1
+.\scripts\Setup-AdminDependencies.ps1
 # Only when admin/.env does not exist:
 Copy-Item admin/.env.example admin/.env
 # Set SUPABASE_URL and SUPABASE_PUBLISHABLE_KEY in admin/.env.
@@ -42,6 +43,8 @@ Open **http://127.0.0.1:8088**. Use an existing administrator account and its au
 To add another administrator, a Super Admin opens **Admin team**, creates an invitation and shares the activation link. The recipient verifies the invited email and sets up an authenticator. Invitations expire after seven days and can be renewed or revoked before acceptance. Invitation emails are not sent automatically. For access from another computer, deploy the website with HTTPS and configure its public `APP_URL`; a localhost link is only local.
 
 Serve only `admin/public` as the web root. Keep `admin/.env` and `admin/var` private. See [admin setup](docs/admin-setup.md) for Auth templates, redirects, MFA, deployment and recovery.
+
+Analytics exports CSV or PDF using the last applied filters. Select chart points, categories or provider rows to inspect exact values. Suspended customers retain view-only access and Help Centre support; other account actions remain blocked by the backend.
 
 ## Backend and integrations
 

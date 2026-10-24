@@ -1,5 +1,29 @@
 'use strict';
 
+const chartDialog = document.getElementById('chart-detail');
+let chartOpener;
+document.querySelectorAll('[data-chart-detail]').forEach((point) => {
+    const open = () => {
+        if (!chartDialog) return;
+        chartOpener = point;
+        document.getElementById('chart-detail-title').textContent = point.dataset.chartTitle;
+        const values = document.getElementById('chart-detail-values');
+        values.replaceChildren();
+        Object.entries(JSON.parse(point.dataset.chartDetail)).forEach(([label, value]) => {
+            const term = document.createElement('dt'), detail = document.createElement('dd');
+            term.textContent = label; detail.textContent = String(value);
+            values.append(term, detail);
+        });
+        chartDialog.showModal();
+    };
+    point.addEventListener('click', open);
+    point.addEventListener('keydown', (event) => {
+        if (point.tagName.toLowerCase() !== 'button' && (event.key === 'Enter' || event.key === ' ')) { event.preventDefault(); open(); }
+    });
+});
+chartDialog?.querySelector('[data-close-chart]').addEventListener('click', () => chartDialog.close());
+chartDialog?.addEventListener('close', () => chartOpener?.focus());
+
 document.querySelectorAll('[data-print-report]').forEach((button) => {
     button.addEventListener('click', () => window.print());
 });

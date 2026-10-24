@@ -53,9 +53,9 @@ test('address parser handles federal territories and clears missing previous fie
  assert.deepEqual(addressFields({properties:{countrycode:'MY',city:'Kuala Lumpur',street:'Lorong Kuda',housenumber:'10'}}),{addressLine:'10, Lorong Kuda',city:'Kuala Lumpur',state:'Kuala Lumpur',postcode:''});
  assert.deepEqual(addressFields({properties:{countrycode:'SG',city:'Singapore'}}),{addressLine:'',city:'',state:'',postcode:''});
 });
-function geocodeFixture({claim={allowed:true},role='customer',source=[]}={}){
+function geocodeFixture({claim={allowed:true},role='customer',active=true,source=[]}={}){
  const calls=[];return {calls,fetch:async(url,options)=>{calls.push({url,options});
-  if(url.includes('/account_identity'))return reply({role});
+  if(url.includes('/account_identity'))return reply({role,is_active:active});
   if(url.includes('/customer_geocode_claim'))return reply(claim);
   if(url.includes('/customer_geocode_store'))return new Response(null,{status:204});
   if(url.startsWith('https://photon.komoot.io/'))return reply(source);
@@ -64,6 +64,11 @@ function geocodeFixture({claim={allowed:true},role='customer',source=[]}={}){
 }
 test('geocoding rejects invalid coordinates before any upstream call',async()=>{
  const f=geocodeFixture();assert.equal((await handleGeocode(request({kind:'reverse',lat:91,lng:100}),{env,fetch:f.fetch})).status,400);assert.equal(f.calls.length,0);
+});
+test('suspended customers cannot geocode even though identity lookup succeeds',async()=>{
+ const f=geocodeFixture({active:false});
+ assert.equal((await handleGeocode(request({kind:'search',query:'Kuala Lumpur'}),{env,fetch:f.fetch})).status,403);
+ assert.equal(f.calls.length,1);
 });
 test('geocoding requires a canonical customer role',async()=>{
  const f=geocodeFixture({role:'provider'});assert.equal((await handleGeocode(request({kind:'search',query:'Kuala Lumpur'}),{env,fetch:f.fetch})).status,403);assert.equal(f.calls.length,1);

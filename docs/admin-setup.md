@@ -4,10 +4,11 @@
 
 The mobile environment remains Flutter 3.38.8 / Dart 3.10.7, Android Studio 2025.2.3.9 on Windows 64-bit, and the Pixel 3a emulator. Those tools do not execute PHP. Open `fyp2` in Android Studio and run the separate PHP server from its PowerShell terminal; use a browser for the admin website.
 
-`scripts/Setup-AdminRuntime.ps1` installs PHP 8.4.27 NTS x64 into ignored `.tools/php`, verifies the official archive SHA-256, and enables cURL, OpenSSL, mbstring and fileinfo. No Composer or JavaScript build is required; XAMPP and system PATH remain independent.
+`scripts/Setup-AdminRuntime.ps1` installs PHP 8.4.27 NTS x64 into ignored `.tools/php`, verifies the official archive SHA-256, and enables cURL, OpenSSL, mbstring and fileinfo. `Setup-AdminDependencies.ps1` verifies the Composer installer and installs the locked PDF renderer. No JavaScript build is required; XAMPP and system PATH remain independent.
 
 ```powershell
 .\scripts\Setup-AdminRuntime.ps1
+.\scripts\Setup-AdminDependencies.ps1
 # Only if admin/.env does not already exist:
 Copy-Item admin/.env.example admin/.env
 .\scripts\Start-Admin.ps1
@@ -53,7 +54,7 @@ The advisor reports **leaked-password protection disabled**. Enable it where ava
 
 ## Database and documents
 
-The migrations have been applied to `znxhiymvmluxmdaxzxkt`; filenames match remote history. They depend on the original FYP schema. Do not run them against an empty database or paste them again into this upgraded project.
+The existing foundation migrations have been applied to `znxhiymvmluxmdaxzxkt`. Compare new migration filenames with the project's migration history before deployment. They depend on the original FYP schema; do not replay applied migrations or run them against an empty database. The analytics and suspension release steps are in [analytics and suspended access](analytics-suspension.md).
 
 Credentials use the private `certifications` bucket. Provider uploads use a user-owned folder and store the object reference in `provider_certifications.file_url`. An MFA-verified admin can request a 60-second signed link. Provider approval requires licence information or a verified, current credential; the administrator must assess the supplied evidence. Existing external/public credential URLs are not automatically copied into private storage.
 
@@ -66,6 +67,8 @@ Store credential references as `certifications/<auth-user-id>/<unique-filename>`
 Booking CSV and **Print / Save PDF** include all filtered records, up to 10,000. On the report page choose **Print / Save PDF**, then your browser's **Save as PDF** destination. A4 landscape styling repeats headers and handles Unicode names through browser fonts. This is browser PDF output, not a server-generated PDF endpoint.
 
 Analytics filter category (including descendants), provider region and provider. Booking-related measures follow these filters. Membership/new registrations and the provider-verification queue are global and labeled. Dates use Malaysia time; financial series use payment timestamps. Gross collected is distinct from net revenue, platform fees and pending refunds.
+
+Analytics also provides **Download PDF**, generated on the server from the applied filters. Install the locked Composer dependencies and deploy `admin/vendor` plus the repository's `assets/fonts`. Configure PHP `memory_limit=512M` for Unicode report rendering; the Windows launcher sets this automatically. Chart points and categories open exact-value dialogs.
 
 Admin actions record in-app notifications. The legacy `private.notification_outbox` is separate from the current customer delivery worker; do not assume that every admin action sends email. Customer push and receipt-email delivery are documented in [customer alerts and receipts](customer-alerts-and-receipts.md). Refund requests remain `Requested` until a trusted gateway worker processes them; no fake refund/payout success is exposed.
 

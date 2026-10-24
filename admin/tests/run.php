@@ -42,10 +42,11 @@ function unusedPort(): int {
     return (int)substr($name,strrpos($name,':')+1);
 }
 function phpCommand(): array {
-    $command=[PHP_BINARY,'-n'];
+    $command=[PHP_BINARY];
     $ext=ini_get('extension_dir');
     if (!str_starts_with($ext,'/') && !preg_match('/^[A-Za-z]:[\\\\\/]/',$ext)) { $ext=getcwd().'/'.$ext; }
-    return [...$command,'-d','extension_dir='.$ext,'-d','extension=curl','-d','extension=mbstring','-d','extension=fileinfo','-d','display_errors=0','-d','log_errors=1','-d','date.timezone=Asia/Kuala_Lumpur'];
+    // Inherit installed extensions (notably DOM on Linux) from the test runtime.
+    return [...$command,'-d','extension_dir='.$ext,'-d','memory_limit=512M','-d','display_errors=0','-d','log_errors=1','-d','date.timezone=Asia/Kuala_Lumpur'];
 }
 function launchServer(string $router, string $cwd, int $port, array $environment, string $log): mixed {
     $process=proc_open([...phpCommand(),'-S','127.0.0.1:'.$port,$router],[0=>['pipe','r'],1=>['file',$log,'a'],2=>['file',$log,'a']],$pipes,$cwd,$environment);
@@ -115,10 +116,12 @@ function updateSessionTimestamp(string $key,int $timestamp): void {
 }
 
 try {
-    foreach (['src','public','views'] as $directory) {
+    foreach (['src','public','views','vendor'] as $directory) {
         if (!is_dir($root.'/'.$directory)) { throw new RuntimeException('The admin '.$directory.' directory is not ready.'); }
         copyTree($root.'/'.$directory,$runtime.'/site/'.$directory);
     }
+    mkdir($runtime.'/assets');
+    copyTree(dirname($root).'/assets/fonts',$runtime.'/assets/fonts');
     $stubPort=unusedPort(); $appPort=unusedPort();
     $appUrl='http://127.0.0.1:'.$appPort; $cookieJar=$runtime.'/cookies.txt';
     $environment=getenv();
@@ -456,6 +459,22 @@ try {
         assertThat(str_contains($response['body'],'Plumbing,21,18,1680.00'),'Analytics export omitted category summary.');
         assertThat(str_contains($response['body'],'"Fixture Plumbing",21,18,4.8'),'Analytics export omitted provider performance.');
         assertThat(str_contains($response['body'],'category_id,'.$record) && str_contains($response['body'],'provider_id,'.$record) && str_contains($response['body'],'region,Selangor'),'Analytics CSV lost filter metadata.');
+    });
+    test('analytics PDF downloads only after authorization with applied filters',function() use ($root,$record): void {
+        $response=request('GET',['page'=>'analytics','export'=>'pdf','from'=>'2026-10-01','to'=>'2026-10-02','category_id'=>$record,'region'=>'Selangor','provider_id'=>$record]);
+        expectStatus($response,200);
+        assertThat(($response['headers']['content-type'][0]??'')==='application/pdf','Expected a real PDF attachment.');
+        assertThat(str_contains($response['headers']['content-disposition'][0]??'','2026-10-01-2026-10-02.pdf'),'Report period missing from filename.');
+        assertThat(str_starts_with($response['body'],'%PDF-') && str_contains($response['body'],'%%EOF'),'Incomplete PDF.');
+        $entries=logs('/rest/v1/rpc/admin_analytics'); $last=end($entries)['body'];
+        assertThat($last['date_from']==='2026-10-01' && $last['date_to']==='2026-10-02' && $last['region_filter']==='Selangor' && $last['category_filter']===$record && $last['provider_filter']===$record,'PDF lost applied filters.');
+        if(!is_dir($root.'/tests/output'))mkdir($root.'/tests/output',0700,true);
+        file_put_contents($root.'/tests/output/analytics-fixture.pdf',$response['body']);
+    });
+    test('analytics rejects unsupported exports and invalid PDF dates',function(): void {
+        expectStatus(request('GET',['page'=>'analytics','export'=>'pdf','from'=>'2026-02-31']),400);
+        expectStatus(request('GET',['page'=>'analytics','export'=>'pdf','from'=>'2026-10-10','to'=>'2026-10-01']),400);
+        expectStatus(request('GET',['page'=>'bookings','export'=>'pdf']),400);
     });
     test('printable booking report includes every filtered page and escapes HTML',function() use ($runtime): void {
         file_put_contents($runtime.'/fixture-state.json',json_encode(['unsafe_booking_name'=>true]));

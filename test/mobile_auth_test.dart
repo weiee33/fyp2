@@ -8,6 +8,7 @@ import 'package:http/testing.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:fyp2/shared/mobile_auth_service.dart';
+import 'package:fyp2/Customer/services/customer_access.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:fyp2/Customer/screens/auth/customer_login_screen.dart';
 import 'package:fyp2/Customer/screens/auth/customer_register_screen.dart';
@@ -17,7 +18,7 @@ import 'customer_accounts_chat_test.dart' show proof;
 
 class AuthFixture {
   String role = 'customer';
-  bool identityDenied = false, confirmed = true;
+  bool identityDenied = false, confirmed = true, active = true;
   final requests = <http.Request>[];
   late final client = SupabaseClient(
     'https://fixture.invalid',
@@ -58,7 +59,11 @@ class AuthFixture {
           status = identityDenied ? 403 : 200;
           value = identityDenied
               ? {'code': '42501', 'message': 'Inactive account'}
-              : {'role': role, 'user_id': 'canonical-user'};
+              : {
+                  'role': role,
+                  'user_id': 'canonical-user',
+                  'is_active': active,
+                };
         case '/auth/v1/logout':
         case '/auth/v1/resend':
           value = {};
@@ -119,10 +124,26 @@ void main() {
     await AppLanguage.instance.load();
   });
   tearDown(() async {
+    CustomerAccess.instance.accept(const {});
     if (widgetTester == null) {
       await fixture.client.dispose();
     }
     await AppLanguage.instance.select('en');
+  });
+  test('suspended customer can authenticate into restricted account', () async {
+    fixture.active = false;
+    expect(
+      await fixture.service.login(
+        email: 'test@example.invalid',
+        password: 'secret',
+      ),
+      MobileAccountRole.customer,
+    );
+    expect(fixture.client.auth.currentSession, isNotNull);
+    expect(CustomerAccess.instance.restricted, isTrue);
+    fixture.active = true;
+    await fixture.service.resolveRole();
+    expect(CustomerAccess.instance.restricted, isFalse);
   });
   for (final role in MobileAccountRole.values) {
     test(

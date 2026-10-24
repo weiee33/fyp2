@@ -14,10 +14,12 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: '8.4'
-          extensions: curl, mbstring, openssl, fileinfo
+          extensions: curl, mbstring, openssl, fileinfo, dom
           coverage: none
+      - name: Install locked report dependencies
+        run: composer install --working-dir=admin --no-interaction --prefer-dist --no-dev
       - name: Check PHP syntax
-        run: find admin -name '*.php' -print0 | xargs -0 -n1 php -l
+        run: find admin -path admin/vendor -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Check browser script syntax
         run: node --check admin/public/assets/admin.js
       - name: Test isolated admin workflows

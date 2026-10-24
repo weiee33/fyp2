@@ -38,7 +38,7 @@ export async function handleGeocode(request: Request,deps: Dependencies): Promis
   };
   // Active, verified customer identity is checked by the database, not user metadata.
   let identity:any;try{identity=await rpc('account_identity',{},false);}catch{return json({error:'Please sign in with an active customer account.'},403);}
-  if(identity?.role!=='customer')return json({error:'A customer account is required.'},403);
+  if(identity?.role!=='customer'||identity?.is_active!==true)return json({error:'An active customer account is required.'},403);
   const claim=await rpc('customer_geocode_claim',{p_key:key});
   if(claim.cached!==undefined)return json(claim.cached.value);
   if(!claim.allowed)return json({error:'Address lookup is busy. Please retry in a moment.'},429);

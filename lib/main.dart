@@ -9,6 +9,8 @@ import 'shared/localization/app_language.dart';
 import 'shared/brand/brand_splash.dart';
 import 'shared/app_scroll_behavior.dart';
 import 'Customer/agent/agent_host.dart';
+import 'Customer/services/customer_access.dart';
+import 'Customer/widgets/customer_access_host.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +31,7 @@ Future<void> _initializeOnce() async {
     anonKey: SupabaseConfig.anonKey,
   );
   await CustomerPushService.instance.initialize();
+  CustomerAccess.instance.initialize(Supabase.instance.client);
 }
 
 class LocalLifeApp extends StatelessWidget {
@@ -39,8 +42,11 @@ class LocalLifeApp extends StatelessWidget {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return MaterialApp(
-      builder: (context, child) =>
-          AgentHost(child: child ?? const SizedBox.shrink()),
+      navigatorKey: customerNavigatorKey,
+      navigatorObservers: [customerAccessObserver],
+      builder: (context, child) => CustomerAccessHost(
+        child: AgentHost(child: child ?? const SizedBox.shrink()),
+      ),
       scrollBehavior: const AppScrollBehavior(),
       theme: CustomerTheme.lightTheme,
       title: 'Home Serve',

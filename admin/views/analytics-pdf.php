@@ -1,0 +1,25 @@
+<?php
+declare(strict_types=1);
+$filters=$data['selected_filters'] ?? [];
+$categoryName='All categories'; $providerName='All providers';
+foreach($data['category_choices'] ?? [] as $row) { if($row['category_id']===($filters['category_id'] ?? null)) $categoryName=$row['category_name']; }
+foreach($data['provider_choices'] ?? [] as $row) { if($row['provider_id']===($filters['provider_id'] ?? null)) $providerName=$row['business_name']; }
+$fontUri='file://'.str_replace('\\','/',$fontRoot);
+?>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Home Serve analytics report</title><style>
+@font-face{font-family:Report;src:url('<?= e($fontUri) ?>/roboto-regular.ttf')}@font-face{font-family:Report;src:url('<?= e($fontUri) ?>/roboto-bold.ttf');font-weight:bold}
+@font-face{font-family:CJK;src:url('<?= e($fontUri) ?>/noto-sans-sc-regular.ttf')}
+@page{margin:40px 42px 52px}body{font:10px Report,CJK,sans-serif;color:#243041;line-height:1.45}h1{font-size:25px;margin:5px 0 8px}h2{font-size:15px;margin:24px 0 8px;color:#a53e08}p{margin:5px 0}.brand{color:#c44808;font-weight:bold;letter-spacing:1px}.muted{color:#5d6878}.scope{padding:12px;background:#fff4e9;border-left:3px solid #ff7900;margin:16px 0}table{border-collapse:collapse;width:100%;table-layout:fixed}thead{display:table-header-group}th{background:#f1f3f6;text-align:left}th,td{padding:7px 8px;border-bottom:1px solid #e3e7ed;overflow-wrap:break-word}tr{page-break-inside:avoid}.num{text-align:right}.metrics td{padding:5px 8px}.metrics td:first-child{width:65%}.keep-section{page-break-inside:avoid}.footer{position:fixed;bottom:-28px;font-size:8px;color:#64748b}h2{page-break-after:avoid}
+</style></head><body><div class="footer">Home Serve · Confidential admin report · MYR · Asia/Kuala_Lumpur</div>
+<p class="brand">HOME SERVE</p><h1>Analytics &amp; reports</h1>
+<p><?= e($data['from'] ?? '') ?> to <?= e($data['to'] ?? '') ?> · Malaysia time</p>
+<p class="muted">Generated <?= e(date('d M Y, H:i')) ?> MYT</p>
+<div class="scope"><strong>Applied filters</strong><p><?= e($categoryName) ?> · <?= e(($filters['region'] ?? '') ?: 'All regions') ?> · <?= e($providerName) ?></p><p><?= e($data['scope_note'] ?? 'Service filters apply to bookings, collections and provider performance. Community member counts remain global.') ?></p></div>
+<h2>Summary</h2><table class="metrics"><tbody>
+<?php foreach(['bookings'=>'Bookings created','new_users'=>'New community members (global)','active_bookings'=>'Active bookings','pending_providers'=>'Awaiting verification (global)','open_disputes'=>'Open support requests','flagged_reviews'=>'Flagged reviews','gross_collected'=>'Gross collected (before refunds)','platform_fees'=>'Recorded platform fees','refunds_requested'=>'Pending refund amount','avg_rating'=>'Average visible rating'] as $key=>$label): ?>
+<tr><td><?= e($label) ?></td><td class="num"><?= e(in_array($key,['gross_collected','platform_fees','refunds_requested'],true)?money($data[$key] ?? 0):($data[$key] ?? 0)) ?></td></tr><?php endforeach; ?></tbody></table>
+<p class="muted">Gross collected includes payments subsequently refunded. It is not net revenue. Platform fees reflect recorded earnings only.</p>
+<h2>Daily activity and collections</h2><table><thead><tr><th>Date</th><th class="num">Bookings</th><th class="num">New users (global)</th><th class="num">Collected (MYR)</th></tr></thead><tbody><?php foreach($data['daily'] ?? [] as $row): ?><tr><td><?= e($row['date']) ?></td><td class="num"><?= e($row['bookings']) ?></td><td class="num"><?= e($row['users']) ?></td><td class="num"><?= e(money($row['gross_collected'] ?? 0)) ?></td></tr><?php endforeach; ?></tbody></table>
+<div class="<?= count($data['categories'] ?? [])<=5 ? 'keep-section' : '' ?>"><h2>Service popularity</h2><table><thead><tr><th>Category</th><th class="num">Bookings</th><th class="num">Completed</th><th class="num">Collected (MYR)</th></tr></thead><tbody><?php foreach($data['categories'] ?? [] as $row): ?><tr><td><?= e($row['category_name']) ?></td><td class="num"><?= e($row['bookings']) ?></td><td class="num"><?= e($row['completed']) ?></td><td class="num"><?= e(money($row['gross_collected'])) ?></td></tr><?php endforeach; ?><?php if(empty($data['categories'])): ?><tr><td colspan="4">No categories match these filters.</td></tr><?php endif; ?></tbody></table>
+</div><div class="<?= count($data['providers'] ?? [])<=5 ? 'keep-section' : '' ?>"><h2>Provider performance</h2><table><thead><tr><th>Provider</th><th class="num">Bookings</th><th class="num">Completed</th><th class="num">Overall rating</th></tr></thead><tbody><?php foreach($data['providers'] ?? [] as $row): ?><tr><td><?= e($row['business_name']) ?></td><td class="num"><?= e($row['bookings']) ?></td><td class="num"><?= e($row['completed']) ?></td><td class="num"><?= e(number_format((float)$row['overall_rating'],2)) ?></td></tr><?php endforeach; ?><?php if(empty($data['providers'])): ?><tr><td colspan="4">No providers match these filters.</td></tr><?php endif; ?></tbody></table>
+</div></body></html>
