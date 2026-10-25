@@ -276,4 +276,3 @@ begin
  ) into result;
  return result;
 end $$;
-

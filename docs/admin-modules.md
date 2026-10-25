@@ -58,7 +58,7 @@ Important current rules:
 - Provider verification and account access are distinct. Suspending a user account does not rename the provider's credential verification status.
 - Provider approval requires licence information or a verified, current credential. The administrator must assess the supplied evidence; the database gate is not an authenticity certification.
 - One open dispute is allowed per booking. Resolution records the decision and responsible administrator. Resolving a dispute does not automatically cancel a booking or refund money.
-- Refund requests are capped by the remaining successful payment amount, use exact decimal amounts, and are restricted to Super Admin. Concurrent/outdated submissions are guarded by the database transaction and version check.
+- Refund requests are capped by the remaining successful payment amount, use exact decimal amounts, and are restricted to Super Admin with verified MFA. One pending request reserves its amount and blocks another request on that payment. Submit the request from its modal to Stripe; Requested alone does not move funds. Confirmed full refunds mark the payment Refunded and cancel unfinished bookings. Completed bookings retain their historical status. Partial refunds permit only the remaining refundable balance.
 - Category hierarchy edits reject cycles and duplicate sibling names. Deleting an in-use category is rejected.
 - Saved administrative actions record audit information and reasons. The website does not expose the legacy password-hash column.
 
@@ -70,7 +70,7 @@ These boundaries must stay visible in demonstrations and the final report:
 |---|---|---|
 | Provider verification/account/booking status notifications | A notification row is stored and an email outbox item is queued for the relevant event | A retryable email worker, email provider/configuration and delivery monitoring. The website does not send these transactional emails itself. |
 | Account activation and password recovery emails | Calls Supabase Auth's confirmation/recovery flows | Correct Site URL/redirect allowlist and an operational Supabase Auth email configuration. This is separate from the transaction outbox. |
-| Refund processing | Validated `Requested` record and a read-only refund queue; explicit message that funds have not moved | Selected gateway's refund API, idempotent processor, callback verification/reconciliation and final gateway result. No gateway worker is included. |
+| Refund processing | Super Admin submits validated requests to Stripe sandbox; idempotent processing, signed webhooks and status refresh reconcile the gateway result. Linked Help Centre cases show customer refund progress. | Live-mode payments remain disabled. Monitor failed/pending refunds and reconcile uncertain submissions; see `docs/fpx-test-setup.md`. |
 | Customer/provider push notifications | Database notification information is available | FCM token registration, delivery service and Flutter receiving/deep-link screens. |
 | Escrow release, provider earnings settlement and payouts | Existing payment/earnings information can be displayed | An agreed completion/dispute/settlement policy and gateway-supported implementation. Existing escrow fields alone do not establish a real funds-holding arrangement. |
 
@@ -80,7 +80,7 @@ No fake payment success, email delivery or provider payout is generated to make 
 
 On **Bookings & orders**, apply search/status filters first. **Export CSV** downloads the filtered rows. **Print / Save PDF** opens a standalone report for all matching rows, not only the visible pagination page. Click the report's print button and select **Save as PDF** in the browser print dialog. An A4 landscape layout, repeated table headings and report date/filter information are prepared. PDF saving is performed by the browser; the PHP server does not claim to have created or stored a PDF file.
 
-On **Analytics & reports**, choose the date range, service category, provider region and/or provider, then apply the filters. The category filter covers that category and its descendants. Export preserves those selections. Charts include exact data tables so displayed figures can be checked without relying on the visual scale. Service popularity counts bookings created during the period, whereas the collection chart uses successful payment receipt dates; they measure different events. Collections from bookings created before the reporting period can therefore appear without new bookings that day. Gross collections include payments subsequently marked refunded and must not be labelled net revenue.
+On **Analytics & reports**, choose the date range, service category, provider region and/or provider, then apply the filters. The category filter covers that category and its descendants. CSV and server-generated PDF exports preserve those selections. Confirmed refunds use their confirmation date; net collected subtracts those refunds from period collections and can be negative. Pending refunds span all dates within the applied service filters. The refund status table counts requests created in the selected period. The page refreshes every 30 seconds while idle without discarding unapplied filters. Charts include exact data tables so displayed figures can be checked without relying on the visual scale. Service popularity counts bookings created during the period, whereas the collection chart uses successful payment receipt dates; they measure different events. Collections from bookings created before the reporting period can therefore appear without new bookings that day. Gross collections include payments subsequently marked refunded and must not be labelled net revenue.
 
 Registrations and pending provider applications are global. Active-booking and unresolved-dispute/review counts follow the selected service scope across all dates. Category and region classification uses the current service catalogue and provider profile rather than an unimplemented historical snapshot. These definitions are also returned by the analytics RPC and displayed above the charts.
 
@@ -102,13 +102,13 @@ These additions should be mentioned to the supervisor/user when documenting the 
 
 Search, pagination, responsive layout and empty/error states make the supplied mockups operational; they do not introduce new marketplace business modules.
 
-## Future mobile and shared-system work
+## Historical foundation scope and shared-system boundaries
 
-The following wider FYP modules are outside this administrative implementation: Flutter customer/provider authentication and profiles; address management; provider service creation; discovery/search; customer booking and payment initiation; provider acceptance/start/completion; chat; review submission; mobile notifications; earnings and payouts; customer recommendations/NLP chatbot; provider matching and smart scheduling.
+The original admin foundation treated the following wider FYP modules as separate work (this list is historical, not a current completion inventory): Flutter customer/provider authentication and profiles; address management; provider service creation; discovery/search; customer booking and payment initiation; provider acceptance/start/completion; chat; review submission; mobile notifications; earnings and payouts; customer recommendations/NLP chatbot; provider matching and smart scheduling.
 
 The shared schema audit and admin foundation do not establish that all those modules are implementation-ready. Before their implementation, resolve the recorded Chapter 4 conflicts: provider acceptance versus payment confirmation, customer acceptance of completion, exact refund/settlement policy, job matching versus category suggestions, scheduling fixed appointments versus flexible windows, and single-worker versus multi-worker provider capacity.
 
-External transactional email/refund delivery and the mobile workflows remain future integration work. They should not be silently treated as finished because the surrounding administrative screen exists.
+For current mobile and payment integration status, use the repository README and `docs/fpx-test-setup.md`. Refund processing is now connected in Stripe sandbox, including customer Help Centre status. External transactional email delivery and live settlement still require their own configuration and verification.
 
 ## Code and validation references
 
