@@ -143,7 +143,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                 label: tr('Open AI assistant'),
                 child: InkWell(
                   key: const ValueKey('raised-ai-button'),
-                  borderRadius: BorderRadius.circular(12),
+                  customBorder: const CircleBorder(),
                   onTap: _openAi,
                   child: SizedBox(
                     height: 80,
@@ -154,7 +154,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                           height: 58,
                           decoration: BoxDecoration(
                             color: CustomerTheme.primary,
-                            borderRadius: BorderRadius.circular(12),
+                            shape: BoxShape.circle,
                             border: Border.all(color: Colors.white, width: 4),
                             boxShadow: [
                               BoxShadow(
