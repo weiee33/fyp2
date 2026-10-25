@@ -1,9 +1,9 @@
 name: FPX gateway checks
 on:
   push:
-    paths: ['supabase/functions/**', 'supabase/migrations/**', 'supabase/tests/fpx_edge.test.mjs', 'supabase/tests/customer_delivery_edge.test.mjs', '.github/workflows/fpx.yml']
+    paths: ['supabase/functions/**', 'supabase/migrations/**', 'supabase/tests/fpx_edge.test.mjs', 'supabase/tests/customer_delivery_edge.test.mjs', 'supabase/tests/refund_edge.test.mjs', '.github/workflows/fpx.yml']
   pull_request:
-    paths: ['supabase/functions/**', 'supabase/migrations/**', 'supabase/tests/fpx_edge.test.mjs', 'supabase/tests/customer_delivery_edge.test.mjs', '.github/workflows/fpx.yml']
+    paths: ['supabase/functions/**', 'supabase/migrations/**', 'supabase/tests/fpx_edge.test.mjs', 'supabase/tests/customer_delivery_edge.test.mjs', 'supabase/tests/refund_edge.test.mjs', '.github/workflows/fpx.yml']
 permissions:
   contents: read
 jobs:
@@ -14,4 +14,4 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: node --experimental-strip-types --test supabase/tests/fpx_edge.test.mjs supabase/tests/customer_delivery_edge.test.mjs
+      - run: node --experimental-strip-types --test supabase/tests/fpx_edge.test.mjs supabase/tests/customer_delivery_edge.test.mjs supabase/tests/refund_edge.test.mjs

@@ -96,6 +96,10 @@ if ($path === '/rest/v1/rpc/admin_identity') {
     if (!in_array($token,['fixture-access-aal1','fixture-access-aal2'],true)) { respond(['code'=>'42501','message'=>'Authentication required'],401); }
     respond(['user_id'=>$record,'email'=>'admin@example.test','full_name'=>'Test Administrator','role_level'=>(!empty($fixtureState['staff_admin'])?'staff':'super_admin'),'mfa_verified'=>$verified]);
 }
+if ($path==='/functions/v1/admin-refund') {
+ if(!$verified) respond(['code'=>'42501','message'=>'MFA required'],403);
+ respond(['status'=>'Succeeded','message'=>'Stripe confirmed the refund.']);
+}
 if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
     if (!$verified) { respond(['code'=>'42501','message'=>'Complete authenticator verification first'],403); }
     if ($path === '/rest/v1/rpc/admin_team') {
@@ -131,11 +135,16 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
             'users'=>['user_id'=>$record,'email'=>'user@example.test','full_name'=>'Test Customer','phone'=>'+60123456789','role'=>'customer','is_active'=>true,'email_verified'=>true,'last_login_at'=>null,'actions'=>[]],
             'providers'=>['provider_id'=>$record,'user_id'=>$record,'business_name'=>'Fixture Plumbing','full_name'=>'Test Provider','email'=>'provider@example.test','business_license'=>'SSM-TEST','verification_status'=>'Pending','bio'=>'Qualified plumber','region'=>'Selangor','city'=>'Petaling Jaya','years_experience'=>5,'service_radius_km'=>10,'certifications'=>[['certification_id'=>$record,'certification_name'=>'Plumbing credential','issuer'=>'Fixture Institute','expiry_date'=>'2027-10-01','file_url'=>'certifications/fake.pdf','is_verified'=>false,'version'=>$version]],'hours'=>[['day_of_week'=>0,'start_time'=>'09:00:00','end_time'=>'17:00:00','is_active'=>true]],'portfolio'=>[]],
             'categories'=>['category_id'=>$record,'category_name'=>'Plumbing','description'=>'Household plumbing','color_code'=>'#F97316','parent_category_id'=>null,'display_order'=>1,'is_active'=>true],
-            'bookings'=>booking(1)+['payment'=>['payment_id'=>$record,'payment_status'=>'Success','payment_amount'=>'80.00','payment_method'=>'FPX','fpx_transaction_ref'=>'FPX-FIXTURE','payment_timestamp'=>'2026-10-01T00:00:00+00:00','escrow_held'=>true,'receipt_url'=>null],'history'=>[['previous_status'=>null,'new_status'=>'Pending','created_at'=>'2026-10-01T00:00:00+00:00','notes'=>'Booked by customer']],'disputes'=>[],'customer_address'=>'Petaling Jaya','special_instructions'=>'Fix leaking tap'],
+            'bookings'=>booking(1)+['payment'=>['version'=>$version,'remaining'=>80,'refunds'=>[],'payment_id'=>$record,'payment_status'=>'Success','payment_amount'=>'80.00','payment_method'=>'FPX','fpx_transaction_ref'=>'FPX-FIXTURE','payment_timestamp'=>'2026-10-01T00:00:00+00:00','escrow_held'=>true,'receipt_url'=>null],'history'=>[['previous_status'=>null,'new_status'=>'Pending','created_at'=>'2026-10-01T00:00:00+00:00','notes'=>'Booked by customer']],'disputes'=>[],'customer_address'=>'Petaling Jaya','special_instructions'=>'Fix leaking tap'],
+            'refunds'=>['refund_id'=>$record,'booking_id'=>$record,'dispute_id'=>$record,'amount'=>80,'status'=>'Requested','reason'=>'Service cancellation refund','gateway_reference'=>null],
             'reviews'=>['review_id'=>$record,'booking_id'=>$record,'rating_score'=>4,'review_comment'=>'Helpful service','is_flagged'=>true,'is_verified_booking'=>true,'flag_reason'=>'Potential spam','moderation_status'=>'visible','moderation_reason'=>null],
             'disputes'=>['attachment_paths'=>[$record.'/'.$record.'/0'],'dispute_id'=>$record,'booking_id'=>null,'subject'=>'Service incomplete','description'=>'The booked service was not completed.','status'=>'Open','resolution'=>null,'resolved_at'=>null],
             default=>[],
         };
+        if ($resource==='bookings' && !empty($fixtureState['pending_refund'])) {
+            $detail['payment']['remaining']=0;
+            $detail['payment']['refunds']=[['refund_id'=>$record,'status'=>'Processing','amount'=>80,'updated_at'=>'2026-10-25T08:00:00Z']];
+        }
         if ($resource==='providers' && !empty($fixtureState['expired_verified_certificate'])) {
             $detail['certifications'][0]['expiry_date']='2020-01-01';
             $detail['certifications'][0]['is_verified']=true;
@@ -150,6 +159,9 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
         $from=new DateTimeImmutable($body['date_from']); $to=new DateTimeImmutable($body['date_to']);
         if ($to<$from || $from->diff($to)->days>366) { respond(['code'=>'P0001','message'=>'Choose a date range of at most 367 days'],400); }
         $analytics=['from'=>$body['date_from'],'to'=>$body['date_to'],'timezone'=>'Asia/Kuala_Lumpur','users'=>12,'new_users'=>2,'bookings'=>21,'active_bookings'=>3,'pending_providers'=>1,'open_disputes'=>1,'flagged_reviews'=>1,'gross_collected'=>'1680.00','platform_fees'=>'168.00','refunds_requested'=>'80.00','avg_rating'=>'4.50','daily'=>[['date'=>'2026-10-01','bookings'=>2,'users'=>1,'gross_collected'=>'160.00']],'providers'=>[['business_name'=>'Fixture Plumbing','bookings'=>21,'completed'=>18,'overall_rating'=>'4.8']],'category_choices'=>[['category_id'=>$record,'category_name'=>'Plumbing','parent_category_id'=>null]],'region_choices'=>['Selangor','Kuala Lumpur'],'provider_choices'=>[['provider_id'=>$record,'business_name'=>'Fixture Plumbing','region'=>'Selangor']],'selected_filters'=>['category_id'=>$body['category_filter']??null,'region'=>$body['region_filter']??null,'provider_id'=>$body['provider_filter']??null],'categories'=>[['category_id'=>$record,'category_name'=>'Plumbing','bookings'=>21,'completed'=>18,'gross_collected'=>'1680.00']],'scope_note'=>'User registration and pending-provider metrics remain global. Booking, payment and performance metrics respect selected service filters.'];
+        $analytics['refunds_succeeded']=40; $analytics['net_collected']=1640;
+        $analytics['refund_statuses']=[['status'=>'Succeeded','count'=>1,'amount'=>40]];
+        $analytics['daily'][0]['refunded']=40;
         if (!empty($fixtureState['visual_preview'])) {
             $analytics['daily']=[];
             for($day=$from,$index=0;$day<=$to;$day=$day->modify('+1 day'),$index++) {
@@ -168,6 +180,7 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
             $analytics['categories']=[['category_id'=>$record,'category_name'=>'Plumbing','bookings'=>0,'completed'=>0,'gross_collected'=>'75.00']];
             $analytics['providers']=[['business_name'=>'Fixture Plumbing','bookings'=>0,'completed'=>0,'overall_rating'=>'4.8']];
         }
+        $analytics['net_collected']=(float)$analytics['gross_collected']-(float)$analytics['refunds_succeeded'];
         respond($analytics);
     }
     if ($path === '/rest/v1/rpc/admin_mutate') {

@@ -5146,5 +5146,37 @@
   "Your account is view-only. Contact support in Help Centre.": [
     "您的账户仅供查看。请在帮助中心联系支持团队。",
     "Akaun anda untuk paparan sahaja. Hubungi sokongan di Pusat Bantuan."
+  ],
+  "Refund status": [
+    "退款状态",
+    "Status bayaran balik"
+  ],
+  "Refund reference": [
+    "退款编号",
+    "Rujukan bayaran balik"
+  ],
+  "Succeeded": [
+    "已成功",
+    "Berjaya"
+  ],
+  "Processing": [
+    "处理中",
+    "Sedang diproses"
+  ],
+  "Stripe confirmed this refund. Your bank may take additional time to credit your original payment method.": [
+    "Stripe 已确认退款。银行可能需要更多时间将款项退回原付款方式。",
+    "Stripe telah mengesahkan bayaran balik ini. Bank anda mungkin memerlukan masa tambahan untuk mengkreditkan kaedah pembayaran asal anda."
+  ],
+  "This refund did not complete. Contact support for help.": [
+    "此退款未完成。请联系支持人员寻求帮助。",
+    "Bayaran balik ini tidak selesai. Hubungi sokongan untuk bantuan."
+  ],
+  "Your refund is being processed. Pull down to check its latest status.": [
+    "您的退款正在处理中。下拉查看最新状态。",
+    "Bayaran balik anda sedang diproses. Tarik ke bawah untuk menyemak status terkini."
+  ],
+  "Your refund request is awaiting processing.": [
+    "您的退款申请正在等待处理。",
+    "Permintaan bayaran balik anda sedang menunggu untuk diproses."
   ]
 }

@@ -1,3 +1,4 @@
+import { reconcileRefundEvent } from './refunds.ts';
 type Dependencies = { env: (name: string) => string | undefined; fetch: typeof fetch; now: () => number };
 class HttpError extends Error {
   status: number;
@@ -148,6 +149,9 @@ export async function handleWebhook(request: Request, deps: Dependencies): Promi
     let event: any;
     try { event = JSON.parse(body); } catch { return json({ error: 'Invalid JSON' }, 400); }
     if (event.livemode !== false) return json({ error: 'Live payments are disabled' }, 400);
+    if (['refund.created','refund.updated','refund.failed'].includes(event.type)) {
+      return json(await reconcileRefundEvent(deps, event.data?.object));
+    }
     const types: Record<string, string> = { 'checkout.session.completed': 'paid', 'checkout.session.async_payment_succeeded': 'paid', 'checkout.session.async_payment_failed': 'failed', 'checkout.session.expired': 'expired' };
     const outcome = types[event.type];
     if (!outcome) return json({ ignored: true });

@@ -390,7 +390,7 @@ select pg_temp.test_assert('refund request is recorded as requested',
  exists(select 1 from jsonb_array_elements(public.admin_list('refunds','Regression partial refund request')->'items') r
  where r->>'payment_id'=pg_temp.fixture_id('payment_paid')::text and r->>'status'='Requested' and (r->>'amount')::numeric=40));
 select pg_temp.test_error('only one pending refund is permitted',
- 'select public.admin_mutate(''refund_request'',pg_temp.fixture_id(''payment_paid''),public.admin_detail(''bookings'',pg_temp.fixture_id(''booking_paid''))->''payment''->>''version'',''{"amount":10,"reason":"Regression duplicate refund"}''::jsonb)','23505');
+ 'select public.admin_mutate(''refund_request'',pg_temp.fixture_id(''payment_paid''),public.admin_detail(''bookings'',pg_temp.fixture_id(''booking_paid''))->''payment''->>''version'',''{"amount":10,"reason":"Regression duplicate refund"}''::jsonb)','P0001','already pending');
 reset role;
 update public.refund_requests set status='Succeeded' where payment_id=pg_temp.fixture_id('payment_paid');
 set local role authenticated;

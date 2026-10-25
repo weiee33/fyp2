@@ -52,6 +52,12 @@ try {
             $_SESSION['flash'] = $result['message'];
             $redirect(url('team'));
         }
+        if ($action === 'refund_process') {
+            $recoverResource=true;
+            $result=$api->request('POST','/functions/v1/admin-refund',['refund_id'=>Security::uuid((string)($_POST['record_id'] ?? ''))],$_SESSION['auth']['access_token']);
+            $_SESSION['flash']=$result['message'];
+            $redirect(url('refunds',['id'=>$_POST['record_id']]));
+        }
         $mutations = ['user_status','provider_verify','certificate_verify','category_save','category_delete','booking_status','review_moderate','dispute_open','dispute_resolve','refund_request'];
         if (!in_array($action, $mutations, true)) { throw new ApiException(400,'Unknown action.'); }
         $recoverResource = in_array($page,$resources,true) && (!empty($_GET['id']) || ($page==='categories' && isset($_GET['new'])));
@@ -79,6 +85,7 @@ try {
             throw $failure;
         }
         $_SESSION['flash']=$result['message'];
+        if ($action==='refund_request') { $redirect(url('refunds',['id'=>$result['id']])); }
         $redirect(url(in_array($page,$resources,true) ? $page : 'dashboard',Workspace::filters($_GET)));
     }
     if ($page === 'callback') { $auth->callback((string)($_GET['code'] ?? '')); $redirect(url('mfa')); }
@@ -148,8 +155,10 @@ try {
             if($page==='analytics') {
                 fputcsv($out,['Metric','Value'],',','"','');
                 foreach($data as $key=>$value) { if(!is_array($value)) { fputcsv($out,[Security::csvCell($key),Security::csvCell($value)],',','"',''); } }
-                fputcsv($out,[],',','"',''); fputcsv($out,['Date','Bookings','New users (global)','Gross collected MYR'],',','"','');
-                foreach($data['daily'] as $day) { fputcsv($out,[$day['date'],$day['bookings'],$day['users'],$day['gross_collected'] ?? 0],',','"',''); }
+                fputcsv($out,[],',','"',''); fputcsv($out,['Refund request status (created in period)','Count','Amount MYR'],',','"','');
+                foreach($data['refund_statuses'] ?? [] as $refundStatus) { fputcsv($out,['Refund requests: '.$refundStatus['status'],$refundStatus['count'],$refundStatus['amount']],',','"',''); }
+                fputcsv($out,[],',','"',''); fputcsv($out,['Date','Bookings','New users (global)','Gross collected MYR','Confirmed refunds MYR'],',','"','');
+                foreach($data['daily'] as $day) { fputcsv($out,[$day['date'],$day['bookings'],$day['users'],$day['gross_collected'] ?? 0,$day['refunded'] ?? 0],',','"',''); }
                 fputcsv($out,[],',','"',''); fputcsv($out,['Service category','Bookings','Completed','Gross collected MYR'],',','"','');
                 foreach($data['categories'] ?? [] as $categoryRow) { fputcsv($out,array_map([Security::class,'csvCell'],[$categoryRow['category_name'],$categoryRow['bookings'],$categoryRow['completed'],$categoryRow['gross_collected']]),',','"',''); }
                 fputcsv($out,[],',','"',''); fputcsv($out,['Provider','Bookings','Completed','Overall rating'],',','"','');

@@ -273,3 +273,18 @@ window.addEventListener('pageshow', () => {
         });
     });
 });
+'use strict';
+// Refresh only the applied report and only while idle; never discard edited
+// filters, an open dialog, or active chart inspection.
+(() => {
+  const marker=document.querySelector('[data-report-refresh]');
+  const form=document.querySelector('.analytics-filters');
+  if(!marker || !form) return;
+  const initial=new URLSearchParams(new FormData(form)).toString();
+  let touched=Date.now();
+  ['pointerdown','pointermove','keydown','wheel','focusin'].forEach(event=>document.addEventListener(event,()=>{touched=Date.now();},{passive:true}));
+  setInterval(()=>{
+    if(document.hidden || Date.now()-touched<30000 || document.querySelector('dialog[open]') || new URLSearchParams(new FormData(form)).toString()!==initial) return;
+    window.location.reload();
+  },30000);
+})();
