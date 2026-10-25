@@ -704,7 +704,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                     ? 'You'
                     : row['origin'] == 'agent'
                     ? 'AI Agent'
-                    : 'Home Serve AI',
+                    : 'Local Life Service Assistant AI',
               ),
               style: TextStyle(
                 fontSize: 12,
@@ -1086,6 +1086,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       child: CustomerScaffold(
         backgroundColor: const Color(0xFFFCFBF9),
         appBar: AppBar(
+          toolbarHeight: 88,
           backgroundColor: const Color(0xFFFCFBF9),
           surfaceTintColor: Colors.transparent,
           leading: IconButton(
@@ -1098,7 +1099,9 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Text(
-                tr('Home Serve AI'),
+                tr('Local Life Service Assistant AI'),
+                textAlign: TextAlign.center,
+                maxLines: 3,
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
               ),
               Text(
@@ -1183,7 +1186,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
                   onTap: () => showCustomerDialog<void>(
                     context: context,
                     builder: (c) => AlertDialog(
-                      title: Text(tr('Using Home Serve AI')),
+                      title: Text(tr('Using Local Life Service Assistant AI')),
                       content: Text(
                         tr(
                           'Messages, attached photos and relevant app details are sent to Google Gemini. AI can make mistakes. Review action cards before confirming; payments stay with you.',
@@ -1265,7 +1268,7 @@ class _ThinkingBubbleState extends State<_ThinkingBubble>
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                tr('Home Serve AI'),
+                tr('Local Life Service Assistant AI'),
                 style: TextStyle(
                   fontSize: 12,
                   color: Color(0xFF7454B8),
@@ -1649,9 +1652,11 @@ class _ChatHistoryState extends State<_ChatHistory> {
               children: [
                 AiHalo(size: 28),
                 SizedBox(width: 10),
-                Text(
-                  tr('Home Serve AI'),
-                  style: TextStyle(fontWeight: FontWeight.w600),
+                Expanded(
+                  child: Text(
+                    tr('Local Life Service Assistant AI'),
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ],
             ),

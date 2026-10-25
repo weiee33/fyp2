@@ -6,12 +6,12 @@ foreach($data['category_choices'] ?? [] as $row) { if($row['category_id']===($fi
 foreach($data['provider_choices'] ?? [] as $row) { if($row['provider_id']===($filters['provider_id'] ?? null)) $providerName=$row['business_name']; }
 $fontUri='file://'.str_replace('\\','/',$fontRoot);
 ?>
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Home Serve analytics report</title><style>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><title>Local Life Service Assistant analytics report</title><style>
 @font-face{font-family:Report;src:url('<?= e($fontUri) ?>/roboto-regular.ttf')}@font-face{font-family:Report;src:url('<?= e($fontUri) ?>/roboto-bold.ttf');font-weight:bold}
 @font-face{font-family:CJK;src:url('<?= e($fontUri) ?>/noto-sans-sc-regular.ttf')}
 @page{margin:40px 42px 52px}body{font:10px Report,CJK,sans-serif;color:#243041;line-height:1.45}h1{font-size:25px;margin:5px 0 8px}h2{font-size:15px;margin:24px 0 8px;color:#a53e08}p{margin:5px 0}.brand{color:#c44808;font-weight:bold;letter-spacing:1px}.muted{color:#5d6878}.scope{padding:12px;background:#fff4e9;border-left:3px solid #ff7900;margin:16px 0}table{border-collapse:collapse;width:100%;table-layout:fixed}thead{display:table-header-group}th{background:#f1f3f6;text-align:left}th,td{padding:7px 8px;border-bottom:1px solid #e3e7ed;overflow-wrap:break-word}tr{page-break-inside:avoid}.num{text-align:right}.metrics td{padding:5px 8px}.metrics td:first-child{width:65%}.keep-section{page-break-inside:avoid}.footer{position:fixed;bottom:-28px;font-size:8px;color:#64748b}h2{page-break-after:avoid}
-</style></head><body><div class="footer">Home Serve · Confidential admin report · MYR · Asia/Kuala_Lumpur</div>
-<p class="brand">HOME SERVE</p><h1>Analytics &amp; reports</h1>
+</style></head><body><div class="footer">Local Life Service Assistant · Confidential admin report · MYR · Asia/Kuala_Lumpur</div>
+<p class="brand">Local Life Service Assistant</p><h1>Analytics &amp; reports</h1>
 <p><?= e($data['from'] ?? '') ?> to <?= e($data['to'] ?? '') ?> · Malaysia time</p>
 <p class="muted">Generated <?= e(date('d M Y, H:i')) ?> MYT</p>
 <div class="scope"><strong>Applied filters</strong><p><?= e($categoryName) ?> · <?= e(($filters['region'] ?? '') ?: 'All regions') ?> · <?= e($providerName) ?></p><p><?= e($data['scope_note'] ?? 'Service filters apply to bookings, collections and provider performance. Community member counts remain global.') ?></p></div>

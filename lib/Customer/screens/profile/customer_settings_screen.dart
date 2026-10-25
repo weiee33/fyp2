@@ -119,7 +119,7 @@ class CustomerSettingsScreen extends StatelessWidget {
                 ),
               ),
               AccountRow(
-                label: tr('About Home Serve'),
+                label: tr('About Local Life Service Assistant'),
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(

@@ -46,8 +46,9 @@ class SuspensionNavigation extends StatefulWidget {
   static bool contains(Offset point) => _regions.any((key) {
     final context = key.currentContext;
     // An offstage tab bar must never exempt controls on a covering route.
-    if (context == null || ModalRoute.of(context)?.isCurrent != true)
+    if (context == null || ModalRoute.of(context)?.isCurrent != true) {
       return false;
+    }
     final box = context.findRenderObject();
     return box is RenderBox &&
         box.attached &&
@@ -207,11 +208,14 @@ class _CustomerAccessHostState extends State<CustomerAccessHost> {
                     children: [
                       Row(
                         children: [
-                          const Icon(
-                            Icons.warning_amber_rounded,
-                            color: Colors.white,
+                          // Equal side slots keep the title on the screen centre.
+                          const SizedBox(
+                            width: 32,
+                            child: Icon(
+                              Icons.warning_amber_rounded,
+                              color: Colors.white,
+                            ),
                           ),
-                          const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               tr(
@@ -219,22 +223,14 @@ class _CustomerAccessHostState extends State<CustomerAccessHost> {
                                     ? 'Unable to verify account access'
                                     : 'Account suspended · View only',
                               ),
+                              textAlign: TextAlign.center,
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
-                          Semantics(
-                            label: tr('Refresh'),
-                            child: IconButton(
-                              onPressed: access.refresh,
-                              icon: const Icon(
-                                Icons.refresh,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ),
+                          const SizedBox(width: 32),
                         ],
                       ),
                       Wrap(

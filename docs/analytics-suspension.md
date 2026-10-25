@@ -11,13 +11,13 @@
 
 Apply the date/category/region/provider filters before exporting. CSV and PDF links are generated from the authorized result and applied filters, not unsaved form values. Both include daily activity, collections, categories and provider performance. All reporting dates use Malaysia time. Community metrics remain global where indicated; gross collection is before refunds, not net revenue.
 
-Chart points, category segments, metrics and provider rows open detail dialogs with exact values. Native tables remain available. Keyboard users can focus points and use Enter or Space; Escape closes the dialog and restores focus.
+Daily charts provide a crosshair and live date/value readout. Hover or drag to inspect, click to pin, and use arrow keys/Home/End to navigate; Escape releases inspection. All/7D/30D/90D, zoom buttons and the date-window slider only adjust the visible chart window, not applied report filters or CSV/PDF exports. Series toggles always retain one visible series. Category segments, metrics and provider rows still open exact-value dialogs. Native daily tables remain available, including without JavaScript.
 
 ## Customer suspension
 
 Only verified **customers** gain the support exception. Suspended providers and administrators retain the existing access restrictions. `account_identity` returns `is_active`; authority remains the database record, never user-editable metadata.
 
-The app checks status after login, on resume and every 15 seconds while signed in as a customer. A red banner and border remain visible on customer routes. Normal taps and keyboard input are blocked; scrolling and the four main viewing tabs remain available. Help Centre, support photos, owned request history, admin responses and sign-out remain accessible. A failed status refresh restricts actions until access can be verified again. Reactivation restores normal access on the next successful check (or the banner's refresh button).
+The app checks status after login, on resume and every 15 seconds while signed in as a customer. A red banner and border remain visible on customer routes. Normal taps and keyboard input are blocked; scrolling and the four main viewing tabs remain available. Help Centre, support photos, owned request history, admin responses and sign-out remain accessible. A failed status refresh restricts actions until access can be verified again. Reactivation restores normal access on the next successful check when the app resumes or during its automatic status check.
 
 The database rejects new bookings, cancellations, checkout creation, profile/address edits, notification edits, chat/AI actions and unrelated uploads while suspended, even with a stale client or direct RPC request. Financial callbacks for payments already initiated continue to reconcile authoritative gateway events. Suspension is not a refund or cancellation of an already-created external payment session.
 

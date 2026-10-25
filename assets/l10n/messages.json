@@ -71,9 +71,9 @@
     "关于",
     "Tentang"
   ],
-  "About Home Serve": [
-    "关于Home Serve",
-    "Tentang Home Serve"
+  "About Local Life Service Assistant": [
+    "关于Local Life Service Assistant",
+    "Tentang Local Life Service Assistant"
   ],
   "Accept": [
     "接受",
@@ -231,9 +231,9 @@
     "所有城市",
     "Mana-mana bandar"
   ],
-  "Applies throughout Home Serve. Your messages and provider descriptions stay in their original language.": [
-    "适用于整个Home Serve。您的消息和服务商描述将保留原文。",
-    "Digunakan di seluruh Home Serve. Mesej anda dan penerangan penyedia kekal dalam bahasa asal."
+  "Applies throughout Local Life Service Assistant. Your messages and provider descriptions stay in their original language.": [
+    "适用于整个Local Life Service Assistant。您的消息和服务商描述将保留原文。",
+    "Digunakan di seluruh Local Life Service Assistant. Mesej anda dan penerangan penyedia kekal dalam bahasa asal."
   ],
   "Apply filters": [
     "应用筛选",
@@ -1471,10 +1471,6 @@
     "GrabPay",
     "GrabPay"
   ],
-  "HOME SERVE": [
-    "HOME SERVE",
-    "HOME SERVE"
-  ],
   "Help Centre": [
     "帮助中心",
     "Pusat bantuan"
@@ -1511,25 +1507,25 @@
     "家",
     "Rumah"
   ],
-  "Home Serve": [
-    "Home Serve",
-    "Home Serve"
+  "Local Life Service Assistant": [
+    "Local Life Service Assistant",
+    "Local Life Service Assistant"
   ],
-  "Home Serve\nHousehold services, bookings and provider communication.\n\nFYP mobile application.": [
-    "Home Serve\n家庭服务、预约及服务商沟通。\n\n毕业设计手机应用。",
-    "Home Serve\nPerkhidmatan rumah, tempahan dan komunikasi dengan penyedia.\n\nAplikasi mudah alih projek tahun akhir."
+  "Local Life Service Assistant\nHousehold services, bookings and provider communication.\n\nFYP mobile application.": [
+    "Local Life Service Assistant\n家庭服务、预约及服务商沟通。\n\n毕业设计手机应用。",
+    "Local Life Service Assistant\nPerkhidmatan rumah, tempahan dan komunikasi dengan penyedia.\n\nAplikasi mudah alih projek tahun akhir."
   ],
-  "Home Serve  |  Page {0} of {1}": [
-    "Home Serve · 第{0}页，共{1}页",
-    "Home Serve · Halaman {0} daripada {1}"
+  "Local Life Service Assistant  |  Page {0} of {1}": [
+    "Local Life Service Assistant · 第{0}页，共{1}页",
+    "Local Life Service Assistant · Halaman {0} daripada {1}"
   ],
-  "Home Serve AI": [
-    "Home Serve AI",
-    "Home Serve AI"
+  "Local Life Service Assistant AI": [
+    "Local Life Service Assistant AI",
+    "Local Life Service Assistant AI"
   ],
-  "Home Serve payment receipt {0}": [
-    "Home Serve付款收据{0}",
-    "Resit bayaran Home Serve {0}"
+  "Local Life Service Assistant payment receipt {0}": [
+    "Local Life Service Assistant付款收据{0}",
+    "Resit bayaran Local Life Service Assistant {0}"
   ],
   "Hourly": [
     "按小时",
@@ -3543,9 +3539,9 @@
     "使用此服务中心",
     "Gunakan pusat perkhidmatan ini"
   ],
-  "Using Home Serve AI": [
-    "使用Home Serve AI",
-    "Menggunakan Home Serve AI"
+  "Using Local Life Service Assistant AI": [
+    "使用Local Life Service Assistant AI",
+    "Menggunakan Local Life Service Assistant AI"
   ],
   "Valid email required": [
     "请填写有效邮箱",
@@ -3711,9 +3707,9 @@
     "每周趋势",
     "Trend mingguan"
   ],
-  "Welcome to Home Serve": [
-    "欢迎使用 Home Serve",
-    "Selamat datang ke Home Serve"
+  "Welcome to Local Life Service Assistant": [
+    "欢迎使用 Local Life Service Assistant",
+    "Selamat datang ke Local Life Service Assistant"
   ],
   "Were they professional? Was the issue fixed?": [
     "服务是否专业？问题解决了吗？",
@@ -3783,9 +3779,9 @@
     "您拥有：{0}项证书",
     "Anda mempunyai: {0} sijil"
   ],
-  "Your account has been deleted. You must register again to use Home Serve.": [
-    "您的账户已删除。使用Home Serve前需要重新注册。",
-    "Akaun anda telah dipadamkan. Anda perlu mendaftar semula untuk menggunakan Home Serve."
+  "Your account has been deleted. You must register again to use Local Life Service Assistant.": [
+    "您的账户已删除。使用Local Life Service Assistant前需要重新注册。",
+    "Akaun anda telah dipadamkan. Anda perlu mendaftar semula untuk menggunakan Local Life Service Assistant."
   ],
   "Your account is ready.": [
     "您的账户已准备好。",
@@ -4479,9 +4475,9 @@
     "重要的预约和付款通知已启用。",
     "Notifikasi penting tempahan dan pembayaran telah diaktifkan."
   ],
-  "Allow Home Serve notifications in your phone settings. If alerts are unavailable, contact support.": [
-    "请在手机设置中允许 Home Serve 发送通知。如果无法使用通知，请联系支持人员。",
-    "Benarkan notifikasi Home Serve dalam tetapan telefon anda. Jika notifikasi tidak tersedia, hubungi sokongan."
+  "Allow Local Life Service Assistant notifications in your phone settings. If alerts are unavailable, contact support.": [
+    "请在手机设置中允许 Local Life Service Assistant 发送通知。如果无法使用通知，请联系支持人员。",
+    "Benarkan notifikasi Local Life Service Assistant dalam tetapan telefon anda. Jika notifikasi tidak tersedia, hubungi sokongan."
   ],
   "Information you provide": [
     "您提供的信息",
@@ -4531,9 +4527,9 @@
     "您的信息与选择",
     "Maklumat dan pilihan anda"
   ],
-  "This notice explains how information is used across Home Serve and where you can manage it.": [
-    "本说明介绍 Home Serve 如何使用信息，以及您可以在哪里管理这些信息。",
-    "Notis ini menerangkan penggunaan maklumat dalam Home Serve dan tempat anda boleh mengurusnya."
+  "This notice explains how information is used across Local Life Service Assistant and where you can manage it.": [
+    "本说明介绍 Local Life Service Assistant 如何使用信息，以及您可以在哪里管理这些信息。",
+    "Notis ini menerangkan penggunaan maklumat dalam Local Life Service Assistant dan tempat anda boleh mengurusnya."
   ],
   "A simpler way to find and manage help for your home.": [
     "更轻松地寻找并管理家居服务。",
@@ -4675,21 +4671,21 @@
     "尚未确认请求是否成功提交。请使用相同内容重试，或先查看帮助中心，再新建请求。",
     "Permintaan anda belum disahkan. Cuba semula dengan butiran yang sama, atau semak Pusat Bantuan sebelum memulakan permintaan lain."
   ],
-  "Home Serve uses your account and contact details to maintain your account. Service addresses, booking instructions, messages, reviews and the photos you choose to upload support the features you use. Birthday and gender are optional profile details.": [
-    "Home Serve 使用您的账户和联系方式来维护账户。服务地址、预约说明、消息、评价及您选择上传的照片用于支持您使用的功能。生日和性别属于可选资料。",
-    "Home Serve menggunakan butiran akaun dan hubungan untuk menyelenggara akaun anda. Alamat perkhidmatan, arahan tempahan, mesej, ulasan dan foto yang anda pilih untuk dimuat naik menyokong ciri yang digunakan. Tarikh lahir dan jantina ialah butiran profil pilihan."
+  "Local Life Service Assistant uses your account and contact details to maintain your account. Service addresses, booking instructions, messages, reviews and the photos you choose to upload support the features you use. Birthday and gender are optional profile details.": [
+    "Local Life Service Assistant 使用您的账户和联系方式来维护账户。服务地址、预约说明、消息、评价及您选择上传的照片用于支持您使用的功能。生日和性别属于可选资料。",
+    "Local Life Service Assistant menggunakan butiran akaun dan hubungan untuk menyelenggara akaun anda. Alamat perkhidmatan, arahan tempahan, mesej, ulasan dan foto yang anda pilih untuk dimuat naik menyokong ciri yang digunakan. Tarikh lahir dan jantina ialah butiran profil pilihan."
   ],
   "Providers receive the information needed to discuss and fulfil your booking, including its service address and the messages you send them. Your optional birthday and gender are not included in the provider profile view. Support messages and support photos are available to you and authorised administrators.": [
     "服务商会收到沟通及履行预约所需的信息，包括服务地址和您发送的消息。可选的生日和性别不会显示在服务商可见的资料中。支持消息和照片仅供您及获授权的管理员查看。",
     "Penyedia menerima maklumat yang diperlukan untuk membincangkan dan melaksanakan tempahan, termasuk alamat perkhidmatan dan mesej anda. Tarikh lahir dan jantina pilihan tidak dipaparkan dalam paparan profil penyedia. Mesej dan foto sokongan tersedia kepada anda dan pentadbir yang diberi kuasa."
   ],
-  "Payment details are entered through Stripe. Home Serve records payment references, amounts and status to manage bookings and receipts; it does not collect your full payment card details in the app. The email address supplied during checkout may be used to deliver your receipt.": [
-    "付款详情通过 Stripe 输入。Home Serve 记录付款编号、金额和状态，以管理预约与收据；应用内不会收集完整的支付卡资料。结账时提供的电子邮箱可用于发送收据。",
-    "Butiran pembayaran dimasukkan melalui Stripe. Home Serve merekodkan rujukan, amaun dan status pembayaran untuk mengurus tempahan dan resit; aplikasi tidak mengumpulkan butiran penuh kad pembayaran. Alamat e-mel semasa pembayaran boleh digunakan untuk menghantar resit."
+  "Payment details are entered through Stripe. Local Life Service Assistant records payment references, amounts and status to manage bookings and receipts; it does not collect your full payment card details in the app. The email address supplied during checkout may be used to deliver your receipt.": [
+    "付款详情通过 Stripe 输入。Local Life Service Assistant 记录付款编号、金额和状态，以管理预约与收据；应用内不会收集完整的支付卡资料。结账时提供的电子邮箱可用于发送收据。",
+    "Butiran pembayaran dimasukkan melalui Stripe. Local Life Service Assistant merekodkan rujukan, amaun dan status pembayaran untuk mengurus tempahan dan resit; aplikasi tidak mengumpulkan butiran penuh kad pembayaran. Alamat e-mel semasa pembayaran boleh digunakan untuk menghantar resit."
   ],
-  "Home Serve uses Supabase for account, database and file services, Firebase for supported phone notifications, and email services for transactional messages. When you use the AI assistant, your messages and selected attachments are processed to generate a response. Avoid including sensitive personal information in AI conversations.": [
-    "Home Serve 使用 Supabase 提供账户、数据库及文件服务，使用 Firebase 提供支持的手机通知，并使用电子邮件服务发送交易消息。使用 AI 助手时，您的消息和所选附件会被处理以生成回复。请避免在 AI 对话中提供敏感个人信息。",
-    "Home Serve menggunakan Supabase untuk perkhidmatan akaun, pangkalan data dan fail, Firebase untuk pemberitahuan telefon yang disokong, serta perkhidmatan e-mel untuk mesej transaksi. Apabila menggunakan pembantu AI, mesej dan lampiran pilihan anda diproses untuk menjana respons. Elakkan maklumat peribadi sensitif dalam perbualan AI."
+  "Local Life Service Assistant uses Supabase for account, database and file services, Firebase for supported phone notifications, and email services for transactional messages. When you use the AI assistant, your messages and selected attachments are processed to generate a response. Avoid including sensitive personal information in AI conversations.": [
+    "Local Life Service Assistant 使用 Supabase 提供账户、数据库及文件服务，使用 Firebase 提供支持的手机通知，并使用电子邮件服务发送交易消息。使用 AI 助手时，您的消息和所选附件会被处理以生成回复。请避免在 AI 对话中提供敏感个人信息。",
+    "Local Life Service Assistant menggunakan Supabase untuk perkhidmatan akaun, pangkalan data dan fail, Firebase untuk pemberitahuan telefon yang disokong, serta perkhidmatan e-mel untuk mesej transaksi. Apabila menggunakan pembantu AI, mesej dan lampiran pilihan anda diproses untuk menjana respons. Elakkan maklumat peribadi sensitif dalam perbualan AI."
   ],
   "Camera, photo library, location and notification permissions support the features you choose to use. You can change these permissions in your device settings. Disabling a permission may limit its related feature. You can also enter a service address manually.": [
     "相机、照片库、位置及通知权限用于支持您选择的功能。您可以在设备设置中更改这些权限。关闭权限可能限制相应功能。您也可以手动输入服务地址。",
@@ -4703,9 +4699,9 @@
     "如需查询个人信息、申请更正或提出隐私问题，请通过帮助中心联系支持团队。请提供相关账户或预约背景，但切勿发送密码、验证码或完整支付卡资料。",
     "Hubungi sokongan melalui Pusat Bantuan untuk bertanya tentang maklumat anda, meminta pembetulan atau mengemukakan kebimbangan privasi. Sertakan konteks akaun atau tempahan yang berkaitan, tetapi jangan hantar kata laluan, kod pengesahan atau butiran penuh kad pembayaran."
   ],
-  "Home Serve brings service discovery, provider communication and booking management together. Explore available services, compare provider information and customer reviews, and choose a service that fits your needs.": [
-    "Home Serve 集服务探索、服务商沟通和预约管理于一体。浏览可用服务，比较服务商信息与客户评价，并选择适合您需求的服务。",
-    "Home Serve menggabungkan pencarian perkhidmatan, komunikasi penyedia dan pengurusan tempahan. Terokai perkhidmatan tersedia, bandingkan maklumat penyedia serta ulasan pelanggan dan pilih perkhidmatan yang memenuhi keperluan anda."
+  "Local Life Service Assistant brings service discovery, provider communication and booking management together. Explore available services, compare provider information and customer reviews, and choose a service that fits your needs.": [
+    "Local Life Service Assistant 集服务探索、服务商沟通和预约管理于一体。浏览可用服务，比较服务商信息与客户评价，并选择适合您需求的服务。",
+    "Local Life Service Assistant menggabungkan pencarian perkhidmatan, komunikasi penyedia dan pengurusan tempahan. Terokai perkhidmatan tersedia, bandingkan maklumat penyedia serta ulasan pelanggan dan pilih perkhidmatan yang memenuhi keperluan anda."
   ],
   "Choose your service address and an available appointment, then submit a booking request. Once the provider accepts, complete payment within the time shown in Booking Details. Follow progress in the app and share a review after your service is completed.": [
     "选择服务地址及可用时段，然后提交预约请求。服务商接受后，请在预约详情显示的期限内完成付款。在应用中跟进进度，并在服务完成后分享评价。",
@@ -4715,9 +4711,9 @@
     "使用聊天与服务商讨论服务详情。如有预约问题，请从预约详情提交关联的支持请求。帮助中心处理一般问题，并让您查看请求状态和支持回复。",
     "Gunakan Sembang untuk membincangkan butiran perkhidmatan dengan penyedia. Untuk isu tempahan, hantar permintaan sokongan berkaitan melalui Butiran Tempahan. Pusat Bantuan mengendalikan pertanyaan umum serta membolehkan anda mengikuti status permintaan dan membaca respons sokongan."
   ],
-  "Home Serve AI can help you explore services and plan a booking. AI responses can be inaccurate. Review the provider, price, address and appointment details before confirming any booking or payment.": [
-    "Home Serve AI 可帮助您探索服务并规划预约。AI 回复可能不准确。在确认任何预约或付款前，请核对服务商、价格、地址及预约时间。",
-    "Home Serve AI boleh membantu anda menerokai perkhidmatan dan merancang tempahan. Respons AI mungkin tidak tepat. Semak penyedia, harga, alamat dan butiran janji temu sebelum mengesahkan sebarang tempahan atau pembayaran."
+  "Local Life Service Assistant AI can help you explore services and plan a booking. AI responses can be inaccurate. Review the provider, price, address and appointment details before confirming any booking or payment.": [
+    "Local Life Service Assistant AI 可帮助您探索服务并规划预约。AI 回复可能不准确。在确认任何预约或付款前，请核对服务商、价格、地址及预约时间。",
+    "Local Life Service Assistant AI boleh membantu anda menerokai perkhidmatan dan merancang tempahan. Respons AI mungkin tidak tepat. Semak penyedia, harga, alamat dan butiran janji temu sebelum mengesahkan sebarang tempahan atau pembayaran."
   ],
   "Awaiting administrator review.": [
     "等待管理员审核。",
@@ -4811,9 +4807,9 @@
     "停止",
     "Henti"
   ],
-  "AI Agent sends screenshots of supported Home Serve screens to Gemini to carry out your request. Watch the cursor, tap Stop or touch the screen to take control. You confirm bookings, payments and other changes yourself.": [
-    "AI 智能体会将支持的 Home Serve 页面截图发送给 Gemini，以执行您的请求。您可以观看光标操作，点击停止或触摸屏幕接管。预订、付款及其他变更由您亲自确认。",
-    "Ejen AI menghantar tangkapan skrin Home Serve yang disokong kepada Gemini untuk melaksanakan permintaan anda. Ikuti kursor, ketik Henti atau sentuh skrin untuk mengambil alih. Anda sendiri mengesahkan tempahan, pembayaran dan perubahan lain."
+  "AI Agent sends screenshots of supported Local Life Service Assistant screens to Gemini to carry out your request. Watch the cursor, tap Stop or touch the screen to take control. You confirm bookings, payments and other changes yourself.": [
+    "AI 智能体会将支持的 Local Life Service Assistant 页面截图发送给 Gemini，以执行您的请求。您可以观看光标操作，点击停止或触摸屏幕接管。预订、付款及其他变更由您亲自确认。",
+    "Ejen AI menghantar tangkapan skrin Local Life Service Assistant yang disokong kepada Gemini untuk melaksanakan permintaan anda. Ikuti kursor, ketik Henti atau sentuh skrin untuk mengambil alih. Anda sendiri mengesahkan tempahan, pembayaran dan perubahan lain."
   ],
   "Use AI chat to ask about an attached photo.": [
     "请使用 AI 聊天询问附件照片。",

@@ -1,6 +1,6 @@
 {
-  "name": "Home Serve",
-  "short_name": "Home Serve",
+  "name": "Local Life Service Assistant",
+  "short_name": "Local Life Service Assistant",
   "start_url": ".",
   "display": "standalone",
   "background_color": "#FFFFFF",

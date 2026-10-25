@@ -8,7 +8,7 @@ Verified on 22 October 2026. This pass adds invitation management and checks the
 - Shareable activation links use the configured `APP_URL`. The link is not a bearer credential: activation still requires the invited email, email verification and an authenticator. Invitation emails are not sent automatically.
 - New invitations expire after seven days. Existing setup invitations keep their previous expiry behavior until renewed. Accepted invitations cannot be changed; existing customer/provider accounts cannot be converted.
 - Invitation changes use row locking, stale-version checks and attributed audit records. No direct invitation-table access or service-role credential is granted to the web app.
-- Shared confirmation dialogs, reduced-motion support, wrapping buttons, clearer secondary text and keyboard-safe mobile navigation apply across admin modules. Visible branding uses Home Serve.
+- Shared confirmation dialogs, reduced-motion support, wrapping buttons, clearer secondary text and keyboard-safe mobile navigation apply across admin modules. Visible branding uses Local Life Service Assistant.
 - Support screens explain that responses are visible in the customer's separate **Support response** card. Booking guidance now reflects provider acceptance before customer payment.
 - README and setup instructions cover the three application roles, invitation sharing and deployment limitations. Windows setup now installs verified PHP 8.4.27 and refuses to overwrite a running runtime.
 

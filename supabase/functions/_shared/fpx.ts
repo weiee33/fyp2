@@ -136,8 +136,8 @@ export async function handleReturn(request: Request, deps: Dependencies): Promis
     const expected = await signReturn(value, required(deps, 'SUPABASE_SERVICE_ROLE_KEY'));
     let difference = 0; for (let i = 0; i < expected.length; i++) difference |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
     if (difference !== 0) throw new Error('Invalid return');
-    return new Response('Return to Home Serve and select Check payment status. Your receipt appears only after the gateway confirms payment.', { headers });
-  } catch { return new Response('This return link is invalid or expired. Open Home Serve to check your booking.', { status: 400, headers }); }
+    return new Response('Return to Local Life Service Assistant and select Check payment status. Your receipt appears only after the gateway confirms payment.', { headers });
+  } catch { return new Response('This return link is invalid or expired. Open Local Life Service Assistant to check your booking.', { status: 400, headers }); }
 }
 export async function handleWebhook(request: Request, deps: Dependencies): Promise<Response> {
   if (request.method !== 'POST') return json({ error: 'Use POST' }, 405);

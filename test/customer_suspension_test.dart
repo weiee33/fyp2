@@ -31,6 +31,15 @@ void main() {
       CustomerAccess.instance.accept({'role': 'customer', 'is_active': false});
       await tester.pumpAndSettle();
       expect(find.text('Account suspended · View only'), findsOneWidget);
+      expect(find.byIcon(Icons.refresh), findsNothing);
+      final warning = find.text('Account suspended · View only');
+      expect(
+        tester.getCenter(warning).dx,
+        closeTo(
+          tester.view.physicalSize.width / tester.view.devicePixelRatio / 2,
+          1,
+        ),
+      );
       await tester.tap(find.text('Book service'));
       await tester.pump(const Duration(milliseconds: 350));
       await tester.pumpAndSettle();

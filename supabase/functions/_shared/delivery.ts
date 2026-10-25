@@ -47,14 +47,14 @@ export function pushCopy(title: string, language: string): { title: string; body
   };
   if (title === 'Payment verified' || title === 'FPX payment verified') return {
     title: zh ? '付款成功' : ms ? 'Pembayaran Berjaya' : 'Payment Successful',
-    body: zh ? '请打开 Home Serve 查看收据和预约。' : ms ? 'Buka Home Serve untuk resit dan tempahan anda.' : 'Open Home Serve to view your receipt and booking.',
+    body: zh ? '请打开 Local Life Service Assistant 查看收据和预约。' : ms ? 'Buka Local Life Service Assistant untuk resit dan tempahan anda.' : 'Open Local Life Service Assistant to view your receipt and booking.',
   };
   // Lock-screen text deliberately omits names, addresses and payment amounts.
   return {
     title: accepted ? (zh ? '预约已接受' : ms ? 'Tempahan Diterima' : 'Booking Accepted')
       : (zh ? '预约有新消息' : ms ? 'Kemas Kini Tempahan' : 'Booking Update'),
-    body: accepted ? (zh ? '请打开 Home Serve 并在付款时限前完成付款。' : ms ? 'Buka Home Serve dan bayar sebelum tempoh pembayaran tamat.' : 'Open Home Serve and pay before your payment window closes.')
-      : (zh ? '请打开 Home Serve 查看重要的预约或付款更新。' : ms ? 'Buka Home Serve untuk kemas kini penting tempahan atau pembayaran.' : 'Open Home Serve for an important booking or payment update.'),
+    body: accepted ? (zh ? '请打开 Local Life Service Assistant 并在付款时限前完成付款。' : ms ? 'Buka Local Life Service Assistant dan bayar sebelum tempoh pembayaran tamat.' : 'Open Local Life Service Assistant and pay before your payment window closes.')
+      : (zh ? '请打开 Local Life Service Assistant 查看重要的预约或付款更新。' : ms ? 'Buka Local Life Service Assistant untuk kemas kini penting tempahan atau pembayaran.' : 'Open Local Life Service Assistant for an important booking or payment update.'),
   };
 }
 
@@ -85,16 +85,20 @@ export function receiptMessage(payload: Record<string, any>) {
   if (!Number.isSafeInteger(payload.amount_sen) || payload.amount_sen <= 0 || payload.test_mode !== true) throw new Error('Invalid receipt');
   const amount = `RM ${(payload.amount_sen / 100).toFixed(2)}`;
   const escaped = url.toString().replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
-  return { subject: 'Home Serve — Payment Receipt (Sandbox)',
-    text: `HOME SERVE\nPayment Receipt\n${amount}\nYour sandbox payment was verified. No real money was collected.\nView your e-receipt: ${url}\nOpen Home Serve for your booking status.`,
-    html: `<div style="background:#f7f8fa;padding:32px 16px;font-family:Arial,sans-serif;color:#172033"><div style="max-width:480px;margin:auto;background:white;border:1px solid #e5e7eb;border-radius:20px;padding:28px"><p style="color:#ff6b00;font-weight:bold;letter-spacing:1px">HOME SERVE</p><h1 style="font-size:24px">Payment Receipt</h1><p style="font-size:32px;font-weight:bold">${amount}</p><p>Your sandbox payment was verified. No real money was collected.</p><a href="${escaped}" style="display:inline-block;background:#ff6b00;color:#fff;text-decoration:none;padding:14px 24px;border-radius:28px;font-weight:bold">View E-Receipt</a><p style="font-size:13px;color:#64748b;margin-top:24px">Open Home Serve for your booking status.</p></div></div>` };
+  return { subject: 'Local Life Service Assistant — Payment Receipt (Sandbox)',
+    text: `Local Life Service Assistant\nPayment Receipt\n${amount}\nYour sandbox payment was verified. No real money was collected.\nView your e-receipt: ${url}\nOpen Local Life Service Assistant for your booking status.`,
+    html: `<div style="background:#f7f8fa;padding:32px 16px;font-family:Arial,sans-serif;color:#172033"><div style="max-width:480px;margin:auto;background:white;border:1px solid #e5e7eb;border-radius:20px;padding:28px"><p style="color:#ff6b00;font-weight:bold;letter-spacing:1px">Local Life Service Assistant</p><h1 style="font-size:24px">Payment Receipt</h1><p style="font-size:32px;font-weight:bold">${amount}</p><p>Your sandbox payment was verified. No real money was collected.</p><a href="${escaped}" style="display:inline-block;background:#ff6b00;color:#fff;text-decoration:none;padding:14px 24px;border-radius:28px;font-weight:bold">View E-Receipt</a><p style="font-size:13px;color:#64748b;margin-top:24px">Open Local Life Service Assistant for your booking status.</p></div></div>` };
 }
 
 export async function sendReceipt(job: Job, deps: Dependencies): Promise<string> {
   // Resend's shared testing sender can deliver only to its verified account owner.
   // Never redirect a different customer's receipt to that mailbox.
   const testRecipient = deps.env('RECEIPT_TEST_RECIPIENT')?.trim().toLowerCase();
-  const from = required(deps, 'RECEIPT_FROM_EMAIL');
+  const configuredFrom = required(deps, 'RECEIPT_FROM_EMAIL').trim();
+  // Keep the verified sending mailbox; the product display name is app-owned.
+  const mailbox = configuredFrom.match(/<([^<>]+)>$/)?.[1] ?? configuredFrom;
+  if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(mailbox)) throw new Error('Invalid receipt sender');
+  const from = `Local Life Service Assistant <${mailbox}>`;
   if (/@resend\.dev\b/i.test(from) && !testRecipient) throw new Error('Test recipient required');
   if (testRecipient && job.payload.email?.trim().toLowerCase() !== testRecipient) return 'rejected';
   const message = receiptMessage(job.payload);

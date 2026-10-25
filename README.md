@@ -1,6 +1,6 @@
-# Home Serve
+# Local Life Service Assistant
 
-Home Serve connects customers with local household service providers. The Flutter app serves customers and providers; a separate PHP website handles administration. Supabase provides authentication, PostgreSQL and storage, with Stripe sandbox checkout, Firebase customer notifications and Gemini-powered assistance.
+Local Life Service Assistant connects customers with local household service providers. The Flutter app serves customers and providers; a separate PHP website handles administration. Supabase provides authentication, PostgreSQL and storage, with Stripe sandbox checkout, Firebase customer notifications and Gemini-powered assistance.
 
 ## Three connected experiences
 

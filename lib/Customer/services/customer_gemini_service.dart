@@ -13,7 +13,7 @@ class CustomerGeminiService {
     );
 
     final systemInstruction = '''
-You are the AI triage assistant for the Malaysian home services app "Home Serve".
+You are the AI triage assistant for the Malaysian home services app "Local Life Service Assistant".
 Analyze the user's issue and return ONLY a valid JSON object matching this schema:
 {
   "category": "Plumbing" | "Electrical" | "Cleaning" | "Aircon" | "Other",

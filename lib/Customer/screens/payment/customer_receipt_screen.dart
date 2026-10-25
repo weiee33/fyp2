@@ -112,12 +112,14 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                         size: 28,
                       ),
                       SizedBox(width: 10),
-                      Text(
-                        tr('HOME SERVE'),
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFFFF6B00),
+                      Expanded(
+                        child: Text(
+                          tr('Local Life Service Assistant'),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFFFF6B00),
+                          ),
                         ),
                       ),
                     ],

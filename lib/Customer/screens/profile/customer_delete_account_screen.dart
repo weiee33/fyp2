@@ -53,7 +53,7 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
         context,
         title: tr('Account deleted'),
         message: tr(
-          'Your account has been deleted. You must register again to use Home Serve.',
+          'Your account has been deleted. You must register again to use Local Life Service Assistant.',
         ),
       );
       if (mounted)
