@@ -5,6 +5,7 @@ import '../../shared/localization/app_language.dart';
 import '../../shared/portal_entry_screen.dart';
 import '../screens/support/customer_support_screen.dart';
 import '../services/customer_access.dart';
+import '../core/customer_theme.dart';
 
 final customerNavigatorKey = GlobalKey<NavigatorState>();
 final customerAccessObserver = CustomerAccessObserver();
@@ -167,11 +168,21 @@ class _CustomerAccessHostState extends State<CustomerAccessHost> {
           ),
         ),
         actions: [
-          TextButton(
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              shape: CustomerTheme.actionShape,
+              foregroundColor: CustomerTheme.primary,
+              side: const BorderSide(color: CustomerTheme.primary),
+            ),
             onPressed: () => Navigator.pop(context, false),
             child: Text(tr('OK')),
           ),
           FilledButton(
+            style: FilledButton.styleFrom(
+              shape: CustomerTheme.actionShape,
+              backgroundColor: CustomerTheme.primary,
+              foregroundColor: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: Text(tr('Help Centre')),
           ),

@@ -30,6 +30,9 @@ It receives events for this account only, uses API version **2025-02-24.acacia**
 - `checkout.session.async_payment_succeeded`
 - `checkout.session.async_payment_failed`
 - `checkout.session.expired`
+- `refund.created`
+- `refund.updated`
+- `refund.failed`
 
 The connector connection does not automatically transfer API keys or webhook secrets into Supabase. Creating the webhook alone does not confirm a working end-to-end payment.
 
@@ -43,8 +46,22 @@ Current references: [Stripe API keys](https://docs.stripe.com/keys), [FPX accoun
 4. Open secure payment, choose a test FPX bank, and exercise the success and failure outcomes supported by Stripe's test page. Return to the app. It checks status every five seconds for up to one minute; you can also select Check payment status. A browser redirect alone is never evidence of payment.
 5. For success, verify a single stored payment, the matching amount/reference in the receipt, and both parties' notifications. Resend the same Stripe event: there must still be one payment. Failed or abandoned attempts must not create a receipt.
 6. Confirm service start is refused without payment or more than one hour before the appointment. Complete a paid service when eligible; submit one customer review and verify the provider aggregate. A second review must fail.
-7. Cancel a paid upcoming booking and inspect its administrator refund-review dispute. No automated refund or provider payout is implemented by this test checkout.
+7. Cancel a paid upcoming booking and inspect its administrator refund-review dispute. A Super Admin can open its linked refund request and choose **Submit refund to Stripe**. Verify its confirmed state in the customer Help Centre and analytics. Provider payouts are separate.
 
 Missing credentials produce a controlled configuration error. Live `sk_live_` keys and live callbacks are rejected. Tests written in this repository use mocks/synthetic database records; a real Stripe sandbox checkout remains to be exercised after configuration.
 
 Stripe Checkout is hosted externally and the app refreshes on return. [Checkout API](https://docs.stripe.com/api/checkout/sessions/create) and [webhook signature verification](https://docs.stripe.com/webhooks/signature) describe the external contracts.
+
+## Refund operations
+
+Deploy migration `20261025111534_refund_lifecycle.sql`, followed by `20261025111755_refund_rpc_boundary.sql`, then `admin-refund` and the updated `fpx-webhook` with `_shared/refunds.ts`. Keep the existing Stripe sandbox secret and webhook signing secret. Subscribe the existing endpoint to the refund events listed above as well as checkout events.
+
+A Super Admin with verified MFA can request a refund directly from a booking or a booking support case. Review its amount, then submit to Stripe. The same request ID is used as the Stripe idempotency key. Pending requests reserve funds; successful partial refunds reduce the remaining balance. A fully confirmed refund changes payment to Refunded and cancels an unfinished booking. Completed services keep their historical completion status.
+
+The refund page's **Refresh refund status** reconciles with Stripe. Webhooks do the same automatically. Unknown network outcomes keep the amount reserved; never create another request to recover a timeout. After 23 hours, an unresolved submission without a matching Stripe reference requires operator reconciliation, because Stripe idempotency keys are not permanent. Definitive gateway rejections are marked Failed. Bank-return failures can reverse an earlier confirmation; the ledger and analytics then reflect the current gateway result.
+
+Customers, including suspended customers, see the amount, status and reference in the linked Help Centre case. A successful Stripe refund does not mean their bank has already credited the funds. Admin-authored internal dispute text and attachments are not exposed through a refund-only support view.
+
+Analytics reads current database state for each applied filter snapshot and refreshes while idle every 30 seconds. Gross uses payment receipt dates; confirmed refunds use confirmation dates; net collected is their difference and can be negative. Pending refund amounts span all dates within service filters. Status counts use request creation dates. CSV and PDF use the same applied filters. Platform fees are historical recorded earnings, not refund-adjusted profit.
+
+Regression: run `admin_regression.sql` then `refund_regression.sql` in one transaction ending with `ROLLBACK`; run `node --experimental-strip-types --test supabase/tests/refund_edge.test.mjs`. No existing customer payment should be used for an automated refund test.

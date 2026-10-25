@@ -49,7 +49,7 @@ Analytics exports CSV or PDF using the last applied filters. Select chart points
 ## Backend and integrations
 
 - **Database:** `supabase/migrations` contains upgrades to the existing FYP schema, not a complete empty-project bootstrap. Check applied migration history before upgrading; do not replay installed migrations.
-- **Payments:** Stripe remains in sandbox mode. Payment success is recorded by verified gateway events, never by the client. Admin refund requests record an intention; they do not themselves move money. See [payment setup](docs/fpx-test-setup.md).
+- **Payments:** Stripe remains in sandbox mode. Payment success is recorded by verified gateway events, never by the client. Super Admins review and submit refunds from the booking or support request. Stripe-confirmed results update payment status, customer Help Centre and analytics. See [payment setup](docs/fpx-test-setup.md).
 - **Notifications and receipts:** customer push and receipt-email delivery use the delivery worker. The shared email test sender supports only its configured owner mailbox; other recipients require a verified domain. See [delivery setup](docs/customer-alerts-and-receipts.md).
 - **Support:** customer questions, complaints and booking requests appear in **Support & disputes**. Admin responses appear on the customer's matching request in its separate Support response card.
 

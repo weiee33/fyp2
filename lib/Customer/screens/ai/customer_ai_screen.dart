@@ -1335,7 +1335,7 @@ class AiHalo extends StatelessWidget {
     width: size,
     height: size,
     decoration: BoxDecoration(
-      shape: BoxShape.circle,
+      borderRadius: BorderRadius.circular(12),
       color: CustomerTheme.primary,
       border: Border.all(color: Colors.white, width: 2),
       boxShadow: [

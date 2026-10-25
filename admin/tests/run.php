@@ -261,6 +261,14 @@ try {
             assertThat(str_contains($response['body'],$version),'Missing record version on '.$page.' detail.');
         }
     });
+    test('refund detail submits only the selected ID through the authenticated server',function() use ($record): void {
+        $response=request('GET',['page'=>'refunds','id'=>$record]); expectStatus($response,200);
+        assertThat(str_contains($response['body'],'Submit refund to Stripe'),'Missing process action.');
+        $result=request('POST',['page'=>'refunds','id'=>$record],['csrf'=>csrfToken($response),'action'=>'refund_process','record_id'=>$record,'amount'=>'1']);
+        expectStatus($result,303);
+        $calls=logs('/functions/v1/admin-refund'); $last=end($calls);
+        assertThat($last['body']===['refund_id'=>$record] && $last['token']==='fixture-access-aal2','Untrusted amount or wrong token forwarded.');
+    });
     test('provider working hours align day zero with Monday',function() use ($record): void {
         $response=request('GET',['page'=>'providers','id'=>$record]); expectStatus($response,200);
         assertThat(preg_match('~<dt>Monday</dt>\s*<dd>09:00–17:00</dd>~u',$response['body'])===1,'Day-zero working hours were assigned to the wrong weekday.');

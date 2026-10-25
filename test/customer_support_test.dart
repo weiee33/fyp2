@@ -22,6 +22,8 @@ import 'customer_accounts_chat_test.dart' as capture;
 import 'customer_workflow_test.dart' as workflow;
 
 class SupportFixture extends CustomerSupportService {
+  final List<Map<String, dynamic>> refunds;
+  SupportFixture({this.refunds = const []});
   int attempts = 0;
   final ids = <String>[];
   final bookingIds = <String?>[];
@@ -60,6 +62,7 @@ class SupportFixture extends CustomerSupportService {
       'resolution':
           'Please open My Addresses and select the address you want to update.',
       'attachment_paths': <String>[],
+      'refunds': refunds,
     },
   ];
 }
@@ -83,6 +86,42 @@ void main() {
             ).readAsBytes().then(ByteData.sublistView),
           ))
           .load();
+  });
+
+  testWidgets('refund progress is separate from the staff support response', (
+    t,
+  ) async {
+    capture.pixel(t);
+    await AppLanguage.instance.select('en');
+    await t.pumpWidget(
+      capture.app(
+        CustomerSupportDetailScreen(
+          id: 'ticket-1',
+          service: SupportFixture(
+            refunds: [
+              {
+                'refund_id': 'refund-1',
+                'amount': 40,
+                'status': 'Succeeded',
+                'gateway_reference': 're_test',
+                'updated_at': '2026-10-25T08:00:00Z',
+              },
+            ],
+          ),
+        ),
+      ),
+    );
+    await t.pumpAndSettle();
+    expect(find.text('Refund status'), findsOneWidget);
+    expect(find.text('Succeeded · RM 40.00'), findsOneWidget);
+    expect(find.text('Refund reference: re_test'), findsOneWidget);
+    await t.scrollUntilVisible(
+      find.text('Support response'),
+      180,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('Support response'), findsOneWidget);
+    expect(t.takeException(), isNull);
   });
 
   test('lost final response recovers ticket without uploading again', () async {

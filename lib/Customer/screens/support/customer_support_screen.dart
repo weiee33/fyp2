@@ -679,6 +679,48 @@ class _DetailState extends State<CustomerSupportDetailScreen> {
                 ),
               ),
               const SizedBox(height: 16),
+              for (final refund in (row['refunds'] as List? ?? [])) ...[
+                SupportCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        tr('Refund status'),
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '${tr(refund['status'] as String)} · RM ${(refund['amount'] as num).toStringAsFixed(2)}',
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        tr(switch (refund['status']) {
+                          'Succeeded' =>
+                            'Stripe confirmed this refund. Your bank may take additional time to credit your original payment method.',
+                          'Failed' || 'Cancelled' =>
+                            'This refund did not complete. Contact support for help.',
+                          'Processing' =>
+                            'Your refund is being processed. Pull down to check its latest status.',
+                          _ => 'Your refund request is awaiting processing.',
+                        }),
+                      ),
+                      if (refund['gateway_reference'] != null) ...[
+                        const SizedBox(height: 8),
+                        SelectableText(
+                          '${tr('Refund reference')}: ${refund['gateway_reference']}',
+                        ),
+                      ],
+                      const SizedBox(height: 8),
+                      Text(
+                        _date(refund['updated_at']),
+                        style: Theme.of(context).textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
               for (final path in (row['attachment_paths'] as List? ?? []))
                 Padding(
                   padding: const EdgeInsets.only(bottom: 12),

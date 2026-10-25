@@ -3,12 +3,12 @@ declare(strict_types=1);
 // Only the authorized, applied reporting result is sent to the chart. Zoom and
 // inspection are local views of this result; neither changes export filters.
 $chartSeries = $chartKind === 'revenue'
-    ? [['key'=>'gross_collected','label'=>'Gross collected','color'=>'#ea580c','money'=>true]]
+    ? [['key'=>'gross_collected','label'=>'Gross collected','color'=>'#ea580c','money'=>true],['key'=>'refunded','label'=>'Confirmed refunds','color'=>'#dc2626','money'=>true]]
     : [['key'=>'bookings','label'=>'Bookings','color'=>'#ea580c','money'=>false],
        ['key'=>'users','label'=>'New users · global','color'=>'#5979a3','money'=>false]];
 $chartRows = array_map(static fn(array $day): array => [
     'date'=>(string)$day['date'], 'bookings'=>(int)$day['bookings'],
-    'users'=>(int)$day['users'], 'gross_collected'=>(float)($day['gross_collected'] ?? 0),
+    'refunded'=>(float)($day['refunded'] ?? 0), 'users'=>(int)$day['users'], 'gross_collected'=>(float)($day['gross_collected'] ?? 0),
 ], $daily);
 ?>
 <div class="market-chart" data-market-chart data-rows="<?= e(json_encode($chartRows, JSON_THROW_ON_ERROR)) ?>" data-series="<?= e(json_encode($chartSeries, JSON_THROW_ON_ERROR)) ?>" data-title="<?= $chartKind === 'revenue' ? 'Gross collection trend' : 'Community activity' ?>">

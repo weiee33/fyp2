@@ -689,3 +689,7 @@ button.metric-card:hover,button.metric-card:focus-visible{border-color:#f97316;b
     .market-toolbar button { min-height:36px; }
 }
 @media print { .market-toolbar,.market-navigator,.market-help { display:none; } }
+.record-dialog.refund-dialog { width: min(720px,calc(100vw - 48px)); }
+.refund-dialog .record-sections { display: none; }
+.refund-dialog .refund-total { display: block; font-size: 28px; margin-top: 12px; }
+.refund-dialog .stack-form { margin-top: 20px; }

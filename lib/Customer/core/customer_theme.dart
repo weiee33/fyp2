@@ -93,6 +93,10 @@ class CustomerTheme {
           elevation: 0,
         ),
       ),
+      filledButtonTheme: const FilledButtonThemeData(style: actionOutline),
+      outlinedButtonTheme: const OutlinedButtonThemeData(style: actionOutline),
+      textButtonTheme: const TextButtonThemeData(style: actionOutline),
+      iconButtonTheme: const IconButtonThemeData(style: actionOutline),
       inputDecorationTheme: InputDecorationTheme(
         errorMaxLines: 3,
         filled: true,
@@ -147,6 +151,9 @@ class CustomerActionTheme extends StatelessWidget {
         ),
         textButtonTheme: TextButtonThemeData(
           style: shaped(theme.textButtonTheme.style),
+        ),
+        iconButtonTheme: IconButtonThemeData(
+          style: shaped(theme.iconButtonTheme.style),
         ),
       ),
       child: child,
