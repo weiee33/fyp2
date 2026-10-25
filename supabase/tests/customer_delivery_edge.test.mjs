@@ -5,7 +5,7 @@ import {generateKeyPairSync, createVerify} from 'node:crypto';
 const now=Date.UTC(2026,9,16);
 const secret='a'.repeat(64);
 const job={id:'job-1',lease_id:'lease-1',notification_id:'notice-1',token:'device-token',expires_at:new Date(now+600000).toISOString(),payload:{title:'Your slot was accepted',language:'en',test_mode:true,amount_sen:10000,email:'receipt@example.invalid',receipt_url:'https://pay.stripe.com/receipts/payment/fixture'}};
-const env={DELIVERY_WORKER_SECRET:secret,SUPABASE_URL:'https://db.invalid',SUPABASE_SERVICE_ROLE_KEY:'service-fixture',RESEND_API_KEY:'email-fixture',RECEIPT_FROM_EMAIL:'Home Serve <receipts@example.invalid>'};
+const env={DELIVERY_WORKER_SECRET:secret,SUPABASE_URL:'https://db.invalid',SUPABASE_SERVICE_ROLE_KEY:'service-fixture',RESEND_API_KEY:'email-fixture',RECEIPT_FROM_EMAIL:'Local Life Service Assistant <receipts@example.invalid>'};
 const deps=(fetch,extra={})=>({fetch,now:()=>now,env:n=>({...env,...extra})[n]});
 const json=(x,status=200)=>new Response(JSON.stringify(x),{status});
 const request=(token=secret)=>new Request('https://worker.invalid',{method:'POST',headers:{Authorization:`Bearer ${token}`}});
@@ -62,12 +62,24 @@ test('booking request and payment success have meaningful phone alert copy',()=>
 test('shared Resend sender requires an owner restriction and never redirects another customer receipt',async()=>{
  let calls=0;
  const fetch=async(_,options)=>{calls++;assert.deepEqual(JSON.parse(options.body).to,['receipt@example.invalid']);return json({id:'sent'});};
- const config={RECEIPT_FROM_EMAIL:'Home Serve <onboarding@resend.dev>'};
+ const config={RECEIPT_FROM_EMAIL:'Local Life Service Assistant <onboarding@resend.dev>'};
  await assert.rejects(()=>sendReceipt(job,deps(fetch,config)),/Test recipient required/);
  assert.equal(await sendReceipt(job,deps(fetch,{...config,RECEIPT_TEST_RECIPIENT:'someone@example.invalid'})),'rejected');
  assert.equal(calls,0);
  assert.equal(await sendReceipt(job,deps(fetch,{...config,RECEIPT_TEST_RECIPIENT:'receipt@example.invalid'})),'sent');
  assert.equal(calls,1);
+});
+test('receipt branding updates the display name without changing the verified mailbox or idempotency key',async()=>{
+ const fetch=async(_,options)=>{
+  const message=JSON.parse(options.body);
+  assert.equal(message.from,'Local Life Service Assistant <receipts@example.invalid>');
+  assert.match(message.subject,/^Local Life Service Assistant/);
+  assert.match(message.html,/Local Life Service Assistant/);
+  assert.equal(options.headers['Idempotency-Key'],`home-serve-receipt-${job.id}`);
+  return json({id:'sent'});
+ };
+ assert.equal(await sendReceipt(job,deps(fetch,{RECEIPT_FROM_EMAIL:'Legacy display <receipts@example.invalid>'})),'sent');
+ await assert.rejects(()=>sendReceipt(job,deps(fetch,{RECEIPT_FROM_EMAIL:'bad\r\nsender'})),/Invalid receipt sender/);
 });
 test('Firebase assertion is signed with messaging-only scope and a bounded lifetime',async()=>{
  const pair=generateKeyPairSync('rsa',{modulusLength:2048});

@@ -49,7 +49,7 @@ class LocalLifeApp extends StatelessWidget {
       ),
       scrollBehavior: const AppScrollBehavior(),
       theme: CustomerTheme.lightTheme,
-      title: 'Home Serve',
+      title: 'Local Life Service Assistant',
       locale: AppLanguage.instance.locale,
       supportedLocales: AppLanguage.supported,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

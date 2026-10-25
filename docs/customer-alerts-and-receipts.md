@@ -4,12 +4,12 @@
 
 - Android app `com.example.fyp2` is registered in Firebase project `local-life-service-assistant`. The checked-in `google-services.json` contains public app configuration, not server credentials.
 - Supabase project `znxhiymvmluxmdaxzxkt` dispatches `customer-delivery` immediately after a delivery job commits, with a minute scheduler for recovery. Push delivery is enabled.
-- Resend's free email service is provisioned through Stripe Projects. Its API key is stored in Supabase Vault. **Sandbox email delivery is enabled only for the verified Resend account owner.** The shared testing sender is `Home Serve <onboarding@resend.dev>`. Other recipients require a verified sending domain.
-- Payments remain in Stripe sandbox mode. Checkout uses Home Serve's orange button, rounded corners and white background. Stripe's external FPX test authorization page is owned by Stripe and cannot be restyled by this app.
+- Resend's free email service is provisioned through Stripe Projects. Its API key is stored in Supabase Vault. **Sandbox email delivery is enabled only for the verified Resend account owner.** The shared testing sender is `Local Life Service Assistant <onboarding@resend.dev>`. Other recipients require a verified sending domain.
+- Payments remain in Stripe sandbox mode. Checkout uses Local Life Service Assistant's orange button, rounded corners and white background. Stripe's external FPX test authorization page is owned by Stripe and cannot be restyled by this app.
 
 ## Phone alerts
 
-The customer app requests notification permission once after sign-in. If Android permission is denied, enable notifications in the phone's app settings and reopen Home Serve. Registration runs automatically; there is no separate Phone Alerts row in Account Settings.
+The customer app requests notification permission once after sign-in. If Android permission is denied, enable notifications in the phone's app settings and reopen Local Life Service Assistant. Registration runs automatically; there is no separate Phone Alerts row in Account Settings.
 
 Tokens are bound to a Supabase auth session and customer account, with at most five devices per account. Logout removes the registration where possible, revokes the session, clears local alerts and deletes the Firebase token. The worker excludes revoked sessions, inactive customers, dismissed notifications and expired/paid booking acceptance prompts. In-app read status does not suppress important phone alerts: opening an in-app notification does not prove that Android displayed it. The worker removes permanently invalid Firebase tokens. Notification taps recheck ownership before opening Booking Details.
 
@@ -23,7 +23,7 @@ The verified Stripe webhook records payment and queues a receipt atomically. The
 
 ### Finding a receipt email
 
-Stripe does not automatically email customers in sandboxes by default ([Stripe testing guide](https://docs.stripe.com/testing-use-cases#test-email)). This app instead sends its verified sandbox receipt through Resend, with subject **Home Serve — Payment Receipt (Sandbox)** and the Home Serve sender described above. Search that subject in All Mail, Spam and Promotions, using the mailbox entered during Checkout; it can differ from the app account's email.
+Stripe does not automatically email customers in sandboxes by default ([Stripe testing guide](https://docs.stripe.com/testing-use-cases#test-email)). This app instead sends its verified sandbox receipt through Resend, with subject **Local Life Service Assistant — Payment Receipt (Sandbox)** and the Local Life Service Assistant sender described above. Search that subject in All Mail, Spam and Promotions, using the mailbox entered during Checkout; it can differ from the app account's email.
 
 For a delivery investigation, locate the payment's `receipt:<payment_id>` outbox job. Its payload holds the Checkout email and Stripe receipt link. A null `payments.receipt_url` alone does not prove that the receipt link is missing. Queue state `sent` means the email API accepted the request; check the corresponding Resend email's delivery event and recipient as well. A `delivered` event confirms delivery to the recipient's mail server, not placement in the inbox or that the customer read it. Do not resend while investigating without an explicit request.
 
@@ -62,4 +62,4 @@ On a physical Android phone with Google Play services:
 3. Repeat in the foreground, then with the app normally closed. Verify only one notification appears for each event. Android force-stop is not equivalent to normal closing.
 4. Check logout/account switching does not expose another customer's booking. Verify dismissed, paid and expired acceptance jobs do not produce stale payment prompts.
 
-On 17 October 2026, Firebase accepted a diagnostic message to the registered owner device and the owner confirmed that the alert appeared while Home Serve was in the background. Resend reported both queued owner sandbox receipts as delivered. Booking-event timing and tap navigation should still be checked through the acceptance flow above. This configuration covers Android; iOS/APNs and web push are not configured.
+On 17 October 2026, Firebase accepted a diagnostic message to the registered owner device and the owner confirmed that the alert appeared while Local Life Service Assistant was in the background. Resend reported both queued owner sandbox receipts as delivered. Booking-event timing and tap navigation should still be checked through the acceptance flow above. This configuration covers Android; iOS/APNs and web push are not configured.

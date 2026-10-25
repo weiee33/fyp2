@@ -129,7 +129,7 @@ try {
             if ($page==='analytics' && $_GET['export']==='pdf') {
                 $pdf=\LocalLife\AnalyticsPdf::render($data);
                 header('Content-Type: application/pdf');
-                header('Content-Disposition: attachment; filename="home-serve-analytics-'.$from.'-'.$to.'.pdf"');
+                header('Content-Disposition: attachment; filename="local-life-service-assistant-analytics-'.$from.'-'.$to.'.pdf"');
                 header('Content-Length: '.strlen($pdf));
                 echo $pdf; exit;
             }

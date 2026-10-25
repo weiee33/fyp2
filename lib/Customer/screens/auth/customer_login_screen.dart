@@ -113,7 +113,7 @@ class _CustomerLoginScreenState extends State<CustomerLoginScreen> {
                     const SizedBox(height: 16),
                     Center(
                       child: Text(
-                        tr('Welcome to Home Serve'),
+                        tr('Welcome to Local Life Service Assistant'),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 22,

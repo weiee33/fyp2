@@ -20,7 +20,7 @@ class CustomerDialogs {
   static Future<void> show(
     BuildContext context, {
     required String message,
-    String title = 'Home Serve',
+    String title = 'Local Life Service Assistant',
   }) async {
     final Object owner =
         context; // Identity only; no widget access after disposal.

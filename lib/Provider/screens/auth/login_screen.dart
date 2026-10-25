@@ -142,7 +142,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 // ---- Title ----
                 Center(
                   child: Text(
-                    tr('Welcome to Home Serve'),
+                    tr('Welcome to Local Life Service Assistant'),
+                    textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 22,
                       fontWeight: FontWeight.bold,

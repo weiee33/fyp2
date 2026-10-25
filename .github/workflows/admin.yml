@@ -21,6 +21,10 @@ jobs:
       - name: Check PHP syntax
         run: find admin -path admin/vendor -prune -o -name '*.php' -print0 | xargs -0 -n1 php -l
       - name: Check browser script syntax
-        run: node --check admin/public/assets/admin.js
+        run: |
+          node --check admin/public/assets/admin.js
+          node --check admin/public/assets/analytics-chart.js
+      - name: Test chart inspection and viewport boundaries
+        run: node --test admin/tests/analytics_chart.test.cjs
       - name: Test isolated admin workflows
         run: php admin/tests/run.php

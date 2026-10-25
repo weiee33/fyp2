@@ -103,7 +103,7 @@ void main() {
           home: AgentSurface(
             name: 'explore',
             child: Scaffold(
-              appBar: AppBar(title: const Text('Home Serve')),
+              appBar: AppBar(title: const Text('Local Life Service Assistant')),
               body: ListView(
                 padding: const EdgeInsets.all(24),
                 children: [

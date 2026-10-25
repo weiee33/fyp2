@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 catalog = json.loads((ROOT / 'assets/l10n/messages.json').read_text(encoding='utf-8'))
 slots = re.compile(r'\{\d+\}')
 # Brand names, input examples, and format-only values intentionally stay literal.
-literals = {'Home Serve', 'Home Serve AI', 'HOME SERVE', 'FPX', 'GrabPay',
+literals = {'Local Life Service Assistant', 'Local Life Service Assistant AI', 'Local Life Service Assistant', 'FPX', 'GrabPay',
             'Sarah Tan', 'name@example.com', 'user@example.com',
             '© OpenStreetMap contributors'}
 errors = []

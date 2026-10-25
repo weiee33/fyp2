@@ -1,6 +1,16 @@
-# Home Serve branding and languages
+# Local Life Service Assistant branding and languages
 
-The mobile app displays Home Serve on Android and iOS. Its existing package and bundle identifiers are unchanged so this remains an update to the same app. The original logo attachment was unavailable, so the committed artwork is an original orange house/checkmark design. `tool/generate_brand_assets.py` reproduces launcher, adaptive, monochrome, launch, and web images from the source design with Pillow.
+## Current name and release checklist
+
+The customer/provider app, admin website, translations, exported reports, receipt emails, notification copy and AI instructions use **Local Life Service Assistant**. Long screen titles wrap; the AI header has room for the full name and conversation title. The admin navigation uses a compact two-line brand. Receipt email display names come from the application while the verified sender mailbox is retained.
+
+Release the Flutter build and the updated admin assets, including `admin/public/assets/analytics-chart.js`. Deploy the changed shared code through `customer-assistant`, `customer-visual-agent`, `customer-delivery` and `payment-return`. This release does not require a database migration. Existing package identifiers, preference keys, asset identifiers, Firebase resource names and payment/email idempotency keys remain stable so upgrades preserve installations, settings and retries.
+
+Stripe-hosted account branding and Supabase Auth email templates are configured separately from application source. Check their public display/sender names during deployment. The Stripe connector required reauthentication during this review, so its account display name could not be verified. Do not change verified email domains or financial statement descriptors as part of a visual rename. Historical customer content and previously issued external receipts remain records of what was originally sent.
+
+For the interactive analytics controls and suspended-account behavior, see [Analytics reports and suspended customer access](analytics-suspension.md).
+
+The mobile app displays Local Life Service Assistant on Android and iOS. Its existing package and bundle identifiers are unchanged so this remains an update to the same app. The original logo attachment was unavailable, so the committed artwork is an original orange house/checkmark design. `tool/generate_brand_assets.py` reproduces launcher, adaptive, monochrome, launch, and web images from the source design with Pillow.
 
 Startup shows the native logo before Flutter, then an 850 ms scale/fade and a 300 ms transition to shared Login. Reduced-motion users get a static mark. Startup errors expose Retry; startup work is shared while a previous attempt is still pending so retries do not initialize Supabase twice.
 

@@ -415,6 +415,12 @@ try {
         expectStatus(request('GET',['page'=>'analytics','from'=>'2026-02-31','to'=>'2026-10-01']),400);
         assertThat(count(logs('/rest/v1/rpc/admin_analytics'))===$before,'Invalid calendar date reached backend.');
     });
+    test('chart browser asset is served as JavaScript rather than the authenticated HTML router',function(): void {
+        $response=request('GET',[],null,[],'/assets/analytics-chart.js');
+        expectStatus($response,200);
+        assertThat(str_contains($response['headers']['content-type'][0]??'','javascript'),'Chart asset was not JavaScript.');
+        assertThat(str_contains($response['body'],'class ChartWindow'),'Chart runtime missing.');
+    });
     test('analytics UUID, region and date filters reach the shared RPC contract',function() use ($record): void {
         $response=request('GET',['page'=>'analytics','from'=>'2026-10-01','to'=>'2026-10-01','category_id'=>$record,'region'=>'Selangor','provider_id'=>$record]); expectStatus($response,200);
         $entries=logs('/rest/v1/rpc/admin_analytics'); $entry=end($entries);

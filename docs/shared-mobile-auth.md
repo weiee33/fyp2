@@ -1,6 +1,6 @@
 # Shared mobile sign-in
 
-After the existing launch animation, Home Serve opens the orange customer-style
+After the existing launch animation, Local Life Service Assistant opens the orange customer-style
 Login screen. The former portal entry widget remains as a compatibility route for
 startup, sign-out and account deletion, but renders the shared login directly.
 

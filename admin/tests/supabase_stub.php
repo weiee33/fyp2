@@ -150,6 +150,18 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
         $from=new DateTimeImmutable($body['date_from']); $to=new DateTimeImmutable($body['date_to']);
         if ($to<$from || $from->diff($to)->days>366) { respond(['code'=>'P0001','message'=>'Choose a date range of at most 367 days'],400); }
         $analytics=['from'=>$body['date_from'],'to'=>$body['date_to'],'timezone'=>'Asia/Kuala_Lumpur','users'=>12,'new_users'=>2,'bookings'=>21,'active_bookings'=>3,'pending_providers'=>1,'open_disputes'=>1,'flagged_reviews'=>1,'gross_collected'=>'1680.00','platform_fees'=>'168.00','refunds_requested'=>'80.00','avg_rating'=>'4.50','daily'=>[['date'=>'2026-10-01','bookings'=>2,'users'=>1,'gross_collected'=>'160.00']],'providers'=>[['business_name'=>'Fixture Plumbing','bookings'=>21,'completed'=>18,'overall_rating'=>'4.8']],'category_choices'=>[['category_id'=>$record,'category_name'=>'Plumbing','parent_category_id'=>null]],'region_choices'=>['Selangor','Kuala Lumpur'],'provider_choices'=>[['provider_id'=>$record,'business_name'=>'Fixture Plumbing','region'=>'Selangor']],'selected_filters'=>['category_id'=>$body['category_filter']??null,'region'=>$body['region_filter']??null,'provider_id'=>$body['provider_filter']??null],'categories'=>[['category_id'=>$record,'category_name'=>'Plumbing','bookings'=>21,'completed'=>18,'gross_collected'=>'1680.00']],'scope_note'=>'User registration and pending-provider metrics remain global. Booking, payment and performance metrics respect selected service filters.'];
+        if (!empty($fixtureState['visual_preview'])) {
+            $analytics['daily']=[];
+            for($day=$from,$index=0;$day<=$to;$day=$day->modify('+1 day'),$index++) {
+                $bookings=[2,5,3,0,4,7,3,6,2,8,5,4][$index%12];
+                $analytics['daily'][]=['date'=>$day->format('Y-m-d'),'bookings'=>$bookings,'users'=>[1,2,0,3,1,0,2][$index%7],'gross_collected'=>(string)($bookings*60+($index%3)*20)];
+            }
+            $analytics['bookings']=array_sum(array_column($analytics['daily'],'bookings'));
+            $analytics['new_users']=array_sum(array_column($analytics['daily'],'users'));
+            $analytics['gross_collected']=array_sum(array_column($analytics['daily'],'gross_collected'));
+            $analytics['categories'][0]['bookings']=$analytics['bookings'];
+            $analytics['categories'][0]['gross_collected']=$analytics['gross_collected'];
+        }
         if (!empty($fixtureState['zero_bookings'])) {
             $analytics['bookings']=0; $analytics['gross_collected']='75.00';
             $analytics['daily']=[['date'=>'2026-10-01','bookings'=>0,'users'=>1,'gross_collected'=>'75.00']];

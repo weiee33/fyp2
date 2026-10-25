@@ -210,7 +210,7 @@ void main() {
       capture.app(CustomerAiScreen(service: service, speech: FakeSpeech())),
     );
     expect(find.byTooltip('New chat'), findsNothing);
-    final title = t.getCenter(find.text('Home Serve AI').first);
+    final title = t.getCenter(find.text('Local Life Service Assistant AI').first);
     final subtitle = t.getCenter(find.text('New chat'));
     expect(subtitle.dx, closeTo(title.dx, 1));
     await capture.proof(t, 'ai-welcome-redesign');
@@ -311,7 +311,7 @@ void main() {
       expect(find.text('Notifications content'), findsOneWidget);
       await t.tap(find.text('AI'));
       await t.pumpAndSettle();
-      expect(find.text('Home Serve AI'), findsOneWidget);
+      expect(find.text('Local Life Service Assistant AI'), findsOneWidget);
       await t.tap(find.byTooltip('Close assistant'));
       await t.pumpAndSettle();
       expect(find.text('Notifications content'), findsOneWidget);

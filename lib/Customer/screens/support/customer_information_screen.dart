@@ -15,7 +15,7 @@ class CustomerInformationScreen extends StatelessWidget {
             (
               tr('Information you provide'),
               tr(
-                'Home Serve uses your account and contact details to maintain your account. Service addresses, booking instructions, messages, reviews and the photos you choose to upload support the features you use. Birthday and gender are optional profile details.',
+                'Local Life Service Assistant uses your account and contact details to maintain your account. Service addresses, booking instructions, messages, reviews and the photos you choose to upload support the features you use. Birthday and gender are optional profile details.',
               ),
             ),
             (
@@ -27,13 +27,13 @@ class CustomerInformationScreen extends StatelessWidget {
             (
               tr('Payments and receipts'),
               tr(
-                'Payment details are entered through Stripe. Home Serve records payment references, amounts and status to manage bookings and receipts; it does not collect your full payment card details in the app. The email address supplied during checkout may be used to deliver your receipt.',
+                'Payment details are entered through Stripe. Local Life Service Assistant records payment references, amounts and status to manage bookings and receipts; it does not collect your full payment card details in the app. The email address supplied during checkout may be used to deliver your receipt.',
               ),
             ),
             (
               tr('Technology that supports the service'),
               tr(
-                'Home Serve uses Supabase for account, database and file services, Firebase for supported phone notifications, and email services for transactional messages. When you use the AI assistant, your messages and selected attachments are processed to generate a response. Avoid including sensitive personal information in AI conversations.',
+                'Local Life Service Assistant uses Supabase for account, database and file services, Firebase for supported phone notifications, and email services for transactional messages. When you use the AI assistant, your messages and selected attachments are processed to generate a response. Avoid including sensitive personal information in AI conversations.',
               ),
             ),
             (
@@ -59,7 +59,7 @@ class CustomerInformationScreen extends StatelessWidget {
             (
               tr('Household services, organised'),
               tr(
-                'Home Serve brings service discovery, provider communication and booking management together. Explore available services, compare provider information and customer reviews, and choose a service that fits your needs.',
+                'Local Life Service Assistant brings service discovery, provider communication and booking management together. Explore available services, compare provider information and customer reviews, and choose a service that fits your needs.',
               ),
             ),
             (
@@ -77,12 +77,20 @@ class CustomerInformationScreen extends StatelessWidget {
             (
               tr('AI assistance, with you in control'),
               tr(
-                'Home Serve AI can help you explore services and plan a booking. AI responses can be inaccurate. Review the provider, price, address and appointment details before confirming any booking or payment.',
+                'Local Life Service Assistant AI can help you explore services and plan a booking. AI responses can be inaccurate. Review the provider, price, address and appointment details before confirming any booking or payment.',
               ),
             ),
           ];
     return CustomerScaffold(
-      appBar: AppBar(title: Text(tr(privacy ? 'Privacy' : 'About Home Serve'))),
+      appBar: AppBar(
+        toolbarHeight: privacy ? kToolbarHeight : 80,
+        title: Text(
+          tr(privacy ? 'Privacy' : 'About Local Life Service Assistant'),
+          textAlign: TextAlign.center,
+          maxLines: 3,
+          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+        ),
+      ),
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
@@ -102,7 +110,7 @@ class CustomerInformationScreen extends StatelessWidget {
                   tr(
                     privacy
                         ? 'Your information and choices'
-                        : 'Welcome to Home Serve',
+                        : 'Welcome to Local Life Service Assistant',
                   ),
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -113,7 +121,7 @@ class CustomerInformationScreen extends StatelessWidget {
                 Text(
                   tr(
                     privacy
-                        ? 'This notice explains how information is used across Home Serve and where you can manage it.'
+                        ? 'This notice explains how information is used across Local Life Service Assistant and where you can manage it.'
                         : 'A simpler way to find and manage help for your home.',
                   ),
                   textAlign: TextAlign.justify,

@@ -76,8 +76,8 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
     await rootBundle.load('assets/fonts/noto-sans-sc-regular.ttf'),
   );
   final doc = pw.Document(
-    title: tr("Home Serve payment receipt {0}", [receipt.number]),
-    author: 'Home Serve',
+    title: tr("Local Life Service Assistant payment receipt {0}", [receipt.number]),
+    author: 'Local Life Service Assistant',
   );
   const orange = PdfColor.fromInt(0xFFFF6B00);
   const green = PdfColor.fromInt(0xFF157347);
@@ -99,7 +99,7 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
           ),
           pw.SizedBox(height: 5),
           pw.Text(
-            tr("Home Serve  |  Page {0} of {1}", [
+            tr("Local Life Service Assistant  |  Page {0} of {1}", [
               context.pageNumber,
               context.pagesCount,
             ]),
@@ -109,7 +109,7 @@ Future<Uint8List> buildReceiptPdf(PaymentReceipt receipt) async {
       ),
       build: (_) => [
         pw.Text(
-          tr('HOME SERVE'),
+          tr('Local Life Service Assistant'),
           style: pw.TextStyle(
             fontSize: 26,
             fontWeight: pw.FontWeight.bold,

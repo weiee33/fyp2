@@ -1,4 +1,4 @@
-"""Reproducible, original Home Serve vector mark and platform icon exports.
+"""Reproducible, original Local Life Service Assistant vector mark and platform icon exports.
 Requires Pillow. No downloaded logo or third-party artwork is used.
 """
 from pathlib import Path
@@ -60,4 +60,4 @@ for size in [192,512]:
     for prefix in ['Icon','Icon-maskable']:
         mark(size).convert('RGB').save(ROOT/f'web/icons/{prefix}-{size}.png')
 mark(32,rounded=True).save(ROOT/'web/favicon.png')
-print('Generated Home Serve platform icons and launch artwork.')
+print('Generated Local Life Service Assistant platform icons and launch artwork.')

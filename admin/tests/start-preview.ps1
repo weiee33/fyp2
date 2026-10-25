@@ -25,7 +25,7 @@ Copy-Item -LiteralPath (Join-Path $repoRoot 'assets/fonts') -Destination (Join-P
 # Only this copied site gets the fixture label. No production source, .env or Auth bypass is changed.
 $layoutPath = Join-Path $siteRoot 'views\layout.php'
 $layout = Get-Content -LiteralPath $layoutPath -Raw
-$layout = $layout.Replace(' · Home Serve</title>', ' · FIXTURE PREVIEW · Home Serve</title>')
+$layout = $layout.Replace(' · Local Life Service Assistant</title>', ' · FIXTURE PREVIEW · Local Life Service Assistant</title>')
 $layout = $layout.Replace('<a class="skip-link"', '<div class="fixture-preview" role="status">TEST DATA PREVIEW · Local Supabase fixture · No real accounts or records</div><a class="skip-link"')
 Set-Content -LiteralPath $layoutPath -Value $layout -Encoding utf8
 $cssPath = Join-Path $siteRoot 'public\assets\admin.css'
@@ -33,7 +33,7 @@ Add-Content -LiteralPath $cssPath -Encoding utf8 -Value '.fixture-preview{positi
 $reportPath = Join-Path $siteRoot 'views\booking-report.php'
 if (Test-Path -LiteralPath $reportPath) {
     $report = Get-Content -LiteralPath $reportPath -Raw
-    $report = $report.Replace('Home Serve · Booking report</title>', 'FIXTURE PREVIEW · Home Serve · Booking report</title>')
+    $report = $report.Replace('Local Life Service Assistant · Booking report</title>', 'FIXTURE PREVIEW · Local Life Service Assistant · Booking report</title>')
     $report = $report.Replace('<div class="report-controls">', '<div class="report-controls"><p>TEST DATA PREVIEW · Synthetic booking records only</p>')
     Set-Content -LiteralPath $reportPath -Value $report -Encoding utf8
 }

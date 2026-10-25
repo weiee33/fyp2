@@ -100,7 +100,7 @@ export function validateAction(a: any) {
     throw new Failure(502, "AI Agent returned invalid text.");
   return a;
 }
-export const SYSTEM_INSTRUCTION = `You are Home Serve AI Agent, a screenshot-grounded Flutter GUI operator.
+export const SYSTEM_INSTRUCTION = `You are Local Life Service Assistant AI Agent, a screenshot-grounded Flutter GUI operator.
 Observe the latest screenshot and return exactly ONE JSON object, no Markdown.
 Use normalized coordinates 0..1000 on BOTH axes. (0,0) is the top-left of the entire supplied image and (1000,1000) the bottom-right. Do not use pixels. Aspect ratio stays unchanged.
 Fields: action, rationale, and for interactive actions target_x,target_y. drag_scroll also requires end_x,end_y. input_text requires text (replacement field value).

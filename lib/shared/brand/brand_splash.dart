@@ -9,7 +9,7 @@ class HomeServeMark extends StatelessWidget {
     'assets/brand/home-serve-mark.png',
     width: size,
     height: size,
-    semanticLabel: 'Home Serve',
+    semanticLabel: 'Local Life Service Assistant',
   );
 }
 
@@ -149,9 +149,10 @@ class _BrandSplashState extends State<BrandSplash>
                           child: Column(
                             children: [
                               const Text(
-                                'Home Serve',
+                                'Local Life Service Assistant',
+                                textAlign: TextAlign.center,
                                 style: TextStyle(
-                                  fontSize: 30,
+                                  fontSize: 28,
                                   fontWeight: FontWeight.w700,
                                   letterSpacing: -.7,
                                 ),
