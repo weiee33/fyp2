@@ -109,6 +109,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      showDragHandle: true,
       builder: (_) => CustomerActionTheme(
         child: _FilterSheet(
           initial: _ServiceFilters(
@@ -176,7 +177,7 @@ class _CustomerServiceListScreenState extends State<CustomerServiceListScreen> {
                       ),
                 ),
                 IconButton(
-                  tooltip: trOrNull('Filter services'),
+                  tooltip: trOrNull('Filter Services'),
                   onPressed: _showFilters,
                   icon: const Icon(Icons.tune),
                 ),
@@ -404,7 +405,8 @@ class _FilterSheetState extends State<_FilterSheet> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              tr('Filter services'),
+              tr('Filter Services'),
+              textAlign: TextAlign.center,
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),

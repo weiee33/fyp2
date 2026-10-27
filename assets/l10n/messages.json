@@ -1387,7 +1387,7 @@
     "文件链接：{0}",
     "URL fail: {0}"
   ],
-  "Filter services": [
+  "Filter Services": [
     "筛选服务",
     "Tapis perkhidmatan"
   ],
@@ -2619,9 +2619,9 @@
     "可以评价",
     "Sedia untuk diulas"
   ],
-  "Reason (optional)": [
-    "原因（选填）",
-    "Sebab (pilihan)"
+  "Reason": [
+    "原因",
+    "Sebab"
   ],
   "Reason is required": [
     "请填写原因",

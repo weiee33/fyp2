@@ -131,7 +131,7 @@ class _CustomerBookingDetailScreenState
           maxLines: 5,
           textCapitalization: TextCapitalization.sentences,
           decoration: InputDecoration(
-            labelText: trOrNull('Reason (optional)'),
+            labelText: trOrNull('Reason'),
             floatingLabelBehavior: FloatingLabelBehavior.always,
             alignLabelWithHint: true,
           ),
