@@ -5175,6 +5175,14 @@
     "您的退款正在处理中。下拉查看最新状态。",
     "Bayaran balik anda sedang diproses. Tarik ke bawah untuk menyemak status terkini."
   ],
+  "Restoring your session...": [
+    "正在恢复您的登录状态……",
+    "Memulihkan sesi anda..."
+  ],
+  "Unable to restore your session. Check your connection and retry.": [
+    "无法恢复您的登录状态。请检查网络连接后重试。",
+    "Tidak dapat memulihkan sesi anda. Semak sambungan anda dan cuba lagi."
+  ],
   "Your refund request is awaiting processing.": [
     "您的退款申请正在等待处理。",
     "Permintaan bayaran balik anda sedang menunggu untuk diproses."

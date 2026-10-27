@@ -3,7 +3,8 @@ import 'Customer/core/customer_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'Provider/core/supabase_config.dart';
-import 'shared/portal_entry_screen.dart';
+import 'shared/mobile_auth_service.dart';
+import 'shared/mobile_session_gate.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'shared/localization/app_language.dart';
 import 'shared/brand/brand_splash.dart';
@@ -36,7 +37,8 @@ Future<void> _initializeOnce() async {
 
 class LocalLifeApp extends StatelessWidget {
   final Future<void> Function()? initialize;
-  const LocalLifeApp({super.key, this.initialize});
+  final MobileAuthService? authService;
+  const LocalLifeApp({super.key, this.initialize, this.authService});
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +58,7 @@ class LocalLifeApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: BrandSplash(
         initialize: initialize ?? _initialize,
-        child: const PortalEntryScreen(),
+        child: MobileSessionGate(service: authService),
       ),
     );
   }

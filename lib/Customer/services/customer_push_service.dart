@@ -65,16 +65,22 @@ class CustomerPushService with WidgetsBindingObserver {
       FirebaseMessaging.instance.onTokenRefresh.listen((_) {
         unawaited(sync());
       });
-      _client.auth.onAuthStateChange.listen((event) {
-        if (event.session == null) {
-          _active = false;
-          _pending = null;
-          _token = null;
-          _clearing = _clearDevice();
-        } else if (_active) {
-          unawaited(sync());
-        }
-      });
+      _client.auth.onAuthStateChange.listen(
+        (event) {
+          if (event.session == null) {
+            _active = false;
+            _pending = null;
+            _token = null;
+            _clearing = _clearDevice();
+          } else if (_active) {
+            unawaited(sync());
+          }
+        },
+        onError: (Object error, StackTrace stack) {
+          // Keep registration during a temporary auth refresh failure. A later
+          // tokenRefreshed event or foreground sync retries delivery setup.
+        },
+      );
       _pending = (await FirebaseMessaging.instance.getInitialMessage())
           ?.data['notification_id'];
       final launch = await _local.getNotificationAppLaunchDetails();
