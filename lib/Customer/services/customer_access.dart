@@ -30,13 +30,20 @@ class CustomerAccess extends ChangeNotifier with WidgetsBindingObserver {
     if (_client != null) return;
     _client = client;
     WidgetsBinding.instance.addObserver(this);
-    _auth = client.auth.onAuthStateChange.listen((event) {
-      if (event.session == null) {
-        accept(const {});
-      } else {
+    _auth = client.auth.onAuthStateChange.listen(
+      (event) {
+        if (event.session == null) {
+          accept(const {});
+        } else {
+          unawaited(refresh());
+        }
+      },
+      onError: (Object error, StackTrace stack) {
+        // A transient token-refresh error is not a sign-out event. Recheck
+        // access without clearing the persisted session; normal retries follow.
         unawaited(refresh());
-      }
-    });
+      },
+    );
     _timer = Timer.periodic(const Duration(seconds: 15), (_) {
       if (customer) unawaited(refresh());
     });
