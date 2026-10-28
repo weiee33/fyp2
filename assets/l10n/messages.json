@@ -5198,5 +5198,13 @@
   "Speech recognition for the app language is unavailable on your device. Enable or download that language in your speech recognition settings, then try again.": [
     "您的设备暂不支持当前应用语言的语音识别。请在语音识别设置中启用或下载该语言，然后重试。",
     "Pengecaman pertuturan untuk bahasa aplikasi tidak tersedia pada peranti anda. Aktifkan atau muat turun bahasa tersebut dalam tetapan pengecaman pertuturan, kemudian cuba lagi."
+  ],
+  "Connection unavailable": [
+    "网络连接不可用",
+    "Sambungan tidak tersedia"
+  ],
+  "Check Wi-Fi or mobile data and retry.": [
+    "请检查 Wi-Fi 或移动数据，然后重试。",
+    "Semak Wi-Fi atau data mudah alih dan cuba lagi."
   ]
 }
