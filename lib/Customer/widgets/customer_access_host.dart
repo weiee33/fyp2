@@ -126,13 +126,68 @@ class RestrictedCustomerContent extends StatelessWidget {
 
 class CustomerAccessHost extends StatefulWidget {
   final Widget child;
-  const CustomerAccessHost({super.key, required this.child});
+  final CustomerAccess? access;
+  const CustomerAccessHost({super.key, required this.child, this.access});
   @override
   State<CustomerAccessHost> createState() => _CustomerAccessHostState();
 }
 
 class _CustomerAccessHostState extends State<CustomerAccessHost> {
+  CustomerAccess get _access => widget.access ?? CustomerAccess.instance;
   bool _warningOpen = false;
+  bool _retrying = false;
+
+  Future<void> _retry() async {
+    if (_retrying) return;
+    setState(() => _retrying = true);
+    try {
+      await _access.refresh();
+    } finally {
+      if (mounted) setState(() => _retrying = false);
+    }
+  }
+
+  Widget _connectionBanner() => Material(
+    key: const ValueKey('customer-connection-banner'),
+    color: const Color(0xfffff4df),
+    child: SafeArea(
+      bottom: false,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Row(
+          children: [
+            const Icon(Icons.cloud_off_outlined, color: Color(0xff805400)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    tr('Connection unavailable'),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xff805400),
+                    ),
+                  ),
+                  Text(tr('Check Wi-Fi or mobile data and retry.')),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                shape: CustomerTheme.actionShape,
+                foregroundColor: CustomerTheme.primary,
+              ),
+              onPressed: _retrying ? null : _retry,
+              child: Text(tr('Retry')),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
   Future<void> _help() async {
     if (customerAccessObserver.supportVisible.value) return;
     await customerNavigatorKey.currentState?.push(
@@ -156,9 +211,9 @@ class _CustomerAccessHostState extends State<CustomerAccessHost> {
         icon: const Icon(Icons.lock_outline, color: Color(0xffb42318)),
         title: Text(
           tr(
-            CustomerAccess.instance.unavailable
-                ? 'Unable to verify account access'
-                : 'Account suspended',
+            _access.suspended
+                ? 'Account suspended'
+                : 'Unable to verify account access',
           ),
           style: const TextStyle(color: Color(0xffb42318)),
         ),
@@ -199,100 +254,109 @@ class _CustomerAccessHostState extends State<CustomerAccessHost> {
 
   @override
   Widget build(BuildContext context) => ListenableBuilder(
-    listenable: CustomerAccess.instance,
+    listenable: _access,
     builder: (context, _) => ValueListenableBuilder<bool>(
       valueListenable: customerAccessObserver.supportVisible,
       builder: (context, support, _) {
-        final access = CustomerAccess.instance;
-        if (!access.restricted) return widget.child;
-        return Material(
-          color: const Color(0xffb42318),
-          child: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          // Equal side slots keep the title on the screen centre.
-                          const SizedBox(
-                            width: 32,
-                            child: Icon(
-                              Icons.warning_amber_rounded,
-                              color: Colors.white,
-                            ),
-                          ),
-                          Expanded(
-                            child: Text(
-                              tr(
-                                access.unavailable
-                                    ? 'Unable to verify account access'
-                                    : 'Account suspended · View only',
-                              ),
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 32),
-                        ],
-                      ),
-                      Wrap(
-                        spacing: 12,
-                        children: [
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.white,
-                            ),
-                            onPressed: _help,
-                            child: Text(tr('Help Centre')),
-                          ),
-                          TextButton(
-                            style: TextButton.styleFrom(
-                              foregroundColor: Colors.white,
-                            ),
-                            onPressed: () async {
-                              await Supabase.instance.client.auth.signOut(
-                                scope: SignOutScope.local,
-                              );
-                              customerNavigatorKey.currentState
-                                  ?.pushAndRemoveUntil(
-                                    MaterialPageRoute<void>(
-                                      builder: (_) => const PortalEntryScreen(),
-                                    ),
-                                    (_) => false,
-                                  );
-                            },
-                            child: Text(tr('Sign out')),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
-                    child: support
-                        ? widget.child
-                        : RestrictedCustomerContent(
-                            onBlocked: _warn,
-                            child: widget.child,
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+        final access = _access;
+        // Keep the Navigator in the same slot when a connection warning comes
+        // and goes, preserving the current page and any unsent form text.
+        return Column(
+          children: [
+            access.customer && access.unavailable
+                ? _connectionBanner()
+                : const SizedBox.shrink(),
+            Expanded(child: _accountContent(access, support)),
+          ],
         );
       },
     ),
   );
+
+  Widget _accountContent(CustomerAccess access, bool support) {
+    if (!access.restricted) return widget.child;
+    return Material(
+      color: const Color(0xffb42318),
+      child: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      // Equal side slots keep the title on the screen centre.
+                      const SizedBox(
+                        width: 32,
+                        child: Icon(
+                          Icons.warning_amber_rounded,
+                          color: Colors.white,
+                        ),
+                      ),
+                      Expanded(
+                        child: Text(
+                          tr(
+                            access.suspended
+                                ? 'Account suspended · View only'
+                                : 'Unable to verify account access',
+                          ),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 32),
+                    ],
+                  ),
+                  Wrap(
+                    spacing: 12,
+                    children: [
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: _help,
+                        child: Text(tr('Help Centre')),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          foregroundColor: Colors.white,
+                        ),
+                        onPressed: () async {
+                          await Supabase.instance.client.auth.signOut(
+                            scope: SignOutScope.local,
+                          );
+                          customerNavigatorKey.currentState?.pushAndRemoveUntil(
+                            MaterialPageRoute<void>(
+                              builder: (_) => const PortalEntryScreen(),
+                            ),
+                            (_) => false,
+                          );
+                        },
+                        child: Text(tr('Sign out')),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(3, 0, 3, 3),
+                child: support
+                    ? widget.child
+                    : RestrictedCustomerContent(
+                        onBlocked: _warn,
+                        child: widget.child,
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
