@@ -274,7 +274,6 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                 if (!paid && booking?.canPay == true)
                   BookingSection(
                     title: tr('Payment method'),
-                    icon: Icons.account_balance_wallet_outlined,
                     children: [
                       RadioGroup<String>(
                         groupValue: _paymentOption,
@@ -309,7 +308,6 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                   ),
                 BookingSection(
                   title: tr('Your payment journey'),
-                  icon: Icons.route_outlined,
                   children: [
                     _step(
                       1,
@@ -441,7 +439,6 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                     ),
                   BookingSection(
                     title: tr('Appointment'),
-                    icon: Icons.event_outlined,
                     children: [
                       Text(
                         tr("{0} (Malaysia time)", [booking.appointmentLabel]),
@@ -464,7 +461,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                   padding: const EdgeInsets.all(16),
                   child: SizedBox(
                     width: double.infinity,
-                    child: FilledButton.icon(
+                    child: FilledButton(
                       onPressed: busy
                           ? null
                           : paid
@@ -472,14 +469,7 @@ class _CustomerCheckoutScreenState extends State<CustomerCheckoutScreen>
                           : booking.canPay
                           ? _pay
                           : () => Navigator.maybePop(context),
-                      icon: Icon(
-                        paid
-                            ? Icons.receipt_long
-                            : booking.canPay
-                            ? Icons.open_in_new
-                            : Icons.arrow_back,
-                      ),
-                      label: Padding(
+                      child: Padding(
                         padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Text(
                           tr(

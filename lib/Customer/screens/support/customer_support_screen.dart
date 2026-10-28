@@ -109,11 +109,10 @@ class _SupportState extends State<CustomerSupportScreen> {
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 18),
-                  FilledButton.icon(
+                  FilledButton(
                     style: CustomerTheme.actionStyle(),
                     onPressed: _compose,
-                    icon: const Icon(Icons.edit_outlined),
-                    label: Text(tr('Contact Support')),
+                    child: Text(tr('Contact Support')),
                   ),
                 ],
               ),
@@ -172,12 +171,6 @@ class _SupportState extends State<CustomerSupportScreen> {
                 child: SupportCard(
                   child: ListTile(
                     contentPadding: EdgeInsets.zero,
-                    leading: Icon(
-                      row['booking_id'] == null
-                          ? Icons.support_agent_rounded
-                          : Icons.event_note_outlined,
-                      color: CustomerTheme.primary,
-                    ),
                     title: Text(
                       row['subject'] as String,
                       maxLines: 2,
@@ -367,12 +360,6 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.event_note_outlined,
-                        color: CustomerTheme.primary,
-                        size: 30,
-                      ),
-                      const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,17 +531,10 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
                       ),
               ),
               const SizedBox(height: 24),
-              FilledButton.icon(
+              FilledButton(
                 style: CustomerTheme.actionStyle(),
                 onPressed: _sending || _picking ? null : _send,
-                icon: _sending
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.send_rounded),
-                label: Text(
+                child: Text(
                   tr(
                     _sending
                         ? 'Sending request…'

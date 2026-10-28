@@ -4,14 +4,14 @@ import '../core/customer_theme.dart';
 
 class BookingSection extends StatelessWidget {
   final String title;
-  final IconData icon;
+  final IconData? icon;
   final List<Widget> children;
   final bool highlighted;
   final Color? accentColor;
   const BookingSection({
     super.key,
     required this.title,
-    required this.icon,
+    this.icon,
     required this.children,
     this.highlighted = false,
     this.accentColor,
@@ -41,8 +41,14 @@ class BookingSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: accentColor ?? CustomerTheme.primary, size: 22),
-              const SizedBox(width: 10),
+              if (icon != null) ...[
+                Icon(
+                  icon,
+                  color: accentColor ?? CustomerTheme.primary,
+                  size: 22,
+                ),
+                const SizedBox(width: 10),
+              ],
               Expanded(
                 child: Text(
                   tr(title),

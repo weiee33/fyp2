@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:fyp2/Customer/services/receipt_pdf.dart';
+import 'package:fyp2/Customer/core/customer_theme.dart';
 import 'package:fyp2/Customer/services/customer_transaction_service.dart';
 import 'package:fyp2/Customer/screens/payment/customer_receipt_screen.dart';
 import 'package:fyp2/Customer/screens/payment/customer_checkout_screen.dart';
@@ -150,6 +151,18 @@ void main() {
     expect(exported, isNotNull);
     expect(utf8.decode(exported!.take(5).toList()), '%PDF-');
     expect(find.text('REFUNDED'), findsOneWidget);
+    expect(find.text('Receipt saved'), findsOneWidget);
+    expect(
+      find.text('Your PDF receipt has been saved to your selected location.'),
+      findsOneWidget,
+    );
+    final ok = find.widgetWithText(FilledButton, 'OK');
+    final button = t.widget<FilledButton>(ok);
+    expect(button.style!.shape!.resolve({}), CustomerTheme.actionShape);
+    await capture.proof(t, 'receipt-save-confirmation');
+    await t.tap(ok);
+    await t.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
     if (const bool.fromEnvironment('CAPTURE_UI')) {
       await t.runAsync(() async {
         await File(
@@ -159,6 +172,59 @@ void main() {
     }
     expect(t.takeException(), isNull);
   });
+  for (final fails in [false, true]) {
+    testWidgets(
+      fails
+          ? 'receipt save failure does not show success'
+          : 'cancelled receipt save does not show success',
+      (t) async {
+        capture.pixel(t);
+        var called = false;
+        await t.pumpWidget(
+          capture.app(
+            CustomerReceiptScreen(
+              bookingId: 'booking',
+              transactions: CustomerTransactionService(
+                rpc: (_, _) async => receiptData(),
+              ),
+              savePdf: (_, _) async {
+                called = true;
+                if (fails) throw StateError('Save failed');
+                return false;
+              },
+            ),
+          ),
+        );
+        await t.pumpAndSettle();
+        await t.runAsync(() async {
+          await t.tap(find.text('Download receipt (PDF)'));
+        });
+        for (var i = 0; i < 150 && !called; i++) {
+          await t.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 20)),
+          );
+          await t.pump();
+        }
+        await t.pumpAndSettle();
+        expect(called, isTrue);
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(find.text('Receipt saved'), findsNothing);
+        expect(
+          find.text('Could not save your receipt. Please try again.'),
+          fails ? findsWidgets : findsNothing,
+        );
+        expect(
+          t
+              .widget<FilledButton>(
+                find.widgetWithText(FilledButton, 'Download receipt (PDF)'),
+              )
+              .onPressed,
+          isNotNull,
+        );
+        expect(t.takeException(), isNull);
+      },
+    );
+  }
   testWidgets(
     'bookings distinguish paid expired and refunded at narrow width',
     (t) async {

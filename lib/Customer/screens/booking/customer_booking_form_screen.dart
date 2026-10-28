@@ -272,7 +272,6 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
             ),
             BookingSection(
               title: tr('1. Service address'),
-              icon: Icons.location_on_outlined,
               children: [
                 if (_loadingAddresses)
                   const LinearProgressIndicator()
@@ -354,7 +353,6 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
             ),
             BookingSection(
               title: tr('2. Appointment'),
-              icon: Icons.calendar_month_outlined,
               children: [
                 ListTile(
                   contentPadding: EdgeInsets.zero,
@@ -415,7 +413,6 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
             ),
             BookingSection(
               title: tr('3. Extra details'),
-              icon: Icons.notes_outlined,
               children: [
                 TextField(
                   controller: _instructions,
@@ -434,12 +431,6 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
                   onInput: (_) =>
                       _requestId = CustomerTransactionService.newRequestId(),
                   maxLength: 500,
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  tr(
-                    'Send your request first. Once the provider accepts, open Booking details and pay by FPX, card or GrabPay within 30 minutes.',
-                  ),
                 ),
               ],
             ),

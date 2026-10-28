@@ -97,6 +97,33 @@ void main() {
   tearDownAll(() => client.dispose());
   tearDown(() => AppLanguage.instance.select('en'));
   testWidgets(
+    'Explore paints its header behind the status bar while keeping content safe',
+    (t) async {
+      capture.pixel(t);
+      t.view.padding = FakeViewPadding(top: 32);
+      addTearDown(t.view.resetPadding);
+      await t.pumpWidget(
+        capture.app(
+          CustomerHomeScreen(
+            homeService: HomeFixture(client),
+            addressService: AddressFixture(client),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      final header = find.byWidgetPredicate(
+        (widget) =>
+            widget is Container &&
+            widget.decoration is BoxDecoration &&
+            (widget.decoration as BoxDecoration).gradient is LinearGradient,
+      );
+      expect(t.getTopLeft(header).dy, 0);
+      expect(t.getTopLeft(find.text('Wei Ee')).dy, greaterThanOrEqualTo(32));
+      await capture.proof(t, 'explore-status-bar');
+      expect(t.takeException(), isNull);
+    },
+  );
+  testWidgets(
     'Explore address cards preserve selection and keep add action reachable',
     (t) async {
       capture.pixel(t);

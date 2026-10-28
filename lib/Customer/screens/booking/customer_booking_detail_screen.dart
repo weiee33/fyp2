@@ -113,11 +113,6 @@ class _CustomerBookingDetailScreenState
         scrollable: true,
         insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        icon: const Icon(
-          Icons.event_busy_outlined,
-          color: CustomerTheme.danger,
-          size: 32,
-        ),
         title: Text(tr('Cancel booking?')),
         titleTextStyle: Theme.of(dialogContext).textTheme.titleLarge?.copyWith(
           fontWeight: FontWeight.w700,
@@ -248,7 +243,6 @@ class _CustomerBookingDetailScreenState
                   if (booking != null) ...[
                     BookingSection(
                       title: tr('Your booking'),
-                      icon: Icons.home_repair_service_outlined,
                       highlighted: true,
                       children: [
                         Text(
@@ -351,12 +345,10 @@ class _CustomerBookingDetailScreenState
                     ),
                     BookingSection(
                       title: tr('Your service journey'),
-                      icon: Icons.route_outlined,
                       children: [BookingProgress(booking: booking)],
                     ),
                     BookingSection(
                       title: tr('Appointment & location'),
-                      icon: Icons.event_outlined,
                       children: [
                         _row(
                           'Appointment',
@@ -377,7 +369,6 @@ class _CustomerBookingDetailScreenState
                     ),
                     BookingSection(
                       title: tr('Payment summary'),
-                      icon: Icons.receipt_long_outlined,
                       children: [
                         Row(
                           children: [
@@ -462,7 +453,6 @@ class _CustomerBookingDetailScreenState
                       ),
                     BookingSection(
                       title: tr('Help with this booking'),
-                      icon: Icons.support_agent,
                       children: [
                         for (final dispute
                             in (booking.data['disputes'] as List? ?? []))
@@ -489,14 +479,13 @@ class _CustomerBookingDetailScreenState
                         ),
                         if (booking.canCancel && !booking.needsNewBooking) ...[
                           const SizedBox(height: 12),
-                          OutlinedButton.icon(
+                          OutlinedButton(
                             style: CustomerTheme.actionStyle(
                               outlined: true,
                               destructive: true,
                             ),
                             onPressed: _acting || _loading ? null : _cancel,
-                            icon: const Icon(Icons.event_busy_outlined),
-                            label: Text(
+                            child: Text(
                               tr(_acting ? 'Cancelling…' : 'Cancel Booking'),
                             ),
                           ),
@@ -515,7 +504,7 @@ class _CustomerBookingDetailScreenState
                 top: false,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: FilledButton.icon(
+                  child: FilledButton(
                     onPressed: _acting || _loading
                         ? null
                         : () => _open(
@@ -524,8 +513,7 @@ class _CustomerBookingDetailScreenState
                               transactions: _transactions,
                             ),
                           ),
-                    icon: const Icon(Icons.payment),
-                    label: Padding(
+                    child: Padding(
                       padding: EdgeInsets.symmetric(vertical: 12),
                       child: Text(tr('Continue to payment')),
                     ),

@@ -5206,5 +5206,21 @@
   "Check Wi-Fi or mobile data and retry.": [
     "请检查 Wi-Fi 或移动数据，然后重试。",
     "Semak Wi-Fi atau data mudah alih dan cuba lagi."
+  ],
+  "Receipt saved": [
+    "收据已保存",
+    "Resit disimpan"
+  ],
+  "Receipt download started": [
+    "收据下载已开始",
+    "Muat turun resit dimulakan"
+  ],
+  "Your PDF receipt has been sent to your browser downloads.": [
+    "您的 PDF 收据已发送至浏览器下载。",
+    "Resit PDF anda telah dihantar ke muat turun pelayar anda."
+  ],
+  "Your PDF receipt has been saved to your selected location.": [
+    "您的 PDF 收据已保存至所选位置。",
+    "Resit PDF anda telah disimpan di lokasi yang dipilih."
   ]
 }
