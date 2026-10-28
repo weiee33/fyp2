@@ -6,7 +6,9 @@ import '../../services/receipt_pdf.dart';
 import '../../services/receipt_save_web.dart'
     if (dart.library.io) '../../services/receipt_save_io.dart';
 import '../../services/customer_transaction_service.dart';
-import '../../widgets/booking_section.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import '../../core/customer_theme.dart';
+import '../../widgets/customer_dialogs.dart';
 
 class CustomerReceiptScreen extends StatefulWidget {
   final String bookingId;
@@ -60,11 +62,39 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
       final bytes = await buildReceiptPdf(current);
       if (!mounted) return;
       setState(() => _receipt = current);
-      if (widget.savePdf != null) {
-        await widget.savePdf!(current.filename, bytes);
-      } else {
-        await saveReceiptFile(current.filename, bytes);
-      }
+      final saved = await (widget.savePdf ?? saveReceiptFile)(
+        current.filename,
+        bytes,
+      );
+      if (!mounted || !saved) return;
+      await showCustomerDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            tr(kIsWeb ? 'Receipt download started' : 'Receipt saved'),
+            style: const TextStyle(color: CustomerTheme.primary),
+          ),
+          content: Text(
+            tr(
+              kIsWeb
+                  ? 'Your PDF receipt has been sent to your browser downloads.'
+                  : 'Your PDF receipt has been saved to your selected location.',
+            ),
+          ),
+          actions: [
+            FilledButton(
+              style: CustomerTheme.actionStyle(),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(tr('OK')),
+            ),
+          ],
+        ),
+      );
     } catch (_) {
       if (mounted) {
         setState(
@@ -200,18 +230,6 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
-            BookingSection(
-              title: tr('Keep your payment record'),
-              icon: Icons.verified_user_outlined,
-              children: [
-                Text(
-                  tr(
-                    'Download a PDF copy for your records. Include the payment reference when requesting booking support.',
-                  ),
-                ),
-              ],
-            ),
           ],
           if (_saveError != null)
             Text(tr(_saveError!), style: const TextStyle(color: Colors.red)),
@@ -223,16 +241,9 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
               top: false,
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: FilledButton.icon(
+                child: FilledButton(
                   onPressed: _saving ? null : _download,
-                  icon: _saving
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.download_outlined),
-                  label: Padding(
+                  child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     child: Text(
                       tr(_saving ? 'Preparing PDF…' : 'Download receipt (PDF)'),

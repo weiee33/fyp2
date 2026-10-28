@@ -139,11 +139,10 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
             icon: Icons.location_on_outlined,
           ),
       ],
-      footerBuilder: (sheetContext) => OutlinedButton.icon(
+      footerBuilder: (sheetContext) => OutlinedButton(
         style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
         onPressed: () => Navigator.pop(sheetContext, 'add'),
-        icon: const Icon(Icons.add_location_alt_outlined),
-        label: Text(tr('Add service address')),
+        child: Text(tr('Add service address')),
       ),
     );
     if (!mounted || selected == null) return;
@@ -177,10 +176,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       body: CustomerRefresh(
         onRefresh: _load,
         child: ListView(
-          padding: EdgeInsets.only(
-            top: MediaQuery.paddingOf(context).top,
-            bottom: CustomerNavInsets.bottomOf(context),
-          ),
+          padding: EdgeInsets.only(bottom: CustomerNavInsets.bottomOf(context)),
           physics: customerScrollPhysics(context),
           children: [
             _header(),
@@ -330,7 +326,12 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   }
 
   Widget _header() => Container(
-    padding: const EdgeInsets.fromLTRB(20, 20, 20, 24),
+    padding: EdgeInsets.fromLTRB(
+      20,
+      20 + MediaQuery.paddingOf(context).top,
+      20,
+      24,
+    ),
     decoration: const BoxDecoration(
       gradient: LinearGradient(
         colors: [CustomerTheme.primaryDark, CustomerTheme.primary],
