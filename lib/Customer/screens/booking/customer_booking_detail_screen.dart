@@ -324,7 +324,7 @@ class _CustomerBookingDetailScreenState
                           const SizedBox(height: 12),
                           SizedBox(
                             width: double.infinity,
-                            child: FilledButton.icon(
+                            child: FilledButton(
                               onPressed: _acting || _loading
                                   ? null
                                   : () => _open(
@@ -336,8 +336,7 @@ class _CustomerBookingDetailScreenState
                                             ?.toString(),
                                       ),
                                     ),
-                              icon: const Icon(Icons.event_available),
-                              label: Text(tr('Choose a new appointment')),
+                              child: Text(tr('Choose a new appointment')),
                             ),
                           ),
                         ],
