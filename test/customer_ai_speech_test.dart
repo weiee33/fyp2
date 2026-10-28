@@ -112,10 +112,11 @@ void main() {
   }
 
   test(
-    'explicit voice choice overrides English UI and preserves Chinese text',
+    'Chinese app language requests Mandarin and preserves Chinese text',
     () async {
       final engine = Recognizer()..languages = ['en_US', 'cmn-Hans-CN'];
-      final speech = CustomerAiSpeech(speech: engine)..languageCode = 'zh';
+      await AppLanguage.instance.select('zh');
+      final speech = CustomerAiSpeech(speech: engine);
       var draft = '';
       await speech.start((words) => draft = words, () {}, () {});
       expect(engine.requestedLocale, 'cmn-Hans-CN');
@@ -125,7 +126,7 @@ void main() {
         ], true),
       );
       expect(draft, '我要找水管工');
-      expect(AppLanguage.instance.code, 'en');
+      expect(AppLanguage.instance.code, 'zh');
       await speech.cancel();
       engine.result!(
         SpeechRecognitionResult([
@@ -138,7 +139,8 @@ void main() {
 
   test('Malay text is returned without translation', () async {
     final engine = Recognizer();
-    final speech = CustomerAiSpeech(speech: engine)..languageCode = 'ms';
+    await AppLanguage.instance.select('ms');
+    final speech = CustomerAiSpeech(speech: engine);
     var draft = '';
     await speech.start((words) => draft = words, () {}, () {});
     engine.result!(
@@ -150,13 +152,36 @@ void main() {
   });
 
   test(
+    'same recognizer follows app language changes on every recording',
+    () async {
+      final engine = Recognizer()
+        ..languages = ['en_US', 'cmn-Hans-CN', 'ms_MY'];
+      final speech = CustomerAiSpeech(speech: engine);
+      for (final entry in {
+        'en': 'en_US',
+        'zh': 'cmn-Hans-CN',
+        'ms': 'ms_MY',
+      }.entries) {
+        await AppLanguage.instance.select(entry.key);
+        expect(await speech.start((_) {}, () {}, () {}), true);
+        expect(engine.requestedLocale, entry.value);
+        await speech.cancel();
+      }
+      await AppLanguage.instance.select('en');
+      expect(await speech.start((_) {}, () {}, () {}), true);
+      expect(engine.requestedLocale, 'en_US');
+    },
+  );
+
+  test(
     'missing or failing inventory still requests selected language',
     () async {
       for (final fails in [false, true]) {
         final engine = Recognizer()
           ..languages = []
           ..inventoryFails = fails;
-        final speech = CustomerAiSpeech(speech: engine)..languageCode = 'ms';
+        await AppLanguage.instance.select('ms');
+        final speech = CustomerAiSpeech(speech: engine);
         expect(await speech.start((_) {}, () {}, () {}), true);
         expect(engine.requestedLocale, 'ms-MY');
       }
@@ -169,7 +194,8 @@ void main() {
       'error_language_not_supported',
     ]) {
       final engine = Recognizer()..failWith = code;
-      final speech = CustomerAiSpeech(speech: engine)..languageCode = 'ms';
+      await AppLanguage.instance.select('ms');
+      final speech = CustomerAiSpeech(speech: engine);
       var errors = 0;
       expect(await speech.start((_) {}, () {}, () => errors++), false);
       expect(errors, 1);

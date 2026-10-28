@@ -7,8 +7,6 @@ class CustomerAiSpeech {
   CustomerAiSpeech({SpeechToText? speech}) : _speech = speech ?? SpeechToText();
   final SpeechToText _speech;
 
-  /// Null follows the display language; an explicit choice affects voice only.
-  String? languageCode;
   String? errorMessage;
   int _generation = 0;
   void Function()? _done, _error;
@@ -49,7 +47,9 @@ class CustomerAiSpeech {
     void Function() error,
   ) async {
     final generation = ++_generation;
-    final language = languageCode ?? AppLanguage.instance.code;
+    // Read the current app language for every recording, including after
+    // changing Settings without recreating the AI screen.
+    final language = AppLanguage.instance.code;
     errorMessage = null;
     _done = done;
     _error = error;
@@ -63,7 +63,7 @@ class CustomerAiSpeech {
       if (_error == null) return;
       errorMessage = switch (error.errorMsg) {
         'error_language_not_supported' || 'error_language_unavailable' =>
-          'This voice language is unavailable on your device. Enable or download it in your speech recognition settings, or select another voice language.',
+          'Speech recognition for the app language is unavailable on your device. Enable or download that language in your speech recognition settings, then try again.',
         'error_network' || 'error_network_timeout' =>
           'Voice input needs a connection. Check your internet and try again.',
         'error_permission' || 'error_audio_error' =>

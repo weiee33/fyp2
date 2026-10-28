@@ -23,7 +23,7 @@ class FakeSpeech extends CustomerAiSpeech {
     void Function() error,
   ) async {
     result = text;
-    startedLanguage = languageCode ?? AppLanguage.instance.code;
+    startedLanguage = AppLanguage.instance.code;
     return true;
   }
 
@@ -148,53 +148,39 @@ class FakeAi extends CustomerAiService {
 
 void main() {
   for (final language in ['en', 'zh', 'ms']) {
-    testWidgets('voice selector and draft work in $language at narrow width', (
-      t,
-    ) async {
-      SharedPreferences.setMockInitialValues({});
-      await t.runAsync(() => AppLanguage.instance.load());
-      await AppLanguage.instance.select(language);
-      addTearDown(() async => AppLanguage.instance.select('en'));
-      t.view.physicalSize = const Size(320, 740);
-      t.view.devicePixelRatio = 1;
-      addTearDown(t.view.resetPhysicalSize);
-      addTearDown(t.view.resetDevicePixelRatio);
-      final speech = FakeSpeech(), service = FakeAi();
-      await t.pumpWidget(
-        capture.app(CustomerAiScreen(service: service, speech: speech)),
-      );
-      await t.tap(find.byTooltip(tr('Hold to speak')));
-      await t.pumpAndSettle();
-      expect(speech.startedLanguage, language);
-      final words = {
-        'en': 'Find a plumber',
-        'zh': '我要找水管工',
-        'ms': 'Saya perlukan tukang paip',
-      }[language]!;
-      speech.result!(words);
-      await t.pump();
-      expect(find.text(words), findsOneWidget);
-      expect(service.requestIds, isEmpty);
-      await t.tap(find.byTooltip(tr('Hold to speak')));
-      await t.pumpAndSettle();
-      await t.tap(find.byKey(const ValueKey('ai-voice-language')));
-      await t.pumpAndSettle();
-      await t.tap(find.text('简体中文').last);
-      await t.pumpAndSettle();
-      expect(speech.languageCode, 'zh');
-      expect(AppLanguage.instance.code, language);
-      await t.tap(find.byTooltip(tr('Hold to speak')));
-      await t.pumpAndSettle();
-      expect(speech.startedLanguage, 'zh');
-      await t.tap(find.byTooltip(tr('Hold to speak')));
-      await t.pumpAndSettle();
-      await t.tap(find.byKey(const ValueKey('ai-voice-language')));
-      await t.pumpAndSettle();
-      await t.tap(find.text(tr('Follow app language')));
-      await t.pumpAndSettle();
-      expect(speech.languageCode, isNull);
-      expect(t.takeException(), isNull);
-    });
+    testWidgets(
+      'voice follows $language app language without a selector at narrow width',
+      (t) async {
+        SharedPreferences.setMockInitialValues({});
+        await t.runAsync(() => AppLanguage.instance.load());
+        await AppLanguage.instance.select(language);
+        addTearDown(() async => AppLanguage.instance.select('en'));
+        t.view.physicalSize = const Size(320, 740);
+        t.view.devicePixelRatio = 1;
+        addTearDown(t.view.resetPhysicalSize);
+        addTearDown(t.view.resetDevicePixelRatio);
+        final speech = FakeSpeech(), service = FakeAi();
+        await t.pumpWidget(
+          capture.app(CustomerAiScreen(service: service, speech: speech)),
+        );
+        await t.tap(find.byTooltip(tr('Hold to speak')));
+        await t.pumpAndSettle();
+        expect(speech.startedLanguage, language);
+        final words = {
+          'en': 'Find a plumber',
+          'zh': '我要找水管工',
+          'ms': 'Saya perlukan tukang paip',
+        }[language]!;
+        speech.result!(words);
+        await t.pump();
+        expect(find.text(words), findsOneWidget);
+        expect(service.requestIds, isEmpty);
+        await t.tap(find.byTooltip(tr('Hold to speak')));
+        await t.pumpAndSettle();
+        expect(find.byKey(const ValueKey('ai-voice-language')), findsNothing);
+        expect(t.takeException(), isNull);
+      },
+    );
   }
   testWidgets('AI Agent starts directly and preserves AI Chat', (t) async {
     capture.pixel(t);
