@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:fyp2/Customer/screens/ai/customer_ai_screen.dart';
 import 'package:fyp2/Customer/screens/home/customer_root_nav_screen.dart';
 import 'package:fyp2/Customer/services/customer_ai_service.dart';
@@ -12,6 +14,7 @@ import 'customer_receipt_photo_test.dart' as photo;
 
 class FakeSpeech extends CustomerAiSpeech {
   void Function(String)? result;
+  String? startedLanguage;
   bool stopped = false;
   @override
   Future<bool> start(
@@ -20,6 +23,7 @@ class FakeSpeech extends CustomerAiSpeech {
     void Function() error,
   ) async {
     result = text;
+    startedLanguage = languageCode ?? AppLanguage.instance.code;
     return true;
   }
 
@@ -143,6 +147,55 @@ class FakeAi extends CustomerAiService {
 }
 
 void main() {
+  for (final language in ['en', 'zh', 'ms']) {
+    testWidgets('voice selector and draft work in $language at narrow width', (
+      t,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      await t.runAsync(() => AppLanguage.instance.load());
+      await AppLanguage.instance.select(language);
+      addTearDown(() async => AppLanguage.instance.select('en'));
+      t.view.physicalSize = const Size(320, 740);
+      t.view.devicePixelRatio = 1;
+      addTearDown(t.view.resetPhysicalSize);
+      addTearDown(t.view.resetDevicePixelRatio);
+      final speech = FakeSpeech(), service = FakeAi();
+      await t.pumpWidget(
+        capture.app(CustomerAiScreen(service: service, speech: speech)),
+      );
+      await t.tap(find.byTooltip(tr('Hold to speak')));
+      await t.pumpAndSettle();
+      expect(speech.startedLanguage, language);
+      final words = {
+        'en': 'Find a plumber',
+        'zh': '我要找水管工',
+        'ms': 'Saya perlukan tukang paip',
+      }[language]!;
+      speech.result!(words);
+      await t.pump();
+      expect(find.text(words), findsOneWidget);
+      expect(service.requestIds, isEmpty);
+      await t.tap(find.byTooltip(tr('Hold to speak')));
+      await t.pumpAndSettle();
+      await t.tap(find.byKey(const ValueKey('ai-voice-language')));
+      await t.pumpAndSettle();
+      await t.tap(find.text('简体中文').last);
+      await t.pumpAndSettle();
+      expect(speech.languageCode, 'zh');
+      expect(AppLanguage.instance.code, language);
+      await t.tap(find.byTooltip(tr('Hold to speak')));
+      await t.pumpAndSettle();
+      expect(speech.startedLanguage, 'zh');
+      await t.tap(find.byTooltip(tr('Hold to speak')));
+      await t.pumpAndSettle();
+      await t.tap(find.byKey(const ValueKey('ai-voice-language')));
+      await t.pumpAndSettle();
+      await t.tap(find.text(tr('Follow app language')));
+      await t.pumpAndSettle();
+      expect(speech.languageCode, isNull);
+      expect(t.takeException(), isNull);
+    });
+  }
   testWidgets('AI Agent starts directly and preserves AI Chat', (t) async {
     capture.pixel(t);
     final service = FakeAi();
@@ -210,7 +263,9 @@ void main() {
       capture.app(CustomerAiScreen(service: service, speech: FakeSpeech())),
     );
     expect(find.byTooltip('New chat'), findsNothing);
-    final title = t.getCenter(find.text('Local Life Service Assistant AI').first);
+    final title = t.getCenter(
+      find.text('Local Life Service Assistant AI').first,
+    );
     final subtitle = t.getCenter(find.text('New chat'));
     expect(subtitle.dx, closeTo(title.dx, 1));
     await capture.proof(t, 'ai-welcome-redesign');
