@@ -5187,18 +5187,6 @@
     "您的退款申请正在等待处理。",
     "Permintaan bayaran balik anda sedang menunggu untuk diproses."
   ],
-  "Voice language": [
-    "语音语言",
-    "Bahasa suara"
-  ],
-  "Follow app language": [
-    "跟随应用语言",
-    "Ikut bahasa aplikasi"
-  ],
-  "This voice language is unavailable on your device. Enable or download it in your speech recognition settings, or select another voice language.": [
-    "您的设备暂不支持此语音语言。请在语音识别设置中启用或下载该语言，或选择其他语音语言。",
-    "Bahasa suara ini tidak tersedia pada peranti anda. Aktifkan atau muat turunnya dalam tetapan pengecaman pertuturan, atau pilih bahasa suara lain."
-  ],
   "Voice input needs a connection. Check your internet and try again.": [
     "语音输入需要网络连接。请检查网络后重试。",
     "Input suara memerlukan sambungan. Semak internet anda dan cuba lagi."
@@ -5206,5 +5194,9 @@
   "Microphone unavailable. Check microphone permissions and try again.": [
     "麦克风不可用。请检查麦克风权限后重试。",
     "Mikrofon tidak tersedia. Semak kebenaran mikrofon dan cuba lagi."
+  ],
+  "Speech recognition for the app language is unavailable on your device. Enable or download that language in your speech recognition settings, then try again.": [
+    "您的设备暂不支持当前应用语言的语音识别。请在语音识别设置中启用或下载该语言，然后重试。",
+    "Pengecaman pertuturan untuk bahasa aplikasi tidak tersedia pada peranti anda. Aktifkan atau muat turun bahasa tersebut dalam tetapan pengecaman pertuturan, kemudian cuba lagi."
   ]
 }

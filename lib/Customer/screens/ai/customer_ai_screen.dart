@@ -843,56 +843,6 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     ),
   );
 
-  Widget _voiceLanguageMenu() => CustomerMenu<String>(
-    key: const ValueKey('ai-voice-language'),
-    tooltip:
-        '${tr('Voice language')}: ${AppLanguage.names[_speech.languageCode ?? AppLanguage.instance.code]}',
-    initialValue: _speech.languageCode ?? 'app',
-    enabled: !_busy && !_listening && !_voiceStarting,
-    onSelected: (value) => setState(() {
-      _speech.languageCode = value == 'app' ? null : value;
-      _error = null;
-    }),
-    itemBuilder: (_) => [
-      PopupMenuItem(
-        value: 'app',
-        child: CustomerMenuRow(
-          label: tr('Follow app language'),
-          selected: _speech.languageCode == null,
-        ),
-      ),
-      for (final entry in AppLanguage.names.entries)
-        PopupMenuItem(
-          value: entry.key,
-          child: CustomerMenuRow(
-            label: entry.value,
-            selected: _speech.languageCode == entry.key,
-          ),
-        ),
-    ],
-    child: Container(
-      constraints: const BoxConstraints(minHeight: 44, maxWidth: 60),
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 6),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Flexible(
-            child: Text(
-              {'en': 'EN', 'zh': '中', 'ms': 'MS'}[_speech.languageCode ??
-                  AppLanguage.instance.code]!,
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
-          const Icon(Icons.keyboard_arrow_down, size: 16),
-        ],
-      ),
-    ),
-  );
-
   Widget _composer() => Container(
     key: const ValueKey('ai-composer'),
     margin: const EdgeInsets.fromLTRB(14, 8, 14, 8),
@@ -1015,7 +965,6 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
               ),
             ),
             const SizedBox(width: 6),
-            _voiceLanguageMenu(),
             IconButton(
               tooltip: trOrNull('Attach photo'),
               onPressed: _busy ? null : _attach,
