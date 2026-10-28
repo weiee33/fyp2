@@ -245,7 +245,6 @@ class _CustomerBookingFormScreenState extends State<CustomerBookingFormScreen> {
           children: [
             BookingSection(
               title: tr('Your service'),
-              icon: Icons.home_repair_service_outlined,
               highlighted: true,
               children: [
                 Text(
