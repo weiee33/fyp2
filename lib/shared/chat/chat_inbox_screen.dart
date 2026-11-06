@@ -1,3 +1,5 @@
+import '../../Customer/screens/browsing/customer_provider_detail_screen.dart'
+    show ProviderAvatar;
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -213,6 +215,7 @@ class _InboxState extends State<ChatInboxScreen> {
                       _SwipeChatRow(
                         key: ValueKey(chat['conversation_id']),
                         row: chat,
+                        customer: widget.customer,
                         onOpen: () =>
                             _open(conversationId: chat['conversation_id']),
                         onAction: (action) => _manage(chat, action),
@@ -242,8 +245,8 @@ class _InboxState extends State<ChatInboxScreen> {
                       for (final provider in _providers)
                         ListTile(
                           tileColor: Colors.white,
-                          leading: const CircleAvatar(
-                            child: Icon(Icons.home_repair_service_outlined),
+                          leading: ProviderAvatar(
+                            photoUrl: provider['profile_photo_url'] as String?,
                           ),
                           title: Text(provider['business_name'].toString()),
                           subtitle: Text(provider['city']?.toString() ?? ''),
@@ -274,11 +277,13 @@ class _InboxState extends State<ChatInboxScreen> {
 
 class _SwipeChatRow extends StatefulWidget {
   final Map<String, dynamic> row;
+  final bool customer;
   final VoidCallback onOpen;
   final Future<void> Function(String) onAction;
   const _SwipeChatRow({
     super.key,
     required this.row,
+    required this.customer,
     required this.onOpen,
     required this.onAction,
   });
@@ -347,14 +352,19 @@ class _SwipeChatState extends State<_SwipeChatRow> {
                 padding: const EdgeInsets.all(16),
                 child: Row(
                   children: [
-                    const CircleAvatar(
-                      radius: 24,
-                      backgroundColor: CustomerTheme.primarySurface,
-                      child: Icon(
-                        Icons.person_outline,
-                        color: CustomerTheme.primary,
+                    if (widget.customer)
+                      ProviderAvatar(
+                        photoUrl: widget.row['profile_photo_url'] as String?,
+                      )
+                    else
+                      const CircleAvatar(
+                        radius: 24,
+                        backgroundColor: CustomerTheme.primarySurface,
+                        child: Icon(
+                          Icons.person_outline,
+                          color: CustomerTheme.primary,
+                        ),
                       ),
-                    ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(

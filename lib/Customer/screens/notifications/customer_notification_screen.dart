@@ -1,3 +1,4 @@
+import '../../models/customer_notification_content.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/customer_unread_badge.dart';
@@ -48,8 +49,9 @@ class _CustomerNotificationScreenState
     super.initState();
     _notificationService = widget.service ?? CustomerNotificationService();
     _fetchNotifications();
-    if (widget.service == null)
+    if (widget.service == null) {
       _updates = CustomerLiveUpdates(_fetchNotifications);
+    }
   }
 
   @override
@@ -74,17 +76,19 @@ class _CustomerNotificationScreenState
       }
     } catch (e) {
       if (!mounted || version != _loadVersion) return;
-      if (mounted)
+      if (mounted) {
         setState(() {
           _isLoading = false;
           _loadError = 'Could not load notifications. Pull down to retry.';
         });
-      if (mounted)
+      }
+      if (mounted) {
         CustomerDialogs.show(
           context,
           title: tr('Unable to load'),
           message: tr('Could not load notifications. Please retry.'),
         );
+      }
     }
   }
 
@@ -99,8 +103,9 @@ class _CustomerNotificationScreenState
             message: tr(
               'Remove this notification from your list? Your booking is unchanged.',
             ),
-          ))
+          )) {
         return;
+      }
       if (delete) {
         await _notificationService.deleteNotification(id);
       } else {
@@ -168,10 +173,17 @@ class _CustomerNotificationScreenState
       await showCustomerDialog<void>(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text(tr(notification['title']?.toString() ?? 'Notification')),
+          title: Text(
+            tr(notification['title']?.toString() ?? 'Notification'),
+            style: TextStyle(
+              color: CustomerNotificationContent.isSuspension(notification)
+                  ? CustomerTheme.danger
+                  : null,
+            ),
+          ),
           content: SingleChildScrollView(
             physics: customerScrollPhysics(context),
-            child: Text(tr(notification['message']?.toString() ?? '')),
+            child: Text(CustomerNotificationContent.message(notification)),
           ),
           actions: [
             TextButton(
@@ -351,7 +363,9 @@ class _CustomerNotificationScreenState
     final String id = notification['notification_id'];
     final bool isRead = notification['is_read'] ?? false;
     final String title = notification['title'] ?? 'Alert';
-    final String message = notification['message'] ?? '';
+    final String message = CustomerNotificationContent.message(notification);
+    final warning = CustomerNotificationContent.isSuspension(notification);
+    final accent = warning ? CustomerTheme.danger : CustomerTheme.primary;
     final String type = notification['notification_type'] ?? 'System';
     final DateTime? createdAt = DateTime.tryParse(
       notification['created_at']?.toString() ?? '',
@@ -394,18 +408,22 @@ class _CustomerNotificationScreenState
               duration: const Duration(milliseconds: 300),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: isRead
+                color: warning
+                    ? CustomerTheme.danger.withValues(alpha: 0.06)
+                    : isRead
                     ? Colors.white
-                    : CustomerTheme.primarySurface.withOpacity(0.5),
+                    : CustomerTheme.primarySurface.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: isRead
+                  color: warning
+                      ? CustomerTheme.danger.withValues(alpha: 0.4)
+                      : isRead
                       ? CustomerTheme.borderColor
-                      : CustomerTheme.primaryLight.withOpacity(0.3),
+                      : CustomerTheme.primaryLight.withValues(alpha: 0.3),
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.03),
+                    color: Colors.black.withValues(alpha: 0.03),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -417,10 +435,11 @@ class _CustomerNotificationScreenState
                   // Type Icon
                   CircleAvatar(
                     radius: 24,
-                    backgroundColor: _getIconColor(type).withOpacity(0.15),
+                    backgroundColor: (warning ? accent : _getIconColor(type))
+                        .withValues(alpha: 0.15),
                     child: Icon(
-                      _getIcon(type),
-                      color: _getIconColor(type),
+                      warning ? Icons.warning_amber_rounded : _getIcon(type),
+                      color: warning ? accent : _getIconColor(type),
                       size: 22,
                     ),
                   ),
@@ -442,19 +461,22 @@ class _CustomerNotificationScreenState
                                   fontWeight: isRead
                                       ? FontWeight.w600
                                       : FontWeight.bold,
-                                  color: CustomerTheme.textPrimary,
+                                  color: warning
+                                      ? accent
+                                      : CustomerTheme.textPrimary,
                                 ),
-                                maxLines: 1,
+                                maxLines: 3,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            const SizedBox(width: 8),
                             Text(
                               createdAt == null ? '' : relativeTime(createdAt),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: isRead
                                     ? CustomerTheme.textSecondary
-                                    : CustomerTheme.primary,
+                                    : accent,
                                 fontWeight: isRead
                                     ? FontWeight.normal
                                     : FontWeight.bold,
@@ -464,7 +486,7 @@ class _CustomerNotificationScreenState
                         ),
                         const SizedBox(height: 6),
                         Text(
-                          tr(message),
+                          message,
                           style: TextStyle(
                             fontSize: 13,
                             color: isRead
@@ -472,7 +494,7 @@ class _CustomerNotificationScreenState
                                 : Colors.black87,
                             height: 1.4,
                           ),
-                          maxLines: 2,
+                          maxLines: 5,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ],
@@ -491,8 +513,8 @@ class _CustomerNotificationScreenState
                       margin: const EdgeInsets.only(top: 6),
                       width: 10,
                       height: 10,
-                      decoration: const BoxDecoration(
-                        color: CustomerTheme.primary,
+                      decoration: BoxDecoration(
+                        color: accent,
                         shape: BoxShape.circle,
                       ),
                     ),

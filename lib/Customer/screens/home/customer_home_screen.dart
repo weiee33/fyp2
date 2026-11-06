@@ -238,81 +238,91 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     const SizedBox(height: 8),
                     if (_categories.isEmpty)
                       Text(tr('No service categories are available yet.')),
-                    LayoutBuilder(
-                      builder: (_, constraints) {
-                        final columns = constraints.maxWidth >= 500 ? 4 : 3;
-                        final width =
-                            (constraints.maxWidth - (columns - 1) * 8) /
-                            columns;
-                        return Wrap(
-                          spacing: 8,
-                          runSpacing: 12,
-                          children: categories
-                              .map(
-                                (category) => SizedBox(
-                                  width: width,
-                                  height:
-                                      80 +
-                                      40 *
-                                          MediaQuery.textScalerOf(
-                                            context,
-                                          ).scale(1),
-                                  child: Card(
-                                    margin: EdgeInsets.zero,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                      side: const BorderSide(
-                                        color: Color(0xFFE9E3DE),
-                                      ),
-                                    ),
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(12),
-                                      onTap: () => _browse(
-                                        category:
-                                            category['category_name'] as String,
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 14,
+                    AnimatedSize(
+                      duration:
+                          MediaQuery.disableAnimationsOf(context) ||
+                              MediaQuery.accessibleNavigationOf(context)
+                          ? Duration.zero
+                          : const Duration(milliseconds: 320),
+                      curve: Curves.easeInOutCubic,
+                      alignment: Alignment.topCenter,
+                      child: LayoutBuilder(
+                        builder: (_, constraints) {
+                          final columns = constraints.maxWidth >= 500 ? 4 : 3;
+                          final width =
+                              (constraints.maxWidth - (columns - 1) * 8) /
+                              columns;
+                          return Wrap(
+                            spacing: 8,
+                            runSpacing: 12,
+                            children: categories
+                                .map(
+                                  (category) => SizedBox(
+                                    width: width,
+                                    height:
+                                        80 +
+                                        40 *
+                                            MediaQuery.textScalerOf(
+                                              context,
+                                            ).scale(1),
+                                    child: Card(
+                                      margin: EdgeInsets.zero,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(14),
+                                        side: const BorderSide(
+                                          color: Color(0xFFE9E3DE),
                                         ),
-                                        child: Column(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              _categoryIcon(
-                                                category['category_name']
-                                                    as String,
+                                      ),
+                                      child: InkWell(
+                                        borderRadius: BorderRadius.circular(12),
+                                        onTap: () => _browse(
+                                          category:
+                                              category['category_name']
+                                                  as String,
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 14,
+                                          ),
+                                          child: Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                _categoryIcon(
+                                                  category['category_name']
+                                                      as String,
+                                                ),
+                                                color: CustomerTheme.primary,
+                                                size: 32,
                                               ),
-                                              color: CustomerTheme.primary,
-                                              size: 32,
-                                            ),
-                                            const SizedBox(height: 8),
-                                            Expanded(
-                                              child: Center(
-                                                child: Text(
-                                                  tr(
-                                                    category['category_name']
-                                                        as String,
+                                              const SizedBox(height: 8),
+                                              Expanded(
+                                                child: Center(
+                                                  child: Text(
+                                                    tr(
+                                                      category['category_name']
+                                                          as String,
+                                                    ),
+                                                    textAlign: TextAlign.center,
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                   ),
-                                                  textAlign: TextAlign.center,
-                                                  maxLines: 2,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
-                                            ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    ).agent(category['category_name'] as String),
+                                      ).agent(category['category_name'] as String),
+                                    ),
                                   ),
-                                ),
-                              )
-                              .toList(),
-                        );
-                      },
+                                )
+                                .toList(),
+                          );
+                        },
+                      ),
                     ),
                     if (preferred.length < all.length)
                       TextButton(

@@ -472,12 +472,6 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                                 child: Text(tr('Retry categories')),
                               ),
                             ],
-                            Text(
-                              tr(
-                                'Select services in your preferred order. Unselect all to show every service.',
-                              ),
-                            ),
-                            const SizedBox(height: 12),
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
