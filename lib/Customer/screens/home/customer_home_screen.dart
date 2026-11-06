@@ -1,4 +1,5 @@
 import '../../widgets/customer_selection_sheet.dart';
+import '../../models/customer_explore_preferences.dart';
 import '../../agent/agent_surface.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
@@ -39,6 +40,8 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
   List<Map<String, dynamic>> _addresses = [];
   List<Map<String, dynamic>> _categories = [];
   List<Map<String, dynamic>> _providers = [];
+  List<String> _preferences = [];
+  bool _showOtherCategories = false;
   bool _loading = true;
   String? _error;
   int _requestVersion = 0;
@@ -74,6 +77,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       final header = result[0] as Map<String, dynamic>;
       setState(() {
         _name = header['name'] as String? ?? 'Customer';
+        _preferences = List<String>.from(
+          header['service_preferences'] ?? const [],
+        );
         _address = header['address'] as String;
         _categories = result[1] as List<Map<String, dynamic>>;
         _providers = result[2] as List<Map<String, dynamic>>;
@@ -91,8 +97,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
         message: _error!,
       );
     } finally {
-      if (mounted && request == _requestVersion)
+      if (mounted && request == _requestVersion) {
         setState(() => _loading = false);
+      }
     }
   }
 
@@ -158,17 +165,28 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
       await _addressService.setDefaultAddress(selected, '');
       if (mounted) await _load();
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         CustomerDialogs.show(
           context,
           message: tr('Unable to change your address. Please retry.'),
         );
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final preferred = CustomerExplorePreferences.categories(
+      _categories,
+      _preferences,
+    );
+    final all = CustomerExplorePreferences.categories(
+      _categories,
+      _preferences,
+      includeOthers: true,
+    );
+    final categories = _showOtherCategories ? all : preferred;
     return CustomerScaffold(
       agentScreen: 'explore',
       agentReady: !_loading,
@@ -229,7 +247,7 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         return Wrap(
                           spacing: 8,
                           runSpacing: 12,
-                          children: _categories
+                          children: categories
                               .map(
                                 (category) => SizedBox(
                                   width: width,
@@ -252,8 +270,6 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                                       onTap: () => _browse(
                                         category:
                                             category['category_name'] as String,
-                                        categoryId:
-                                            category['category_id'] as String,
                                       ),
                                       child: Padding(
                                         padding: const EdgeInsets.symmetric(
@@ -298,6 +314,18 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                         );
                       },
                     ),
+                    if (preferred.length < all.length)
+                      TextButton(
+                        key: const ValueKey('explore-other-categories'),
+                        onPressed: () => setState(
+                          () => _showOtherCategories = !_showOtherCategories,
+                        ),
+                        child: Text(
+                          _showOtherCategories
+                              ? tr('Show preferred services')
+                              : tr('Show other services'),
+                        ),
+                      ),
                     const SizedBox(height: 28),
                     Text(
                       tr('Verified Providers'),
@@ -311,7 +339,9 @@ class _CustomerHomeScreenState extends State<CustomerHomeScreen> {
                     if (_providers.isEmpty)
                       Text(
                         tr(
-                          'No verified providers with available services yet.',
+                          _preferences.isEmpty
+                              ? 'No verified providers with available services yet.'
+                              : 'No verified providers match your preferences yet. Browse all services to explore more.',
                         ),
                       ),
                     ..._providers.map(_providerCard),

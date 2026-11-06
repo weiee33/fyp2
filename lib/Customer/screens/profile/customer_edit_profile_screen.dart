@@ -1,5 +1,6 @@
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import '../../widgets/customer_selection_sheet.dart';
+import '../../models/customer_explore_preferences.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import '../../widgets/account_widgets.dart';
 import '../../widgets/malaysia_phone_field.dart';
@@ -63,7 +64,9 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
     // Load existing preferences from DB array
     if (widget.profileData?['service_preferences'] != null) {
       final List<dynamic> prefs = widget.profileData!['service_preferences'];
-      _selectedPreferences.addAll(prefs.map((e) => e.toString()));
+      _selectedPreferences.addAll(
+        CustomerExplorePreferences.unique(prefs.map((e) => e.toString())),
+      );
     }
     _loadPreferences();
   }
@@ -71,21 +74,23 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
   Future<void> _loadPreferences() async {
     try {
       final options = await _profileService.getPreferenceOptions();
-      if (mounted)
+      if (mounted) {
         setState(() {
-          _availablePreferences = {
-            ...options,
+          _availablePreferences = CustomerExplorePreferences.unique([
             ..._selectedPreferences,
-          }.toList();
+            ...options,
+          ]);
           _preferencesError = null;
         });
+      }
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         setState(() {
           _availablePreferences = _selectedPreferences.toList();
           _preferencesError =
               'Could not load service categories. Your saved preferences are kept.';
         });
+      }
     }
   }
 
@@ -261,8 +266,9 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
           ),
           FilledButton(
             onPressed: () {
-              if (form.currentState!.validate())
+              if (form.currentState!.validate()) {
                 Navigator.pop(ctx, controller.text.trim());
+              }
             },
             child: Text(tr('OK')),
           ),
@@ -301,11 +307,12 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
           ),
       ],
     );
-    if (mounted && value != null)
+    if (mounted && value != null) {
       setState(() {
         _gender = value;
         _dirty = true;
       });
+    }
   }
 
   Future<void> _pickBirthday() async {
@@ -318,12 +325,13 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
       firstDate: DateTime(1900),
       lastDate: now,
     );
-    if (mounted && date != null)
+    if (mounted && date != null) {
       setState(() {
         _birthday =
             '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
         _dirty = true;
       });
+    }
   }
 
   @override
@@ -464,13 +472,23 @@ class _CustomerEditProfileScreenState extends State<CustomerEditProfileScreen> {
                                 child: Text(tr('Retry categories')),
                               ),
                             ],
+                            Text(
+                              tr(
+                                'Select services in your preferred order. Unselect all to show every service.',
+                              ),
+                            ),
+                            const SizedBox(height: 12),
                             Wrap(
                               spacing: 8,
                               runSpacing: 8,
                               children: _availablePreferences
                                   .map(
                                     (pref) => FilterChip(
-                                      label: Text(tr(pref)),
+                                      label: Text(
+                                        _selectedPreferences.contains(pref)
+                                            ? '${_selectedPreferences.toList().indexOf(pref) + 1}. ${tr(pref)}'
+                                            : tr(pref),
+                                      ),
                                       selected: _selectedPreferences.contains(
                                         pref,
                                       ),

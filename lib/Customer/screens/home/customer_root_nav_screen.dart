@@ -31,6 +31,46 @@ class CustomerRootNavScreen extends StatefulWidget {
 
 class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
   late int _currentIndex;
+  bool _navigationVisible = true;
+  double _scrollTravel = 0;
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.vertical ||
+        MediaQuery.accessibleNavigationOf(context)) {
+      return false;
+    }
+    // Only finger-driven movement hides the bar. Programmatic scrolling (for
+    // example by the AI agent) and horizontal carousels leave navigation alone.
+    if (notification is ScrollUpdateNotification &&
+        notification.dragDetails != null) {
+      final delta = notification.scrollDelta ?? 0;
+      if (notification.metrics.pixels <=
+          notification.metrics.minScrollExtent + 8) {
+        _scrollTravel = 0;
+        if (!_navigationVisible) setState(() => _navigationVisible = true);
+      } else if (!notification.metrics.outOfRange && delta != 0) {
+        if (_scrollTravel.sign != delta.sign) _scrollTravel = 0;
+        _scrollTravel += delta;
+        if (_scrollTravel.abs() >= 18) {
+          final visible = _scrollTravel < 0;
+          if (_navigationVisible != visible) {
+            setState(() => _navigationVisible = visible);
+          }
+          _scrollTravel = 0;
+        }
+      }
+    } else if (notification is ScrollEndNotification) {
+      _scrollTravel = 0;
+    }
+    return false;
+  }
+
+  void _selectTab(int index) => setState(() {
+    _currentIndex = index;
+    _navigationVisible = true;
+    _scrollTravel = 0;
+  });
 
   @override
   void initState() {
@@ -76,14 +116,52 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
                 : bottomGap +
                       CustomerNavInsets.barHeight +
                       CustomerNavInsets.clearance,
-            child: screens[_currentIndex],
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScroll,
+              child: screens[_currentIndex],
+            ),
           ),
           if (!keyboardOpen)
             Positioned(
               left: CustomerNavInsets.margin,
               right: CustomerNavInsets.margin,
               bottom: bottomGap,
-              child: _navigation(),
+              child: IgnorePointer(
+                ignoring:
+                    !_navigationVisible &&
+                    !MediaQuery.accessibleNavigationOf(context),
+                child: ExcludeSemantics(
+                  excluding:
+                      !_navigationVisible &&
+                      !MediaQuery.accessibleNavigationOf(context),
+                  child: AnimatedSlide(
+                    key: const ValueKey('customer-navigation-slide'),
+                    offset:
+                        _navigationVisible ||
+                            MediaQuery.accessibleNavigationOf(context)
+                        ? Offset.zero
+                        : Offset(
+                            0,
+                            1 + (bottomGap + 24) / CustomerNavInsets.barHeight,
+                          ),
+                    duration: MediaQuery.disableAnimationsOf(context)
+                        ? Duration.zero
+                        : const Duration(milliseconds: 240),
+                    curve: Curves.easeOutCubic,
+                    child: AnimatedOpacity(
+                      opacity:
+                          _navigationVisible ||
+                              MediaQuery.accessibleNavigationOf(context)
+                          ? 1
+                          : 0,
+                      duration: MediaQuery.disableAnimationsOf(context)
+                          ? Duration.zero
+                          : const Duration(milliseconds: 180),
+                      child: _navigation(),
+                    ),
+                  ),
+                ),
+              ),
             ),
         ],
       ),
@@ -214,7 +292,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
           button: true,
           child:
               InkWell(
-                onTap: () => setState(() => _currentIndex = index),
+                onTap: () => _selectTab(index),
                 borderRadius: BorderRadius.circular(20),
                 child: SizedBox(
                   height: 64,
@@ -279,7 +357,7 @@ class _CustomerRootNavScreenState extends State<CustomerRootNavScreen> {
         pageBuilder: (_, _, _) => CustomerAiScreen(
           onStartAgent: (goal) async {
             if (!mounted) return;
-            setState(() => _currentIndex = 0);
+            _selectTab(0);
             final agent = AgentHost.of(context);
             await Future<void>.delayed(const Duration(milliseconds: 500));
             if (mounted) await agent?.run(goal);
