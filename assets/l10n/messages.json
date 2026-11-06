@@ -5238,5 +5238,121 @@
   "No verified providers match your preferences yet. Browse all services to explore more.": [
     "暂无符合您偏好的认证服务商。浏览全部服务以查看更多选择。",
     "Belum ada penyedia disahkan yang sepadan dengan pilihan anda. Layari semua perkhidmatan untuk melihat pilihan lain."
+  ],
+  "A new service address was saved.": [
+    "新的服务地址已保存。",
+    "Alamat perkhidmatan baharu telah disimpan."
+  ],
+  "A saved service address was removed.": [
+    "已保存的服务地址已删除。",
+    "Alamat perkhidmatan yang disimpan telah dipadam."
+  ],
+  "Account reactivated": [
+    "账户已重新启用",
+    "Akaun diaktifkan semula"
+  ],
+  "Address added": [
+    "地址已添加",
+    "Alamat ditambah"
+  ],
+  "Address deleted": [
+    "地址已删除",
+    "Alamat dipadam"
+  ],
+  "Address updated": [
+    "地址已更新",
+    "Alamat dikemas kini"
+  ],
+  "Personal information updated": [
+    "个人信息已更新",
+    "Maklumat peribadi dikemas kini"
+  ],
+  "Profile preferences updated": [
+    "个人偏好已更新",
+    "Pilihan profil dikemas kini"
+  ],
+  "This address is no longer your default service address.": [
+    "此地址已不再是默认服务地址。",
+    "Alamat ini bukan lagi alamat perkhidmatan lalai anda."
+  ],
+  "This address is now your default service address.": [
+    "此地址现已设为默认服务地址。",
+    "Alamat ini kini menjadi alamat perkhidmatan lalai anda."
+  ],
+  "Your account is active again.": [
+    "您的账户现已恢复使用。",
+    "Akaun anda aktif semula."
+  ],
+  "Your account is suspended. Contact Help Centre for support.": [
+    "您的账户已被暂停使用。请通过帮助中心联系支持人员。",
+    "Akaun anda digantung. Hubungi Pusat Bantuan untuk mendapatkan sokongan."
+  ],
+  "Your account password was changed. If this was not you, reset your password immediately.": [
+    "您的账户密码已更改。如果不是您本人操作，请立即重设密码。",
+    "Kata laluan akaun anda telah ditukar. Jika ini bukan tindakan anda, tetapkan semula kata laluan dengan segera."
+  ],
+  "Your address city was updated.": [
+    "您的地址城市已更新。",
+    "Bandar dalam alamat anda telah dikemas kini."
+  ],
+  "Your address label was updated.": [
+    "您的地址标签已更新。",
+    "Label alamat anda telah dikemas kini."
+  ],
+  "Your address map location was updated.": [
+    "您的地址地图位置已更新。",
+    "Lokasi alamat anda pada peta telah dikemas kini."
+  ],
+  "Your address postcode was updated.": [
+    "您的地址邮政编码已更新。",
+    "Poskod alamat anda telah dikemas kini."
+  ],
+  "Your address state was updated.": [
+    "您的地址州属已更新。",
+    "Negeri dalam alamat anda telah dikemas kini."
+  ],
+  "Your bio was updated.": [
+    "您的个人简介已更新。",
+    "Bio anda telah dikemas kini."
+  ],
+  "Your birthday was updated.": [
+    "您的生日资料已更新。",
+    "Maklumat tarikh lahir anda telah dikemas kini."
+  ],
+  "Your email address was updated.": [
+    "您的电子邮箱已更新。",
+    "Alamat e-mel anda telah dikemas kini."
+  ],
+  "Your gender was updated.": [
+    "您的性别资料已更新。",
+    "Maklumat jantina anda telah dikemas kini."
+  ],
+  "Your name was updated.": [
+    "您的姓名已更新。",
+    "Nama anda telah dikemas kini."
+  ],
+  "Your phone number was updated.": [
+    "您的电话号码已更新。",
+    "Nombor telefon anda telah dikemas kini."
+  ],
+  "Your preferred service order was updated.": [
+    "您的偏好服务排序已更新。",
+    "Susunan perkhidmatan pilihan anda telah dikemas kini."
+  ],
+  "Your profile photo was updated.": [
+    "您的头像已更新。",
+    "Foto profil anda telah dikemas kini."
+  ],
+  "Your service preferences were cleared. Explore now shows every service.": [
+    "您的服务偏好已清除。探索页面现在显示所有服务。",
+    "Pilihan perkhidmatan anda telah dikosongkan. Teroka kini memaparkan semua perkhidmatan."
+  ],
+  "Your service selection was updated. Explore now follows your preferences.": [
+    "您选择的服务已更新。探索页面现在会按照您的偏好显示。",
+    "Pilihan perkhidmatan anda telah dikemas kini. Teroka kini mengikut pilihan anda."
+  ],
+  "Your street address was updated.": [
+    "您的街道地址已更新。",
+    "Alamat jalan anda telah dikemas kini."
   ]
 }

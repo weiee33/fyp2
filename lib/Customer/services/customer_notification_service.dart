@@ -16,7 +16,7 @@ class CustomerNotificationService {
     final rows = await _client
         .from('notifications')
         .select(
-          'notification_id, booking_id, deep_link, notification_type, title, message, is_read, is_pinned, created_at',
+          'notification_id, booking_id, deep_link, notification_type, event_key, title, message, is_read, is_pinned, created_at',
         )
         .eq('user_id', uid)
         .isFilter('dismissed_at', null)

@@ -133,8 +133,15 @@ void main() {
       );
       expect(find.text('Cleaning'), findsNothing);
       await capture.proof(t, 'preferred-explore');
+      final grid = find.byType(AnimatedSize).first;
+      final collapsedHeight = t.getSize(grid).height;
       await t.tap(find.byKey(const ValueKey('explore-other-categories')));
+      await t.pump();
+      await t.pump(const Duration(milliseconds: 160));
+      final intermediateHeight = t.getSize(grid).height;
+      expect(intermediateHeight, greaterThan(collapsedHeight));
       await t.pumpAndSettle();
+      expect(t.getSize(grid).height, greaterThan(intermediateHeight));
       expect(find.text('Cleaning'), findsOneWidget);
       await t.ensureVisible(
         find.byKey(const ValueKey('explore-other-categories')),
