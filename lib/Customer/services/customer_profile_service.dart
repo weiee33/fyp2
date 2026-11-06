@@ -2,12 +2,12 @@ import 'dart:typed_data';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/account_access.dart';
 import 'customer_image_service.dart';
+import '../models/customer_explore_preferences.dart';
 
 class CustomerProfileService {
   final SupabaseClient? _clientOverride;
   SupabaseClient get _client => _clientOverride ?? Supabase.instance.client;
-  CustomerProfileService({SupabaseClient? client})
-    : _clientOverride = client;
+  CustomerProfileService({SupabaseClient? client}) : _clientOverride = client;
 
   Future<Map<String, dynamic>> getProfileData() async {
     final identity = await AccountAccess.requireRole(_client, 'customer');
@@ -50,7 +50,7 @@ class CustomerProfileService {
       params: {
         'p_full_name': fullName.trim(),
         'p_phone': phone.trim(),
-        'p_preferences': preferences.toSet().toList(),
+        'p_preferences': CustomerExplorePreferences.unique(preferences),
         'p_photo_url': photoUrl,
         'p_bio': bio,
         'p_gender': gender,

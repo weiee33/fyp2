@@ -1,0 +1,20 @@
+name: Customer Explore preferences
+on:
+  push:
+    paths: ['supabase/migrations/**', 'supabase/tests/customer_explore_preferences.test.cjs', '.github/workflows/customer-explore.yml']
+  pull_request:
+    paths: ['supabase/migrations/**', 'supabase/tests/customer_explore_preferences.test.cjs', '.github/workflows/customer-explore.yml']
+permissions:
+  contents: read
+jobs:
+  postgres:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm install --prefix .tools/explore-tests --no-audit --no-fund @electric-sql/pglite@0.5.15
+      - run: node --test supabase/tests/customer_explore_preferences.test.cjs
+        env:
+          NODE_PATH: .tools/explore-tests/node_modules

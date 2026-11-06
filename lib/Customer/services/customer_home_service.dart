@@ -26,12 +26,13 @@ class CustomerHomeService {
     final identity = await AccountAccess.requireRole(_client, 'customer');
     final profile = await _client
         .from('customer_profiles')
-        .select('default_address')
+        .select('default_address, service_preferences')
         .eq('user_id', identity['user_id'])
         .single();
     final address = profile['default_address']?.toString().trim() ?? '';
     return {
       'name': identity['full_name'],
+      'service_preferences': profile['service_preferences'] ?? <String>[],
       'address': address.isEmpty ? 'Choose a service address' : address,
     };
   }

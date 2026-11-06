@@ -5222,5 +5222,21 @@
   "Your PDF receipt has been saved to your selected location.": [
     "您的 PDF 收据已保存至所选位置。",
     "Resit PDF anda telah disimpan di lokasi yang dipilih."
+  ],
+  "Show preferred services": [
+    "显示偏好服务",
+    "Tunjukkan perkhidmatan pilihan"
+  ],
+  "Show other services": [
+    "显示其他服务",
+    "Tunjukkan perkhidmatan lain"
+  ],
+  "Select services in your preferred order. Unselect all to show every service.": [
+    "按偏好顺序选择服务。取消所有选择即可显示全部服务。",
+    "Pilih perkhidmatan mengikut turutan keutamaan anda. Nyahpilih semua untuk memaparkan semua perkhidmatan."
+  ],
+  "No verified providers match your preferences yet. Browse all services to explore more.": [
+    "暂无符合您偏好的认证服务商。浏览全部服务以查看更多选择。",
+    "Belum ada penyedia disahkan yang sepadan dengan pilihan anda. Layari semua perkhidmatan untuk melihat pilihan lain."
   ]
 }
