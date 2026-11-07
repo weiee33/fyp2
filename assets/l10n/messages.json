@@ -5175,13 +5175,13 @@
     "您的退款正在处理中。下拉查看最新状态。",
     "Bayaran balik anda sedang diproses. Tarik ke bawah untuk menyemak status terkini."
   ],
-  "Restoring your session...": [
-    "正在恢复您的登录状态……",
-    "Memulihkan sesi anda..."
+  "Reconnecting...": [
+    "正在重新连接……",
+    "Sedang menyambung semula..."
   ],
-  "Unable to restore your session. Check your connection and retry.": [
-    "无法恢复您的登录状态。请检查网络连接后重试。",
-    "Tidak dapat memulihkan sesi anda. Semak sambungan anda dan cuba lagi."
+  "Unable to connect your account. Check your connection and retry.": [
+    "无法连接到您的账户。请检查网络连接后重试。",
+    "Tidak dapat menyambung ke akaun anda. Semak sambungan internet anda dan cuba lagi."
   ],
   "Your refund request is awaiting processing.": [
     "您的退款申请正在等待处理。",
@@ -5283,9 +5283,9 @@
     "此地址现已设为默认服务地址。",
     "Alamat ini kini menjadi alamat perkhidmatan lalai anda."
   ],
-  "Your account is active again.": [
-    "您的账户现已恢复使用。",
-    "Akaun anda aktif semula."
+  "Your account is active now.": [
+    "您的账户现已启用。",
+    "Akaun anda kini aktif."
   ],
   "Your account is suspended. Contact Help Centre for support.": [
     "您的账户已被暂停使用。请通过帮助中心联系支持人员。",
