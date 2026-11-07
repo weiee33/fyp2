@@ -31,6 +31,8 @@ test('customer activity events execute in PostgreSQL', async t => {
   const dir = join(__dirname,'../migrations');
   const migration = readdirSync(dir).find(f=>f.endsWith('_customer_activity_details.sql'));
   await db.exec(readFileSync(join(dir,migration),'utf8'));
+  const addressMigration = readdirSync(dir).find(f=>f.endsWith('_default_address_notice.sql'));
+  await db.exec(readFileSync(join(dir,addressMigration),'utf8'));
   await db.exec(`
     create trigger identity_activity after update on users for each row execute function private.customer_activity();
     create trigger profile_activity after update on customer_profiles for each row execute function private.customer_activity();
@@ -66,7 +68,14 @@ test('customer activity events execute in PostgreSQL', async t => {
   });
   await t.test('address changes preserve all changed fields including default selection', async()=>{
     await db.exec("update saved_addresses set city='Private city',is_default=true");
-    assert.equal((await messages())[0].message,'This address is now your default service address.\nYour address city was updated.');
+    assert.equal((await messages())[0].message,'Your default service address was updated.\nYour address city was updated.');
+    await clear();
+  });
+  await t.test('switching default between two rows generates one customer notification', async()=>{
+    await db.exec("insert into saved_addresses(customer_id,label,is_default) select customer_id,'Work',false from customer_profiles");
+    await clear();
+    await db.exec("update saved_addresses set is_default=false where label='Home'; update saved_addresses set is_default=true where label='Work'");
+    assert.deepEqual((await messages()).map(row=>row.message),['Your default service address was updated.']);
     await clear();
   });
   await t.test('password event never includes password or hash', async()=>{
