@@ -13,7 +13,7 @@ class CustomerNotificationContent {
           .trim();
     }
     if (notification['event_key'] == 'account.reactivated') {
-      return '${tr('Your account is active again.')}\n$source'.trim();
+      return '${tr('Your account is active now.')}\n$source'.trim();
     }
     if (notification['event_key'] == 'customer.activity') {
       // Each line is fixed application copy. Do not translate arbitrary admin

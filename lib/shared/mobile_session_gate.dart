@@ -74,11 +74,11 @@ class _MobileSessionGateState extends State<MobileSessionGate>
                 if (_restoring) ...[
                   const CircularProgressIndicator(),
                   const SizedBox(height: 20),
-                  Text(tr('Restoring your session...')),
+                  Text(tr('Reconnecting...')),
                 ] else ...[
                   Text(
                     tr(
-                      'Unable to restore your session. Check your connection and retry.',
+                      'Unable to connect your account. Check your connection and retry.',
                     ),
                     textAlign: TextAlign.center,
                   ),
