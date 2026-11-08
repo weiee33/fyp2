@@ -31,11 +31,12 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     setState(() => _loading = true);
     try {
       final booking = await _service.getBookingDetail(widget.bookingId);
-      if (mounted)
+      if (mounted) {
         setState(() {
           _b = booking;
           _error = null;
         });
+      }
     } catch (error) {
       if (mounted) setState(() => _error = bookingError(error));
     } finally {
@@ -50,7 +51,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       await _service.updateStatus(widget.bookingId, status);
       if (mounted) await _load();
     } catch (error) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(tr(bookingError(error))),
@@ -61,6 +62,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             ),
           ),
         );
+      }
     } finally {
       if (mounted) setState(() => _acting = false);
     }
@@ -77,7 +79,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(
           tr('Decline booking request'),
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         content: Form(
           key: formKey,
@@ -87,19 +89,17 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
             maxLines: 4,
             minLines: 3,
             autovalidateMode: AutovalidateMode.onUserInteraction,
-            validator: (value) => trOrNull(
-              ((value) {
-                final text = value?.trim() ?? '';
-                if (text.isEmpty) return 'Reason is required';
-                if (text.length < 3) {
-                  return 'Reason must be at least 3 characters';
-                }
-                if (text.length > 500) {
-                  return 'Reason must not exceed 500 characters';
-                }
-                return null;
-              })(value),
-            ),
+            validator: (value) {
+              final text = value?.trim() ?? '';
+              if (text.isEmpty) return tr('Reason is required');
+              if (text.length < 3) {
+                return tr('Reason must be at least 3 characters');
+              }
+              if (text.length > 500) {
+                return tr('Reason must not exceed 500 characters');
+              }
+              return null;
+            },
             decoration: InputDecoration(
               hintText: trOrNull('Please provide a reason...'),
               hintStyle: const TextStyle(color: Colors.grey),
@@ -163,7 +163,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         await _service.cancel(widget.bookingId, reason);
         if (mounted) await _load();
       } catch (error) {
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(tr(bookingError(error))),
@@ -171,6 +171,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               behavior: SnackBarBehavior.floating,
             ),
           );
+        }
       } finally {
         if (mounted) setState(() => _acting = false);
       }
@@ -224,288 +225,288 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _loading || _acting ? null : _load,
-            icon: const Icon(Icons.refresh),
-          ),
-        ],
+        // Removed the refresh IconButton
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _b == null
           ? Center(
-              child: Text(
-                tr(_error ?? 'Booking not found'),
-                style: const TextStyle(color: Colors.grey),
+        child: Text(
+          tr(_error ?? 'Booking not found'),
+          style: const TextStyle(color: Colors.grey),
+        ),
+      )
+      // Wrap with RefreshIndicator for pull-to-refresh
+          : RefreshIndicator(
+        onRefresh: _load,
+        color: _primaryColor,
+        child: ListView(
+          // Ensure list can always be pulled down even if content is short
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(16),
+          children: [
+            if (_error != null)
+              Container(
+                padding: const EdgeInsets.all(12),
+                margin: const EdgeInsets.only(bottom: 12),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.red.shade200),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      color: Colors.red,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        tr(_error!),
+                        style: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(16),
-              child: ListView(
-                children: [
-                  if (_error != null)
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: Colors.red.shade50,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: Colors.red.shade200),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.error_outline,
-                            color: Colors.red,
-                            size: 18,
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              tr(_error!),
-                              style: const TextStyle(
-                                color: Colors.red,
-                                fontSize: 13,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
 
-                  // ===== Info Card =====
-                  Card(
-                    elevation: 1,
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      side: BorderSide(color: Colors.grey.shade200),
+            // ===== Info Card =====
+            Card(
+              elevation: 1,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(color: Colors.grey.shade200),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          tr('Booking Info'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                            color: _primaryColor,
+                          ),
+                        ),
+                        _statusBadge(_b!['booking_status']),
+                      ],
                     ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
+                    const Divider(height: 20),
+                    _row(
+                      'Customer',
+                      _b!['customer_profiles']?['users']?['full_name'] ?? '-',
+                    ),
+                    _row(
+                      'Contact',
+                      _b!['customer_profiles']?['users']?['phone'] ?? '-',
+                    ),
+                    _row(
+                      'Service',
+                      _b!['services']?['service_name'] ?? '-',
+                    ),
+                    _row(
+                      'Date',
+                      '${_b!['booking_date']} ${_b!['scheduled_time']}',
+                    ),
+                    _row('Address', _b!['customer_address'] ?? '-'),
+                    _row(
+                      'Payment',
+                      tr("RM{0} · {1}", [
+                        _b!['total_amount'],
+                        tr(_b!['payment_status']?.toString() ?? 'Not paid'),
+                      ]),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            // ===== Payment Pending Notice =====
+            if (_b!['booking_status'] == 'Confirmed' &&
+                _b!['payment_status'] != 'Success')
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: _accentColor,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: _primaryColor.withValues(alpha: 0.3),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.info_outline,
+                      color: _primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        tr(
+                          'Slot accepted. Waiting for the customer to complete FPX payment.',
+                        ),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black87,
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+            // ===== Special Instructions =====
+            if (_b!['special_instructions'] != null)
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(
+                      Icons.sticky_note_2_outlined,
+                      color: _primaryColor,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                tr('Booking Info'),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  color: _primaryColor,
-                                ),
-                              ),
-                              _statusBadge(_b!['booking_status']),
-                            ],
+                          Text(
+                            tr('Special Instructions'),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
                           ),
-                          const Divider(height: 20),
-                          _row(
-                            'Customer',
-                            _b!['customer_profiles']?['users']?['full_name'] ??
-                                '-',
-                          ),
-                          _row(
-                            'Contact',
-                            _b!['customer_profiles']?['users']?['phone'] ?? '-',
-                          ),
-                          _row(
-                            'Service',
-                            _b!['services']?['service_name'] ?? '-',
-                          ),
-                          _row(
-                            'Date',
-                            '${_b!['booking_date']} ${_b!['scheduled_time']}',
-                          ),
-                          _row('Address', _b!['customer_address'] ?? '-'),
-                          _row(
-                            'Payment',
-                            tr("RM{0} · {1}", [
-                              _b!['total_amount'],
-                              tr(
-                                _b!['payment_status']?.toString() ?? 'Not paid',
-                              ),
-                            ]),
+                          const SizedBox(height: 4),
+                          Text(
+                            _b!['special_instructions'],
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                              height: 1.4,
+                            ),
                           ),
                         ],
                       ),
                     ),
-                  ),
+                  ],
+                ),
+              ),
 
-                  // ===== Payment Pending Notice =====
-                  if (_b!['booking_status'] == 'Confirmed' &&
-                      _b!['payment_status'] != 'Success')
-                    Container(
-                      margin: const EdgeInsets.only(top: 12),
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: _accentColor,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: _primaryColor.withValues(alpha: 0.3),
+            const SizedBox(height: 20),
+
+            // ===== Action Buttons =====
+            if (_acting)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(12),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  if (_b!['can_accept'] == true)
+                    ElevatedButton.icon(
+                      onPressed: () => _update('Confirmed'),
+                      icon: const Icon(Icons.check, size: 18),
+                      label: Text(tr('Accept')),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.info_outline,
-                            color: _primaryColor,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              tr(
-                                'Slot accepted. Waiting for the customer to complete FPX payment.',
-                              ),
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.black87,
-                                height: 1.4,
-                              ),
-                            ),
-                          ),
-                        ],
+                    ),
+                  if (_b!['can_accept'] == true)
+                    OutlinedButton.icon(
+                      onPressed: _cancel,
+                      icon: const Icon(Icons.close, size: 18),
+                      label: Text(tr('Decline')),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _primaryColor,
+                        side: const BorderSide(color: _primaryColor),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
                       ),
                     ),
-
-                  // ===== Special Instructions =====
-                  if (_b!['special_instructions'] != null)
-                    Container(
-                      margin: const EdgeInsets.only(top: 12),
-                      padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade200),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            Icons.sticky_note_2_outlined,
-                            color: _primaryColor,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  tr('Special Instructions'),
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 13,
-                                    color: Colors.black87,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  _b!['special_instructions'],
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Colors.black87,
-                                    height: 1.4,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                  if (_b!['can_start'] == true)
+                    ElevatedButton.icon(
+                      onPressed: () => _update('In-Progress'),
+                      icon: const Icon(Icons.play_arrow, size: 18),
+                      label: Text(tr('Start Service')),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
                       ),
                     ),
-
-                  const SizedBox(height: 20),
-
-                  // ===== Action Buttons =====
-                  if (_acting)
-                    const Center(
-                      child: Padding(
-                        padding: EdgeInsets.all(12),
-                        child: CircularProgressIndicator(),
+                  if (_b!['booking_status'] == 'In-Progress')
+                    ElevatedButton.icon(
+                      onPressed: () => _update('Completed'),
+                      icon: const Icon(Icons.done_all, size: 18),
+                      label: Text(tr('Complete Service')),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryColor,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 14,
+                        ),
                       ),
-                    )
-                  else
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        if (_b!['can_accept'] == true)
-                          ElevatedButton.icon(
-                            onPressed: () => _update('Confirmed'),
-                            icon: const Icon(Icons.check, size: 18),
-                            label: Text(tr('Accept')),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _primaryColor,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 14,
-                              ),
-                            ),
-                          ),
-                        if (_b!['can_accept'] == true)
-                          OutlinedButton.icon(
-                            onPressed: _cancel,
-                            icon: const Icon(Icons.close, size: 18),
-                            label: Text(tr('Decline')),
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: _primaryColor,
-                              side: const BorderSide(color: _primaryColor),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 14,
-                              ),
-                            ),
-                          ),
-                        if (_b!['can_start'] == true)
-                          ElevatedButton.icon(
-                            onPressed: () => _update('In-Progress'),
-                            icon: const Icon(Icons.play_arrow, size: 18),
-                            label: Text(tr('Start Service')),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _primaryColor,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 14,
-                              ),
-                            ),
-                          ),
-                        if (_b!['booking_status'] == 'In-Progress')
-                          ElevatedButton.icon(
-                            onPressed: () => _update('Completed'),
-                            icon: const Icon(Icons.done_all, size: 18),
-                            label: Text(tr('Complete Service')),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: _primaryColor,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 14,
-                              ),
-                            ),
-                          ),
-                      ],
                     ),
                 ],
               ),
-            ),
+
+            // Add bottom padding to keep content away from screen edges
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
     );
   }
 

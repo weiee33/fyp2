@@ -1,6 +1,7 @@
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import '../../services/profile_service.dart';
+import 'package:fyp2/Provider/screens/home/provider_floating_nav_bar.dart';
 
 class AiJobMatchingScreen extends StatefulWidget {
   const AiJobMatchingScreen({super.key});
@@ -12,8 +13,6 @@ class AiJobMatchingScreen extends StatefulWidget {
 class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   final _service = ProfileService();
 
-  Map<String, dynamic>? _profile;
-  List<Map<String, dynamic>> _certifications = [];
   List<Map<String, dynamic>> _matches = [];
   bool _loading = true;
 
@@ -36,8 +35,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       final matches = _computeMatches(profile, certs);
 
       setState(() {
-        _profile = profile;
-        _certifications = certs;
         _matches = matches;
         _loading = false;
       });
@@ -54,16 +51,14 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     }
   }
 
-  /// Simple weighted scoring algorithm (Module 10)
   List<Map<String, dynamic>> _computeMatches(
-    Map<String, dynamic>? profile,
-    List<Map<String, dynamic>> certs,
-  ) {
+      Map<String, dynamic>? profile,
+      List<Map<String, dynamic>> certs,
+      ) {
     final rating = (profile?['overall_rating'] as num?)?.toDouble() ?? 0;
     final years = (profile?['years_experience'] as num?)?.toInt() ?? 0;
     final certCount = certs.length;
 
-    // Candidate categories with their required skills
     final candidates = [
       {
         'category': 'Electrical Wiring Repair',
@@ -100,7 +95,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     final results = <Map<String, dynamic>>[];
 
     for (final c in candidates) {
-      // 1. Skill match (40%): does provider have the required certification?
       final hasSkill = certs.any((cert) {
         final name = cert['certification_name']?.toString().toLowerCase() ?? '';
         final issuer = cert['issuer']?.toString().toLowerCase() ?? '';
@@ -108,14 +102,8 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
         return name.contains(skill) || issuer.contains(skill);
       });
       final skillScore = hasSkill ? 40.0 : 15.0;
-
-      // 2. Rating score (25%): overall rating / 5 * 25
       final ratingScore = (rating / 5.0) * 25;
-
-      // 3. Experience score (15%): capped at 10 years
       final expScore = (years.clamp(0, 10) / 10.0) * 15;
-
-      // 4. Certification count score (20%): more certs = higher
       final certScore = (certCount.clamp(0, 5) / 5.0) * 20;
 
       final total = skillScore + ratingScore + expScore + certScore;
@@ -124,9 +112,8 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       results.add({...c, 'hasSkill': hasSkill, 'matchPercent': matchPercent});
     }
 
-    // Sort by match percentage, descending
     results.sort(
-      (a, b) => (b['matchPercent'] as int).compareTo(a['matchPercent'] as int),
+          (a, b) => (b['matchPercent'] as int).compareTo(a['matchPercent'] as int),
     );
 
     return results;
@@ -160,22 +147,26 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: Colors.white,
+      extendBody: true,
       appBar: AppBar(
         title: Text(tr('AI Job Matching')),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
+        automaticallyImplyLeading: false, // Removes the back button
       ),
-      body: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : SafeArea(
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: _loading
+                ? const Center(child: CircularProgressIndicator())
+                : SafeArea(
               child: RefreshIndicator(
                 onRefresh: _load,
                 color: _primaryColor,
                 child: ListView(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 120), // Added bottom padding
                   children: [
-                    // Header Card
                     Card(
                       elevation: 2,
                       color: _accentColor,
@@ -204,7 +195,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                                 tr(
                                   'Based on your skills and certifications, we recommend these service categories for you.',
                                 ),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 13,
                                   color: Colors.black87,
                                   height: 1.4,
@@ -219,11 +210,11 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
                     if (_matches.isEmpty)
                       Padding(
-                        padding: EdgeInsets.symmetric(vertical: 48),
+                        padding: const EdgeInsets.symmetric(vertical: 48),
                         child: Center(
                           child: Text(
                             tr('No recommendations available'),
-                            style: TextStyle(color: Colors.grey),
+                            style: const TextStyle(color: Colors.grey),
                           ),
                         ),
                       )
@@ -233,6 +224,21 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                 ),
               ),
             ),
+          ),
+
+          // Add the floating nav bar
+          ProviderFloatingNavBar(
+            currentIndex: 0, // Default to Home highlight
+            onTabChanged: (index) {
+              // Pop back to the main shell to switch tabs
+              Navigator.pop(context);
+            },
+            onOpenAi: () {
+              // Already on AI screen
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -242,8 +248,8 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     final matchColor = matchPercent >= 80
         ? const Color(0xFF10B981)
         : (matchPercent >= 60
-              ? const Color(0xFFF59E0B)
-              : const Color(0xFFEF4444));
+        ? const Color(0xFFF59E0B)
+        : const Color(0xFFEF4444));
 
     return Card(
       elevation: 2,
@@ -255,7 +261,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Title + match badge
             Row(
               children: [
                 Expanded(
@@ -289,7 +294,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
             ),
             const SizedBox(height: 8),
 
-            // Meta
             Text(
               tr("Jobs available: {0} · Avg. earnings: RM{1}", [
                 m['jobsAvailable'],
@@ -299,7 +303,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
             ),
             const SizedBox(height: 8),
 
-            // Skill status
             Row(
               children: [
                 Icon(
@@ -312,15 +315,10 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    tr(
-                      hasSkill
-                          ? tr("You have: {0} certificate", [
-                              m['requiredSkill'],
-                            ])
-                          : tr("Missing: {0} certification", [
-                              m['requiredSkill'],
-                            ]),
-                    ),
+                    // Fixed nested tr() here
+                    hasSkill
+                        ? tr("You have: {0} certificate", [m['requiredSkill']])
+                        : tr("Missing: {0} certification", [m['requiredSkill']]),
                     style: TextStyle(
                       fontSize: 12,
                       color: hasSkill
@@ -333,7 +331,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
             ),
             const SizedBox(height: 12),
 
-            // Actions
             Row(
               children: [
                 Expanded(

@@ -20,7 +20,10 @@ import 'package:fyp2/shared/portal_entry_screen.dart';
 import 'package:fyp2/Provider/screens/schedule/schedule_screen.dart';
 import 'package:fyp2/Provider/screens/home/provider_home_screen.dart';
 
-// Import the two AI screens directly for the floating menu
+// Import the floating nav bar component
+import 'package:fyp2/Provider/screens/home/provider_floating_nav_bar.dart';
+
+// Import the AI screens so they can be navigated to
 import 'package:fyp2/Provider/screens/ai/ai_job_matching_screen.dart';
 import 'package:fyp2/Provider/screens/ai/ai_schedule_screen.dart';
 
@@ -42,7 +45,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   // 0: Home, 1: Bookings, 2: Schedule, 3: Profile
   int _tab = 0;
 
-  // 🎨 Orange + White theme
+  // Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -124,123 +127,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     );
   }
 
-  // ==================== Floating AI Bubble Menu ====================
-  void _showAiBubble(BuildContext buttonContext) {
-    // 获取按钮在屏幕上的位置
-    final RenderBox renderBox = buttonContext.findRenderObject() as RenderBox;
-    final Offset offset = renderBox.localToGlobal(Offset.zero);
-    final Size size = renderBox.size;
-
-    // 计算气泡菜单的宽度和居中位置
-    const double menuWidth = 230.0;
-    final double leftPosition = (offset.dx + size.width / 2) - (menuWidth / 2);
-
-    OverlayEntry? overlayEntry;
-
-    // 关闭菜单的方法
-    void removeOverlay() {
-      overlayEntry?.remove();
-      overlayEntry = null;
-    }
-
-    // 创建悬浮菜单
-    overlayEntry = OverlayEntry(
-      builder: (ctx) {
-        return Stack(
-          children: [
-            // 1. 透明背景，用于检测点击外部关闭菜单
-            Positioned.fill(
-              child: GestureDetector(
-                onTap: removeOverlay,
-                behavior: HitTestBehavior.opaque,
-                child: Container(color: Colors.transparent),
-              ),
-            ),
-            // 2. 悬浮气泡菜单
-            Positioned(
-              left: leftPosition,
-              bottom: MediaQuery.of(ctx).padding.bottom + 80, // 定位在凸起按钮上方
-              child: Material(
-                color: Colors.transparent,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // 菜单主体
-                    Container(
-                      width: menuWidth,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
-                            blurRadius: 16,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                        border: Border.all(color: _borderOrange, width: 1),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // --- 选项 1 ---
-                          InkWell(
-                            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                            onTap: () {
-                              removeOverlay();
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const AiJobMatchingScreen()));
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 20),
-                                  const SizedBox(width: 12),
-                                  Text(tr('AI Job Matching'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const Divider(height: 1, color: _borderOrange),
-                          // --- 选项 2 ---
-                          InkWell(
-                            borderRadius: const BorderRadius.vertical(bottom: Radius.circular(16)),
-                            onTap: () {
-                              removeOverlay();
-                              Navigator.push(context, MaterialPageRoute(builder: (_) => const AiScheduleScreen()));
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.schedule, color: Colors.blue, size: 20),
-                                  const SizedBox(width: 12),
-                                  Text(tr('AI Smart Schedule'), style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    // 底部小三角（指向下方的 AI 按钮）
-                    CustomPaint(
-                      size: const Size(16, 8),
-                      painter: _TrianglePainter(color: Colors.white, borderColor: _borderOrange),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-
-    // 插入到屏幕最上层
-    Overlay.of(context).insert(overlayEntry!);
-  }
-
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
@@ -262,7 +148,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      extendBody: true,
+      extendBody: true, // Allow body to extend behind the floating nav
       appBar: _tab == 3
           ? AppBar(
         backgroundColor: _primaryOrange,
@@ -270,15 +156,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Text(tr('Profile'),
-          style: TextStyle(fontWeight: FontWeight.w600),
-        ),
+            style: const TextStyle(fontWeight: FontWeight.w600)),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.language_rounded),
-            tooltip: tr('Language / 语言 / Bahasa'),
-            onPressed: () => Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const LanguageScreen())),
-          ),
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline),
             tooltip: tr('Chats'),
@@ -330,111 +209,69 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         ],
       )
           : null,
-      body: pages[_tab],
 
-      // ==================== Floating Bottom Navigation ====================
-      bottomNavigationBar: SafeArea(
-        bottom: true,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 16),
-          child: Container(
-            height: 72,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(36),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.08),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
-            child: Stack(
-              clipBehavior: Clip.none,
-              alignment: Alignment.center,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _buildNavItem(0, Icons.home_outlined, Icons.home, 'Home'),
-                    _buildNavItem(1, Icons.calendar_month_outlined,
-                        Icons.calendar_month, 'Bookings'),
-                    const SizedBox(width: 60),
-                    _buildNavItem(2, Icons.schedule, Icons.schedule, 'Schedule'),
-                    _buildNavItem(
-                        3, Icons.person_outline, Icons.person, 'Profile'),
-                  ],
-                ),
-                // Center Floating AI Button wrapped in Builder to get exact position
-                Positioned(
-                  top: -20,
-                  child: Builder(
-                    builder: (buttonContext) => GestureDetector(
-                      onTap: () => _showAiBubble(buttonContext),
-                      child: Container(
-                        width: 60,
-                        height: 60,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFF8A00), Color(0xFFFF6B00)],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFF6B00)
-                                  .withValues(alpha: 0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
-                            ),
-                          ],
-                          border: Border.all(color: Colors.white, width: 4),
-                        ),
-                        child: const Icon(
-                          Icons.auto_awesome,
-                          color: Colors.white,
-                          size: 28,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+      // Use Stack for the body to allow the floating nav bar to overlay
+      body: Stack(
+        children: [
+          // Main Content
+          Positioned.fill(
+            child: pages[_tab],
           ),
-        ),
-      ),
-    );
-  }
 
-  Widget _buildNavItem(
-      int index, IconData icon, IconData activeIcon, String label) {
-    final isSelected = _tab == index;
-    return GestureDetector(
-      onTap: () => setState(() => _tab = index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              color: isSelected ? _primaryOrange : Colors.grey.shade400,
-              size: 26,
-            ),
-            const SizedBox(height: 4),
-            Text(tr(label),
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                color: isSelected ? _primaryOrange : Colors.grey.shade400,
-              ),
-            ),
-          ],
-        ),
+          // Floating Navigation Bar
+          ProviderFloatingNavBar(
+            currentIndex: _tab,
+            onTabChanged: (index) => setState(() => _tab = index),
+            onOpenAi: () {
+              showModalBottomSheet(
+                context: context,
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                ),
+                builder: (ctx) {
+                  return SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const SizedBox(height: 12),
+                        ListTile(
+                          leading: const Icon(Icons.auto_awesome, color: Colors.deepPurple),
+                          title: const Text('AI Job Matching', style: TextStyle(fontWeight: FontWeight.bold)),
+                          onTap: () {
+                            Navigator.pop(ctx); // Close the bottom sheet
+                            // Navigate to the AI Job Matching screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AiJobMatchingScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        const Divider(height: 1),
+                        ListTile(
+                          leading: const Icon(Icons.schedule, color: Colors.blue),
+                          title: const Text('AI Smart Schedule', style: TextStyle(fontWeight: FontWeight.bold)),
+                          onTap: () {
+                            Navigator.pop(ctx); // Close the bottom sheet
+                            // Navigate to the AI Schedule screen
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const AiScheduleScreen(),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
     );
   }
@@ -455,7 +292,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         onRefresh: _load,
         color: _primaryOrange,
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          // Ensure there is enough bottom padding to avoid overlap with floating nav
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
           children: [
             Card(
               elevation: 2,
@@ -505,8 +343,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.star,
-                                      color: Colors.orange, size: 16),
+                                  const Icon(Icons.star, color: Colors.orange, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
                                     tr('{0} · {1} years', [rating, years]),
@@ -552,11 +389,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         onPressed: _logout,
                         icon: const Icon(Icons.logout, size: 18),
                         label: Text(tr('Log Out'),
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w600,
+                            )),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red.shade600,
                           side: BorderSide(color: Colors.red.shade200),
@@ -581,10 +417,21 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () async {
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const UpdateProfileScreen()),
+                    MaterialPageRoute(builder: (_) => const UpdateProfileScreen()),
                   );
                   _load();
+                },
+              ),
+              // --- Added Language Here ---
+              _menuItem(
+                title: 'App Language', // Changed title to avoid translation conflict
+                subtitle: 'Change app language',
+                icon: Icons.language_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const LanguageScreen()),
+                  );
                 },
               ),
               _menuItem(
@@ -594,8 +441,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const CertificationsScreen()),
+                    MaterialPageRoute(builder: (_) => const CertificationsScreen()),
                   );
                 },
               ),
@@ -611,8 +457,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const MyServicesScreen()),
+                    MaterialPageRoute(builder: (_) => const MyServicesScreen()),
                   );
                 },
               ),
@@ -623,8 +468,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const ServiceAreasScreen()),
+                    MaterialPageRoute(builder: (_) => const ServiceAreasScreen()),
                   );
                 },
               ),
@@ -635,8 +479,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const WorkingHoursScreen()),
+                    MaterialPageRoute(builder: (_) => const WorkingHoursScreen()),
                   );
                 },
               ),
@@ -652,8 +495,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(
-                        builder: (_) => const EarningsScreen()),
+                    MaterialPageRoute(builder: (_) => const EarningsScreen()),
                   );
                 },
               ),
@@ -664,16 +506,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 height: 50,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    await _service
-                        .updateProfile({'verification_status': 'Pending'});
+                    await _service.updateProfile({'verification_status': 'Pending'});
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Row(
                           children: [
-                            Icon(Icons.check_circle,
-                                color: Colors.white, size: 20),
-                            SizedBox(width: 8),
+                            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                            const SizedBox(width: 8),
                             Text(tr('Submitted for verification')),
                           ],
                         ),
@@ -688,9 +528,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   },
                   icon: const Icon(Icons.verified_outlined),
                   label: Text(tr('Submit for Verification'),
-                    style:
-                    TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
-                  ),
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primaryOrange,
                     foregroundColor: Colors.white,
@@ -710,7 +548,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   Widget _sectionLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
-      child: Text(tr(text),
+      child: Text(
+        tr(text),
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.bold,
@@ -773,7 +612,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(tr(title),
+                  Text(
+                    tr(title),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -781,7 +621,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 2),
-                  Text(tr(subtitle),
+                  Text(
+                    tr(subtitle),
                     style: TextStyle(
                       fontSize: 11.5,
                       color: Colors.grey.shade600,
@@ -790,8 +631,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 ],
               ),
             ),
-            Icon(Icons.chevron_right,
-                color: Colors.grey.shade400, size: 20),
+            Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
           ],
         ),
       ),
@@ -836,7 +676,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         children: [
           Icon(icon, size: 14, color: fg),
           const SizedBox(width: 4),
-          Text(tr(status),
+          Text(
+            tr(status),
             style: TextStyle(
               color: fg,
               fontSize: 12,
@@ -847,33 +688,4 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       ),
     );
   }
-}
-
-// ==================== Triangle Painter for Floating Bubble ====================
-class _TrianglePainter extends CustomPainter {
-  final Color color;
-  final Color borderColor;
-
-  _TrianglePainter({required this.color, required this.borderColor});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = color;
-    final borderPaint = Paint()
-      ..color = borderColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
-
-    final path = Path();
-    path.moveTo(0, 0);
-    path.lineTo(size.width / 2, size.height);
-    path.lineTo(size.width, 0);
-    path.close();
-
-    canvas.drawPath(path, paint);
-    canvas.drawPath(path, borderPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

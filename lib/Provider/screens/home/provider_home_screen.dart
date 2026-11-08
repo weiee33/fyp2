@@ -9,7 +9,7 @@ import 'package:fyp2/Provider/screens/earnings/earnings_screen.dart';
 import 'package:fyp2/Provider/screens/profile/service_areas_screen.dart';
 
 class ProviderHomeScreen extends StatefulWidget {
-  // 接收一个回调，用于切换底部导航的 Tab
+  // Callback to switch bottom navigation tabs
   final Function(int) onNavigateToTab;
 
   const ProviderHomeScreen({super.key, required this.onNavigateToTab});
@@ -25,7 +25,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   bool _loading = true;
   String? _error;
 
-  // 数据状态
+  // Data state
   Map<String, dynamic>? _profile;
   double _todayEarnings = 0.0;
   int _pendingCount = 0;
@@ -56,7 +56,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       final uid = _client.auth.currentUser?.id;
       if (uid == null) throw Exception('Not logged in');
 
-      // 1. 获取 Provider Profile 和 Provider ID
+      // 1. Fetch Provider Profile and Provider ID
       final profileRow = await _client
           .from('provider_profiles')
           .select()
@@ -67,7 +67,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       _profile = profileRow;
       final providerId = profileRow['provider_id'].toString();
 
-      // 2. 获取今日收入 (从 provider_earnings 表)
+      // 2. Fetch Today's Earnings (from provider_earnings table)
       final today = DateTime.now();
       final startOfDay = DateTime(today.year, today.month, today.day).toUtc().toIso8601String();
       final earningsRes = await _client
@@ -78,7 +78,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
 
       _todayEarnings = (earningsRes as List).fold(0.0, (sum, row) => sum + ((row['net_earnings'] as num?)?.toDouble() ?? 0.0));
 
-      // 3. 获取各项预约数量
+      // 3. Fetch booking counts
       final bookingsRes = await _client
           .from('bookings')
           .select('booking_id, booking_status, scheduled_datetime, service_name_snapshot, total_amount')
@@ -91,13 +91,13 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       _pendingCount = bookings.where((b) => b['booking_status'] == 'Pending').length;
       _activeCount = bookings.where((b) => b['booking_status'] == 'In-Progress').length;
 
-      // 计算本周完成数量
+      // Calculate completed this week
       _completedThisWeek = bookings.where((b) {
         if (b['booking_status'] != 'Completed') return false;
         return true;
       }).length;
 
-      // 4. 获取最近的 3 个 Pending 预约
+      // 4. Fetch 3 recent pending bookings
       _recentPending = bookings
           .where((b) => b['booking_status'] == 'Pending')
           .take(3)
@@ -129,26 +129,24 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator(color: _primaryOrange)));
+      return const Center(child: CircularProgressIndicator(color: _primaryOrange));
     }
 
     if (_error != null) {
-      return Scaffold(
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.grey),
-              const SizedBox(height: 12),
-              Text(tr('Please check your connection and try again.'), style: const TextStyle(color: Colors.grey)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _loadData,
-                style: ElevatedButton.styleFrom(backgroundColor: _primaryOrange),
-                child: Text(tr('Retry'), style: TextStyle(color: Colors.white)),
-              )
-            ],
-          ),
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.grey),
+            const SizedBox(height: 12),
+            Text(tr('Please check your connection and try again.'), style: const TextStyle(color: Colors.grey)),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadData,
+              style: ElevatedButton.styleFrom(backgroundColor: _primaryOrange),
+              child: Text(tr('Retry'), style: TextStyle(color: Colors.white)),
+            )
+          ],
         ),
       );
     }
@@ -157,9 +155,10 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
     final region = _profile?['region'] ?? tr('Your Area');
     final radius = _profile?['service_radius_km'] ?? 10;
 
-    return Scaffold(
-      backgroundColor: _bgColor,
-      body: RefreshIndicator(
+    // Notice: Replaced Scaffold with Container (The outer scaffold is handled by the RootNavScreen)
+    return Container(
+      color: _bgColor,
+      child: RefreshIndicator(
         onRefresh: _loadData,
         color: _primaryOrange,
         child: SingleChildScrollView(
@@ -187,7 +186,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(tr('Good day,'),
-                              style: TextStyle(color: Colors.white70, fontSize: 14),
+                              style: const TextStyle(color: Colors.white70, fontSize: 14),
                             ),
                             Text(
                               name,
@@ -280,7 +279,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(tr('Today\'s Earnings'),
-                                style: TextStyle(color: Colors.grey, fontSize: 13),
+                                style: const TextStyle(color: Colors.grey, fontSize: 13),
                               ),
                               const SizedBox(height: 4),
                               Text(
@@ -320,7 +319,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                     const SizedBox(height: 24),
 
                     // Quick Actions
-                    Text(tr('Quick Actions'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                    Text(tr('Quick Actions'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
                     const SizedBox(height: 12),
                     Row(
                       children: [
@@ -339,10 +338,10 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(tr('Pending Requests'), style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        Text(tr('Pending Requests'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
                         TextButton(
                           onPressed: () => widget.onNavigateToTab(1),
-                          child: Text(tr('View all'), style: TextStyle(color: _primaryOrange, fontSize: 13)),
+                          child: Text(tr('View all'), style: const TextStyle(color: _primaryOrange, fontSize: 13)),
                         ),
                       ],
                     ),
@@ -355,16 +354,17 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                         decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
                         child: Column(
                           children: [
-                            Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
-                            SizedBox(height: 12),
-                            Text(tr('No pending requests'), style: TextStyle(color: Colors.grey)),
+                            const Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
+                            const SizedBox(height: 12),
+                            Text(tr('No pending requests'), style: const TextStyle(color: Colors.grey)),
                           ],
                         ),
                       )
                     else
                       ..._recentPending.map((b) => _pendingCard(b)),
 
-                    const SizedBox(height: 100), // 底部留白，防止被悬浮导航遮挡
+                    // Bottom padding to prevent floating nav from covering content
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),
@@ -473,7 +473,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
         title: Text(serviceName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
         subtitle: Text(timeStr, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         trailing: Text('RM $amount', style: const TextStyle(fontWeight: FontWeight.bold, color: _primaryOrange)),
-        onTap: () => widget.onNavigateToTab(1), // 跳到 Bookings 去处理
+        onTap: () => widget.onNavigateToTab(1), // Navigate to Bookings to process
       ),
     );
   }

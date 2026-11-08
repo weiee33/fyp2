@@ -25,7 +25,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
 
-  // 🎨 Orange + White theme
+  // Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -74,6 +74,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
+        bottom: false, // The floating nav bar handles its own bottom safe area
         child: Column(
           children: [
             // ---- Status Filter Chips ----
@@ -127,17 +128,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               child: _loading
                   ? const Center(child: CircularProgressIndicator())
                   : RefreshIndicator(
-                      onRefresh: _load,
-                      color: _primaryOrange,
-                      child: _items.isEmpty
-                          ? _buildEmpty()
-                          : ListView(
-                              padding: const EdgeInsets.all(16),
-                              children: _items
-                                  .map((b) => _bookingCard(b))
-                                  .toList(),
-                            ),
-                    ),
+                onRefresh: _load,
+                color: _primaryOrange,
+                child: _items.isEmpty
+                    ? _buildEmpty()
+                    : ListView(
+                  // Added bottom padding to avoid overlap with floating nav
+                  padding: const EdgeInsets.only(
+                    left: 16,
+                    right: 16,
+                    top: 16,
+                    bottom: 120,
+                  ),
+                  children: _items
+                      .map((b) => _bookingCard(b))
+                      .toList(),
+                ),
+              ),
             ),
           ],
         ),
@@ -147,25 +154,27 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _buildEmpty() {
     return ListView(
+      // Added bottom padding for empty state as well
+      padding: const EdgeInsets.only(bottom: 120),
       children: [
-        SizedBox(height: 100),
-        Icon(Icons.event_busy_outlined, size: 56, color: Colors.grey),
-        SizedBox(height: 12),
+        const SizedBox(height: 100),
+        const Icon(Icons.event_busy_outlined, size: 56, color: Colors.grey),
+        const SizedBox(height: 12),
         Center(
           child: Text(
             tr('No bookings'),
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.grey,
               fontSize: 14,
               fontWeight: FontWeight.w600,
             ),
           ),
         ),
-        SizedBox(height: 4),
+        const SizedBox(height: 4),
         Center(
           child: Text(
             tr('New booking requests will appear here'),
-            style: TextStyle(color: Colors.grey, fontSize: 12),
+            style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ),
       ],
@@ -173,7 +182,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _bookingCard(Map<String, dynamic> b) {
-    // ---- Safe field extraction with fallbacks ----
+    // Safe field extraction with fallbacks
     final rawId = b['booking_id']?.toString() ?? '';
     final shortId = rawId.isEmpty
         ? 'N/A'
@@ -181,15 +190,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
     final cust =
         b['customer_profiles']?['users']?['full_name']?.toString() ??
-        tr('Customer');
+            tr('Customer');
     final svc = b['services']?['service_name']?.toString() ?? tr('Service');
 
     final amountRaw = b['total_amount'];
     final amountText = amountRaw == null
         ? '—'
         : (amountRaw is num
-              ? amountRaw.toStringAsFixed(0)
-              : amountRaw.toString());
+        ? amountRaw.toStringAsFixed(0)
+        : amountRaw.toString());
 
     final status = b['booking_status']?.toString() ?? 'Pending';
     final date = b['booking_date']?.toString() ?? tr('Date TBA');
@@ -223,7 +232,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // ---- Header: ID + Amount ----
+              // Header: ID + Amount
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -264,26 +273,26 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               ),
               const SizedBox(height: 12),
 
-              // ---- Customer ----
+              // Customer
               _infoRow(Icons.person_outline, cust),
               const SizedBox(height: 4),
 
-              // ---- Service ----
+              // Service
               _infoRow(Icons.build_outlined, svc),
               const SizedBox(height: 4),
 
-              // ---- Date ----
+              // Date
               _infoRow(Icons.calendar_today_outlined, date),
               const SizedBox(height: 12),
 
-              // ---- Status + View detail ----
+              // Status + View detail
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   _statusBadge(status),
                   Text(
                     tr('View detail →'),
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: _primaryOrange,
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
@@ -341,7 +350,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         icon = Icons.cancel_outlined;
         break;
       default:
-        // Pending / New
+      // Pending / New
         bg = _lightOrange;
         fg = _primaryOrange;
         icon = Icons.pending_outlined;
