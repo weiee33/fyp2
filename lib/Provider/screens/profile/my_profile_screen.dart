@@ -236,7 +236,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         const SizedBox(height: 12),
                         ListTile(
                           leading: const Icon(Icons.auto_awesome, color: Colors.deepPurple),
-                          title: const Text('AI Job Matching', style: TextStyle(fontWeight: FontWeight.bold)),
+                          title: Text(tr('AI Job Matching'), style: const TextStyle(fontWeight: FontWeight.bold)), // 修复此处
                           onTap: () {
                             Navigator.pop(ctx); // Close the bottom sheet
                             // Navigate to the AI Job Matching screen
@@ -251,7 +251,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         const Divider(height: 1),
                         ListTile(
                           leading: const Icon(Icons.schedule, color: Colors.blue),
-                          title: const Text('AI Smart Schedule', style: TextStyle(fontWeight: FontWeight.bold)),
+                          title: Text(tr('AI Smart Schedule'), style: const TextStyle(fontWeight: FontWeight.bold)), // 修复此处
                           onTap: () {
                             Navigator.pop(ctx); // Close the bottom sheet
                             // Navigate to the AI Schedule screen
