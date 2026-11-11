@@ -38,7 +38,7 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
       context,
       title: tr('Permanently delete your account?'),
       message: tr(
-        'Your login, saved addresses, photo and personal profile will be removed. Your sent chat text and review text will be removed. Anonymized booking, payment and rating records remain for transaction history. This cannot be undone. To use this email again, you must register a new account.',
+        'Your login, saved addresses, photo and personal profile will be removed. Your sent chat text and review text will be removed. Anonymized booking, payment and rating records remain for transaction history. This cannot be undone. You must wait 14 days before registering with this email again.',
       ),
     ))
       return;
@@ -53,7 +53,7 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
         context,
         title: tr('Account deleted'),
         message: tr(
-          'Your account has been deleted. You must register again to use Local Life Service Assistant.',
+          'Your account has been deleted. You can register with this email again after 14 days.',
         ),
       );
       if (mounted)
@@ -114,7 +114,7 @@ class _DeleteState extends State<CustomerDeleteAccountScreen> {
               ),
               child: Text(
                 tr(
-                  'This permanently removes your login and personal profile. You cannot sign in again unless you register a new account, even if you reuse the same email.',
+                  'This permanently removes your login and personal profile. You must wait 14 days before registering with this email again.',
                 ),
                 style: const TextStyle(height: 1.5, color: Color(0xFF912018)),
               ),

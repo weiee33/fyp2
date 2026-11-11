@@ -19,6 +19,7 @@ import 'customer_accounts_chat_test.dart' show proof;
 class AuthFixture {
   String role = 'customer';
   bool identityDenied = false, confirmed = true, active = true;
+  bool registrationBlocked = false;
   final requests = <http.Request>[];
   late final client = SupabaseClient(
     'https://fixture.invalid',
@@ -29,7 +30,7 @@ class AuthFixture {
     ),
     httpClient: MockClient((r) async {
       requests.add(r);
-      Object value;
+      Object? value;
       var status = 200;
       final user = {
         'id': '00000000-0000-4000-8000-000000000001',
@@ -40,6 +41,15 @@ class AuthFixture {
         'app_metadata': {},
       };
       switch (r.url.path) {
+        case '/rest/v1/rpc/customer_registration_check':
+          status = registrationBlocked ? 400 : 200;
+          value = registrationBlocked
+              ? {
+                  'code': 'P0001',
+                  'message':
+                      'This email can be used again 14 days after account deletion.',
+                }
+              : null;
         case '/auth/v1/token':
         case '/auth/v1/verify':
         case '/auth/v1/signup':
@@ -147,6 +157,32 @@ void main() {
   });
   for (final role in MobileAccountRole.values) {
     test(
+      '${role.name} registration stops before signup during email cooldown',
+      () async {
+        fixture.registrationBlocked = true;
+        await expectLater(
+          fixture.service.register(
+            email: 'test@example.invalid',
+            password: 'secret',
+            fullName: 'Test User',
+            phone: '102049818',
+            accountRole: role,
+          ),
+          throwsA(
+            isA<PostgrestException>().having(
+              (e) => e.message,
+              'message',
+              'This email can be used again 14 days after account deletion.',
+            ),
+          ),
+        );
+        expect(fixture.requests.map((r) => r.url.path), [
+          '/rest/v1/rpc/customer_registration_check',
+        ]);
+        expect(fixture.client.auth.currentSession, isNull);
+      },
+    );
+    test(
       '${role.name} password and OTP use canonical role, not metadata',
       () async {
         fixture.role = role.name;
@@ -185,7 +221,14 @@ void main() {
         );
         expect(registration.role, isNull);
         expect(registration.response.session, isNull);
-        final body = jsonDecode(fixture.requests.single.body);
+        expect(
+          fixture.requests.first.url.path,
+          '/rest/v1/rpc/customer_registration_check',
+        );
+        expect(jsonDecode(fixture.requests.first.body), {
+          'p_email': 'test@example.invalid',
+        });
+        final body = jsonDecode(fixture.requests.last.body);
         expect(body['data'], {
           'full_name': 'Test User',
           'phone': '+60102049818',

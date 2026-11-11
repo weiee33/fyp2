@@ -119,17 +119,29 @@ class _CustomerBookingDetailScreenState
           color: CustomerTheme.textPrimary,
         ),
         contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
-        content: TextField(
-          controller: reason,
-          maxLength: 500,
-          minLines: 3,
-          maxLines: 5,
-          textCapitalization: TextCapitalization.sentences,
-          decoration: InputDecoration(
-            labelText: trOrNull('Reason'),
-            floatingLabelBehavior: FloatingLabelBehavior.always,
-            alignLabelWithHint: true,
-          ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              tr(
+                'You can book this service again 30 minutes after cancellation.',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: reason,
+              maxLength: 500,
+              minLines: 3,
+              maxLines: 5,
+              textCapitalization: TextCapitalization.sentences,
+              decoration: InputDecoration(
+                labelText: trOrNull('Reason'),
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+                alignLabelWithHint: true,
+              ),
+            ),
+          ],
         ),
         actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
         actions: [
