@@ -103,6 +103,10 @@ class MobileAuthService {
     required String phone,
     required MobileAccountRole accountRole,
   }) async {
+    await _client.rpc(
+      'customer_registration_check',
+      params: {'p_email': email.trim()},
+    );
     final response = await _client.auth.signUp(
       email: email.trim(),
       password: password,

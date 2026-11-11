@@ -1,4 +1,28 @@
 {
+  "Wait 30 minutes after cancelling before booking this service again.": [
+    "取消后需等待30分钟，才能再次预约此服务。",
+    "Tunggu 30 minit selepas pembatalan sebelum menempah perkhidmatan ini semula."
+  ],
+  "You can book this service again 30 minutes after cancellation.": [
+    "取消30分钟后，您可以再次预约此服务。",
+    "Anda boleh menempah perkhidmatan ini semula 30 minit selepas pembatalan."
+  ],
+  "This email can be used again 14 days after account deletion.": [
+    "账户删除14天后，才能再次使用此电子邮箱注册。",
+    "E-mel ini boleh digunakan semula 14 hari selepas pemadaman akaun."
+  ],
+  "Your login, saved addresses, photo and personal profile will be removed. Your sent chat text and review text will be removed. Anonymized booking, payment and rating records remain for transaction history. This cannot be undone. You must wait 14 days before registering with this email again.": [
+    "您的登录信息、已保存的地址、照片和个人资料将被删除。您发送的聊天文字和评价文字也将被删除。匿名化的预约、付款和评分记录将保留作交易记录。此操作无法撤销。您必须等待14天才能再次使用此电子邮箱注册。",
+    "Maklumat log masuk, alamat tersimpan, foto dan profil peribadi anda akan dipadamkan. Teks sembang dan ulasan yang anda hantar juga akan dipadamkan. Rekod tempahan, pembayaran dan penilaian tanpa identiti dikekalkan untuk sejarah transaksi. Tindakan ini tidak boleh dibatalkan. Anda mesti menunggu 14 hari sebelum mendaftar semula menggunakan e-mel ini."
+  ],
+  "Your account has been deleted. You can register with this email again after 14 days.": [
+    "您的账户已删除。14天后，您可以再次使用此电子邮箱注册。",
+    "Akaun anda telah dipadamkan. Anda boleh mendaftar semula menggunakan e-mel ini selepas 14 hari."
+  ],
+  "This permanently removes your login and personal profile. You must wait 14 days before registering with this email again.": [
+    "这将永久删除您的登录信息和个人资料。您必须等待14天才能再次使用此电子邮箱注册。",
+    "Tindakan ini memadamkan maklumat log masuk dan profil peribadi anda secara kekal. Anda mesti menunggu 14 hari sebelum mendaftar semula menggunakan e-mel ini."
+  ],
   "1. Choose a service and address.\n2. Discuss your preferred time using Chat.\n3. Submit the booking and wait for the provider to accept.\n4. Pay from the accepted booking.\n5. Track progress, then review the completed service.\n\nChat agreements do not reserve a time slot. Always use the booking screen.": [
     "1. 选择服务和地址。\n2. 通过聊天讨论预约时间。\n3. 提交预约并等待服务商接受。\n4. 服务商接受后付款。\n5. 跟进服务进度，完成后留下评价。\n\n聊天中的约定不会保留时段。请通过预约页面提交。",
     "1. Pilih perkhidmatan dan alamat.\n2. Bincangkan waktu pilihan melalui sembang.\n3. Hantar tempahan dan tunggu penyedia menerimanya.\n4. Bayar selepas tempahan diterima.\n5. Ikuti perkembangan dan beri ulasan selepas perkhidmatan selesai.\n\nPersetujuan dalam sembang tidak menempah slot. Gunakan skrin tempahan."
