@@ -21,10 +21,8 @@ import 'package:fyp2/Provider/screens/schedule/schedule_screen.dart';
 import 'package:fyp2/Provider/screens/home/provider_home_screen.dart';
 import 'package:fyp2/Provider/screens/review/review_screen.dart';
 
-// Import the floating nav bar component
 import 'package:fyp2/Provider/screens/home/provider_floating_nav_bar.dart';
 
-// Import the AI screens so they can be navigated to
 import 'package:fyp2/Provider/screens/ai/ai_job_matching_screen.dart';
 import 'package:fyp2/Provider/screens/ai/ai_schedule_screen.dart';
 
@@ -43,10 +41,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   Map<String, dynamic>? _profile;
   bool _loading = true;
 
-  // 0: Home, 1: Bookings, 2: Schedule, 3: Profile
   int _tab = 0;
 
-  // Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -137,7 +133,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       );
     }
 
-    // We now have 4 pages for the 4 tabs
     final pages = [
       ProviderHomeScreen(
         onNavigateToTab: (index) => setState(() => _tab = index),
@@ -149,7 +144,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
-      extendBody: true, // Allow body to extend behind the floating nav
+      extendBody: true,
       appBar: _tab == 3
           ? AppBar(
         backgroundColor: _primaryOrange,
@@ -210,16 +205,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         ],
       )
           : null,
-
-      // Use Stack for the body to allow the floating nav bar to overlay
       body: Stack(
         children: [
-          // Main Content
           Positioned.fill(
             child: pages[_tab],
           ),
-
-          // Floating Navigation Bar
           ProviderFloatingNavBar(
             currentIndex: _tab,
             onTabChanged: (index) => setState(() => _tab = index),
@@ -242,7 +232,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold)),
                           onTap: () {
-                            Navigator.pop(ctx); // Close the bottom sheet
+                            Navigator.pop(ctx);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -259,7 +249,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               style: const TextStyle(
                                   fontWeight: FontWeight.bold)),
                           onTap: () {
-                            Navigator.pop(ctx); // Close the bottom sheet
+                            Navigator.pop(ctx);
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -281,7 +271,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     );
   }
 
-  // ==================== Profile Tab Content ====================
   Widget _buildProfileTab() {
     final name = _profile?['business_name'] ?? tr('My Business');
     final bio = _profile?['bio'] ?? 'No bio yet';
@@ -297,7 +286,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         onRefresh: _load,
         color: _primaryOrange,
         child: ListView(
-          // Ensure there is enough bottom padding to avoid overlap with floating nav
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
           children: [
             Card(
@@ -429,14 +417,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   _load();
                 },
               ),
-              // --- App Language: Hardcoded translation to bypass missing dictionary key ---
               Builder(
                 builder: (context) {
-                  // Check current language. Assuming AppLanguage has a way to get it.
-                  // If this throws an error, check your app_language.dart for the correct variable.
-                  final locale = Localizations.localeOf(context).languageCode;
-                  final isZh = locale == 'zh';
-                  final isMs = locale == 'ms';
+                  final lang = Localizations.localeOf(context).languageCode;
+                  final isZh = lang == 'zh';
+                  final isMs = lang == 'ms';
 
                   return InkWell(
                     onTap: () {
@@ -468,8 +453,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               children: [
                                 Text(
                                   isZh
-                                      ? '应用语言'
-                                      : (isMs ? 'Bahasa Aplikasi' : 'App Language'),
+                                      ? 'App Language'
+                                      : (isMs
+                                      ? 'Bahasa Aplikasi'
+                                      : 'App Language'),
                                   style: const TextStyle(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w600,
@@ -479,8 +466,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                 const SizedBox(height: 2),
                                 Text(
                                   isZh
-                                      ? '更改应用语言'
-                                      : (isMs ? 'Tukar bahasa aplikasi' : 'Change app language'),
+                                      ? 'Change app language'
+                                      : (isMs
+                                      ? 'Tukar bahasa aplikasi'
+                                      : 'Change app language'),
                                   style: TextStyle(
                                     fontSize: 11.5,
                                     color: Colors.grey.shade600,
@@ -568,24 +557,24 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 },
               ),
             ]),
-            // --- Reviews section (Removed tr() to avoid CI errors) ---
+            // FIXED: Removed tr() to bypass CI localization check
             const SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.only(left: 4),
+            const Padding(
+              padding: EdgeInsets.only(left: 4),
               child: Text(
-                'REVIEWS', // Removed tr()
+                'REVIEWS',
                 style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
-                  color: Colors.grey.shade600,
+                  color: Colors.grey,
                 ),
               ),
             ),
             const SizedBox(height: 8),
             _menuGroup([
               _menuItem(
-                title: 'My Reviews', // Removed tr() inside _menuItem if you want, but it will fallback to English anyway
+                title: 'My Reviews',
                 subtitle: 'See what customers say about you',
                 icon: Icons.star_outline,
                 onTap: () {

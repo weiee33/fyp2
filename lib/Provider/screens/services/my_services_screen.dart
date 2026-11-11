@@ -15,7 +15,6 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
 
-  // 🎨 Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -112,11 +111,8 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false,
-        // 🔙 Back button on the left
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
-          tooltip: trOrNull('Back'),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -129,7 +125,6 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // ---- Add New Service Button ----
               SizedBox(
                 height: 50,
                 child: ElevatedButton.icon(
@@ -142,7 +137,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                   icon: const Icon(Icons.add),
                   label: Text(
                     tr('Add New Service'),
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                     ),
@@ -159,32 +154,31 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
               ),
               const SizedBox(height: 20),
 
-              // ---- Empty State ----
               if (_items.isEmpty)
                 Padding(
-                  padding: EdgeInsets.symmetric(vertical: 48),
+                  padding: const EdgeInsets.symmetric(vertical: 48),
                   child: Column(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.work_off_outlined,
                         size: 56,
                         color: Colors.grey,
                       ),
-                      SizedBox(height: 12),
+                      const SizedBox(height: 12),
                       Text(
                         tr('No services yet'),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         tr(
                           'Tap "Add New Service" to create your first listing',
                         ),
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: Colors.grey,
                           fontSize: 12,
                         ),
@@ -193,7 +187,6 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                   ),
                 )
               else
-              // ---- Service List ----
                 ..._items.map((s) => _serviceCard(s)),
             ],
           ),
@@ -220,7 +213,6 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            // Icon
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
@@ -234,8 +226,6 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
               ),
             ),
             const SizedBox(width: 12),
-
-            // Title + subtitle
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -257,11 +247,8 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                 ],
               ),
             ),
-
-            // Actions
             IconButton(
               icon: const Icon(Icons.edit_outlined, color: _primaryOrange),
-              tooltip: trOrNull('Edit'),
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -271,7 +258,6 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
-              tooltip: trOrNull('Delete'),
               onPressed: () => _delete(s['service_id'].toString()),
             ),
           ],
