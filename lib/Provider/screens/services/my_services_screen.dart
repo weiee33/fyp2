@@ -113,86 +113,92 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
+        // 🔙 Back button on the left
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          tooltip: trOrNull('Back'),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
-              child: RefreshIndicator(
-                onRefresh: _load,
-                color: _primaryOrange,
-                child: ListView(
-                  padding: const EdgeInsets.all(16),
-                  children: [
-                    // ---- Add New Service Button ----
-                    SizedBox(
-                      height: 50,
-                      child: ElevatedButton.icon(
-                        onPressed: () => Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const EditServiceScreen(),
-                          ),
-                        ).then((_) => _load()),
-                        icon: const Icon(Icons.add),
-                        label: Text(
-                          tr('Add New Service'),
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: _primaryOrange,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                        ),
-                      ),
+        child: RefreshIndicator(
+          onRefresh: _load,
+          color: _primaryOrange,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              // ---- Add New Service Button ----
+              SizedBox(
+                height: 50,
+                child: ElevatedButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const EditServiceScreen(),
                     ),
-                    const SizedBox(height: 20),
-
-                    // ---- Empty State ----
-                    if (_items.isEmpty)
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 48),
-                        child: Column(
-                          children: [
-                            Icon(
-                              Icons.work_off_outlined,
-                              size: 56,
-                              color: Colors.grey,
-                            ),
-                            SizedBox(height: 12),
-                            Text(
-                              tr('No services yet'),
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              tr(
-                                'Tap "Add New Service" to create your first listing',
-                              ),
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    else
-                      // ---- Service List ----
-                      ..._items.map((s) => _serviceCard(s)),
-                  ],
+                  ).then((_) => _load()),
+                  icon: const Icon(Icons.add),
+                  label: Text(
+                    tr('Add New Service'),
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _primaryOrange,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 2,
+                  ),
                 ),
               ),
-            ),
+              const SizedBox(height: 20),
+
+              // ---- Empty State ----
+              if (_items.isEmpty)
+                Padding(
+                  padding: EdgeInsets.symmetric(vertical: 48),
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.work_off_outlined,
+                        size: 56,
+                        color: Colors.grey,
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        tr('No services yet'),
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        tr(
+                          'Tap "Add New Service" to create your first listing',
+                        ),
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              else
+              // ---- Service List ----
+                ..._items.map((s) => _serviceCard(s)),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

@@ -3,10 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 
 import 'package:fyp2/Provider/services/earnings_service.dart';
-import 'package:fyp2/Provider/screens/earnings/daily_earnings_screen.dart';
-import 'package:fyp2/Provider/screens/earnings/weekly_earnings_screen.dart';
-import 'package:fyp2/Provider/screens/earnings/month_earnings_screen.dart';
-import 'package:fyp2/Provider/screens/earnings/performance_screen.dart';
 
 class EarningsScreen extends StatefulWidget {
   const EarningsScreen({super.key});
@@ -64,10 +60,10 @@ class _EarningsScreenState extends State<EarningsScreen> {
   DateTime? _parseDate(Map<String, dynamic> row) {
     final dateStr =
         row['earned_at']?.toString() ??
-        row['bookings']?['booking_date']?.toString() ??
-        row['booking_date']?.toString() ??
-        row['date']?.toString() ??
-        row['created_at']?.toString();
+            row['bookings']?['booking_date']?.toString() ??
+            row['booking_date']?.toString() ??
+            row['date']?.toString() ??
+            row['created_at']?.toString();
     if (dateStr == null) return null;
     return DateTime.tryParse(dateStr);
   }
@@ -77,30 +73,28 @@ class _EarningsScreenState extends State<EarningsScreen> {
         .toDouble();
   }
 
-  // ========== 7 Days ==========
-  List<double> _getLast7Days() {
+  // ========== Mon - Sun (本周的周一到周日) ==========
+  List<double> _getWeekDaysData() {
     final now = DateTime.now();
+    final monday = now.subtract(Duration(days: now.weekday - 1));
     final result = List<double>.filled(7, 0);
+
     for (final row in _rows) {
       final parsed = _parseDate(row);
       if (parsed == null) continue;
-      final diff = now
-          .difference(DateTime(parsed.year, parsed.month, parsed.day))
-          .inDays;
+
+      final rowDate = DateTime(parsed.year, parsed.month, parsed.day);
+      final diff = rowDate.difference(monday).inDays;
+
       if (diff >= 0 && diff < 7) {
-        result[6 - diff] += _amount(row);
+        result[diff] += _amount(row);
       }
     }
     return result;
   }
 
-  List<String> _getLast7DayLabels() {
-    const labels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
-    final now = DateTime.now();
-    return List.generate(7, (i) {
-      final day = now.subtract(Duration(days: 6 - i));
-      return labels[day.weekday % 7];
-    });
+  List<String> _getWeekDaysLabels() {
+    return ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   }
 
   // ========== Monthly (Jan - Dec of current year) ==========
@@ -123,26 +117,14 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
   List<String> _getMonthlyLabels() {
     return const [
-      'Jan',
-      'Feb',
-      'Mar',
-      'Apr',
-      'May',
-      'Jun',
-      'Jul',
-      'Aug',
-      'Sep',
-      'Oct',
-      'Nov',
-      'Dec',
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
     ];
   }
 
-  // ========== Yearly (last 5 years) ==========
+  // ========== Yearly (2026 - 2030) ==========
   List<double> _getYearlyData() {
-    final currentYear = DateTime.now().year;
-    // Last 5 years including current
-    final years = List.generate(5, (i) => currentYear - 4 + i);
+    final years = [2026, 2027, 2028, 2029, 2030];
     final result = List<double>.filled(5, 0);
 
     for (final row in _rows) {
@@ -157,8 +139,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
   }
 
   List<String> _getYearlyLabels() {
-    final currentYear = DateTime.now().year;
-    return List.generate(5, (i) => '${currentYear - 4 + i}');
+    return ['2026', '2027', '2028', '2029', '2030'];
   }
 
   @override
@@ -176,24 +157,22 @@ class _EarningsScreenState extends State<EarningsScreen> {
     List<double> chartValues;
     List<String> chartLabels;
     String chartSubtitle;
+
     switch (_chartView) {
       case 1:
-        // Monthly: Jan - Dec
         chartValues = _getMonthlyData();
         chartLabels = _getMonthlyLabels();
         chartSubtitle = 'This Year (Monthly)';
         break;
       case 2:
-        // Yearly: last 5 years
         chartValues = _getYearlyData();
         chartLabels = _getYearlyLabels();
-        chartSubtitle = 'Last 5 Years';
+        chartSubtitle = 'Years (2026 - 2030)';
         break;
       default:
-        // Last 7 days
-        chartValues = _getLast7Days();
-        chartLabels = _getLast7DayLabels();
-        chartSubtitle = 'Last 7 days';
+        chartValues = _getWeekDaysData();
+        chartLabels = _getWeekDaysLabels();
+        chartSubtitle = 'This Week (Mon - Sun)';
     }
 
     final hasData = chartValues.any((v) => v > 0);
@@ -217,44 +196,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              // ---- Stat Cards ----
-              GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.6,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _statCard(
-                    label: tr('Today'),
-                    value: tr("RM{0}", [today.toStringAsFixed(0)]),
-                    icon: Icons.today,
-                    color: const Color(0xFF3B82F6),
-                  ),
-                  _statCard(
-                    label: tr('This Week'),
-                    value: tr("RM{0}", [week.toStringAsFixed(0)]),
-                    icon: Icons.date_range,
-                    color: const Color(0xFF10B981),
-                  ),
-                  _statCard(
-                    label: tr('This Month'),
-                    value: tr("RM{0}", [month.toStringAsFixed(0)]),
-                    icon: Icons.calendar_month,
-                    color: const Color(0xFF8B5CF6),
-                  ),
-                  _statCard(
-                    label: tr('Pending'),
-                    value: tr("RM{0}", [pending.toStringAsFixed(0)]),
-                    icon: Icons.hourglass_bottom,
-                    color: const Color(0xFFF59E0B),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-
-              // ---- Chart Card ----
+              // ---- 1. Chart Card ----
               Card(
                 elevation: 2,
                 color: Colors.white,
@@ -302,98 +244,139 @@ class _EarningsScreenState extends State<EarningsScreen> {
                         height: 220,
                         child: hasData
                             ? BarChart(
-                                BarChartData(
-                                  alignment: BarChartAlignment.spaceAround,
-                                  maxY: maxY,
-                                  barGroups: List.generate(chartValues.length, (
-                                    i,
-                                  ) {
-                                    return BarChartGroupData(
-                                      x: i,
-                                      barRods: [
-                                        BarChartRodData(
-                                          toY: chartValues[i],
-                                          color: _primaryOrange,
-                                          width: 12,
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                      ],
-                                    );
-                                  }),
-                                  titlesData: FlTitlesData(
-                                    show: true,
-                                    bottomTitles: AxisTitles(
-                                      sideTitles: SideTitles(
-                                        showTitles: true,
-                                        reservedSize: 24,
-                                        getTitlesWidget: (value, meta) {
-                                          final idx = value.toInt();
-                                          if (idx < 0 ||
-                                              idx >= chartLabels.length) {
-                                            return const SizedBox();
-                                          }
-                                          return Padding(
-                                            padding: const EdgeInsets.only(
-                                              top: 6,
-                                            ),
-                                            child: Text(
-                                              tr(chartLabels[idx]),
-                                              style: const TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.grey,
-                                              ),
-                                            ),
-                                          );
-                                        },
+                          BarChartData(
+                            alignment: BarChartAlignment.spaceAround,
+                            maxY: maxY,
+                            barGroups:
+                            List.generate(chartValues.length, (i) {
+                              return BarChartGroupData(
+                                x: i,
+                                barRods: [
+                                  BarChartRodData(
+                                    toY: chartValues[i],
+                                    color: _primaryOrange,
+                                    width: 12,
+                                    borderRadius:
+                                    BorderRadius.circular(6),
+                                  ),
+                                ],
+                              );
+                            }),
+                            titlesData: FlTitlesData(
+                              show: true,
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 28,
+                                  getTitlesWidget: (value, meta) {
+                                    final idx = value.toInt();
+                                    if (idx < 0 ||
+                                        idx >= chartLabels.length) {
+                                      return const SizedBox();
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 6,
                                       ),
-                                    ),
-                                    leftTitles: const AxisTitles(
-                                      sideTitles: SideTitles(showTitles: false),
-                                    ),
-                                    topTitles: const AxisTitles(
-                                      sideTitles: SideTitles(showTitles: false),
-                                    ),
-                                    rightTitles: const AxisTitles(
-                                      sideTitles: SideTitles(showTitles: false),
-                                    ),
-                                  ),
-                                  gridData: FlGridData(
-                                    show: true,
-                                    drawVerticalLine: false,
-                                    horizontalInterval: (maxY / 3).clamp(
-                                      1,
-                                      double.infinity,
-                                    ),
-                                    getDrawingHorizontalLine: (value) => FlLine(
-                                      color: Colors.grey.shade200,
-                                      strokeWidth: 1,
-                                    ),
-                                  ),
-                                  borderData: FlBorderData(show: false),
-                                ),
-                              )
-                            : Center(
-                                child: Text(
-                                  tr('No earnings data yet'),
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 13,
-                                  ),
+                                      child: Text(
+                                        tr(chartLabels[idx]),
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                    );
+                                  },
                                 ),
                               ),
+                              leftTitles: const AxisTitles(
+                                sideTitles:
+                                SideTitles(showTitles: false),
+                              ),
+                              topTitles: const AxisTitles(
+                                sideTitles:
+                                SideTitles(showTitles: false),
+                              ),
+                              rightTitles: const AxisTitles(
+                                sideTitles:
+                                SideTitles(showTitles: false),
+                              ),
+                            ),
+                            gridData: FlGridData(
+                              show: true,
+                              drawVerticalLine: false,
+                              horizontalInterval: (maxY / 3).clamp(
+                                1,
+                                double.infinity,
+                              ),
+                              getDrawingHorizontalLine: (value) =>
+                                  FlLine(
+                                    color: Colors.grey.shade200,
+                                    strokeWidth: 1,
+                                  ),
+                            ),
+                            borderData: FlBorderData(show: false),
+                          ),
+                        )
+                            : Center(
+                          child: Text(
+                            tr('No earnings data yet'),
+                            style: TextStyle(
+                              color: Colors.grey,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
 
-              // ---- Menu ----
+              // ---- 2. Stat Cards ----
+              GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+                childAspectRatio: 1.6,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                children: [
+                  _statCard(
+                    label: tr('Today'),
+                    value: tr("RM{0}", [today.toStringAsFixed(0)]),
+                    icon: Icons.today,
+                    color: const Color(0xFF3B82F6),
+                  ),
+                  _statCard(
+                    label: tr('This Week'),
+                    value: tr("RM{0}", [week.toStringAsFixed(0)]),
+                    icon: Icons.date_range,
+                    color: const Color(0xFF10B981),
+                  ),
+                  _statCard(
+                    label: tr('This Month'),
+                    value: tr("RM{0}", [month.toStringAsFixed(0)]),
+                    icon: Icons.calendar_month,
+                    color: const Color(0xFF8B5CF6),
+                  ),
+                  _statCard(
+                    label: tr('Pending'),
+                    value: tr("RM{0}", [pending.toStringAsFixed(0)]),
+                    icon: Icons.hourglass_bottom,
+                    color: const Color(0xFFF59E0B),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 24),
+
+              // ---- 3. Recent Transactions ----
               Text(
-                tr('Details'),
-                style: TextStyle(
+                tr('Recent Transactions'),
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: _primaryOrange,
@@ -401,52 +384,91 @@ class _EarningsScreenState extends State<EarningsScreen> {
               ),
               const SizedBox(height: 12),
 
-              _menuTile(
-                title: tr('Daily Earnings'),
-                subtitle: tr('View earnings by day'),
-                icon: Icons.calendar_today_outlined,
-                color: const Color(0xFF3B82F6),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const DailyEarningsScreen(),
+              if (_rows.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 30),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(
+                          Icons.receipt_long_outlined,
+                          size: 56,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          tr('No transactions yet'),
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ),
-              _menuTile(
-                title: tr('Weekly Earnings'),
-                subtitle: tr('View earnings by week'),
-                icon: Icons.date_range_outlined,
-                color: const Color(0xFF10B981),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const WeeklyEarningsScreen(),
-                  ),
-                ),
-              ),
-              _menuTile(
-                title: tr('Monthly Earnings'),
-                subtitle: tr('View earnings by month'),
-                icon: Icons.calendar_month_outlined,
-                color: const Color(0xFF8B5CF6),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const MonthlyEarningsScreen(),
-                  ),
-                ),
-              ),
-              _menuTile(
-                title: tr('Performance'),
-                subtitle: tr('View your performance metrics'),
-                icon: Icons.insights_outlined,
-                color: const Color(0xFFF59E0B),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const PerformanceScreen()),
-                ),
-              ),
+                )
+              else
+                ..._rows.take(15).map((row) {
+                  final date = _parseDate(row);
+                  final dateStr = date != null
+                      ? '${date.day}/${date.month}/${date.year}'
+                      : '';
+                  final amount = _amount(row);
+
+                  final serviceName =
+                      row['service_name']?.toString() ?? tr('Service Payment');
+                  final customerName =
+                      row['customer_name']?.toString() ?? tr('Customer');
+
+                  return Card(
+                    elevation: 0,
+                    margin: const EdgeInsets.only(bottom: 10),
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      side: const BorderSide(color: _borderOrange),
+                    ),
+                    child: ListTile(
+                      leading: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: _lightOrange,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.attach_money,
+                          color: _primaryOrange,
+                        ),
+                      ),
+                      title: Text(
+                        serviceName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      subtitle: Text(
+                        '$customerName · $dateStr',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      trailing: Text(
+                        '+ RM${amount.toStringAsFixed(2)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+
               const SizedBox(height: 16),
             ],
           ),
@@ -465,7 +487,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
       padding: const EdgeInsets.all(4),
       child: Row(
         children: [
-          _toggleBtn('7 Days', 0),
+          _toggleBtn('Mon - Sun', 0),
           _toggleBtn('Monthly', 1),
           _toggleBtn('Yearly', 2),
         ],
@@ -554,44 +576,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _menuTile({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return Card(
-      elevation: 1,
-      margin: const EdgeInsets.only(bottom: 10),
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: const BorderSide(color: _borderOrange),
-      ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-        title: Text(
-          tr(title),
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(
-          tr(subtitle),
-          style: const TextStyle(fontSize: 12, color: Colors.grey),
-        ),
-        trailing: const Icon(Icons.chevron_right, color: Colors.grey),
-        onTap: onTap,
       ),
     );
   }

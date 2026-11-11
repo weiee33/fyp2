@@ -9,8 +9,8 @@ class ProfileService {
 
   Future<String?> getProviderId() async {
     final uid =
-        (await AccountAccess.requireRole(_client, 'provider'))['user_id']
-            as String;
+    (await AccountAccess.requireRole(_client, 'provider'))['user_id']
+    as String;
     final row = await _client
         .from('provider_profiles')
         .select('provider_id')
@@ -19,11 +19,10 @@ class ProfileService {
     return row?['provider_id'] as String?;
   }
 
-  /// Returns merged data from users + provider_profiles
   Future<Map<String, dynamic>?> getMyProfile() async {
     final uid =
-        (await AccountAccess.requireRole(_client, 'provider'))['user_id']
-            as String;
+    (await AccountAccess.requireRole(_client, 'provider'))['user_id']
+    as String;
 
     final userRow = await _client
         .from('users')
@@ -34,8 +33,8 @@ class ProfileService {
     final providerRow = await _client
         .from('provider_profiles')
         .select(
-          'provider_id,user_id,business_name,bio,years_experience,verification_status,overall_rating,total_reviews,service_radius_km,region,city,service_latitude,service_longitude',
-        )
+      'provider_id,user_id,business_name,bio,years_experience,verification_status,overall_rating,total_reviews,service_radius_km,region,city,service_latitude,service_longitude',
+    )
         .eq('user_id', uid)
         .maybeSingle();
 
@@ -44,11 +43,10 @@ class ProfileService {
     return {...?userRow, ...?providerRow};
   }
 
-  /// Updates users and provider_profiles separately
   Future<void> updateProfile(Map<String, dynamic> data) async {
     final uid =
-        (await AccountAccess.requireRole(_client, 'provider'))['user_id']
-            as String;
+    (await AccountAccess.requireRole(_client, 'provider'))['user_id']
+    as String;
 
     final userFields = <String, dynamic>{};
     final providerFields = <String, dynamic>{};
@@ -95,7 +93,6 @@ class ProfileService {
 
   // ==================== Storage ====================
 
-  /// Upload avatar to 'profiles' bucket
   Future<String> uploadAvatar(Uint8List bytes, String fileExt) async {
     final uid = _client.auth.currentUser?.id;
     if (uid == null) throw Exception('Not logged in');
@@ -105,24 +102,23 @@ class ProfileService {
     await _client.storage
         .from('profiles')
         .uploadBinary(
-          path,
-          bytes,
-          fileOptions: const FileOptions(upsert: true),
-        );
+      path,
+      bytes,
+      fileOptions: const FileOptions(upsert: true),
+    );
 
     final url = _client.storage.from('profiles').getPublicUrl(path);
     return '$url?t=${DateTime.now().millisecondsSinceEpoch}';
   }
 
-  /// Generic file upload (for certifications, licenses, etc.)
   Future<String> uploadFile(String bucket, String path, Uint8List bytes) async {
     await _client.storage
         .from(bucket)
         .uploadBinary(
-          path,
-          bytes,
-          fileOptions: const FileOptions(upsert: true),
-        );
+      path,
+      bytes,
+      fileOptions: const FileOptions(upsert: true),
+    );
     return _client.storage.from(bucket).getPublicUrl(path);
   }
 
@@ -147,11 +143,10 @@ class ProfileService {
     });
   }
 
-  // ✅ New: update an existing certification
   Future<void> updateCertification(
-    String certificationId,
-    Map<String, dynamic> data,
-  ) async {
+      String certificationId,
+      Map<String, dynamic> data,
+      ) async {
     await _client
         .from('provider_certifications')
         .update(data)
@@ -174,7 +169,6 @@ class ProfileService {
         .map((r) => {...r, 'provider_id': pid})
         .toList(growable: false);
 
-    // ✅ upsert with onConflict to prevent duplicate key errors
     await _client
         .from('provider_working_hours')
         .upsert(withId, onConflict: 'provider_id,day_of_week');
@@ -189,5 +183,47 @@ class ProfileService {
         .eq('provider_id', pid)
         .order('day_of_week');
     return List<Map<String, dynamic>>.from(res);
+  }
+
+  // ==================== Reviews ====================
+
+  Future<List<Map<String, dynamic>>> getMyReviews() async {
+    final pid = await getProviderId();
+    if (pid == null) return [];
+
+    // 1. 一次性查出 reviews，并且利用 !inner 强关联 customer_profiles
+    // 很多 Supabase 拦截问题都是因为分步查导致的，一次性查最稳
+    final rows = await _client
+        .from('reviews')
+        .select('''
+          *,
+          customer_profiles!inner (
+            user_id,
+            users!inner (
+              full_name,
+              profile_photo_url
+            )
+          )
+        ''')
+        .eq('provider_id', pid)
+        .eq('moderation_status', 'visible')
+        .order('created_at', ascending: false);
+
+    final list = List<Map<String, dynamic>>.from(rows);
+
+    // 2. 把查到的数据拍平，方便 UI 读取
+    return list.map((r) {
+      final profile = r['customer_profiles'];
+      dynamic userInfo;
+
+      if (profile is Map) {
+        userInfo = profile['users'];
+      }
+
+      return {
+        ...r,
+        'customer': userInfo,
+      };
+    }).toList();
   }
 }

@@ -19,6 +19,7 @@ import 'package:fyp2/Provider/screens/notifications/notification_screen.dart';
 import 'package:fyp2/shared/portal_entry_screen.dart';
 import 'package:fyp2/Provider/screens/schedule/schedule_screen.dart';
 import 'package:fyp2/Provider/screens/home/provider_home_screen.dart';
+import 'package:fyp2/Provider/screens/review/review_screen.dart';
 
 // Import the floating nav bar component
 import 'package:fyp2/Provider/screens/home/provider_floating_nav_bar.dart';
@@ -235,11 +236,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                       children: [
                         const SizedBox(height: 12),
                         ListTile(
-                          leading: const Icon(Icons.auto_awesome, color: Colors.deepPurple),
-                          title: Text(tr('AI Job Matching'), style: const TextStyle(fontWeight: FontWeight.bold)), // 修复此处
+                          leading: const Icon(Icons.auto_awesome,
+                              color: Colors.deepPurple),
+                          title: Text(tr('AI Job Matching'),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold)),
                           onTap: () {
                             Navigator.pop(ctx); // Close the bottom sheet
-                            // Navigate to the AI Job Matching screen
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -250,11 +253,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         ),
                         const Divider(height: 1),
                         ListTile(
-                          leading: const Icon(Icons.schedule, color: Colors.blue),
-                          title: Text(tr('AI Smart Schedule'), style: const TextStyle(fontWeight: FontWeight.bold)), // 修复此处
+                          leading:
+                          const Icon(Icons.schedule, color: Colors.blue),
+                          title: Text(tr('AI Smart Schedule'),
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold)),
                           onTap: () {
                             Navigator.pop(ctx); // Close the bottom sheet
-                            // Navigate to the AI Schedule screen
                             Navigator.push(
                               context,
                               MaterialPageRoute(
@@ -343,7 +348,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               const SizedBox(height: 4),
                               Row(
                                 children: [
-                                  const Icon(Icons.star, color: Colors.orange, size: 16),
+                                  const Icon(Icons.star,
+                                      color: Colors.orange, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
                                     tr('{0} · {1} years', [rating, years]),
@@ -417,7 +423,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () async {
                   await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const UpdateProfileScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const UpdateProfileScreen()),
                   );
                   _load();
                 },
@@ -430,7 +437,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const LanguageScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const LanguageScreen()),
                   );
                 },
               ),
@@ -441,7 +449,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const CertificationsScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const CertificationsScreen()),
                   );
                 },
               ),
@@ -457,7 +466,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const MyServicesScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const MyServicesScreen()),
                   );
                 },
               ),
@@ -468,7 +478,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const ServiceAreasScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const ServiceAreasScreen()),
                   );
                 },
               ),
@@ -479,7 +490,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const WorkingHoursScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const WorkingHoursScreen()),
                   );
                 },
               ),
@@ -495,7 +507,26 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const EarningsScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const EarningsScreen()),
+                  );
+                },
+              ),
+            ]),
+            // ✅ NEW: Reviews section below Earnings
+            const SizedBox(height: 20),
+            _sectionLabel('REVIEWS'),
+            const SizedBox(height: 8),
+            _menuGroup([
+              _menuItem(
+                title: 'My Reviews',
+                subtitle: 'See what customers say about you',
+                icon: Icons.star_outline,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => const ReviewsScreen()),
                   );
                 },
               ),
@@ -506,13 +537,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 height: 50,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    await _service.updateProfile({'verification_status': 'Pending'});
+                    await _service
+                        .updateProfile({'verification_status': 'Pending'});
                     if (!mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
                         content: Row(
                           children: [
-                            const Icon(Icons.check_circle, color: Colors.white, size: 20),
+                            const Icon(Icons.check_circle,
+                                color: Colors.white, size: 20),
                             const SizedBox(width: 8),
                             Text(tr('Submitted for verification')),
                           ],
@@ -528,7 +561,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   },
                   icon: const Icon(Icons.verified_outlined),
                   label: Text(tr('Submit for Verification'),
-                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold)),
+                      style: const TextStyle(
+                          fontSize: 15, fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primaryOrange,
                     foregroundColor: Colors.white,
