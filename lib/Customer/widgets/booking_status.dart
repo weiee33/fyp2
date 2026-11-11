@@ -18,7 +18,9 @@ class BookingPaymentStatus extends StatelessWidget {
     final paid = booking.paymentStatus == 'Success';
     final expired = booking.displayStatus == 'Expired';
     final failed = booking.paymentStatus == 'Failed';
-    final color = refunded
+    final cancelledUnpaid =
+        booking.status == 'Cancelled' && booking.paymentStatus == 'Not paid';
+    final color = refunded || cancelledUnpaid
         ? const Color(0xFF516078)
         : paid
         ? const Color(0xFF157347)
@@ -33,6 +35,8 @@ class BookingPaymentStatus extends StatelessWidget {
         ? 'Expired · Not paid'
         : failed
         ? 'Payment failed'
+        : cancelledUnpaid
+        ? 'Not paid'
         : 'Awaiting payment';
     return AnimatedSwitcher(
       duration: MediaQuery.disableAnimationsOf(context)
@@ -56,6 +60,8 @@ class BookingPaymentStatus extends StatelessWidget {
                   ? Icons.check_circle
                   : expired || failed
                   ? Icons.cancel
+                  : cancelledUnpaid
+                  ? Icons.money_off
                   : Icons.schedule,
               size: 18,
               color: color,
