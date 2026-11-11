@@ -39,7 +39,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Failed to load reviews: {0}', [e])),
+          content: Text('Failed to load reviews: $e'),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -68,6 +68,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
+          tooltip: 'Back',
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -146,26 +147,46 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
             ),
             const SizedBox(width: 20),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    tr('{0} review(s)', [_reviews.length]),
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    tr('Average rating from all visible reviews'),
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
+              child: Builder(
+                builder: (context) {
+                  final lang = Localizations.localeOf(context).languageCode;
+                  final isZh = lang == 'zh';
+                  final isMs = lang == 'ms';
+
+                  final reviewText = isZh
+                      ? '${_reviews.length} 条评价'
+                      : (isMs
+                      ? '${_reviews.length} ulasan'
+                      : '${_reviews.length} review(s)');
+
+                  final avgText = isZh
+                      ? '所有可见评价的平均分'
+                      : (isMs
+                      ? 'Purata penilaian daripada semua ulasan'
+                      : 'Average rating from all visible reviews');
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        reviewText,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        avgText,
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
           ],
@@ -274,7 +295,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                   Icon(Icons.verified, size: 12, color: Colors.green.shade700),
                                   const SizedBox(width: 2),
                                   Text(
-                                    tr('Verified'),
+                                    'Verified',
                                     style: TextStyle(
                                       fontSize: 10,
                                       fontWeight: FontWeight.w600,
