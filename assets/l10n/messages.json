@@ -1,4 +1,20 @@
 {
+  "You still have active bookings. Complete or cancel them first. For past paid bookings, contact Help Centre.": [
+    "您仍有进行中的预约。请先完成或取消预约。对于已过期但已付款的预约，请联系帮助中心。",
+    "Anda masih mempunyai tempahan aktif. Selesaikan atau batalkannya dahulu. Untuk tempahan berbayar yang tarikhnya telah berlalu, hubungi Pusat Bantuan."
+  ],
+  "A booking dispute is still open. Contact Help Centre to resolve it before deleting your account.": [
+    "您仍有未解决的预约争议。请联系帮助中心处理后再删除账户。",
+    "Pertikaian tempahan masih belum selesai. Hubungi Pusat Bantuan untuk menyelesaikannya sebelum memadam akaun anda."
+  ],
+  "A payment is still being verified. Try again later, or contact Help Centre if it remains pending.": [
+    "一笔付款仍在核实中。请稍后重试；若一直未完成，请联系帮助中心。",
+    "Pembayaran masih sedang disahkan. Cuba lagi kemudian, atau hubungi Pusat Bantuan jika masih tertunda."
+  ],
+  "A refund is still pending. Wait for it to finish or contact Help Centre before deleting your account.": [
+    "一笔退款仍在处理中。请等待退款完成或联系帮助中心后再删除账户。",
+    "Bayaran balik masih tertunda. Tunggu sehingga selesai atau hubungi Pusat Bantuan sebelum memadam akaun anda."
+  ],
   "Wait 30 minutes after cancelling before booking this service again.": [
     "取消后需等待30分钟，才能再次预约此服务。",
     "Tunggu 30 minit selepas pembatalan sebelum menempah perkhidmatan ini semula."
