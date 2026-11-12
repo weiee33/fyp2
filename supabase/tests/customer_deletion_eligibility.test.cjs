@@ -19,7 +19,10 @@ test('account deletion evaluates actual outstanding obligations', async t => {
       default_address text,location_coordinates text,service_preferences text[],bio text,gender text,birthday date);
     create table bookings(booking_id uuid primary key,customer_id uuid,booking_status text,
       reservation_expires_at timestamptz,scheduled_datetime timestamptz,
-      customer_address text,customer_coordinates text,special_instructions text);
+      customer_address text,customer_coordinates text,special_instructions text,
+      request_id uuid default gen_random_uuid(),provider_id uuid default gen_random_uuid(),
+      service_id uuid default gen_random_uuid(),total_amount numeric default 50,
+      duration_minutes int default 60,accepted_at timestamptz);
     create table payments(payment_id uuid primary key,booking_id uuid,payment_status text);
     create table booking_disputes(booking_id uuid,status text);
     create table refund_requests(payment_id uuid,status text);
@@ -35,6 +38,26 @@ test('account deletion evaluates actual outstanding obligations', async t => {
   `);
   const dir = join(__dirname, '../migrations');
   await db.exec(readFileSync(join(dir, readdirSync(dir).find(f => f.endsWith('_customer_deletion_eligibility.sql'))), 'utf8'));
+  // Install the real booking trigger, including non-null app request tokens.
+  // The previous fixture omitted it and incorrectly passed anonymization.
+  const source = readFileSync(join(dir, '20261002080447_customer_module_integration.sql'), 'utf8');
+  const guard = source.slice(source.indexOf('create function private.guard_customer_booking()'), source.indexOf('create function public.customer_create_booking('));
+  await db.exec(guard);
+  const seed = `
+    insert into auth.users values('${id(1)}',now());
+    insert into public.users(user_id,auth_user_id,role,is_active,email,full_name) values('${id(1)}','${id(1)}','customer',true,'test@example.invalid','Test');
+    insert into customer_profiles(customer_id,user_id) values('${id(2)}','${id(1)}');
+    insert into bookings(booking_id,customer_id,booking_status,reservation_expires_at,scheduled_datetime,customer_address,customer_coordinates,special_instructions)
+      values('${id(3)}','${id(2)}','Cancelled',now()-interval '1 day',now()+interval '1 day','Private address','Coordinates','Private instructions');
+  `;
+  await t.test('reproduces the old trigger conflict for an app-created cancelled booking', async () => {
+    await db.exec(`begin; ${seed} savepoint deletion;`);
+    await assert.rejects(db.query('select private.customer_delete_prepare($1)', [id(1)]), /agreed service, price, address and time/);
+    await db.exec('rollback to deletion');
+    assert.equal((await db.query('select is_active from public.users')).rows[0].is_active, true);
+    await db.exec('rollback');
+  });
+  await db.exec(readFileSync(join(dir, readdirSync(dir).find(f => f.endsWith('_customer_deletion_booking_anonymization.sql'))), 'utf8'));
   const cases = [
     ['cancelled, never paid', 'Cancelled', null, 'future', 'future', null],
     ['expired pending reservation', 'Pending', null, 'past', 'future', null],
@@ -67,7 +90,8 @@ test('account deletion evaluates actual outstanding obligations', async t => {
         insert into auth.users values('${id(1)}',now());
         insert into public.users(user_id,auth_user_id,role,is_active,email,full_name) values('${id(1)}','${id(1)}','customer',true,'test@example.invalid','Test');
         insert into customer_profiles(customer_id,user_id) values('${id(2)}','${id(1)}');
-        insert into bookings values('${id(3)}','${id(2)}','${status}',${date(deadline)},${date(appointment)},'Private address',null,'Private instructions');
+        insert into bookings(booking_id,customer_id,booking_status,reservation_expires_at,scheduled_datetime,customer_address,customer_coordinates,special_instructions)
+          values('${id(3)}','${id(2)}','${status}',${date(deadline)},${date(appointment)},'Private address','Coordinates','Private instructions');
         ${payment ? `insert into payments values('${id(4)}','${id(3)}','${payment}');` : ''}
         ${extra || ''};
         savepoint deletion;
@@ -83,11 +107,30 @@ test('account deletion evaluates actual outstanding obligations', async t => {
           assert.equal((await call()).rows[0].result.prepared, true);
           assert.equal((await db.query('select auth_user_id from public.users')).rows[0].auth_user_id, null);
           assert.equal((await db.query('select customer_address from bookings')).rows[0].customer_address, 'Deleted customer');
+          assert.deepEqual((await db.query('select customer_coordinates,special_instructions from bookings')).rows[0], {customer_coordinates:null,special_instructions:null});
           assert.equal((await call()).rows[0].result.prepared, true, 'retry remains idempotent');
         }
       } finally {
         await db.exec('rollback');
       }
+    });
+  }
+  for (const setup of ['', `insert into private.customer_deletions(auth_user_id,user_id) values('${id(1)}','${id(1)}');`, 'update public.users set auth_user_id=null,is_active=false;']) {
+    await t.test(`address scrubbing requires both deletion marker and detached identity: ${setup || 'neither'}`, async () => {
+      await db.exec(`begin; ${seed} ${setup}`);
+      await assert.rejects(db.exec("update bookings set customer_address='Deleted customer',customer_coordinates=null,special_instructions=null"), /agreed service/);
+      await db.exec('rollback');
+    });
+  }
+  for (const mutation of ["total_amount=1", "scheduled_datetime=now()+interval '3 days'", "booking_status='Confirmed'", 'request_id=null', 'request_id=gen_random_uuid()', 'service_id=gen_random_uuid()', 'provider_id=gen_random_uuid()', 'customer_id=gen_random_uuid()', "customer_address='Different address'"]) {
+    await t.test(`deletion exception cannot change booking contract: ${mutation}`, async () => {
+      await db.exec(`begin; ${seed}
+        insert into private.customer_deletions(auth_user_id,user_id) values('${id(1)}','${id(1)}');
+        update public.users set auth_user_id=null,is_active=false;
+      `);
+      const address = mutation.startsWith('customer_address') ? '' : "customer_address='Deleted customer',";
+      await assert.rejects(db.exec(`update bookings set ${address}customer_coordinates=null,special_instructions=null,${mutation}`), /agreed service/);
+      await db.exec('rollback');
     });
   }
   await t.test('only the trusted deletion service can prepare deletion', async () => {
