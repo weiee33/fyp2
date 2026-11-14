@@ -1,9 +1,9 @@
 name: Customer account policies
 on:
   push:
-    paths: ['supabase/migrations/**', 'supabase/tests/customer_cooldown_limits.test.cjs', 'supabase/tests/customer_deletion_eligibility.test.cjs', '.github/workflows/customer-cooldowns.yml']
+    paths: ['supabase/migrations/**', 'supabase/tests/customer_cooldown_limits.test.cjs', 'supabase/tests/customer_deletion_eligibility.test.cjs', 'supabase/tests/customer_profile_rls.test.cjs', '.github/workflows/customer-cooldowns.yml']
   pull_request:
-    paths: ['supabase/migrations/**', 'supabase/tests/customer_cooldown_limits.test.cjs', 'supabase/tests/customer_deletion_eligibility.test.cjs', '.github/workflows/customer-cooldowns.yml']
+    paths: ['supabase/migrations/**', 'supabase/tests/customer_cooldown_limits.test.cjs', 'supabase/tests/customer_deletion_eligibility.test.cjs', 'supabase/tests/customer_profile_rls.test.cjs', '.github/workflows/customer-cooldowns.yml']
 permissions:
   contents: read
 jobs:
@@ -15,6 +15,6 @@ jobs:
         with:
           node-version: '22'
       - run: npm install --prefix .tools/cooldown-tests --no-audit --no-fund @electric-sql/pglite@0.5.15
-      - run: node --test supabase/tests/customer_cooldown_limits.test.cjs supabase/tests/customer_deletion_eligibility.test.cjs
+      - run: node --test supabase/tests/customer_cooldown_limits.test.cjs supabase/tests/customer_deletion_eligibility.test.cjs supabase/tests/customer_profile_rls.test.cjs
         env:
           NODE_PATH: .tools/cooldown-tests/node_modules

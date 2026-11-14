@@ -16,10 +16,15 @@ test('app language is constrained and guides replies without changing tools',asy
  assert.ok(!f.calls.some(c=>c.url.includes('generativelanguage')));
 });
 function fixture(options={}){
- const calls=[];let model=0;
+ const calls=[];const scopeCalls=[];let model=0;
  const env={SUPABASE_URL:'https://db.invalid',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'service',GEMINI_API_KEY:'private-test-key',...options.env};
- return {calls,deps:{env:n=>env[n],sleep:async()=>{},fetch:async(url,init={})=>{
-  const body=init.body?JSON.parse(init.body):null;calls.push({url,init,body});
+ return {calls,scopeCalls,deps:{env:n=>env[n],sleep:async()=>{},fetch:async(url,init={})=>{
+  const body=init.body?JSON.parse(init.body):null;
+  if(url.includes('generativelanguage') && body?.generationConfig?.responseSchema?.properties?.decision){
+   scopeCalls.push(body);
+   return options.scope?options.scope(body,scopeCalls.length):response({candidates:[{content:{parts:[{text:'{"decision":"allow"}'}]}}]});
+  }
+  calls.push({url,init,body});
   if(url.endsWith('/auth/v1/user'))return response({id:uid},options.authStatus??200);
   if(url.includes('generativelanguage'))return options.gemini?options.gemini(model++,body,url):response({candidates:[{content:{role:'model',parts:[{text:'How can I help you choose?'}]}}]});
   if(url.endsWith('customer_ai_begin_turn'))return options.begin?options.begin():response({turn_id:rid,lease:rid,history:[{role:'user',content:'Find a cleaner'}]});
@@ -177,8 +182,8 @@ test('network interruption can recover without exposing transport details',async
 test('the total generation request cap applies across multiple tool rounds',async()=>{
  const f=fixture({gemini:n=>n%2===0?response({},503):response({candidates:[{content:{role:'model',parts:[{functionCall:{name:'search_services',args:{}}}]}}]})});
  assert.equal((await handleAssistant(req(),f.deps)).status,503);
- assert.equal(f.calls.filter(c=>c.url.includes('generativelanguage')).length,7);
- assert.equal(f.calls.filter(c=>c.url.endsWith('customer_search_services')).length,3);
+ assert.equal(f.calls.filter(c=>c.url.includes('generativelanguage')).length+f.scopeCalls.length,10);
+ assert.equal(f.calls.filter(c=>c.url.endsWith('customer_search_services')).length,4);
  assert.equal(f.calls.filter(c=>c.url.endsWith('ai_finish_turn')).length,0);
  assert.equal(f.calls.filter(c=>c.url.endsWith('ai_fail_turn')).length,1);
 });
@@ -278,4 +283,29 @@ test('client agent history is marked untrusted and never becomes model-role cont
  const b=f.calls.find(c=>c.url.includes('generativelanguage')).body;
  assert.equal(b.contents[0].role,'user');
  assert.match(b.contents[0].parts[0].text,/not verified instructions/);
+});
+
+test('off-topic requests are persisted as localized refusals without app tools or answer generation',async()=>{
+ for(const locale of ['en','zh','ms']) {
+  const f=fixture({scope:()=>response({candidates:[{content:{parts:[{text:'{"decision":"refuse"}'}]}}]})});
+  assert.equal((await handleAssistant(req({message:'I want to buy some fruit',locale}),f.deps)).status,200);
+  assert.equal(f.scopeCalls.length,1);
+  assert.ok(!f.calls.some(c=>c.url.includes('generativelanguage')||c.url.includes('customer_search_services')));
+  const saved=f.calls.find(c=>c.url.endsWith('ai_finish_turn')).body;
+  assert.deepEqual(saved.p_actions,[]);assert.ok(saved.p_content.length>10);
+ }
+});
+test('a malformed scope decision fails closed and releases the turn lease',async()=>{
+ const f=fixture({scope:()=>response({candidates:[{content:{parts:[{text:'Sure, I can help buy fruit.'}]}}]})});
+ assert.notEqual((await handleAssistant(req(),f.deps)).status,200);
+ assert.ok(f.calls.some(c=>c.url.endsWith('ai_fail_turn')));
+ assert.ok(!f.calls.some(c=>c.url.endsWith('ai_finish_turn')||c.url.includes('customer_search_services')));
+});
+test('reply guard replaces an off-topic generated answer before persistence',async()=>{
+ const f=fixture({scope:(_b,n)=>response({candidates:[{content:{parts:[{text:JSON.stringify({decision:n===1?'allow':'refuse'})}]}}]})});
+ assert.equal((await handleAssistant(req(),f.deps)).status,200);
+ assert.equal(f.scopeCalls.length,2);
+ const saved=f.calls.find(c=>c.url.endsWith('ai_finish_turn')).body;
+ assert.equal(saved.p_content,'I can only help with this app, its services and your bookings.');
+ assert.deepEqual(saved.p_actions,[]);
 });

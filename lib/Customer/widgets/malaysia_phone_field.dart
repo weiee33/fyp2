@@ -16,10 +16,11 @@ class MalaysiaPhone {
       : 'Enter 9–10 digits starting with 1, without +60 or the first 0.';
   static String international(String value) {
     final local = national(value);
-    if (validate(local) != null)
+    if (validate(local) != null) {
       throw const FormatException(
         'Enter a valid Malaysian mobile number, for example 102049818.',
       );
+    }
     return '+60$local';
   }
 }
@@ -27,10 +28,12 @@ class MalaysiaPhone {
 class MalaysiaPhoneField extends StatelessWidget {
   final TextEditingController controller;
   final bool enabled;
+  final bool showLabel;
   const MalaysiaPhoneField({
     super.key,
     required this.controller,
     this.enabled = true,
+    this.showLabel = true,
   });
   @override
   Widget build(BuildContext context) {
@@ -45,7 +48,7 @@ class MalaysiaPhoneField extends StatelessWidget {
       ],
       validator: (value) => trOrNull(MalaysiaPhone.validate(value)),
       decoration: InputDecoration(
-        labelText: trOrNull('Mobile number'),
+        labelText: showLabel ? trOrNull('Mobile number') : null,
         hintText: '102049818',
         helperText: trOrNull('Malaysia · omit the first 0'),
         helperMaxLines: 3,

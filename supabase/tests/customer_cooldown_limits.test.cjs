@@ -43,6 +43,8 @@ test('customer cooldown policies execute in PostgreSQL', async t => {
  const createBody=source.slice(source.indexOf('create function private.customer_create_booking('));
  await db.exec(createBody.slice(0,createBody.indexOf('end $$;')+7));
  await db.exec(readFileSync(join(dir,readdirSync(dir).find(f=>f.endsWith('_customer_cooldown_limits.sql'))),'utf8'));
+ const policy=readFileSync(join(dir,readdirSync(dir).find(f=>f.endsWith('_customer_support_deletion_and_cooldown_display.sql'))),'utf8');
+ await db.exec('-- Return only'+policy.split('-- Return only')[1]);
  const create = async (service=4,request=10,address=6) => (await db.query(`select private.customer_create_booking('${id(service)}','${id(address)}',current_date+2,'12:00',null,'Medium','${id(request)}') b`)).rows[0].b;
  const cancel = bid => db.query('select private.customer_cancel_booking($1,$2)',[bid,'Plans changed']);
  let first;
@@ -56,6 +58,16 @@ test('customer cooldown policies execute in PostgreSQL', async t => {
   await assert.rejects(create(4,11),/Wait 30 minutes/);
   const row=(await db.query('select extract(epoch from (expires_at-clock_timestamp())) seconds from private.customer_service_cooldowns')).rows[0];
   assert.ok(Number(row.seconds)>1790 && Number(row.seconds)<=1800);
+ });
+ await t.test('deadline display is customer scoped and includes the authoritative server time',async()=>{
+  const a=(await db.query('select public.customer_service_cooldowns($1) result',[id(3)])).rows[0].result;
+  assert.equal(a.cooldowns.length,1);assert.equal(a.cooldowns[0].service_id,id(4));
+  assert.ok(new Date(a.cooldowns[0].retry_at)>new Date(a.server_now));
+  await db.exec(`select set_config('test.customer','${id(2)}',false)`);
+  assert.deepEqual((await db.query('select public.customer_service_cooldowns($1) result',[id(3)])).rows[0].result.cooldowns,[]);
+  await db.exec(`select set_config('test.customer','${id(1)}',false)`);
+  assert.deepEqual((await db.query('select public.customer_service_cooldowns($1) result',[id(99)])).rows[0].result.cooldowns,[]);
+  assert.equal((await db.query("select has_function_privilege('anon','public.customer_service_cooldowns(uuid)','execute') allowed")).rows[0].allowed,false);
  });
  await t.test('retrying cancellation does not extend the deadline',async()=>{
   const before=(await db.query('select expires_at::text expiry from private.customer_service_cooldowns')).rows[0].expiry;
@@ -99,7 +111,10 @@ test('customer cooldown policies execute in PostgreSQL', async t => {
   await db.exec(`delete from auth.users where id='${id(20)}'`);
   const r=(await db.query('select octet_length(email_fingerprint) bytes,extract(epoch from(expires_at-clock_timestamp())) seconds from private.customer_email_cooldowns')).rows[0];
   assert.equal(r.bytes,32); assert.ok(Number(r.seconds)>1209590 && Number(r.seconds)<=1209600);
-  await assert.rejects(db.exec("select public.customer_registration_check('  TEST@example.INVALID  ')"),/14 days/);
+  await assert.rejects(db.exec("select public.customer_registration_check('  TEST@example.INVALID  ')"),e=>{
+   const detail=JSON.parse(e.detail);assert.equal(detail.code,'email_cooldown');
+   assert.ok(new Date(detail.retry_at)>new Date());return /14 days/.test(e.message);
+  });
  });
  await t.test('direct signup and provider-role signup cannot bypass the email restriction',async()=>{
   for(const role of ['customer','provider']) await assert.rejects(db.exec(`insert into auth.users values('${id(21)}','test@example.invalid','{"role":"${role}"}')`),/14 days/);

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -86,6 +88,29 @@ class CustomerDialogs {
   static String errorMessage(Object error) {
     if (error is AuthException) return error.message;
     if (error is PostgrestException) {
+      try {
+        final details = error.details is String
+            ? jsonDecode(error.details as String)
+            : error.details;
+        if (details is Map && details['code'] == 'email_cooldown') {
+          final retryAt = DateTime.tryParse(
+            details['retry_at']?.toString() ?? '',
+          );
+          if (retryAt != null) {
+            final date = DateFormat(
+              'd MMM yyyy, h:mm:ss a',
+              AppLanguage.instance.code,
+            ).format(retryAt.toUtc().add(const Duration(hours: 8)));
+            return tr(
+              'You can register with this email from {0} (Malaysia time).',
+              [date],
+            );
+          }
+        }
+      } catch (_) {
+        /* Keep the server's readable fallback for old/malformed responses. */
+      }
+
       return error.code == '23505'
           ? 'These details are already in use. Please check and try again.'
           : error.message;

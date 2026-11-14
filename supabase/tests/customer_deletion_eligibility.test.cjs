@@ -24,7 +24,7 @@ test('account deletion evaluates actual outstanding obligations', async t => {
       service_id uuid default gen_random_uuid(),total_amount numeric default 50,
       duration_minutes int default 60,accepted_at timestamptz);
     create table payments(payment_id uuid primary key,booking_id uuid,payment_status text);
-    create table booking_disputes(booking_id uuid,status text);
+    create table booking_disputes(booking_id uuid,status text,opened_by uuid);
     create table refund_requests(payment_id uuid,status text);
     create table private.checkout_attempts(booking_id uuid,state text,expires_at timestamptz);
     create table private.customer_deletions(auth_user_id uuid primary key,user_id uuid unique,completed_at timestamptz);
@@ -58,6 +58,8 @@ test('account deletion evaluates actual outstanding obligations', async t => {
     await db.exec('rollback');
   });
   await db.exec(readFileSync(join(dir, readdirSync(dir).find(f => f.endsWith('_customer_deletion_booking_anonymization.sql'))), 'utf8'));
+  const policy = readFileSync(join(dir,readdirSync(dir).find(f=>f.endsWith('_customer_support_deletion_and_cooldown_display.sql'))),'utf8');
+  await db.exec(policy.split('-- Return only')[0]);
   const cases = [
     ['cancelled, never paid', 'Cancelled', null, 'future', 'future', null],
     ['expired pending reservation', 'Pending', null, 'past', 'future', null],
@@ -75,7 +77,21 @@ test('account deletion evaluates actual outstanding obligations', async t => {
     ['pending payment on cancelled booking', 'Cancelled', 'Pending', 'past', 'past', /payment is still being verified/],
   ];
   for (const status of ['Open', 'Under Review', 'Resolved']) {
-    cases.push([`dispute ${status}`, 'Cancelled', 'Success', 'past', 'past', status === 'Resolved' ? null : /dispute is still open/, `insert into booking_disputes values('${id(3)}','${status}')`]);
+    cases.push([`dispute ${status}`, 'Cancelled', 'Success', 'past', 'past', status === 'Resolved' ? null : /dispute is still open/, `insert into booking_disputes values('${id(3)}','${status}','${id(1)}')`]);
+  }
+  for (const status of ['Open','Under Review']) {
+    for (const booking of ['Cancelled','Pending','Confirmed']) {
+      cases.push([`own unpaid ${booking} support ${status}`,booking,null,'past','past',null,
+        `insert into booking_disputes values('${id(3)}','${status}','${id(1)}')`]);
+    }
+    cases.push([`another party's unpaid dispute ${status}`,'Cancelled',null,'past','past',/dispute is still open/,
+      `insert into booking_disputes values('${id(3)}','${status}','${id(99)}')`]);
+    cases.push([`unattributed unpaid dispute ${status}`,'Cancelled',null,'past','past',/dispute is still open/,
+      `insert into booking_disputes values('${id(3)}','${status}',null)`]);
+    cases.push([`refunded dispute ${status}`,'Cancelled','Refunded','past','past',/dispute is still open/,
+      `insert into booking_disputes values('${id(3)}','${status}','${id(1)}')`]);
+    cases.push([`open gateway on unpaid support ${status}`,'Cancelled',null,'past','past',/dispute is still open/,
+      `insert into booking_disputes values('${id(3)}','${status}','${id(1)}'); insert into private.checkout_attempts values('${id(3)}','Open',now())`]);
   }
   for (const state of ['Creating', 'Open', 'Expired', 'Failed', 'Paid']) {
     cases.push([`checkout ${state} with elapsed deadline`, 'Cancelled', null, 'past', 'past', ['Creating','Open'].includes(state) ? /payment is still being verified/ : null, `insert into private.checkout_attempts values('${id(3)}','${state}',now()-interval '1 day')`]);
