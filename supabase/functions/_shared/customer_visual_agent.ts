@@ -1,4 +1,5 @@
-import {APP_SCOPE} from './customer_ai_scope.ts';
+import {APP_SCOPE, withinAppScope, scopeRefusal} from './customer_ai_scope.ts';
+import {createModelRouter, ModelFailure} from './customer_ai_router.ts';
 type Dependencies = {
   env: (name: string) => string | undefined;
   fetch: typeof fetch;
@@ -144,7 +145,7 @@ export async function handleVisualAgent(
     const base = deps.env("SUPABASE_URL"),
       anon = deps.env("SUPABASE_ANON_KEY"),
       key = deps.env("GEMINI_API_KEY");
-    if (!base || !anon || !key)
+    if (!base || !anon || (!key && !deps.env('OPENROUTER_API_KEY')))
       throw new Failure(503, "AI Agent is not configured.");
     const authorization = request.headers.get("Authorization") ?? "";
     if (!/^Bearer \S+$/.test(authorization))
@@ -283,6 +284,24 @@ export async function handleVisualAgent(
         thinkingConfig: { thinkingLevel: "MINIMAL" },
       },
     };
+    if (deps.env('OPENROUTER_API_KEY')) {
+      const generate = createModelRouter(deps, primary, deadline);
+      const context = [{role:'user', parts:[{text:JSON.stringify({goal:p.goal, history:p.history})}]}];
+      if (!await withinAppScope(generate, context))
+        return json({action:'handoff', rationale:scopeRefusal(p.locale)});
+      const data = await generate(body, 0);
+      const candidate = data?.candidates?.[0];
+      if (candidate?.finishReason !== 'STOP') throw new Failure(502, 'AI Agent could not complete this step.');
+      let action;
+      try {
+        action = validateAction(JSON.parse((candidate.content?.parts ?? [])
+          .filter((part:any) => !part.thought && typeof part.text === 'string')
+          .map((part:any) => part.text).join('')));
+      } catch { throw new Failure(502, 'AI Agent returned an invalid action.'); }
+      if (!await withinAppScope(generate, context, JSON.stringify(action)))
+        return json({action:'handoff', rationale:scopeRefusal(p.locale)});
+      return json(action);
+    }
     for (let attempt = 0; attempt < 3; attempt++) {
       const model = attempt === 1 ? "gemini-3.1-flash-lite" : primary;
       if (deadline - now() < 1000) throw new Failure(503, "AI Agent took too long to respond. Please try again shortly.");
@@ -347,11 +366,11 @@ export async function handleVisualAgent(
     return json(
       {
         error:
-          error instanceof Failure
+          error instanceof Failure || error instanceof ModelFailure
             ? error.message
             : "AI Agent could not continue. Please try again.",
       },
-      error instanceof Failure ? error.status : 500,
+      error instanceof Failure || error instanceof ModelFailure ? error.status : 500,
     );
   }
 }
