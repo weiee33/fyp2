@@ -14,7 +14,10 @@ Deletion remains blocked by:
 - Active reservations, in-progress work, and paid Pending/Confirmed bookings.
   A past appointment does not prove that a paid service was completed. The
   customer can contact Help Centre for provider/admin resolution.
-- Open or Under Review booking disputes.
+- Open or Under Review booking disputes, except the customer's own support
+  request for an unpaid cancelled/expired booking with no pending or collected
+  payment and no Creating/Open/Paid checkout attempt. Such support history is
+  retained for administrators; deletion does not falsely mark it resolved.
 - Creating/Open gateway attempts or a Pending payment. An elapsed local checkout
   deadline is not proof that an asynchronous bank payment failed. Existing
   verified gateway events must settle the attempt; unresolved attempts need
@@ -70,3 +73,32 @@ after the follow-up migration was applied.
 
 `test/customer_deletion_status_test.dart` checks the customer payment badges.
 The existing cooldown tests protect the successful-deletion email restriction.
+
+## Authenticated follow-up validation
+
+The later failed deletion was caused by the customer's own open support request
+on a cancelled booking with no payment. The `customer_support_deletion_and_cooldown_display`
+migration makes the narrow exception described above. Other-party disputes and
+financial cases still block deletion. No real customer's status is manually changed.
+
+The deployed HTTP path was tested with two disposable, confirmed Auth accounts
+and an isolated synthetic provider/service. Tests used the anonymous application
+key plus customer access tokens, not a service-role key:
+
+1. Sign in, save an address, create a booking through the app RPC.
+2. Verify that an active booking blocks deletion (409), and that the customer
+   cannot call the privileged preparation RPC directly (403).
+3. Cancel, read the server cooldown, verify that a second customer cannot see it,
+   and verify that a fresh booking request is rejected by the server.
+4. Submit an owned booking support request, reject a wrong deletion password
+   (403), then successfully delete through `customer-delete-account` (200).
+5. Verify old-token app access is denied, the registration preflight returns the
+   unlock timestamp, and direct customer/provider signups with that email fail.
+
+The same check exposed a legacy permissive customer-profile read policy. The
+`customer_profile_read_scope` migration limits reads to the owner or a provider
+with a related booking/review. Suspended customers retain their own read access;
+detached identities lose user/profile reads. A security-definer predicate avoids
+recursive booking/profile policies, with execution restricted to authenticated
+users and an empty search path. `customer_profile_rls.test.cjs` verifies these
+relationships using real PostgreSQL roles and RLS.

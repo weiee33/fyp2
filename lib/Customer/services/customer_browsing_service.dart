@@ -42,6 +42,14 @@ class CustomerBrowsingService {
       'customer_provider_details',
       params: {'p_provider_id': providerId},
     );
-    return result == null ? null : Map<String, dynamic>.from(result as Map);
+    if (result == null) return null;
+    final cooldowns = await _client.rpc(
+      'customer_service_cooldowns',
+      params: {'p_provider_id': providerId},
+    );
+    return {
+      ...Map<String, dynamic>.from(result as Map),
+      'cooldown_status': Map<String, dynamic>.from(cooldowns as Map),
+    };
   }
 }

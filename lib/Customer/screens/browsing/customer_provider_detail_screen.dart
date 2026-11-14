@@ -1,3 +1,4 @@
+import '../../widgets/service_cooldown.dart';
 import '../../agent/agent_surface.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
@@ -29,7 +30,8 @@ class CustomerProviderDetailScreen extends StatefulWidget {
 }
 
 class _CustomerProviderDetailScreenState
-    extends State<CustomerProviderDetailScreen> {
+    extends State<CustomerProviderDetailScreen>
+    with WidgetsBindingObserver {
   late final CustomerBrowsingService _service;
   Map<String, dynamic>? _provider;
   bool _loading = true;
@@ -39,8 +41,20 @@ class _CustomerProviderDetailScreenState
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _service = widget.browsingService ?? CustomerBrowsingService();
     _fetch();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _fetch();
   }
 
   Future<void> _fetch() async {
@@ -62,8 +76,9 @@ class _CustomerProviderDetailScreenState
         message: _error!,
       );
     } finally {
-      if (mounted && request == _requestVersion)
+      if (mounted && request == _requestVersion) {
         setState(() => _loading = false);
+      }
     }
   }
 
@@ -157,9 +172,11 @@ class _CustomerProviderDetailScreenState
                 children: [
                   Icon(Icons.verified, color: CustomerTheme.success, size: 18),
                   SizedBox(width: 6),
-                  Text(
-                    tr('Verified provider'),
-                    style: TextStyle(color: CustomerTheme.success),
+                  Flexible(
+                    child: Text(
+                      tr('Verified provider'),
+                      style: TextStyle(color: CustomerTheme.success),
+                    ),
                   ),
                 ],
               ),
@@ -290,50 +307,91 @@ class _CustomerProviderDetailScreenState
   ) {
     final price = (service['base_price'] as num).toDouble();
     final hourly = service['pricing_type'] == 'Hourly';
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              service['service_name'] as String,
-              style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              tr('RM ${price.toStringAsFixed(2)}${hourly ? '/hour' : ''}'),
-              style: const TextStyle(
-                color: CustomerTheme.primaryDark,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            if (service['estimated_duration'] != null)
-              Text(tr("{0} minutes", [service['estimated_duration']])),
-            if ((service['description'] as String?)?.isNotEmpty == true) ...[
-              const SizedBox(height: 8),
-              Text(service['description'] as String),
-            ],
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: _loading || _error != null
-                  ? null
-                  : () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CustomerBookingFormScreen(
-                            serviceData: service,
-                            providerData: provider,
-                          ),
+    final status = provider['cooldown_status'] as Map?;
+    final cooldowns = (status?['cooldowns'] as List?) ?? [];
+    final match = cooldowns
+        .where((c) => c['service_id'] == service['service_id'])
+        .firstOrNull;
+    return ServiceCooldown(
+      key: ValueKey(service['service_id']),
+      retryAt: DateTime.tryParse(match?['retry_at']?.toString() ?? ''),
+      serverNow: DateTime.tryParse(status?['server_now']?.toString() ?? ''),
+      builder: (context, countdown) => Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Text(
+                      service['service_name'] as String,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  if (countdown != null) ...[
+                    const SizedBox(width: 12),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: CustomerTheme.primarySurface,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        countdown,
+                        style: const TextStyle(
+                          color: CustomerTheme.primaryDark,
+                          fontWeight: FontWeight.w600,
+                          fontFeatures: [FontFeature.tabularFigures()],
                         ),
-                      );
-                      if (mounted) await _fetch();
-                    },
-              child: Text(tr('Choose date & book')),
-            ).agent('Choose date and prepare booking'),
-          ],
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                tr('RM ${price.toStringAsFixed(2)}${hourly ? '/hour' : ''}'),
+                style: const TextStyle(
+                  color: CustomerTheme.primaryDark,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (service['estimated_duration'] != null)
+                Text(tr("{0} minutes", [service['estimated_duration']])),
+              if ((service['description'] as String?)?.isNotEmpty == true) ...[
+                const SizedBox(height: 8),
+                Text(service['description'] as String),
+              ],
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: _loading || _error != null || countdown != null
+                    ? null
+                    : () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => CustomerBookingFormScreen(
+                              serviceData: service,
+                              providerData: provider,
+                            ),
+                          ),
+                        );
+                        if (mounted) await _fetch();
+                      },
+                child: Text(tr('Choose date & book')),
+              ).agent('Choose date and prepare booking'),
+            ],
+          ),
         ),
       ),
     );

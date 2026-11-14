@@ -255,6 +255,7 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                     ),
                     const SizedBox(height: 6),
                     MalaysiaPhoneField(
+                      showLabel: false,
                       controller: _phoneController,
                       enabled: !_loading,
                     ),

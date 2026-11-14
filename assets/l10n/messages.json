@@ -5398,5 +5398,9 @@
   "Your street address was updated.": [
     "您的街道地址已更新。",
     "Alamat jalan anda telah dikemas kini."
+  ],
+  "You can register with this email from {0} (Malaysia time).": [
+    "您可以从 {0}（马来西亚时间）起使用此邮箱注册。",
+    "Anda boleh mendaftar dengan e-mel ini mulai {0} (waktu Malaysia)."
   ]
 }
