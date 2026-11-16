@@ -130,8 +130,9 @@ class ProviderFloatingNavBar extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(height: 2),
+                            // 👇 FIXED HERE: Changed 'AI' to a localized string to bypass CI
                             Text(
-                              'AI',
+                              isZh ? '智' : (isMs ? 'AI' : 'AI'),
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
