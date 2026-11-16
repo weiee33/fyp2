@@ -38,10 +38,10 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
-      backgroundColor: _lightOrange,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          widget.title,
+          tr(widget.title),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: _primaryOrange,
@@ -117,7 +117,7 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
                         Expanded(
                           child: Text(
                             tr('Service Address'),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
                               color: _primaryOrange,
@@ -145,9 +145,7 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          tr(
-                            '${widget.latitude.toStringAsFixed(6)}, ${widget.longitude.toStringAsFixed(6)}',
-                          ),
+                          '${widget.latitude.toStringAsFixed(6)}, ${widget.longitude.toStringAsFixed(6)}',
                           style: const TextStyle(
                             fontSize: 11,
                             color: Colors.grey,
@@ -170,7 +168,8 @@ class _BookingMapViewScreenState extends State<BookingMapViewScreen> {
               heroTag: 'recenter',
               backgroundColor: Colors.white,
               foregroundColor: _primaryOrange,
-              tooltip: trOrNull('Recenter on customer location'),
+              elevation: 2,
+              tooltip: trOrNull('Recenter'),
               onPressed: _recenter,
               child: const Icon(Icons.my_location),
             ),

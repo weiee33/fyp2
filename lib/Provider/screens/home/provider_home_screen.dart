@@ -9,7 +9,6 @@ import 'package:fyp2/Provider/screens/earnings/earnings_screen.dart';
 import 'package:fyp2/Provider/screens/profile/service_areas_screen.dart';
 
 class ProviderHomeScreen extends StatefulWidget {
-  // Callback to switch bottom navigation tabs
   final Function(int) onNavigateToTab;
 
   const ProviderHomeScreen({super.key, required this.onNavigateToTab});
@@ -25,7 +24,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   bool _loading = true;
   String? _error;
 
-  // Data state
   Map<String, dynamic>? _profile;
   double _todayEarnings = 0.0;
   int _pendingCount = 0;
@@ -56,7 +54,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       final uid = _client.auth.currentUser?.id;
       if (uid == null) throw Exception('Not logged in');
 
-      // 1. Fetch Provider Profile and Provider ID
       final profileRow = await _client
           .from('provider_profiles')
           .select()
@@ -67,37 +64,40 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       _profile = profileRow;
       final providerId = profileRow['provider_id'].toString();
 
-      // 2. Fetch Today's Earnings (from provider_earnings table)
       final today = DateTime.now();
-      final startOfDay = DateTime(today.year, today.month, today.day).toUtc().toIso8601String();
+      final startOfDay =
+      DateTime(today.year, today.month, today.day).toUtc().toIso8601String();
       final earningsRes = await _client
           .from('provider_earnings')
           .select('net_earnings')
           .eq('provider_id', providerId)
           .gte('created_at', startOfDay);
 
-      _todayEarnings = (earningsRes as List).fold(0.0, (sum, row) => sum + ((row['net_earnings'] as num?)?.toDouble() ?? 0.0));
+      _todayEarnings = (earningsRes as List).fold(
+          0.0,
+              (sum, row) =>
+          sum + ((row['net_earnings'] as num?)?.toDouble() ?? 0.0));
 
-      // 3. Fetch booking counts
       final bookingsRes = await _client
           .from('bookings')
-          .select('booking_id, booking_status, scheduled_datetime, service_name_snapshot, total_amount')
+          .select(
+          'booking_id, booking_status, scheduled_datetime, service_name_snapshot, total_amount')
           .eq('provider_id', providerId)
           .neq('booking_status', 'Cancelled')
           .order('scheduled_datetime', ascending: true);
 
       final bookings = List<Map<String, dynamic>>.from(bookingsRes);
 
-      _pendingCount = bookings.where((b) => b['booking_status'] == 'Pending').length;
-      _activeCount = bookings.where((b) => b['booking_status'] == 'In-Progress').length;
+      _pendingCount =
+          bookings.where((b) => b['booking_status'] == 'Pending').length;
+      _activeCount =
+          bookings.where((b) => b['booking_status'] == 'In-Progress').length;
 
-      // Calculate completed this week
       _completedThisWeek = bookings.where((b) {
         if (b['booking_status'] != 'Completed') return false;
         return true;
       }).length;
 
-      // 4. Fetch 3 recent pending bookings
       _recentPending = bookings
           .where((b) => b['booking_status'] == 'Pending')
           .take(3)
@@ -117,12 +117,16 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   }
 
   Future<void> _openNotifications() async {
-    await Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+    await Navigator.push(
+        context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
     if (mounted) setState(() {});
   }
 
   void _openChats() {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => const ChatInboxScreen(customer: false)));
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (_) => const ChatInboxScreen(customer: false)));
   }
 
   @override
@@ -139,23 +143,40 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
           children: [
             const Icon(Icons.error_outline, size: 48, color: Colors.grey),
             const SizedBox(height: 12),
-            Text(tr('Please check your connection and try again.'), style: const TextStyle(color: Colors.grey)),
+            Builder(builder: (context) {
+              final lang = Localizations.localeOf(context).languageCode;
+              return Text(
+                lang == 'zh'
+                    ? '请检查您的网络连接并重试。'
+                    : (lang == 'ms'
+                    ? 'Sila semak sambungan anda dan cuba lagi.'
+                    : 'Please check your connection and try again.'),
+                style: const TextStyle(color: Colors.grey),
+              );
+            }),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: _loadData,
               style: ElevatedButton.styleFrom(backgroundColor: _primaryOrange),
-              child: Text(tr('Retry'), style: TextStyle(color: Colors.white)),
+              child: Builder(builder: (context) {
+                final lang = Localizations.localeOf(context).languageCode;
+                return Text(
+                  lang == 'zh'
+                      ? '重试'
+                      : (lang == 'ms' ? 'Cuba lagi' : 'Retry'),
+                  style: const TextStyle(color: Colors.white),
+                );
+              }),
             )
           ],
         ),
       );
     }
 
-    final name = _profile?['business_name'] ?? tr('Provider');
-    final region = _profile?['region'] ?? tr('Your Area');
+    final name = _profile?['business_name'] ?? 'Provider';
+    final region = _profile?['region'] ?? 'Area';
     final radius = _profile?['service_radius_km'] ?? 10;
 
-    // Notice: Replaced Scaffold with Container (The outer scaffold is handled by the RootNavScreen)
     return Container(
       color: _bgColor,
       child: RefreshIndicator(
@@ -165,7 +186,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              // ==================== Top Header (Orange) ====================
+              // ==================== Top Header ====================
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
                 decoration: const BoxDecoration(
@@ -178,16 +199,25 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Row 1: Greeting + Actions
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(tr('Good day,'),
-                              style: const TextStyle(color: Colors.white70, fontSize: 14),
-                            ),
+                            Builder(builder: (context) {
+                              final lang =
+                                  Localizations.localeOf(context).languageCode;
+                              return Text(
+                                lang == 'zh'
+                                    ? '你好,'
+                                    : (lang == 'ms'
+                                    ? 'Selamat kembali,'
+                                    : 'Good day,'),
+                                style: const TextStyle(
+                                    color: Colors.white70, fontSize: 14),
+                              );
+                            }),
                             Text(
                               name,
                               style: const TextStyle(
@@ -202,26 +232,34 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                           children: [
                             _iconBtn(Icons.chat_bubble_outline, _openChats),
                             const SizedBox(width: 8),
-                            // Notification with Badge
                             FutureBuilder<List<Map<String, dynamic>>>(
                               future: _notificationService.getMyNotifications(),
                               builder: (context, snapshot) {
-                                final unread = (snapshot.data ?? []).where((n) => n['is_read'] != true).length;
+                                final unread = (snapshot.data ?? [])
+                                    .where((n) => n['is_read'] != true)
+                                    .length;
                                 return Stack(
                                   clipBehavior: Clip.none,
                                   children: [
-                                    _iconBtn(Icons.notifications_outlined, _openNotifications),
+                                    _iconBtn(Icons.notifications_outlined,
+                                        _openNotifications),
                                     if (unread > 0)
                                       Positioned(
                                         right: 4,
                                         top: 4,
                                         child: Container(
                                           padding: const EdgeInsets.all(4),
-                                          decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                                          constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                                          decoration: const BoxDecoration(
+                                              color: Colors.red,
+                                              shape: BoxShape.circle),
+                                          constraints: const BoxConstraints(
+                                              minWidth: 16, minHeight: 16),
                                           child: Text(
                                             unread > 9 ? '9+' : '$unread',
-                                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold),
                                             textAlign: TextAlign.center,
                                           ),
                                         ),
@@ -235,39 +273,38 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                       ],
                     ),
                     const SizedBox(height: 20),
-
-                    // Row 2: Location
                     InkWell(
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (_) => const ServiceAreasScreen(),
-                          ),
+                              builder: (_) => const ServiceAreasScreen()),
                         );
                       },
                       borderRadius: BorderRadius.circular(8),
                       child: Row(
                         children: [
-                          const Icon(Icons.location_on, color: Colors.white, size: 16),
+                          const Icon(Icons.location_on,
+                              color: Colors.white, size: 16),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
-                              tr('{0} · {1} km radius', [region, radius]),
-                              style: const TextStyle(color: Colors.white, fontSize: 13),
+                              '$region · $radius km',
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 13),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
+                          const Icon(Icons.keyboard_arrow_down,
+                              color: Colors.white, size: 18),
                         ],
                       ),
                     ),
                     const SizedBox(height: 24),
-
-                    // Today's Earnings Card
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
@@ -278,9 +315,19 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(tr('Today\'s Earnings'),
-                                style: const TextStyle(color: Colors.grey, fontSize: 13),
-                              ),
+                              Builder(builder: (context) {
+                                final lang = Localizations.localeOf(context)
+                                    .languageCode;
+                                return Text(
+                                  lang == 'zh'
+                                      ? '今日收益'
+                                      : (lang == 'ms'
+                                      ? 'Pendapatan Hari Ini'
+                                      : 'Today\'s Earnings'),
+                                  style: const TextStyle(
+                                      color: Colors.grey, fontSize: 13),
+                                );
+                              }),
                               const SizedBox(height: 4),
                               Text(
                                 'RM ${_todayEarnings.toStringAsFixed(2)}',
@@ -292,7 +339,8 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                               ),
                             ],
                           ),
-                          const Icon(Icons.account_balance_wallet_outlined, color: _primaryOrange, size: 32),
+                          const Icon(Icons.account_balance_wallet_outlined,
+                              color: _primaryOrange, size: 32),
                         ],
                       ),
                     ),
@@ -319,17 +367,33 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                     const SizedBox(height: 24),
 
                     // Quick Actions
-                    Text(tr('Quick Actions'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                    Builder(builder: (context) {
+                      final lang = Localizations.localeOf(context).languageCode;
+                      return Text(
+                        lang == 'zh'
+                            ? '快捷操作'
+                            : (lang == 'ms' ? 'Tindakan Pantas' : 'Quick Actions'),
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87),
+                      );
+                    }),
                     const SizedBox(height: 12),
                     Row(
                       children: [
-                        _quickActionBtn(Icons.book, 'Bookings', () => widget.onNavigateToTab(1)),
+                        _quickActionBtn(
+                            Icons.book, 'Bookings', () => widget.onNavigateToTab(1)),
                         const SizedBox(width: 10),
                         _quickActionBtn(Icons.attach_money, 'Earnings', () {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => const EarningsScreen()));
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (_) => const EarningsScreen()));
                         }),
                         const SizedBox(width: 10),
-                        _quickActionBtn(Icons.schedule, 'Schedule', () => widget.onNavigateToTab(2)),
+                        _quickActionBtn(
+                            Icons.schedule, 'Schedule', () => widget.onNavigateToTab(2)),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -338,10 +402,36 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(tr('Pending Requests'), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
+                        Builder(builder: (context) {
+                          final lang =
+                              Localizations.localeOf(context).languageCode;
+                          return Text(
+                            lang == 'zh'
+                                ? '待处理请求'
+                                : (lang == 'ms'
+                                ? 'Permintaan Tertunda'
+                                : 'Pending Requests'),
+                            style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87),
+                          );
+                        }),
                         TextButton(
                           onPressed: () => widget.onNavigateToTab(1),
-                          child: Text(tr('View all'), style: const TextStyle(color: _primaryOrange, fontSize: 13)),
+                          child: Builder(builder: (context) {
+                            final lang =
+                                Localizations.localeOf(context).languageCode;
+                            return Text(
+                              lang == 'zh'
+                                  ? '查看全部'
+                                  : (lang == 'ms'
+                                  ? 'Lihat semua'
+                                  : 'View all'),
+                              style: const TextStyle(
+                                  color: _primaryOrange, fontSize: 13),
+                            );
+                          }),
                         ),
                       ],
                     ),
@@ -351,19 +441,33 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                       Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(16)),
+                        decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: _borderOrange)),
                         child: Column(
                           children: [
-                            const Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
+                            const Icon(Icons.inbox_outlined,
+                                size: 48, color: Colors.grey),
                             const SizedBox(height: 12),
-                            Text(tr('No pending requests'), style: const TextStyle(color: Colors.grey)),
+                            Builder(builder: (context) {
+                              final lang =
+                                  Localizations.localeOf(context).languageCode;
+                              return Text(
+                                lang == 'zh'
+                                    ? '暂无待处理请求'
+                                    : (lang == 'ms'
+                                    ? 'Tiada permintaan tertunda'
+                                    : 'No pending requests'),
+                                style: const TextStyle(color: Colors.grey),
+                              );
+                            }),
                           ],
                         ),
                       )
                     else
                       ..._recentPending.map((b) => _pendingCard(b)),
 
-                    // Bottom padding to prevent floating nav from covering content
                     const SizedBox(height: 120),
                   ],
                 ),
@@ -393,25 +497,43 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   Widget _statCard(String label, int count, Color color) {
     return Expanded(
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+        height: 80, // Ensure consistent height
+        padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          boxShadow: [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 4, offset: const Offset(0, 2)),
-          ],
+          border: Border.all(color: _borderOrange),
         ),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
               '$count',
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color),
+              style: TextStyle(
+                  fontSize: 22, fontWeight: FontWeight.bold, color: color),
             ),
             const SizedBox(height: 4),
-            Text(tr(label),
-              style: const TextStyle(fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
-              textAlign: TextAlign.center,
-            ),
+            Builder(builder: (context) {
+              final lang = Localizations.localeOf(context).languageCode;
+              String displayLabel = label;
+              if (lang == 'zh') {
+                if (label == 'Pending') displayLabel = '待处理';
+                if (label == 'Active') displayLabel = '进行中';
+                if (label == 'Done (Wk)') displayLabel = '已完成';
+              } else if (lang == 'ms') {
+                if (label == 'Pending') displayLabel = 'Tertunda';
+                if (label == 'Active') displayLabel = 'Aktif';
+                if (label == 'Done (Wk)') displayLabel = 'Selesai';
+              }
+              return Text(
+                displayLabel,
+                style: const TextStyle(
+                    fontSize: 11, color: Colors.grey, fontWeight: FontWeight.w500),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              );
+            }),
           ],
         ),
       ),
@@ -434,7 +556,26 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
             children: [
               Icon(icon, color: _primaryOrange, size: 24),
               const SizedBox(height: 8),
-              Text(tr(label), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black87)),
+              Builder(builder: (context) {
+                final lang = Localizations.localeOf(context).languageCode;
+                String displayLabel = label;
+                if (lang == 'zh') {
+                  if (label == 'Bookings') displayLabel = '预约';
+                  if (label == 'Earnings') displayLabel = '收益';
+                  if (label == 'Schedule') displayLabel = '日程';
+                } else if (lang == 'ms') {
+                  if (label == 'Bookings') displayLabel = 'Tempahan';
+                  if (label == 'Earnings') displayLabel = 'Pendapatan';
+                  if (label == 'Schedule') displayLabel = 'Jadual';
+                }
+                return Text(
+                  displayLabel,
+                  style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87),
+                );
+              }),
             ],
           ),
         ),
@@ -451,7 +592,8 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
     if (scheduledAt != null) {
       final dt = DateTime.tryParse(scheduledAt)?.toLocal();
       if (dt != null) {
-        timeStr = '${dt.day}/${dt.month} · ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
+        timeStr =
+        '${dt.day}/${dt.month} · ${dt.hour.toString().padLeft(2, '0')}:${dt.minute.toString().padLeft(2, '0')}';
       }
     }
 
@@ -467,13 +609,18 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         leading: Container(
           padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(color: _lightOrange, borderRadius: BorderRadius.circular(10)),
+          decoration: BoxDecoration(
+              color: _lightOrange, borderRadius: BorderRadius.circular(10)),
           child: const Icon(Icons.pending_actions, color: _primaryOrange),
         ),
-        title: Text(serviceName, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-        subtitle: Text(timeStr, style: const TextStyle(fontSize: 12, color: Colors.grey)),
-        trailing: Text('RM $amount', style: const TextStyle(fontWeight: FontWeight.bold, color: _primaryOrange)),
-        onTap: () => widget.onNavigateToTab(1), // Navigate to Bookings to process
+        title: Text(serviceName,
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+        subtitle: Text(timeStr,
+            style: const TextStyle(fontSize: 12, color: Colors.grey)),
+        trailing: Text('RM $amount',
+            style: const TextStyle(
+                fontWeight: FontWeight.bold, color: _primaryOrange)),
+        onTap: () => widget.onNavigateToTab(1),
       ),
     );
   }

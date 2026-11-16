@@ -25,7 +25,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
 
-  // Orange + White theme
+  // 🎨 Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -74,7 +74,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         automaticallyImplyLeading: false,
       ),
       body: SafeArea(
-        bottom: false, // The floating nav bar handles its own bottom safe area
+        bottom: false,
         child: Column(
           children: [
             // ---- Status Filter Chips ----
@@ -126,14 +126,15 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
             // ---- List ----
             Expanded(
               child: _loading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? const Center(
+                child: CircularProgressIndicator(color: _primaryOrange),
+              )
                   : RefreshIndicator(
                 onRefresh: _load,
                 color: _primaryOrange,
                 child: _items.isEmpty
                     ? _buildEmpty()
                     : ListView(
-                  // Added bottom padding to avoid overlap with floating nav
                   padding: const EdgeInsets.only(
                     left: 16,
                     right: 16,
@@ -154,7 +155,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
   Widget _buildEmpty() {
     return ListView(
-      // Added bottom padding for empty state as well
       padding: const EdgeInsets.only(bottom: 120),
       children: [
         const SizedBox(height: 100),
@@ -182,7 +182,6 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
   }
 
   Widget _bookingCard(Map<String, dynamic> b) {
-    // Safe field extraction with fallbacks
     final rawId = b['booking_id']?.toString() ?? '';
     final shortId = rawId.isEmpty
         ? 'N/A'
@@ -214,9 +213,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       child: InkWell(
         onTap: () {
           if (rawId.isEmpty) {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(SnackBar(content: Text(tr('Booking ID missing'))));
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(tr('Booking ID missing'))),
+            );
             return;
           }
           Navigator.push(
@@ -328,10 +327,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     Color fg;
     IconData icon;
 
+    // ✨ Consistent with BookingDetailScreen colors
     switch (status.toLowerCase()) {
       case 'confirmed':
-        bg = const Color(0xFFEFF6FF);
-        fg = const Color(0xFF1E40AF);
+        bg = const Color(0xFFECFDF5); // Light green
+        fg = const Color(0xFF10B981); // Green
         icon = Icons.check_circle_outline;
         break;
       case 'in-progress':
@@ -340,19 +340,19 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         icon = Icons.timelapse;
         break;
       case 'completed':
-        bg = const Color(0xFFECFDF5);
-        fg = const Color(0xFF065F46);
+        bg = const Color(0xFFF3F4F6); // Light grey
+        fg = const Color(0xFF6B7280); // Grey
         icon = Icons.done_all;
         break;
       case 'cancelled':
-        bg = const Color(0xFFFEF2F2);
-        fg = const Color(0xFF991B1B);
+        bg = const Color(0xFFFEF2F2); // Light red
+        fg = const Color(0xFFEF4444); // Red
         icon = Icons.cancel_outlined;
         break;
       default:
       // Pending / New
-        bg = _lightOrange;
-        fg = _primaryOrange;
+        bg = const Color(0xFFFEF3C7); // Light amber
+        fg = const Color(0xFFF59E0B); // Amber
         icon = Icons.pending_outlined;
     }
 

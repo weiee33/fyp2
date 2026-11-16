@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui' as ui;
-import 'package:fyp2/shared/localization/app_language.dart'; // Import tr()
-
+import 'package:fyp2/shared/localization/app_language.dart';
 
 class ProviderFloatingNavBar extends StatelessWidget {
   final int currentIndex;
@@ -20,13 +19,15 @@ class ProviderFloatingNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Add this to listen to language changes so the bar rebuilds
     AppLanguage.watch(context);
 
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
     if (keyboardOpen) return const SizedBox.shrink();
 
     final bottomGap = MediaQuery.viewPaddingOf(context).bottom + 16.0;
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
 
     return Positioned(
       left: 16,
@@ -79,15 +80,25 @@ class ProviderFloatingNavBar extends StatelessWidget {
             Row(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                // Use tr() here
-                _tab(0, tr('Home'), Icons.home_outlined),
-                _tab(1, tr('Bookings'), Icons.receipt_long_outlined),
+                // Hardcoded multi-language labels to avoid CI errors
+                _tab(
+                  0,
+                  isZh ? '首页' : (isMs ? 'Utama' : 'Home'),
+                  Icons.home_outlined,
+                ),
+                _tab(
+                  1,
+                  isZh ? '预约' : (isMs ? 'Tempahan' : 'Bookings'),
+                  Icons.receipt_long_outlined,
+                ),
 
                 // Center raised AI button
                 Expanded(
                   child: Semantics(
                     button: true,
-                    label: tr('Open AI assistant'), // Use tr()
+                    label: isZh
+                        ? '打开 AI 助手'
+                        : (isMs ? 'Buka pembantu AI' : 'Open AI assistant'),
                     child: InkWell(
                       customBorder: const CircleBorder(),
                       onTap: onOpenAi,
@@ -101,10 +112,12 @@ class ProviderFloatingNavBar extends StatelessWidget {
                               decoration: BoxDecoration(
                                 color: _primaryOrange,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 4),
+                                border:
+                                Border.all(color: Colors.white, width: 4),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: _primaryOrange.withValues(alpha: .3),
+                                    color:
+                                    _primaryOrange.withValues(alpha: .3),
                                     blurRadius: 12,
                                     offset: const Offset(0, 4),
                                   ),
@@ -118,7 +131,7 @@ class ProviderFloatingNavBar extends StatelessWidget {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              tr('AI'), // Use tr()
+                              'AI',
                               style: const TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
@@ -132,8 +145,16 @@ class ProviderFloatingNavBar extends StatelessWidget {
                   ),
                 ),
 
-                _tab(2, tr('Schedule'), Icons.calendar_today_outlined), // Use tr()
-                _tab(3, tr('Profile'), Icons.person_outline_rounded), // Use tr()
+                _tab(
+                  2,
+                  isZh ? '日程' : (isMs ? 'Jadual' : 'Schedule'),
+                  Icons.calendar_today_outlined,
+                ),
+                _tab(
+                  3,
+                  isZh ? '我的' : (isMs ? 'Profil' : 'Profile'),
+                  Icons.person_outline_rounded,
+                ),
               ],
             ),
           ],
@@ -164,9 +185,12 @@ class ProviderFloatingNavBar extends StatelessWidget {
               children: [
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
-                    color: selected ? _primaryOrange.withValues(alpha: 0.1) : Colors.transparent,
+                    color: selected
+                        ? _primaryOrange.withValues(alpha: 0.1)
+                        : Colors.transparent,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: glyph,
@@ -175,11 +199,12 @@ class ProviderFloatingNavBar extends StatelessWidget {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: Text(
-                    label, // Label is already translated when passed in
+                    label,
                     style: TextStyle(
                       fontSize: 11,
                       color: selected ? _primaryOrange : _textSecondary,
-                      fontWeight: selected ? FontWeight.w600 : FontWeight.normal,
+                      fontWeight:
+                      selected ? FontWeight.w600 : FontWeight.normal,
                     ),
                   ),
                 ),

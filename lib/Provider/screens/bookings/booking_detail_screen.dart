@@ -1,5 +1,6 @@
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/booking_service.dart';
 import '../../../Customer/services/customer_transaction_service.dart'
     show bookingError;
@@ -13,13 +14,20 @@ class BookingDetailScreen extends StatefulWidget {
 
 class _BookingDetailScreenState extends State<BookingDetailScreen> {
   final _service = BookingService();
+  final _client = Supabase.instance.client;
   Map<String, dynamic>? _b;
   bool _loading = true;
   bool _acting = false;
   String? _error;
 
-  static const _primaryColor = Color(0xFFF97316); // Orange
-  static const _accentColor = Color(0xFFFFF7ED); // Light orange tint
+  // 临时存储查到的客户名字和电话
+  String _customerName = '-';
+  String _customerPhone = '-';
+
+  // 🎨 Unified Theme Colors
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -36,11 +44,51 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           _b = booking;
           _error = null;
         });
+        // 加载完订单后，去获取客户信息
+        await _fetchCustomerInfo();
       }
     } catch (error) {
       if (mounted) setState(() => _error = bookingError(error));
     } finally {
       if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  // 单独写一个查询客户信息的方法
+  Future<void> _fetchCustomerInfo() async {
+    if (_b == null) return;
+
+    // 1. 先尝试从嵌套数据里直接拿
+    final nestedUser = _b!['customer_profiles']?['users'];
+    if (nestedUser != null) {
+      if (mounted) {
+        setState(() {
+          _customerName = nestedUser['full_name']?.toString() ?? '-';
+          _customerPhone = nestedUser['phone']?.toString() ?? '-';
+        });
+      }
+      return;
+    }
+
+    // 2. 如果嵌套里没有，直接用 customer_id 去 users 表查
+    final cid = _b!['customer_id']?.toString();
+    if (cid != null && cid.isNotEmpty) {
+      try {
+        final userRow = await _client
+            .from('users')
+            .select('full_name, phone')
+            .eq('user_id', cid)
+            .maybeSingle();
+
+        if (userRow != null && mounted) {
+          setState(() {
+            _customerName = userRow['full_name']?.toString() ?? '-';
+            _customerPhone = userRow['phone']?.toString() ?? '-';
+          });
+        }
+      } catch (e) {
+        debugPrint('Fetch customer error: $e');
+      }
     }
   }
 
@@ -111,11 +159,11 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: const BorderSide(color: _borderOrange),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: _primaryColor, width: 2),
+                borderSide: const BorderSide(color: _primaryOrange, width: 2),
               ),
               errorBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -141,7 +189,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryColor,
+              backgroundColor: _primaryOrange,
               foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
@@ -182,15 +230,15 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   Color _statusColor(String? status) {
     switch (status) {
       case 'Pending':
-        return const Color(0xFFF59E0B); // Amber
+        return const Color(0xFFF59E0B);
       case 'Confirmed':
-        return const Color(0xFF10B981); // Green
+        return const Color(0xFF10B981);
       case 'In-Progress':
-        return const Color(0xFF3B82F6); // Blue
+        return const Color(0xFF3B82F6);
       case 'Completed':
-        return const Color(0xFF6B7280); // Grey
+        return const Color(0xFF6B7280);
       case 'Cancelled':
-        return const Color(0xFFEF4444); // Red
+        return const Color(0xFFEF4444);
       default:
         return Colors.grey;
     }
@@ -222,13 +270,12 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(tr('Booking Detail')),
-        backgroundColor: _primaryColor,
+        backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
-        // Removed the refresh IconButton
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: _primaryOrange))
           : _b == null
           ? Center(
         child: Text(
@@ -236,12 +283,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           style: const TextStyle(color: Colors.grey),
         ),
       )
-      // Wrap with RefreshIndicator for pull-to-refresh
           : RefreshIndicator(
         onRefresh: _load,
-        color: _primaryColor,
+        color: _primaryOrange,
         child: ListView(
-          // Ensure list can always be pulled down even if content is short
           physics: const AlwaysScrollableScrollPhysics(),
           padding: const EdgeInsets.all(16),
           children: [
@@ -281,7 +326,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               color: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(14),
-                side: BorderSide(color: Colors.grey.shade200),
+                side: const BorderSide(color: _borderOrange),
               ),
               child: Padding(
                 padding: const EdgeInsets.all(16),
@@ -289,28 +334,24 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment:
+                      MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
                           tr('Booking Info'),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: _primaryColor,
+                            color: _primaryOrange,
                           ),
                         ),
                         _statusBadge(_b!['booking_status']),
                       ],
                     ),
                     const Divider(height: 20),
-                    _row(
-                      'Customer',
-                      _b!['customer_profiles']?['users']?['full_name'] ?? '-',
-                    ),
-                    _row(
-                      'Contact',
-                      _b!['customer_profiles']?['users']?['phone'] ?? '-',
-                    ),
+                    // 👇 这里使用了我们查到的 _customerName 和 _customerPhone
+                    _row('Customer', _customerName),
+                    _row('Contact', _customerPhone),
                     _row(
                       'Service',
                       _b!['services']?['service_name'] ?? '-',
@@ -324,7 +365,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       'Payment',
                       tr("RM{0} · {1}", [
                         _b!['total_amount'],
-                        tr(_b!['payment_status']?.toString() ?? 'Not paid'),
+                        tr(
+                          _b!['payment_status']?.toString() ??
+                              'Not paid',
+                        ),
                       ]),
                     ),
                   ],
@@ -339,17 +383,17 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 margin: const EdgeInsets.only(top: 12),
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: _accentColor,
+                  color: _lightOrange,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: _primaryColor.withValues(alpha: 0.3),
+                    color: _borderOrange,
                   ),
                 ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.info_outline,
-                      color: _primaryColor,
+                      color: _primaryOrange,
                       size: 20,
                     ),
                     const SizedBox(width: 10),
@@ -377,14 +421,14 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
+                  border: Border.all(color: _borderOrange),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Icon(
                       Icons.sticky_note_2_outlined,
-                      color: _primaryColor,
+                      color: _primaryOrange,
                       size: 20,
                     ),
                     const SizedBox(width: 10),
@@ -416,14 +460,16 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 ),
               ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
 
             // ===== Action Buttons =====
             if (_acting)
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(12),
-                  child: CircularProgressIndicator(),
+                  child: CircularProgressIndicator(
+                    color: _primaryOrange,
+                  ),
                 ),
               )
             else
@@ -437,7 +483,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       icon: const Icon(Icons.check, size: 18),
                       label: Text(tr('Accept')),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryColor,
+                        backgroundColor: _primaryOrange,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -454,8 +500,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       icon: const Icon(Icons.close, size: 18),
                       label: Text(tr('Decline')),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: _primaryColor,
-                        side: const BorderSide(color: _primaryColor),
+                        foregroundColor: _primaryOrange,
+                        side: const BorderSide(
+                          color: _primaryOrange,
+                        ),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -471,7 +519,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       icon: const Icon(Icons.play_arrow, size: 18),
                       label: Text(tr('Start Service')),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryColor,
+                        backgroundColor: _primaryOrange,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -488,7 +536,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       icon: const Icon(Icons.done_all, size: 18),
                       label: Text(tr('Complete Service')),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryColor,
+                        backgroundColor: _primaryOrange,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
@@ -502,7 +550,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 ],
               ),
 
-            // Add bottom padding to keep content away from screen edges
             const SizedBox(height: 40),
           ],
         ),

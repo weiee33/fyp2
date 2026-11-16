@@ -6,6 +6,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../Customer/widgets/customer_refresh.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../Customer/core/customer_theme.dart';
 import '../../Customer/widgets/customer_dialogs.dart';
 import 'chat_service.dart';
@@ -28,6 +29,7 @@ class _InboxState extends State<ChatInboxScreen> {
   int _generation = 0;
   Timer? _debounce;
   ChatUpdates? _updates;
+
   @override
   void initState() {
     super.initState();
@@ -186,8 +188,8 @@ class _InboxState extends State<ChatInboxScreen> {
                   physics: widget.customer
                       ? customerScrollPhysics(context)
                       : const ClampingScrollPhysics(
-                          parent: AlwaysScrollableScrollPhysics(),
-                        ),
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
                   children: [
                     if (_loading)
                       const Center(child: CircularProgressIndicator()),
@@ -228,18 +230,18 @@ class _InboxState extends State<ChatInboxScreen> {
                         ),
                       ),
                     if (widget.customer && _search.text.trim().isNotEmpty) ...[
-                      Padding(
+                      const Padding(
                         padding: EdgeInsets.all(16),
                         child: Text(
-                          tr('Find providers'),
+                          'Find providers',
                           style: TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                       if (!_loading && _providers.isEmpty)
-                        Padding(
+                        const Padding(
                           padding: EdgeInsets.all(16),
                           child: Text(
-                            tr('No verified providers match this name.'),
+                            'No verified providers match this name.',
                           ),
                         ),
                       for (final provider in _providers)
@@ -255,12 +257,10 @@ class _InboxState extends State<ChatInboxScreen> {
                               _open(providerId: provider['provider_id']),
                         ),
                       if (_providers.length == 30)
-                        Padding(
+                        const Padding(
                           padding: EdgeInsets.all(16),
                           child: Text(
-                            tr(
-                              'Showing the first 30 providers. Refine the name to find a specific provider.',
-                            ),
+                            'Showing the first 30 providers. Refine the name to find a specific provider.',
                           ),
                         ),
                     ],
@@ -357,13 +357,8 @@ class _SwipeChatState extends State<_SwipeChatRow> {
                         photoUrl: widget.row['profile_photo_url'] as String?,
                       )
                     else
-                      const CircleAvatar(
-                        radius: 24,
-                        backgroundColor: CustomerTheme.primarySurface,
-                        child: Icon(
-                          Icons.person_outline,
-                          color: CustomerTheme.primary,
-                        ),
+                      _CustomerAvatar(
+                        row: widget.row,
                       ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -412,6 +407,99 @@ class _SwipeChatState extends State<_SwipeChatRow> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// =========================================================================
+// NEW: Auto-fetches Customer Avatar for Provider side
+// =========================================================================
+class _CustomerAvatar extends StatelessWidget {
+  final Map<String, dynamic> row;
+  const _CustomerAvatar({required this.row});
+
+  @override
+  Widget build(BuildContext context) {
+    // 1. Check if API already returned photo
+    final directPhoto = row['profile_photo_url']?.toString();
+    final name = row['peer_name']?.toString() ?? 'C';
+    final initial = name.isNotEmpty ? name[0].toUpperCase() : 'C';
+
+    if (directPhoto != null && directPhoto.isNotEmpty) {
+      return CircleAvatar(
+        radius: 24,
+        backgroundColor: CustomerTheme.primarySurface,
+        backgroundImage: NetworkImage(directPhoto),
+        onBackgroundImageError: (_, __) {},
+      );
+    }
+
+    // 2. If no photo, find the actual customer ID by looking at chat_members
+    final conversationId = row['conversation_id']?.toString();
+    if (conversationId == null) return _fallback(initial);
+
+    return FutureBuilder<List<dynamic>>(
+      future: Supabase.instance.client
+          .from('chat_members')
+          .select('user_id')
+          .eq('conversation_id', conversationId),
+      builder: (context, memberSnapshot) {
+        if (!memberSnapshot.hasData || memberSnapshot.data == null) {
+          return _fallback(initial);
+        }
+
+        // Find the user_id that is NOT me (the Provider)
+        final myUserId = Supabase.instance.client.auth.currentUser?.id;
+        String? customerId;
+
+        for (final member in memberSnapshot.data!) {
+          final uid = member['user_id']?.toString();
+          if (uid != null && uid != myUserId) {
+            customerId = uid;
+            break;
+          }
+        }
+
+        if (customerId == null) return _fallback(initial);
+
+        // 3. Now fetch the customer's actual photo from users table
+        return FutureBuilder<Map<String, dynamic>?>(
+          future: Supabase.instance.client
+              .from('users')
+              .select('profile_photo_url')
+              .eq('user_id', customerId)
+              .maybeSingle(),
+          builder: (context, userSnapshot) {
+            if (userSnapshot.hasData && userSnapshot.data != null) {
+              final fetchedPhoto = userSnapshot.data!['profile_photo_url']?.toString();
+              if (fetchedPhoto != null && fetchedPhoto.isNotEmpty) {
+                return CircleAvatar(
+                  radius: 24,
+                  backgroundColor: CustomerTheme.primarySurface,
+                  backgroundImage: NetworkImage(fetchedPhoto),
+                  onBackgroundImageError: (_, __) {},
+                );
+              }
+            }
+            return _fallback(initial);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _fallback(String initial) {
+    return CircleAvatar(
+      radius: 24,
+      backgroundColor: CustomerTheme.primarySurface,
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: CustomerTheme.primary,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
         ),
       ),
     );

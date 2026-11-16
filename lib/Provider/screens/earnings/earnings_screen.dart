@@ -139,7 +139,11 @@ class _EarningsScreenState extends State<EarningsScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     if (_loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: _primaryOrange),
+        ),
+      );
     }
 
     final today = _sum['today'] ?? 0;
@@ -189,6 +193,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              // Chart Card
               Card(
                 elevation: 2,
                 color: Colors.white,
@@ -325,6 +330,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
               const SizedBox(height: 20),
 
+              // Stat Cards
               GridView.count(
                 crossAxisCount: 2,
                 crossAxisSpacing: 12,
@@ -334,26 +340,26 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   _statCard(
-                    label: tr('Today'),
-                    value: tr("RM{0}", [today.toStringAsFixed(0)]),
+                    label: 'Today',
+                    value: "RM${today.toStringAsFixed(0)}",
                     icon: Icons.today,
                     color: const Color(0xFF3B82F6),
                   ),
                   _statCard(
-                    label: tr('This Week'),
-                    value: tr("RM{0}", [week.toStringAsFixed(0)]),
+                    label: 'This Week',
+                    value: "RM${week.toStringAsFixed(0)}",
                     icon: Icons.date_range,
                     color: const Color(0xFF10B981),
                   ),
                   _statCard(
-                    label: tr('This Month'),
-                    value: tr("RM{0}", [month.toStringAsFixed(0)]),
+                    label: 'This Month',
+                    value: "RM${month.toStringAsFixed(0)}",
                     icon: Icons.calendar_month,
                     color: const Color(0xFF8B5CF6),
                   ),
                   _statCard(
-                    label: tr('Pending'),
-                    value: tr("RM{0}", [pending.toStringAsFixed(0)]),
+                    label: 'Pending',
+                    value: "RM${pending.toStringAsFixed(0)}",
                     icon: Icons.hourglass_bottom,
                     color: const Color(0xFFF59E0B),
                   ),
@@ -362,7 +368,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
               const SizedBox(height: 24),
 
-              // FIXED: Hardcoded translations to bypass CI script
+              // Recent Transactions
               Builder(
                 builder: (context) {
                   final lang = Localizations.localeOf(context).languageCode;
@@ -588,7 +594,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
             ),
             const SizedBox(height: 6),
             Text(
-              tr(value),
+              value,
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

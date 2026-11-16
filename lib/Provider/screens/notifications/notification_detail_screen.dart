@@ -21,6 +21,10 @@ class NotificationDetailScreen extends StatelessWidget {
     final color = _colorForType(type);
     final icon = _iconForType(type);
 
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -36,19 +40,36 @@ class NotificationDetailScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (RegExp(r'^chat/[0-9a-fA-F-]{36}$').hasMatch(chatLink))
-                FilledButton.icon(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => ConversationScreen(
-                        customer: false,
-                        conversationId: chatLink.substring(5),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: FilledButton.icon(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => ConversationScreen(
+                          customer: false,
+                          conversationId: chatLink.substring(5),
+                        ),
                       ),
                     ),
+                    icon: const Icon(Icons.chat_bubble_outline),
+                    label: Text(
+                      isZh
+                          ? '打开聊天'
+                          : (isMs ? 'Buka perbualan' : 'Open conversation'),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
                   ),
-                  icon: const Icon(Icons.chat_bubble_outline),
-                  label: Text(tr('Open conversation')),
                 ),
+
               // ---- Header Card ----
               Card(
                 elevation: 2,
@@ -103,7 +124,7 @@ class NotificationDetailScreen extends StatelessWidget {
 
                       // Timestamp
                       Text(
-                        tr(_formatTime(data['created_at']?.toString())),
+                        _formatTime(data['created_at']?.toString(), isZh, isMs),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -117,8 +138,10 @@ class NotificationDetailScreen extends StatelessWidget {
 
                       // Message
                       Text(
-                        tr('Message'),
-                        style: TextStyle(
+                        isZh
+                            ? '消息内容'
+                            : (isMs ? 'Mesej' : 'Message'),
+                        style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey,
@@ -126,7 +149,7 @@ class NotificationDetailScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        tr(data['message']?.toString() ?? ''),
+                        data['message']?.toString() ?? '',
                         style: const TextStyle(
                           fontSize: 15,
                           height: 1.5,
@@ -170,8 +193,12 @@ class NotificationDetailScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                tr('Related Booking'),
-                                style: TextStyle(
+                                isZh
+                                    ? '关联预约'
+                                    : (isMs
+                                    ? 'Tempahan Berkaitan'
+                                    : 'Related Booking'),
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey,
                                   fontWeight: FontWeight.w500,
@@ -179,9 +206,7 @@ class NotificationDetailScreen extends StatelessWidget {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                tr(
-                                  '#${bookingId.length >= 8 ? bookingId.substring(0, 8) : bookingId}',
-                                ),
+                                '#${bookingId.length >= 8 ? bookingId.substring(0, 8) : bookingId}',
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
@@ -213,8 +238,10 @@ class NotificationDetailScreen extends StatelessWidget {
                     },
                     icon: const Icon(Icons.arrow_forward),
                     label: Text(
-                      tr('View Booking'),
-                      style: TextStyle(
+                      isZh
+                          ? '查看预约详情'
+                          : (isMs ? 'Lihat Tempahan' : 'View Booking'),
+                      style: const TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
                       ),
@@ -266,15 +293,32 @@ class NotificationDetailScreen extends StatelessWidget {
     }
   }
 
-  String _formatTime(String? raw) {
+  String _formatTime(String? raw, bool isZh, bool isMs) {
     if (raw == null) return '';
     final d = DateTime.tryParse(raw);
     if (d == null) return '';
     final diff = DateTime.now().difference(d);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return tr("{0} min ago", [diff.inMinutes]);
-    if (diff.inHours < 24) return tr("{0} hours ago", [diff.inHours]);
-    if (diff.inDays < 7) return tr("{0} days ago", [diff.inDays]);
+
+    if (diff.inMinutes < 1) {
+      return isZh ? '刚刚' : (isMs ? 'Baru sahaja' : 'Just now');
+    }
+    if (diff.inMinutes < 60) {
+      return isZh
+          ? '${diff.inMinutes} 分钟前'
+          : (isMs
+          ? '${diff.inMinutes} minit lalu'
+          : '${diff.inMinutes} min ago');
+    }
+    if (diff.inHours < 24) {
+      return isZh
+          ? '${diff.inHours} 小时前'
+          : (isMs ? '${diff.inHours} jam lalu' : '${diff.inHours} hours ago');
+    }
+    if (diff.inDays < 7) {
+      return isZh
+          ? '${diff.inDays} 天前'
+          : (isMs ? '${diff.inDays} hari lalu' : '${diff.inDays} days ago');
+    }
     return '${d.day}/${d.month}/${d.year}';
   }
 }

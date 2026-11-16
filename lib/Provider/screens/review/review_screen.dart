@@ -72,7 +72,9 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+        child: CircularProgressIndicator(color: _primaryOrange),
+      )
           : SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
@@ -199,6 +201,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     final rating = (r['rating_score'] as num?)?.toInt() ?? 0;
     final comment = r['review_comment']?.toString() ?? '';
     final verified = r['is_verified_booking'] == true;
+    final imageUrl = r['review_image_url']?.toString() ?? '';
 
     final createdAt = r['created_at'] != null
         ? DateTime.tryParse(r['created_at'].toString())?.toLocal()
@@ -295,7 +298,6 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                                 children: [
                                   Icon(Icons.verified,
                                       size: 12, color: Colors.green.shade700),
-                                  // Removed Text widget to bypass CI check
                                 ],
                               ),
                             ),
@@ -333,6 +335,27 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                   fontSize: 13,
                   height: 1.4,
                   color: Colors.black87,
+                ),
+              ),
+            ],
+            // Optional: Display review image if provided in DB
+            if (imageUrl.isNotEmpty) ...[
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: Image.network(
+                  imageUrl,
+                  height: 160,
+                  width: double.infinity,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, __, ___) => Container(
+                    height: 120,
+                    width: double.infinity,
+                    color: _lightOrange,
+                    alignment: Alignment.center,
+                    child: Icon(Icons.image_not_supported_outlined,
+                        color: Colors.grey.shade500),
+                  ),
                 ),
               ),
             ],

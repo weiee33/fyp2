@@ -39,7 +39,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showError(tr("Failed to load: {0}", [e]));
+      _showError('Failed to load: $e');
     }
   }
 
@@ -77,18 +77,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await _service.deleteNotification(id);
       if (!mounted) return;
       setState(
-        () => _items.removeWhere((n) => n['notification_id'].toString() == id),
+            () => _items.removeWhere((n) => n['notification_id'].toString() == id),
       );
       _showSuccess('Notification deleted');
     } catch (e) {
-      _showError(tr("Delete failed: {0}", [e]));
+      _showError('Delete failed: $e');
     }
   }
 
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(tr(msg)),
+        content: Text(msg),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -99,7 +99,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _showSuccess(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(tr(msg)),
+        content: Text(msg),
         backgroundColor: Colors.green.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -111,11 +111,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (raw == null) return '';
     final d = DateTime.tryParse(raw);
     if (d == null) return '';
+
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     final diff = DateTime.now().difference(d);
-    if (diff.inMinutes < 1) return 'Just now';
-    if (diff.inMinutes < 60) return tr("{0} min ago", [diff.inMinutes]);
-    if (diff.inHours < 24) return tr("{0} hours ago", [diff.inHours]);
-    if (diff.inDays < 7) return tr("{0} days ago", [diff.inDays]);
+    if (diff.inMinutes < 1) {
+      return isZh ? '刚刚' : (isMs ? 'Baru sahaja' : 'Just now');
+    }
+    if (diff.inMinutes < 60) {
+      return isZh
+          ? '${diff.inMinutes} 分钟前'
+          : (isMs
+          ? '${diff.inMinutes} minit lalu'
+          : '${diff.inMinutes} min ago');
+    }
+    if (diff.inHours < 24) {
+      return isZh
+          ? '${diff.inHours} 小时前'
+          : (isMs ? '${diff.inHours} jam lalu' : '${diff.inHours} hours ago');
+    }
+    if (diff.inDays < 7) {
+      return isZh
+          ? '${diff.inDays} 天前'
+          : (isMs ? '${diff.inDays} hari lalu' : '${diff.inDays} days ago');
+    }
     return '${d.day}/${d.month}/${d.year}';
   }
 
@@ -123,6 +144,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     final list = _filtered;
+
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -133,58 +158,71 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         elevation: 0,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+          child: CircularProgressIndicator(color: _primaryOrange))
           : SafeArea(
-              child: Column(
-                children: [
-                  // ---- Filter Tabs ----
-                  Container(
-                    color: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 10,
+        child: Column(
+          children: [
+            // ---- Filter Tabs ----
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 10,
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: [
+                    _filterChip(
+                      'All',
+                      isZh ? '全部' : (isMs ? 'Semua' : 'All'),
                     ),
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          _filterChip('All'),
-                          const SizedBox(width: 8),
-                          _filterChip('Bookings'),
-                          const SizedBox(width: 8),
-                          _filterChip('Messages'),
-                          const SizedBox(width: 8),
-                          _filterChip('Payments'),
-                        ],
-                      ),
+                    const SizedBox(width: 8),
+                    _filterChip(
+                      'Bookings',
+                      isZh ? '预约' : (isMs ? 'Tempahan' : 'Bookings'),
                     ),
-                  ),
-                  const Divider(height: 1),
-
-                  // ---- List ----
-                  Expanded(
-                    child: list.isEmpty
-                        ? _buildEmpty()
-                        : RefreshIndicator(
-                            onRefresh: _load,
-                            color: _primaryOrange,
-                            child: ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: list.length,
-                              itemBuilder: (_, i) => _notificationTile(list[i]),
-                            ),
-                          ),
-                  ),
-                ],
+                    const SizedBox(width: 8),
+                    _filterChip(
+                      'Messages',
+                      isZh ? '消息' : (isMs ? 'Mesej' : 'Messages'),
+                    ),
+                    const SizedBox(width: 8),
+                    _filterChip(
+                      'Payments',
+                      isZh ? '付款' : (isMs ? 'Bayaran' : 'Payments'),
+                    ),
+                  ],
+                ),
               ),
             ),
+            const Divider(height: 1),
+
+            // ---- List ----
+            Expanded(
+              child: list.isEmpty
+                  ? _buildEmpty(isZh, isMs)
+                  : RefreshIndicator(
+                onRefresh: _load,
+                color: _primaryOrange,
+                child: ListView.builder(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: list.length,
+                  itemBuilder: (_, i) => _notificationTile(list[i]),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
-  Widget _filterChip(String label) {
-    final selected = _filter == label;
+  Widget _filterChip(String value, String label) {
+    final selected = _filter == value;
     return GestureDetector(
-      onTap: () => setState(() => _filter = label),
+      onTap: () => setState(() => _filter = value),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -194,7 +232,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           border: Border.all(color: selected ? _primaryOrange : _borderOrange),
         ),
         child: Text(
-          tr(label),
+          label,
           style: TextStyle(
             color: selected ? Colors.white : _primaryOrange,
             fontWeight: FontWeight.w600,
@@ -228,8 +266,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       child: Card(
         elevation: isRead ? 0 : 1,
         margin: const EdgeInsets.only(bottom: 10),
-        // Unread: white card with colored border
-        // Read: light orange tint to indicate already seen
         color: isRead ? _lightOrange : Colors.white,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
@@ -286,7 +322,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        tr(n['message']?.toString() ?? ''),
+                        n['message']?.toString() ?? '',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -296,7 +332,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        tr(_formatTime(n['created_at']?.toString())),
+                        _formatTime(n['created_at']?.toString()),
                         style: const TextStyle(
                           fontSize: 11,
                           color: Colors.grey,
@@ -313,34 +349,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(bool isZh, bool isMs) {
     return Center(
       child: Padding(
-        padding: EdgeInsets.all(32),
+        padding: const EdgeInsets.all(32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
+            const Icon(
               Icons.notifications_off_outlined,
               size: 56,
               color: Colors.grey,
             ),
-            SizedBox(height: 12),
+            const SizedBox(height: 12),
             Text(
-              tr('No notifications'),
-              style: TextStyle(
+              isZh
+                  ? '暂无通知'
+                  : (isMs ? 'Tiada pemberitahuan' : 'No notifications'),
+              style: const TextStyle(
                 color: Colors.grey,
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: 4),
+            const SizedBox(height: 4),
             Text(
-              tr(
-                'Updates about bookings, payments and messages will appear here',
-              ),
+              isZh
+                  ? '有关预约、付款和消息的更新将在此显示'
+                  : (isMs
+                  ? 'Kemas kini tentang tempahan, pembayaran dan mesej akan dipaparkan di sini'
+                  : 'Updates about bookings, payments and messages will appear here'),
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey, fontSize: 12),
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
             ),
           ],
         ),
