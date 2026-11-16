@@ -24,6 +24,23 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   static const _primaryColor = Color(0xFFFF6B00);
   static const _accentColor = Color(0xFFFFF7ED);
 
+  // 👇 新增：本地硬编码翻译函数，避免修改 JSON 文件
+  String _localText(String key) {
+    final langCode = Localizations.localeOf(context).languageCode;
+    if (langCode == 'zh') {
+      if (key == 'ai_intro') return '根据您的技能和证书，我们的AI为您推荐这些服务类别。';
+      if (key == 'ai_analyzing') return 'AI 正在分析您的个人资料...';
+    } else if (langCode == 'ms') {
+      if (key == 'ai_intro') return 'Berdasarkan kemahiran dan sijil anda, AI kami mengesyorkan kategori perkhidmatan ini untuk anda.';
+      if (key == 'ai_analyzing') return 'AI sedang menganalisis profil anda...';
+    }
+    // 默认英文
+    if (key == 'ai_intro') return 'Based on your skills and certifications, our AI recommends these service categories for you.';
+    if (key == 'ai_analyzing') return 'AI is analyzing your profile...';
+
+    return '';
+  }
+
   @override
   void initState() {
     super.initState();
@@ -41,7 +58,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       final certs = await _service.getCertifications();
 
       // Call the Supabase Edge Function (Gemini API).
-      // The prompt is built server-side from profile + certs.
       final response = await _client.functions.invoke(
         'provider-ai-job-match',
         body: {
@@ -52,7 +68,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
       if (!mounted) return;
 
-      // Parse the AI response
       var aiData = response.data;
       List<dynamic> parsedList = [];
 
@@ -61,14 +76,12 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       } else if (aiData is Map && aiData['matches'] != null) {
         parsedList = aiData['matches'];
       } else if (aiData is String) {
-        // If the AI returned plain text, extract the JSON array with regex
         final match = RegExp(r'\[.*\]', dotAll: true).firstMatch(aiData);
         if (match != null) {
           parsedList = jsonDecode(match.group(0)!);
         }
       }
 
-      // If AI returned data, use it; otherwise fall back
       if (parsedList.isNotEmpty) {
         setState(() {
           _matches = List<Map<String, dynamic>>.from(parsedList);
@@ -81,12 +94,10 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     } catch (e) {
       if (!mounted) return;
       debugPrint("AI error: $e");
-      // Fall back if the AI function fails
       _fallbackCompute(await _service.getMyProfile(), await _service.getCertifications());
     }
   }
 
-  // Fallback to the hardcoded formula if the AI fails
   void _fallbackCompute(Map<String, dynamic>? profile, List<Map<String, dynamic>> certs) {
     final matches = _computeMatches(profile, certs);
     if (!mounted) return;
@@ -96,7 +107,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     });
   }
 
-  // Original formula-based matching logic
   List<Map<String, dynamic>> _computeMatches(
       Map<String, dynamic>? profile,
       List<Map<String, dynamic>> certs,
@@ -220,7 +230,8 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  tr('Based on your skills and certifications, our AI recommends these service categories for you.'),
+                                  // 👇 修改：移除原来的 tr()，使用本地硬编码函数
+                                  _localText('ai_intro'),
                                   style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
                                 ),
                               ),
@@ -264,7 +275,8 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
           const CircularProgressIndicator(color: _primaryColor),
           const SizedBox(height: 24),
           Text(
-            tr('AI is analyzing your profile...'),
+            // 👇 修改：移除原来的 tr()，使用本地硬编码函数
+            _localText('ai_analyzing'),
             style: const TextStyle(color: Colors.grey, fontSize: 14),
           ),
         ],
@@ -315,7 +327,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
               ],
             ),
 
-            // Show AI-generated reason
             if (reason.isNotEmpty) ...[
               const SizedBox(height: 8),
               Text(
