@@ -9,6 +9,7 @@ class ServiceAreaMapScreen extends StatefulWidget {
   final LatLng? initial;
   final double radiusKm;
   const ServiceAreaMapScreen({super.key, this.initial, required this.radiusKm});
+
   @override
   State<ServiceAreaMapScreen> createState() => _ServiceAreaMapState();
 }
@@ -18,6 +19,12 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
   final _map = MapController();
   bool _locating = false;
   String? _error;
+
+  // 🎨 Unified theme colors
+  static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
+
   @override
   void dispose() {
     _map.dispose();
@@ -43,8 +50,8 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
     } catch (_) {
       if (mounted) {
         setState(
-          () => _error =
-              'Location unavailable. Tap the map to select your service centre.',
+              () => _error =
+          'Location unavailable. Tap the map to select your service centre.',
         );
       }
     } finally {
@@ -55,20 +62,60 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+
     return Scaffold(
-      appBar: AppBar(title: Text(tr('Service area centre'))),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text(
+          tr('Service area centre'),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: _primaryOrange,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: Column(
         children: [
-          Padding(
-            padding: EdgeInsets.all(16),
+          // ---- Top Info Bar ----
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: const BoxDecoration(
+              color: _lightOrange,
+              border: Border(
+                bottom: BorderSide(color: _borderOrange),
+              ),
+            ),
             child: Text(
               tr(
                 'Tap your business or service-area centre. This pin and your service radius will be visible to customers.',
               ),
+              style: const TextStyle(
+                fontSize: 13,
+                color: Colors.black87,
+                height: 1.4,
+              ),
             ),
           ),
+
           if (_error != null)
-            Padding(padding: const EdgeInsets.all(8), child: Text(tr(_error!))),
+            Container(
+              padding: const EdgeInsets.all(12),
+              color: Colors.red.shade50,
+              child: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red, size: 18),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _error!,
+                      style: const TextStyle(color: Colors.red, fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+          // ---- Map Area ----
           Expanded(
             child: FlutterMap(
               mapController: _map,
@@ -90,7 +137,7 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
                   urlTemplate: const String.fromEnvironment(
                     'MAP_TILE_URL',
                     defaultValue:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                   ),
                   userAgentPackageName: 'com.locallife.fyp2',
                 ),
@@ -101,8 +148,8 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
                         point: _point!,
                         radius: widget.radiusKm * 1000,
                         useRadiusInMeter: true,
-                        color: Colors.orange.withValues(alpha: .15),
-                        borderColor: Colors.orange,
+                        color: _primaryOrange.withValues(alpha: .15),
+                        borderColor: _primaryOrange,
                         borderStrokeWidth: 2,
                       ),
                     ],
@@ -114,7 +161,7 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
                         point: _point!,
                         child: const Icon(
                           Icons.location_pin,
-                          color: Colors.deepOrange,
+                          color: _primaryOrange,
                           size: 40,
                         ),
                       ),
@@ -133,37 +180,67 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
               ],
             ),
           ),
+
+          // ---- Bottom Action Panel ----
           SafeArea(
             top: false,
-            child: Padding(
+            child: Container(
               padding: const EdgeInsets.all(16),
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                border: Border(
+                  top: BorderSide(color: _borderOrange),
+                ),
+              ),
               child: Column(
                 children: [
                   Text(
-                    tr(
-                      _point == null
-                          ? 'Select a pin to continue'
-                          : tr("{0} km from {1}, {2}", [
-                              widget.radiusKm.toInt(),
-                              _point!.latitude.toStringAsFixed(4),
-                              _point!.longitude.toStringAsFixed(4),
-                            ]),
+                    _point == null
+                        ? tr('Select a pin to continue')
+                        : tr("{0} km from {1}, {2}", [
+                      widget.radiusKm.toInt(),
+                      _point!.latitude.toStringAsFixed(4),
+                      _point!.longitude.toStringAsFixed(4),
+                    ]),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.black87,
+                      fontWeight: FontWeight.w500,
                     ),
+                    textAlign: TextAlign.center,
                   ),
+                  const SizedBox(height: 8),
                   TextButton.icon(
                     onPressed: _locating ? null : _locate,
-                    icon: const Icon(Icons.my_location),
+                    icon: const Icon(Icons.my_location, color: _primaryOrange),
                     label: Text(
                       tr(_locating ? 'Locating…' : 'Use my location'),
+                      style: const TextStyle(color: _primaryOrange),
                     ),
                   ),
+                  const SizedBox(height: 8),
                   SizedBox(
                     width: double.infinity,
-                    child: FilledButton(
+                    height: 52,
+                    child: ElevatedButton(
                       onPressed: _point == null
                           ? null
                           : () => Navigator.pop(context, _point),
-                      child: Text(tr('Use this service centre')),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _primaryOrange,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        tr('Use this service centre'),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                     ),
                   ),
                 ],

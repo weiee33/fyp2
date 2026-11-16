@@ -29,7 +29,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
   bool _loading = true;
   bool _saving = false;
 
-  // 🎨 Orange + White theme
+  // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -51,7 +51,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError(tr("Failed to load working hours: {0}", [e]));
+      _showError("Failed to load working hours: $e");
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -70,6 +70,18 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
     final t = await showTimePicker(
       context: context,
       initialTime: isStart ? _start[day]! : _end[day]!,
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: _primaryOrange,
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (t == null) return;
     setState(() {
@@ -89,9 +101,9 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
           'day_of_week': i,
           'is_active': _on[i],
           'start_time':
-              '${_start[i]!.hour.toString().padLeft(2, '0')}:${_start[i]!.minute.toString().padLeft(2, '0')}:00',
+          '${_start[i]!.hour.toString().padLeft(2, '0')}:${_start[i]!.minute.toString().padLeft(2, '0')}:00',
           'end_time':
-              '${_end[i]!.hour.toString().padLeft(2, '0')}:${_end[i]!.minute.toString().padLeft(2, '0')}:00',
+          '${_end[i]!.hour.toString().padLeft(2, '0')}:${_end[i]!.minute.toString().padLeft(2, '0')}:00',
         };
       });
 
@@ -100,9 +112,18 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Working hours saved')),
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(tr('Working hours saved')),
+            ],
+          ),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
       await Future.delayed(const Duration(milliseconds: 600));
@@ -110,7 +131,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError(tr("Save failed: {0}", [e]));
+      _showError("Save failed: $e");
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -119,9 +140,10 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(tr(msg)),
+        content: Text(msg),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
     );
   }
@@ -138,136 +160,145 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
         elevation: 0,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+        child: CircularProgressIndicator(color: _primaryOrange),
+      )
           : SafeArea(
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  ...List.generate(
-                    7,
-                    (i) => Card(
-                      elevation: 1,
-                      color: Colors.white,
-                      margin: const EdgeInsets.only(bottom: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: const BorderSide(color: _borderOrange),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  tr(days[i]),
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Row(
-                                  children: [
-                                    Text(
-                                      tr(_on[i]! ? 'ON' : 'OFF'),
-                                      style: TextStyle(
-                                        color: _on[i]!
-                                            ? _primaryOrange
-                                            : Colors.grey,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    Switch(
-                                      value: _on[i]!,
-                                      activeThumbColor: _primaryOrange,
-                                      onChanged: (v) =>
-                                          setState(() => _on[i] = v),
-                                    ),
-                                  ],
-                                ),
-                              ],
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            ...List.generate(
+              7,
+                  (i) => Card(
+                elevation: 1,
+                color: Colors.white,
+                margin: const EdgeInsets.only(bottom: 10),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  side: const BorderSide(color: _borderOrange),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            tr(days[i]),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 14,
+                              color: Color(0xFF111827),
                             ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: _on[i]!
-                                        ? () => _pick(i, true)
-                                        : null,
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: _primaryOrange,
-                                      side: const BorderSide(
-                                        color: _primaryOrange,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(tr(_start[i]!.format(context))),
-                                  ),
+                          ),
+                          Row(
+                            children: [
+                              Text(
+                                tr(_on[i]! ? 'ON' : 'OFF'),
+                                style: TextStyle(
+                                  color: _on[i]!
+                                      ? _primaryOrange
+                                      : Colors.grey,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 12,
                                 ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: _on[i]!
-                                        ? () => _pick(i, false)
-                                        : null,
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: _primaryOrange,
-                                      side: const BorderSide(
-                                        color: _primaryOrange,
-                                      ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(tr(_end[i]!.format(context))),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    height: 52,
-                    child: ElevatedButton(
-                      onPressed: _saving ? null : _save,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryOrange,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: _saving
-                          ? const SizedBox(
-                              height: 22,
-                              width: 22,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.5,
                               ),
-                            )
-                          : Text(
-                              tr('Save'),
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
+                              Switch(
+                                value: _on[i]!,
+                                activeThumbColor: _primaryOrange,
+                                onChanged: (v) =>
+                                    setState(() => _on[i] = v),
                               ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: _on[i]!
+                                  ? () => _pick(i, true)
+                                  : null,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: _primaryOrange,
+                                side: const BorderSide(
+                                  color: _primaryOrange,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: Text(tr(_start[i]!.format(context))),
                             ),
-                    ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: OutlinedButton(
+                              onPressed: _on[i]!
+                                  ? () => _pick(i, false)
+                                  : null,
+                              style: OutlinedButton.styleFrom(
+                                foregroundColor: _primaryOrange,
+                                side: const BorderSide(
+                                  color: _primaryOrange,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                padding:
+                                const EdgeInsets.symmetric(vertical: 12),
+                              ),
+                              child: Text(tr(_end[i]!.format(context))),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                ],
+                ),
               ),
             ),
+            const SizedBox(height: 16),
+            SizedBox(
+              height: 52,
+              child: ElevatedButton(
+                onPressed: _saving ? null : _save,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _primaryOrange,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 2,
+                ),
+                child: _saving
+                    ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 2.5,
+                  ),
+                )
+                    : Text(
+                  tr('Save'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
+      ),
     );
   }
 }

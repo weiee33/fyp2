@@ -1,5 +1,7 @@
+import 'dart:convert'; // Required for parsing JSON
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/profile_service.dart';
 import 'package:fyp2/Provider/screens/home/provider_floating_nav_bar.dart';
 
@@ -12,12 +14,15 @@ class AiJobMatchingScreen extends StatefulWidget {
 
 class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   final _service = ProfileService();
+  final _client = Supabase.instance.client;
 
   List<Map<String, dynamic>> _matches = [];
   bool _loading = true;
+  String? _error;
 
-  static const _primaryColor = Color(0xFFF97316); // Orange
-  static const _accentColor = Color(0xFFFFF7ED); // Light orange tint
+  // 🎨 Unified Orange theme
+  static const _primaryColor = Color(0xFFFF6B00);
+  static const _accentColor = Color(0xFFFFF7ED);
 
   @override
   void initState() {
@@ -26,31 +31,72 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   }
 
   Future<void> _load() async {
-    if (mounted) setState(() => _loading = true);
+    if (mounted) setState(() {
+      _loading = true;
+      _error = null;
+    });
+
     try {
       final profile = await _service.getMyProfile();
       final certs = await _service.getCertifications();
+
+      // Call the Supabase Edge Function (Gemini API).
+      // The prompt is built server-side from profile + certs.
+      final response = await _client.functions.invoke(
+        'provider-ai-job-match',
+        body: {
+          'profile': profile,
+          'certs': certs,
+        },
+      );
+
       if (!mounted) return;
 
-      final matches = _computeMatches(profile, certs);
+      // Parse the AI response
+      var aiData = response.data;
+      List<dynamic> parsedList = [];
 
-      setState(() {
-        _matches = matches;
-        _loading = false;
-      });
+      if (aiData is List) {
+        parsedList = aiData;
+      } else if (aiData is Map && aiData['matches'] != null) {
+        parsedList = aiData['matches'];
+      } else if (aiData is String) {
+        // If the AI returned plain text, extract the JSON array with regex
+        final match = RegExp(r'\[.*\]', dotAll: true).firstMatch(aiData);
+        if (match != null) {
+          parsedList = jsonDecode(match.group(0)!);
+        }
+      }
+
+      // If AI returned data, use it; otherwise fall back
+      if (parsedList.isNotEmpty) {
+        setState(() {
+          _matches = List<Map<String, dynamic>>.from(parsedList);
+          _loading = false;
+        });
+      } else {
+        _fallbackCompute(profile, certs);
+      }
+
     } catch (e) {
       if (!mounted) return;
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(tr("Failed to compute matches: {0}", [e])),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      debugPrint("AI error: $e");
+      // Fall back if the AI function fails
+      _fallbackCompute(await _service.getMyProfile(), await _service.getCertifications());
     }
   }
 
+  // Fallback to the hardcoded formula if the AI fails
+  void _fallbackCompute(Map<String, dynamic>? profile, List<Map<String, dynamic>> certs) {
+    final matches = _computeMatches(profile, certs);
+    if (!mounted) return;
+    setState(() {
+      _matches = matches;
+      _loading = false;
+    });
+  }
+
+  // Original formula-based matching logic
   List<Map<String, dynamic>> _computeMatches(
       Map<String, dynamic>? profile,
       List<Map<String, dynamic>> certs,
@@ -60,36 +106,11 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     final certCount = certs.length;
 
     final candidates = [
-      {
-        'category': 'Electrical Wiring Repair',
-        'requiredSkill': 'Electrical',
-        'avgEarning': 250,
-        'jobsAvailable': 45,
-      },
-      {
-        'category': 'AC Servicing',
-        'requiredSkill': 'Air-Conditioning',
-        'avgEarning': 180,
-        'jobsAvailable': 30,
-      },
-      {
-        'category': 'Pipe Repair',
-        'requiredSkill': 'Plumbing',
-        'avgEarning': 120,
-        'jobsAvailable': 60,
-      },
-      {
-        'category': 'Deep Cleaning',
-        'requiredSkill': 'Cleaning',
-        'avgEarning': 220,
-        'jobsAvailable': 25,
-      },
-      {
-        'category': 'Faucet Installation',
-        'requiredSkill': 'Plumbing',
-        'avgEarning': 90,
-        'jobsAvailable': 50,
-      },
+      {'category': 'Electrical Wiring Repair', 'requiredSkill': 'Electrical', 'avgEarning': 250, 'jobsAvailable': 45},
+      {'category': 'AC Servicing', 'requiredSkill': 'Air-Conditioning', 'avgEarning': 180, 'jobsAvailable': 30},
+      {'category': 'Pipe Repair', 'requiredSkill': 'Plumbing', 'avgEarning': 120, 'jobsAvailable': 60},
+      {'category': 'Deep Cleaning', 'requiredSkill': 'Cleaning', 'avgEarning': 220, 'jobsAvailable': 25},
+      {'category': 'Faucet Installation', 'requiredSkill': 'Plumbing', 'avgEarning': 90, 'jobsAvailable': 50},
     ];
 
     final results = <Map<String, dynamic>>[];
@@ -109,13 +130,10 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       final total = skillScore + ratingScore + expScore + certScore;
       final matchPercent = total.round().clamp(0, 100);
 
-      results.add({...c, 'hasSkill': hasSkill, 'matchPercent': matchPercent});
+      results.add({...c, 'hasSkill': hasSkill, 'matchPercent': matchPercent, 'reason': ''});
     }
 
-    results.sort(
-          (a, b) => (b['matchPercent'] as int).compareTo(a['matchPercent'] as int),
-    );
-
+    results.sort((a, b) => (b['matchPercent'] as int).compareTo(a['matchPercent'] as int));
     return results;
   }
 
@@ -153,89 +171,101 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
-        automaticallyImplyLeading: false, // Removes the back button
+        automaticallyImplyLeading: false,
       ),
       body: Stack(
         children: [
           Positioned.fill(
             child: _loading
-                ? const Center(child: CircularProgressIndicator())
+                ? _buildAiLoading()
                 : SafeArea(
               child: RefreshIndicator(
                 onRefresh: _load,
                 color: _primaryColor,
                 child: ListView(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 120), // Added bottom padding
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                   children: [
-                    Card(
-                      elevation: 2,
-                      color: _accentColor,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: _primaryColor.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: const Icon(
-                                Icons.auto_awesome,
-                                color: _primaryColor,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                tr(
-                                  'Based on your skills and certifications, we recommend these service categories for you.',
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.black87,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-
-                    if (_matches.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 48),
-                        child: Center(
-                          child: Text(
-                            tr('No recommendations available'),
-                            style: const TextStyle(color: Colors.grey),
+                    if (_error != null)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            children: [
+                              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+                              const SizedBox(height: 12),
+                              Text(_error!, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
+                              const SizedBox(height: 12),
+                              ElevatedButton(onPressed: _load, child: Text(tr('Retry'))),
+                            ],
                           ),
                         ),
                       )
-                    else
-                      ..._matches.map((m) => _matchCard(m)),
+                    else ...[
+                      Card(
+                        elevation: 2,
+                        color: _accentColor,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: _primaryColor.withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Icon(Icons.auto_awesome, color: _primaryColor, size: 24),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  tr('Based on your skills and certifications, our AI recommends these service categories for you.'),
+                                  style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      if (_matches.isEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 48),
+                          child: Center(
+                            child: Text(tr('No recommendations available'), style: const TextStyle(color: Colors.grey)),
+                          ),
+                        )
+                      else
+                        ..._matches.map((m) => _matchCard(m)),
+                    ],
                   ],
                 ),
               ),
             ),
           ),
 
-          // Add the floating nav bar
           ProviderFloatingNavBar(
-            currentIndex: 0, // Default to Home highlight
-            onTabChanged: (index) {
-              // Pop back to the main shell to switch tabs
-              Navigator.pop(context);
-            },
-            onOpenAi: () {
-              // Already on AI screen
-            },
+            currentIndex: 0,
+            onTabChanged: (index) => Navigator.pop(context),
+            onOpenAi: () {},
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAiLoading() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const CircularProgressIndicator(color: _primaryColor),
+          const SizedBox(height: 24),
+          Text(
+            tr('AI is analyzing your profile...'),
+            style: const TextStyle(color: Colors.grey, fontSize: 14),
           ),
         ],
       ),
@@ -245,6 +275,8 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   Widget _matchCard(Map<String, dynamic> m) {
     final matchPercent = m['matchPercent'] as int;
     final hasSkill = m['hasSkill'] as bool;
+    final reason = m['reason']?.toString() ?? '';
+
     final matchColor = matchPercent >= 80
         ? const Color(0xFF10B981)
         : (matchPercent >= 60
@@ -266,64 +298,49 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                 Expanded(
                   child: Text(
                     tr(m['category'].toString()),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
                     color: matchColor.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     tr("{0}% match", [matchPercent]),
-                    style: TextStyle(
-                      color: matchColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                    ),
+                    style: TextStyle(color: matchColor, fontSize: 12, fontWeight: FontWeight.w700),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
 
-            Text(
-              tr("Jobs available: {0} · Avg. earnings: RM{1}", [
-                m['jobsAvailable'],
-                m['avgEarning'],
-              ]),
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
-            ),
-            const SizedBox(height: 8),
+            // Show AI-generated reason
+            if (reason.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                reason,
+                style: const TextStyle(fontSize: 12, color: Colors.black54, fontStyle: FontStyle.italic),
+              ),
+            ],
 
+            const SizedBox(height: 8),
             Row(
               children: [
                 Icon(
                   hasSkill ? Icons.check_circle : Icons.info_outline,
                   size: 14,
-                  color: hasSkill
-                      ? Colors.green.shade600
-                      : Colors.orange.shade600,
+                  color: hasSkill ? Colors.green.shade600 : Colors.orange.shade600,
                 ),
                 const SizedBox(width: 6),
                 Expanded(
                   child: Text(
-                    // Fixed nested tr() here
                     hasSkill
-                        ? tr("You have: {0} certificate", [m['requiredSkill']])
-                        : tr("Missing: {0} certification", [m['requiredSkill']]),
+                        ? tr("You have: {0} certificate", [m['requiredSkill'] ?? ''])
+                        : tr("Missing: {0} certification", [m['requiredSkill'] ?? '']),
                     style: TextStyle(
                       fontSize: 12,
-                      color: hasSkill
-                          ? Colors.green.shade700
-                          : Colors.orange.shade700,
+                      color: hasSkill ? Colors.green.shade700 : Colors.orange.shade700,
                     ),
                   ),
                 ),
@@ -339,9 +356,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryColor,
                       foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     child: Text(tr('Accept')),
@@ -354,9 +369,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _primaryColor,
                       side: const BorderSide(color: _primaryColor),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     child: Text(tr('Not Interested')),

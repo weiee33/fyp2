@@ -23,7 +23,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
   bool _loading = true;
   bool _saving = false;
 
-  // 🎨 Orange + White theme
+  // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -67,7 +67,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError(tr("Failed to load: {0}", [e]));
+      _showError("Failed to load: $e");
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -93,8 +93,8 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.white, size: 20),
-              SizedBox(width: 8),
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
               Text(tr('Service areas saved')),
             ],
           ),
@@ -111,7 +111,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError(tr("Save failed: {0}", [e]));
+      _showError("Save failed: $e");
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -120,7 +120,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(tr(msg)),
+        content: Text(msg),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -149,6 +149,10 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -158,231 +162,265 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
         elevation: 0,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+        child: CircularProgressIndicator(color: _primaryOrange),
+      )
           : SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // ---- Header Card ----
-                      Card(
-                        elevation: 2,
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
-                          side: const BorderSide(color: _borderOrange),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ---- Header Card ----
+                Card(
+                  elevation: 2,
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(color: _borderOrange),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: _lightOrange,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(
+                            Icons.location_on_outlined,
+                            color: _primaryOrange,
+                            size: 22,
+                          ),
                         ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Row(
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  color: _lightOrange,
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: const Icon(
-                                  Icons.location_on_outlined,
+                              Text(
+                                tr('Where do you work?'),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
                                   color: _primaryOrange,
-                                  size: 22,
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      tr('Where do you work?'),
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                        color: _primaryOrange,
-                                      ),
-                                    ),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      tr(
-                                        'Set your region, city, and travel radius',
-                                      ),
-                                      style: TextStyle(
-                                        color: Colors.grey,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
+                              const SizedBox(height: 2),
+                              Text(
+                                tr(
+                                  'Set your region, city, and travel radius',
+                                ),
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // ---- Region ----
-                      _label('Region'),
-                      DropdownButtonFormField<String>(
-                        initialValue: _region,
-                        decoration: _inputDecoration(
-                          hint: 'Select a region',
-                          icon: Icons.map_outlined,
-                        ),
-                        items: _regions
-                            .map(
-                              (r) => DropdownMenuItem(
-                                value: r,
-                                child: Text(tr(r)),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: _saving
-                            ? null
-                            : (v) => setState(() => _region = v ?? 'Other'),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // ---- City ----
-                      _label('City'),
-                      TextFormField(
-                        controller: _city,
-                        textInputAction: TextInputAction.next,
-                        enabled: !_saving,
-                        validator: (value) => trOrNull(_validateCity(value)),
-                        decoration: _inputDecoration(
-                          hint: 'e.g. Kuala Lumpur',
-                          icon: Icons.location_city_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // ---- Radius ----
-                      _label('Service Radius (km)'),
-                      TextFormField(
-                        controller: _radius,
-                        keyboardType: TextInputType.number,
-                        textInputAction: TextInputAction.done,
-                        enabled: !_saving,
-                        validator: (value) => trOrNull(_validateRadius(value)),
-                        onFieldSubmitted: (_) => _save(),
-                        decoration: _inputDecoration(
-                          hint: 'e.g. 10',
-                          icon: Icons.radar_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: EdgeInsets.only(left: 4),
-                        child: Text(
-                          tr(
-                            'How far are you willing to travel from your service centre?',
-                          ),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-
-                      Card(
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.map_outlined,
-                            color: _primaryOrange,
-                          ),
-                          title: Text(
-                            tr(
-                              _centre == null
-                                  ? 'Publish your service area'
-                                  : 'Service centre selected',
-                            ),
-                          ),
-                          subtitle: Text(
-                            tr(
-                              _centre == null
-                                  ? 'Choose a public map pin so customers can see your coverage.'
-                                  : tr("{0}, {1} · Tap to change", [
-                                      _centre!.latitude.toStringAsFixed(4),
-                                      _centre!.longitude.toStringAsFixed(4),
-                                    ]),
-                            ),
-                          ),
-                          trailing: const Icon(Icons.chevron_right),
-                          onTap: _saving
-                              ? null
-                              : () async {
-                                  if (_validateRadius(_radius.text) != null) {
-                                    _showError(
-                                      'Enter a service radius from 1 to 200 km first.',
-                                    );
-                                    return;
-                                  }
-                                  final point = await Navigator.push<LatLng>(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) => ServiceAreaMapScreen(
-                                        initial: _centre,
-                                        radiusKm: double.parse(_radius.text),
-                                      ),
-                                    ),
-                                  );
-                                  if (point != null && mounted) {
-                                    setState(() => _centre = point);
-                                  }
-                                },
-                        ),
-                      ),
-                      if (_centre != null)
-                        TextButton(
-                          onPressed: _saving
-                              ? null
-                              : () => setState(() => _centre = null),
-                          child: Text(tr('Remove public map pin')),
-                        ),
-                      const SizedBox(height: 16),
-                      // ---- Save Button ----
-                      SizedBox(
-                        height: 52,
-                        child: ElevatedButton.icon(
-                          onPressed: _saving ? null : _save,
-                          icon: _saving
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Icon(Icons.save_outlined),
-                          label: Text(
-                            tr(_saving ? 'Saving...' : 'Save'),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _primaryOrange,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 2,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(height: 20),
+
+                // ---- Region ----
+                _label('Region'),
+                DropdownButtonFormField<String>(
+                  initialValue: _region,
+                  decoration: _inputDecoration(
+                    hint: 'Select a region',
+                    icon: Icons.map_outlined,
+                  ),
+                  items: _regions
+                      .map(
+                        (r) => DropdownMenuItem(
+                      value: r,
+                      child: Text(tr(r)),
+                    ),
+                  )
+                      .toList(),
+                  onChanged: _saving
+                      ? null
+                      : (v) => setState(() => _region = v ?? 'Other'),
+                ),
+                const SizedBox(height: 16),
+
+                // ---- City ----
+                _label('City'),
+                TextFormField(
+                  controller: _city,
+                  textInputAction: TextInputAction.next,
+                  enabled: !_saving,
+                  validator: (value) => trOrNull(_validateCity(value)),
+                  decoration: _inputDecoration(
+                    hint: 'e.g. Kuala Lumpur',
+                    icon: Icons.location_city_outlined,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // ---- Radius ----
+                _label('Service Radius (km)'),
+                TextFormField(
+                  controller: _radius,
+                  keyboardType: TextInputType.number,
+                  textInputAction: TextInputAction.done,
+                  enabled: !_saving,
+                  validator: (value) => trOrNull(_validateRadius(value)),
+                  onFieldSubmitted: (_) => _save(),
+                  decoration: _inputDecoration(
+                    hint: 'e.g. 10',
+                    icon: Icons.radar_outlined,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Padding(
+                  padding: const EdgeInsets.only(left: 4),
+                  child: Text(
+                    tr(
+                      'How far are you willing to travel from your service centre?',
+                    ),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.grey,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                // ---- Map Picker ----
+                Card(
+                  elevation: 1,
+                  color: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: const BorderSide(color: _borderOrange),
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 4),
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: _lightOrange,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.map_outlined,
+                        color: _primaryOrange,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      _centre == null
+                          ? tr('Publish your service area')
+                          : tr('Service centre selected'),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: Color(0xFF111827),
+                      ),
+                    ),
+                    subtitle: Text(
+                      _centre == null
+                          ? tr(
+                        'Choose a public map pin so customers can see your coverage.',
+                      )
+                          : tr("{0}, {1} · Tap to change", [
+                        _centre!.latitude.toStringAsFixed(4),
+                        _centre!.longitude.toStringAsFixed(4),
+                      ]),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    trailing: const Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
+                    onTap: _saving
+                        ? null
+                        : () async {
+                      if (_validateRadius(_radius.text) != null) {
+                        _showError(
+                          'Enter a service radius from 1 to 200 km first.',
+                        );
+                        return;
+                      }
+                      final point = await Navigator.push<LatLng>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ServiceAreaMapScreen(
+                            initial: _centre,
+                            radiusKm: double.parse(_radius.text),
+                          ),
+                        ),
+                      );
+                      if (point != null && mounted) {
+                        setState(() => _centre = point);
+                      }
+                    },
+                  ),
+                ),
+                if (_centre != null)
+                  TextButton(
+                    onPressed: _saving
+                        ? null
+                        : () => setState(() => _centre = null),
+                    child: Text(
+                      tr('Remove public map pin'),
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+
+                // ---- Save Button ----
+                SizedBox(
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: _saving ? null : _save,
+                    icon: _saving
+                        ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                        : const Icon(Icons.save_outlined),
+                    label: Text(
+                      tr(_saving ? 'Saving...' : 'Save'),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -400,13 +438,14 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
   }) {
     return InputDecoration(
       hintText: trOrNull(hint),
+      hintStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),

@@ -22,7 +22,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   String? _error;
   List<Map<String, dynamic>> _bookings = [];
 
-  // 🎨 Orange + White theme
+  // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -205,7 +205,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final isMs = lang == 'ms';
 
     return Scaffold(
-      backgroundColor: _lightOrange,
+      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           tr('Schedule'),
@@ -235,7 +235,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   // ==================== Error State ====================
   Widget _errorState(bool isZh, bool isMs) {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
       children: [
         const SizedBox(height: 60),
         Center(
@@ -297,7 +297,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   // ==================== Empty State ====================
   Widget _emptyState() {
     return ListView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
       children: [
         const SizedBox(height: 60),
         Center(
@@ -354,7 +354,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final completedKeys = completedGrouped.keys.toList()..sort();
 
     return ListView(
-      padding: const EdgeInsets.all(16),
+      // 👇 关键修改：底部留出 120 的空间给悬浮导航栏
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       children: [
         // ---- Stats ----
         Row(
@@ -425,7 +426,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    isZh ? '请联系客户讨论这些过去的预约。' : (isMs ? 'Sila hubungi pelanggan untuk membincangkan temujanji lepas ini.' : 'Please contact the customer to discuss these past appointments.'),
+                    isZh
+                        ? '请联系客户讨论这些过去的预约。'
+                        : (isMs
+                        ? 'Sila hubungi pelanggan untuk membincangkan temujanji lepas ini.'
+                        : 'Please contact the customer to discuss these past appointments.'),
                     style: TextStyle(
                       fontSize: 12,
                       color: Colors.orange.shade800,
@@ -853,7 +858,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text(
-                          isZh ? '请联系客户进行讨论。' : (isMs ? 'Sila hubungi pelanggan untuk berbincang.' : 'Please contact the customer to discuss.'),
+                          isZh
+                              ? '请联系客户进行讨论。'
+                              : (isMs
+                              ? 'Sila hubungi pelanggan untuk berbincang.'
+                              : 'Please contact the customer to discuss.'),
                           style: TextStyle(
                             fontSize: 11,
                             color: Colors.orange.shade800,
@@ -960,8 +969,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               Expanded(
                 child: Text(
                   expired
-                      ? (isZh ? '已过期预约' : (isMs ? 'Tempahan Tamat' : 'Expired Booking'))
-                      : (isZh ? '预约详情' : (isMs ? 'Butiran Tempahan' : 'Booking Details')),
+                      ? (isZh
+                      ? '已过期预约'
+                      : (isMs ? 'Tempahan Tamat' : 'Expired Booking'))
+                      : (isZh
+                      ? '预约详情'
+                      : (isMs ? 'Butiran Tempahan' : 'Booking Details')),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -994,7 +1007,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
-                            isZh ? '此预约时间已过。请联系客户进行讨论。' : (isMs ? 'Temujanji ini telah berlalu. Sila hubungi pelanggan untuk berbincang.' : 'This appointment has passed. Please contact the customer to discuss.'),
+                            isZh
+                                ? '此预约时间已过。请联系客户进行讨论。'
+                                : (isMs
+                                ? 'Temujanji ini telah berlalu. Sila hubungi pelanggan untuk berbincang.'
+                                : 'This appointment has passed. Please contact the customer to discuss.'),
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.orange.shade800,
@@ -1104,8 +1121,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  isZh ? '客户位置' : (isMs ? 'Lokasi Pelanggan' : 'Customer Location'),
-                  style: TextStyle(
+                  isZh
+                      ? '客户位置'
+                      : (isMs ? 'Lokasi Pelanggan' : 'Customer Location'),
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                     color: _primaryOrange,
@@ -1122,8 +1141,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 GestureDetector(
                   onTap: () => _openMap(lat, lng, address, isZh, isMs),
                   child: Text(
-                    isZh ? '在地图上查看 →' : (isMs ? 'Lihat di Peta →' : 'View on Map →'),
-                    style: TextStyle(
+                    isZh
+                        ? '在地图上查看 →'
+                        : (isMs ? 'Lihat di Peta →' : 'View on Map →'),
+                    style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                       color: _primaryOrange,
@@ -1139,12 +1160,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Future<void> _openMap(double? lat, double? lng, String address, bool isZh, bool isMs) async {
+  Future<void> _openMap(
+      double? lat, double? lng, String address, bool isZh, bool isMs) async {
     if (lat == null || lng == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(isZh ? '该预约没有可用的坐标' : (isMs ? 'Tiada koordinat tersedia untuk tempahan ini' : 'No coordinates available for this booking')),
+          content: Text(isZh
+              ? '该预约没有可用的坐标'
+              : (isMs
+              ? 'Tiada koordinat tersedia untuk tempahan ini'
+              : 'No coordinates available for this booking')),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -1189,7 +1215,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (customerId != null && !isCompleted && !isCancelled) {
       buttons.add(
         _actionButton(
-          label: isZh ? '与客户聊天' : (isMs ? 'Sembang dengan Pelanggan' : 'Chat with Customer'),
+          label: isZh
+              ? '与客户聊天'
+              : (isMs ? 'Sembang dengan Pelanggan' : 'Chat with Customer'),
           icon: Icons.chat_bubble_outline,
           color: _primaryOrange,
           outlined: true,
@@ -1205,7 +1233,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (isPending && !expired) {
       buttons.add(
         _actionButton(
-          label: isZh ? '接受预约' : (isMs ? 'Terima Tempahan' : 'Accept Booking'),
+          label: isZh
+              ? '接受预约'
+              : (isMs ? 'Terima Tempahan' : 'Accept Booking'),
           icon: Icons.check_circle_outline,
           color: _successGreen,
           onTap: () async {
@@ -1221,7 +1251,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (isPending && !expired) {
       buttons.add(
         _actionButton(
-          label: isZh ? '取消预约' : (isMs ? 'Batal Tempahan' : 'Cancel Booking'),
+          label: isZh
+              ? '取消预约'
+              : (isMs ? 'Batal Tempahan' : 'Cancel Booking'),
           icon: Icons.cancel_outlined,
           color: Colors.red.shade600,
           outlined: true,
@@ -1229,9 +1261,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             final confirm = await showDialog<bool>(
               context: ctx,
               builder: (c) => AlertDialog(
-                title: Text(isZh ? '取消预约' : (isMs ? 'Batal Tempahan' : 'Cancel Booking')),
+                title: Text(isZh
+                    ? '取消预约'
+                    : (isMs ? 'Batal Tempahan' : 'Cancel Booking')),
                 content: Text(
-                  isZh ? '你确定要取消这个预约吗？' : (isMs ? 'Adakah anda pasti mahu membatalkan tempahan ini?' : 'Are you sure you want to cancel this booking?'),
+                  isZh
+                      ? '你确定要取消这个预约吗？'
+                      : (isMs
+                      ? 'Adakah anda pasti mahu membatalkan tempahan ini?'
+                      : 'Are you sure you want to cancel this booking?'),
                 ),
                 actions: [
                   TextButton(
@@ -1241,7 +1279,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   TextButton(
                     onPressed: () => Navigator.pop(c, true),
                     style: TextButton.styleFrom(foregroundColor: Colors.red),
-                    child: Text(isZh ? '是的，取消' : (isMs ? 'Ya, Batal' : 'Yes, Cancel')),
+                    child: Text(isZh
+                        ? '是的，取消'
+                        : (isMs ? 'Ya, Batal' : 'Yes, Cancel')),
                   ),
                 ],
               ),
@@ -1275,7 +1315,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     if (isInProgress) {
       buttons.add(
         _actionButton(
-          label: isZh ? '标记为完成' : (isMs ? 'Tanda Selesai' : 'Mark as Completed'),
+          label: isZh
+              ? '标记为完成'
+              : (isMs ? 'Tanda Selesai' : 'Mark as Completed'),
           icon: Icons.check_circle,
           color: _successGreen,
           onTap: () async {
@@ -1290,12 +1332,26 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     // ---- Empty state ----
     if (buttons.isEmpty) {
       final message = isCompleted
-          ? (isZh ? '此预约已完成。' : (isMs ? 'Tempahan ini telah selesai.' : 'This booking is completed.'))
+          ? (isZh
+          ? '此预约已完成。'
+          : (isMs ? 'Tempahan ini telah selesai.' : 'This booking is completed.'))
           : isCancelled
-          ? (isZh ? '此预约已取消。' : (isMs ? 'Tempahan ini telah dibatalkan.' : 'This booking was cancelled.'))
+          ? (isZh
+          ? '此预约已取消。'
+          : (isMs
+          ? 'Tempahan ini telah dibatalkan.'
+          : 'This booking was cancelled.'))
           : expired
-          ? (isZh ? '此预约已过期。没有可用的操作。' : (isMs ? 'Tempahan ini telah tamat. Tiada tindakan tersedia.' : 'This booking has expired. No action is available.'))
-          : (isZh ? '没有可用的操作。' : (isMs ? 'Tiada tindakan tersedia untuk tempahan ini.' : 'No action is available for this booking.'));
+          ? (isZh
+          ? '此预约已过期。没有可用的操作。'
+          : (isMs
+          ? 'Tempahan ini telah tamat. Tiada tindakan tersedia.'
+          : 'This booking has expired. No action is available.'))
+          : (isZh
+          ? '没有可用的操作。'
+          : (isMs
+          ? 'Tiada tindakan tersedia untuk tempahan ini.'
+          : 'No action is available for this booking.'));
 
       return Container(
         padding: const EdgeInsets.all(10),
@@ -1410,7 +1466,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   // ==================== Update Status (via BookingService) ====================
-  Future<void> _updateStatus(String bookingId, String newStatus, bool isZh, bool isMs) async {
+  Future<void> _updateStatus(
+      String bookingId, String newStatus, bool isZh, bool isMs) async {
     try {
       await _bookingService.updateStatus(bookingId, newStatus);
 
@@ -1434,7 +1491,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               const Icon(Icons.check_circle, color: Colors.white, size: 20),
               const SizedBox(width: 8),
               Text(
-                isZh ? '预约已标记为 $newStatus' : (isMs ? 'Tempahan ditanda sebagai $newStatus' : 'Booking marked as $newStatus'),
+                isZh
+                    ? '预约已标记为 $newStatus'
+                    : (isMs
+                    ? 'Tempahan ditanda sebagai $newStatus'
+                    : 'Booking marked as $newStatus'),
               ),
             ],
           ),
@@ -1471,9 +1532,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.white, size: 20),
-              SizedBox(width: 8),
-              Text(isZh ? '预约已取消' : (isMs ? 'Tempahan dibatalkan' : 'Booking cancelled')),
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(isZh
+                  ? '预约已取消'
+                  : (isMs ? 'Tempahan dibatalkan' : 'Booking cancelled')),
             ],
           ),
           backgroundColor: Colors.green.shade600,

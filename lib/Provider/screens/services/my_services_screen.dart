@@ -15,6 +15,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
 
+  // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -39,7 +40,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr("Failed to load services: {0}", [e])),
+          content: Text("Failed to load services: $e"),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -54,11 +55,16 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(tr('Delete Service')),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(
+          tr('Delete Service'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
         content: Text(tr('Are you sure you want to delete this service?')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
+            style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
             child: Text(tr('Cancel')),
           ),
           TextButton(
@@ -77,7 +83,13 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Service deleted')),
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(tr('Service deleted')),
+            ],
+          ),
           backgroundColor: Colors.green.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -90,7 +102,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr("Delete failed: {0}", [e])),
+          content: Text("Delete failed: $e"),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(
@@ -117,13 +129,16 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
         ),
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+        child: CircularProgressIndicator(color: _primaryOrange),
+      )
           : SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
           color: _primaryOrange,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            // 底部留出空间，避免被悬浮导航栏遮挡
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
             children: [
               SizedBox(
                 height: 50,
@@ -159,16 +174,16 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 48),
                   child: Column(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.work_off_outlined,
                         size: 56,
-                        color: Colors.grey,
+                        color: Colors.grey.shade400,
                       ),
                       const SizedBox(height: 12),
                       Text(
                         tr('No services yet'),
-                        style: const TextStyle(
-                          color: Colors.grey,
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                         ),
@@ -178,8 +193,8 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
                         tr(
                           'Tap "Add New Service" to create your first listing',
                         ),
-                        style: const TextStyle(
-                          color: Colors.grey,
+                        style: TextStyle(
+                          color: Colors.grey.shade500,
                           fontSize: 12,
                         ),
                       ),
@@ -249,6 +264,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.edit_outlined, color: _primaryOrange),
+              tooltip: trOrNull('Edit'),
               onPressed: () => Navigator.push(
                 context,
                 MaterialPageRoute(
@@ -258,6 +274,7 @@ class _MyServicesScreenState extends State<MyServicesScreen> {
             ),
             IconButton(
               icon: const Icon(Icons.delete_outline, color: Colors.red),
+              tooltip: trOrNull('Delete'),
               onPressed: () => _delete(s['service_id'].toString()),
             ),
           ],

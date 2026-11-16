@@ -25,7 +25,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
   String? _existingFileUrl;
   bool _submitting = false;
 
-  // 🎨 Orange + White theme
+  // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -59,7 +59,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
         setState(() => _file = res.files.first);
       }
     } catch (e) {
-      _showError(tr("Failed to pick file: {0}", [e]));
+      _showError("Failed to pick file: $e");
     }
   }
 
@@ -69,10 +69,22 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
       initialDate: DateTime.now(),
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: _primaryOrange,
+              onPrimary: Colors.white,
+              onSurface: Colors.black87,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
     if (picked != null) {
       _expiry.text =
-          '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
+      '${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}';
     }
   }
 
@@ -110,8 +122,8 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
         SnackBar(
           content: Row(
             children: [
-              Icon(Icons.check_circle, color: Colors.white, size: 20),
-              SizedBox(width: 8),
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
               Text(tr('Certification updated')),
             ],
           ),
@@ -128,7 +140,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError(tr("Update failed: {0}", [e]));
+      _showError("Update failed: $e");
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -137,7 +149,7 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(tr(msg)),
+        content: Text(msg),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -146,8 +158,9 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
   }
 
   String? _required(String? v, String label) {
-    if (v == null || v.trim().isEmpty)
+    if (v == null || v.trim().isEmpty) {
       return tr("{0} is required", [tr(label)]);
+    }
     return null;
   }
 
@@ -222,8 +235,8 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                     tr(
                       _file == null
                           ? (_existingFileUrl != null
-                                ? 'Keep existing file'
-                                : 'Choose File')
+                          ? 'Keep existing file'
+                          : 'Choose File')
                           : _file!.name,
                     ),
                     overflow: TextOverflow.ellipsis,
@@ -244,13 +257,13 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
                     onPressed: _submitting ? null : _save,
                     icon: _submitting
                         ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
+                      height: 18,
+                      width: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
                         : const Icon(Icons.save),
                     label: Text(
                       tr(_submitting ? 'Saving...' : 'Save Changes'),
@@ -290,9 +303,11 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
   }) {
     return InputDecoration(
       hintText: trOrNull(hint),
+      hintStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: BorderSide.none,
@@ -308,6 +323,10 @@ class _EditCertificationScreenState extends State<EditCertificationScreen> {
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.red),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
     );
   }

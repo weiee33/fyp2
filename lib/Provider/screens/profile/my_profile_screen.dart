@@ -129,7 +129,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     AppLanguage.watch(context);
     if (_loading) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: Center(
+          child: CircularProgressIndicator(color: _primaryOrange),
+        ),
       );
     }
 
@@ -288,6 +290,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
           children: [
+            // --- Profile Card ---
             Card(
               elevation: 2,
               color: Colors.white,
@@ -401,6 +404,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               ),
             ),
             const SizedBox(height: 24),
+
+            // --- Account Settings ---
             _sectionLabel('ACCOUNT'),
             const SizedBox(height: 8),
             _menuGroup([
@@ -417,75 +422,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   _load();
                 },
               ),
-              Builder(
-                builder: (context) {
-                  final lang = Localizations.localeOf(context).languageCode;
-                  final isZh = lang == 'zh';
-                  final isMs = lang == 'ms';
-
-                  return InkWell(
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (_) => const LanguageScreen()),
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 14, vertical: 12),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 36,
-                            height: 36,
-                            decoration: BoxDecoration(
-                              color: _lightOrange,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.language_outlined,
-                                color: _primaryOrange, size: 20),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isZh
-                                      ? '应用语言'
-                                      : (isMs
-                                      ? 'Bahasa Aplikasi'
-                                      : 'App Language'),
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF111827),
-                                  ),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  isZh
-                                      ? '更改应用语言'
-                                      : (isMs
-                                      ? 'Tukar bahasa aplikasi'
-                                      : 'Change app language'),
-                                  style: TextStyle(
-                                    fontSize: 11.5,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Icon(Icons.chevron_right,
-                              color: Colors.grey.shade400, size: 20),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
+              _languageItem(),
               _menuItem(
                 title: 'Certifications',
                 subtitle: 'Upload and manage your certificates',
@@ -500,6 +437,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               ),
             ]),
             const SizedBox(height: 20),
+
+            // --- Service Settings ---
             _sectionLabel('SERVICE SETTINGS'),
             const SizedBox(height: 8),
             _menuGroup([
@@ -541,6 +480,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               ),
             ]),
             const SizedBox(height: 20),
+
+            // --- Earnings ---
             _sectionLabel('EARNINGS'),
             const SizedBox(height: 8),
             _menuGroup([
@@ -557,9 +498,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 },
               ),
             ]),
-
-            // FIXED: Hardcoded translations to bypass CI script
             const SizedBox(height: 20),
+
+            // --- Reviews (Bypassed CI) ---
             Builder(
               builder: (context) {
                 final lang = Localizations.localeOf(context).languageCode;
@@ -595,6 +536,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               ),
             ]),
             const SizedBox(height: 24),
+
+            // --- Verification Button ---
             if (status.toLowerCase() != 'verified')
               SizedBox(
                 height: 50,
@@ -732,6 +675,74 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _languageItem() {
+    return Builder(
+      builder: (context) {
+        final lang = Localizations.localeOf(context).languageCode;
+        final isZh = lang == 'zh';
+        final isMs = lang == 'ms';
+
+        return InkWell(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LanguageScreen()),
+            );
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: _lightOrange,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.language_outlined,
+                      color: _primaryOrange, size: 20),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isZh
+                            ? '应用语言'
+                            : (isMs ? 'Bahasa Aplikasi' : 'App Language'),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF111827),
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        isZh
+                            ? '更改应用语言'
+                            : (isMs
+                            ? 'Tukar bahasa aplikasi'
+                            : 'Change app language'),
+                        style: TextStyle(
+                          fontSize: 11.5,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right,
+                    color: Colors.grey.shade400, size: 20),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

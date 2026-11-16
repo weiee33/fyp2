@@ -26,8 +26,10 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   bool _loading = true;
   bool _saving = false;
 
-  // 🎨 Orange + White theme
+  // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
+  static const _lightOrange = Color(0xFFFFF7ED);
+  static const _borderOrange = Color(0xFFFFE0CC);
 
   bool get _isEditing => widget.existing != null;
 
@@ -63,7 +65,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError(tr("Failed to load: {0}", [e]));
+      _showError("Failed to load: $e");
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -127,7 +129,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError(tr("Save failed: {0}", [e]));
+      _showError("Save failed: $e");
     } finally {
       if (mounted) setState(() => _saving = false);
     }
@@ -136,7 +138,7 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   void _showError(String msg) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(tr(msg)),
+        content: Text(msg),
         backgroundColor: Colors.red.shade600,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -147,8 +149,9 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   // ============ Validators ============
 
   String? _required(String? v, String label) {
-    if (v == null || v.trim().isEmpty)
+    if (v == null || v.trim().isEmpty) {
       return tr("{0} is required", [tr(label)]);
+    }
     return null;
   }
 
@@ -180,172 +183,174 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
         elevation: 0,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+        child: CircularProgressIndicator(color: _primaryOrange),
+      )
           : SafeArea(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // ---- Category ----
-                      _label('Category'),
-                      DropdownButtonFormField<String>(
-                        initialValue: _categoryId,
-                        decoration: _inputDecoration(
-                          hint: 'Select a category',
-                          icon: Icons.category_outlined,
-                        ),
-                        items: _categories
-                            .map(
-                              (c) => DropdownMenuItem<String>(
-                                value: c['category_id'] as String,
-                                child: Text(tr(c['category_name'] ?? '')),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: _saving
-                            ? null
-                            : (v) => setState(() => _categoryId = v),
-                        validator: (value) => trOrNull(
-                          ((v) => v == null
-                              ? 'Please select a category'
-                              : null)(value),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // ---- Service Title ----
-                      _label('Service Title'),
-                      TextFormField(
-                        controller: _title,
-                        textInputAction: TextInputAction.next,
-                        enabled: !_saving,
-                        validator: (value) => trOrNull(
-                          ((v) => _required(v, 'Service title'))(value),
-                        ),
-                        decoration: _inputDecoration(
-                          hint: 'e.g. Pipe Repair',
-                          icon: Icons.work_outline,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // ---- Description ----
-                      _label('Description'),
-                      TextFormField(
-                        controller: _desc,
-                        maxLines: 3,
-                        enabled: !_saving,
-                        validator: (value) => trOrNull(
-                          ((v) => _required(v, 'Description'))(value),
-                        ),
-                        decoration: _inputDecoration(
-                          hint: 'Describe your service...',
-                          icon: Icons.description_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // ---- Pricing Type ----
-                      _label('Pricing Type'),
-                      DropdownButtonFormField<String>(
-                        initialValue: _pricing,
-                        decoration: _inputDecoration(
-                          hint: 'Select pricing type',
-                          icon: Icons.attach_money,
-                        ),
-                        items: [
-                          DropdownMenuItem(
-                            value: 'Fixed',
-                            child: Text(tr('Fixed')),
-                          ),
-                          DropdownMenuItem(
-                            value: 'Hourly',
-                            child: Text(tr('Hourly')),
-                          ),
-                        ],
-                        onChanged: _saving
-                            ? null
-                            : (v) => setState(() => _pricing = v ?? 'Fixed'),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // ---- Price ----
-                      _label('Price Amount (RM)'),
-                      TextFormField(
-                        controller: _price,
-                        enabled: !_saving,
-                        keyboardType: const TextInputType.numberWithOptions(
-                          decimal: true,
-                        ),
-                        validator: _validatePrice,
-                        decoration: _inputDecoration(
-                          hint: 'e.g. 100',
-                          icon: Icons.payments_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-
-                      // ---- Duration ----
-                      _label('Estimated Duration (minutes)'),
-                      TextFormField(
-                        controller: _duration,
-                        enabled: !_saving,
-                        keyboardType: TextInputType.number,
-                        validator: _validateDuration,
-                        decoration: _inputDecoration(
-                          hint: 'e.g. 90',
-                          icon: Icons.timer_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-
-                      // ---- Save Button ----
-                      SizedBox(
-                        height: 52,
-                        child: ElevatedButton.icon(
-                          onPressed: _saving ? null : _save,
-                          icon: _saving
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.5,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : Icon(_isEditing ? Icons.save : Icons.add),
-                          label: Text(
-                            tr(
-                              _saving
-                                  ? 'Saving...'
-                                  : (_isEditing
-                                        ? 'Save Changes'
-                                        : 'Add Service'),
-                            ),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _primaryOrange,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 2,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // ---- Category ----
+                _label('Category'),
+                DropdownButtonFormField<String>(
+                  initialValue: _categoryId,
+                  decoration: _inputDecoration(
+                    hint: 'Select a category',
+                    icon: Icons.category_outlined,
+                  ),
+                  items: _categories
+                      .map(
+                        (c) => DropdownMenuItem<String>(
+                      value: c['category_id'] as String,
+                      child: Text(tr(c['category_name'] ?? '')),
+                    ),
+                  )
+                      .toList(),
+                  onChanged: _saving
+                      ? null
+                      : (v) => setState(() => _categoryId = v),
+                  validator: (value) => trOrNull(
+                    ((v) =>
+                    v == null ? 'Please select a category' : null)(
+                        value),
                   ),
                 ),
-              ),
+                const SizedBox(height: 16),
+
+                // ---- Service Title ----
+                _label('Service Title'),
+                TextFormField(
+                  controller: _title,
+                  textInputAction: TextInputAction.next,
+                  enabled: !_saving,
+                  validator: (value) => trOrNull(
+                    ((v) => _required(v, 'Service title'))(value),
+                  ),
+                  decoration: _inputDecoration(
+                    hint: 'e.g. Pipe Repair',
+                    icon: Icons.work_outline,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // ---- Description ----
+                _label('Description'),
+                TextFormField(
+                  controller: _desc,
+                  maxLines: 3,
+                  enabled: !_saving,
+                  validator: (value) => trOrNull(
+                    ((v) => _required(v, 'Description'))(value),
+                  ),
+                  decoration: _inputDecoration(
+                    hint: 'Describe your service...',
+                    icon: Icons.description_outlined,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // ---- Pricing Type ----
+                _label('Pricing Type'),
+                DropdownButtonFormField<String>(
+                  initialValue: _pricing,
+                  decoration: _inputDecoration(
+                    hint: 'Select pricing type',
+                    icon: Icons.attach_money,
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: 'Fixed',
+                      child: Text(tr('Fixed')),
+                    ),
+                    DropdownMenuItem(
+                      value: 'Hourly',
+                      child: Text(tr('Hourly')),
+                    ),
+                  ],
+                  onChanged: _saving
+                      ? null
+                      : (v) => setState(() => _pricing = v ?? 'Fixed'),
+                ),
+                const SizedBox(height: 16),
+
+                // ---- Price ----
+                _label('Price Amount (RM)'),
+                TextFormField(
+                  controller: _price,
+                  enabled: !_saving,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  validator: _validatePrice,
+                  decoration: _inputDecoration(
+                    hint: 'e.g. 100',
+                    icon: Icons.payments_outlined,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // ---- Duration ----
+                _label('Estimated Duration (minutes)'),
+                TextFormField(
+                  controller: _duration,
+                  enabled: !_saving,
+                  keyboardType: TextInputType.number,
+                  validator: _validateDuration,
+                  decoration: _inputDecoration(
+                    hint: 'e.g. 90',
+                    icon: Icons.timer_outlined,
+                  ),
+                ),
+                const SizedBox(height: 28),
+
+                // ---- Save Button ----
+                SizedBox(
+                  height: 52,
+                  child: ElevatedButton.icon(
+                    onPressed: _saving ? null : _save,
+                    icon: _saving
+                        ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        color: Colors.white,
+                      ),
+                    )
+                        : Icon(_isEditing ? Icons.save : Icons.add),
+                    label: Text(
+                      tr(
+                        _saving
+                            ? 'Saving...'
+                            : (_isEditing
+                            ? 'Save Changes'
+                            : 'Add Service'),
+                      ),
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
             ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -363,12 +368,14 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
   }) {
     return InputDecoration(
       hintText: trOrNull(hint),
+      hintStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,
       fillColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey.shade300),
+        borderSide: BorderSide.none,
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -381,6 +388,10 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.red),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
       ),
     );
   }
