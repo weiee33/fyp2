@@ -36,6 +36,15 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     _load();
   }
 
+  // Helper to get language booleans for use in helper methods
+  Map<String, bool> _getLangVars() {
+    final lang = Localizations.localeOf(context).languageCode;
+    return {
+      'isZh': lang == 'zh',
+      'isMs': lang == 'ms',
+    };
+  }
+
   Future<void> _load() async {
     if (mounted) setState(() {
       _loading = true;
@@ -287,6 +296,10 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
   }
 
   Widget _errorState() {
+    final langVars = _getLangVars();
+    final isZh = langVars['isZh']!;
+    final isMs = langVars['isMs']!;
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
       children: [
@@ -309,7 +322,11 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
         const SizedBox(height: 16),
         Center(
           child: Text(
-            tr('AI failed to plan your route. Please try again.'),
+            isZh
+                ? 'AI 无法规划您的路线，请重试。'
+                : (isMs
+                ? 'AI gagal merancang laluan anda. Sila cuba lagi.'
+                : 'AI failed to plan your route. Please try again.'),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -339,6 +356,10 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
   }
 
   Widget _scheduleTile(Map<String, dynamic> b) {
+    final langVars = _getLangVars();
+    final isZh = langVars['isZh']!;
+    final isMs = langVars['isMs']!;
+
     final step = b['ai_step'] as int? ?? 1;
     final travelDist = (b['ai_travel_distance'] as num?)?.toDouble() ?? 0;
     final travelTime = (b['ai_travel_time'] as num?)?.toInt() ?? 0;
@@ -376,7 +397,11 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(
-                        tr("Drive {0} km ({1} min from previous)", [travelDist.toStringAsFixed(1), travelTime]),
+                        isZh
+                            ? '行驶 ${travelDist.toStringAsFixed(1)} 公里（距上一单 $travelTime 分钟）'
+                            : (isMs
+                            ? 'Pandu ${travelDist.toStringAsFixed(1)} km ($travelTime min dari sebelumnya)'
+                            : 'Drive ${travelDist.toStringAsFixed(1)} km ($travelTime min from previous)'),
                         style: const TextStyle(fontSize: 11, color: _primaryOrange, fontWeight: FontWeight.w500),
                       ),
                     ),
@@ -405,9 +430,9 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                           color: _primaryOrange,
                         ),
                       ),
-                      const Text(
-                        'Step',
-                        style: TextStyle(
+                      Text(
+                        isZh ? '步骤' : (isMs ? 'Langkah' : 'Step'),
+                        style: const TextStyle(
                           fontSize: 10,
                           color: Colors.grey,
                         ),
