@@ -42,13 +42,19 @@ export async function handleGeocode(request: Request,deps: Dependencies): Promis
   const claim=await rpc('customer_geocode_claim',{p_key:key});
   if(claim.cached!==undefined)return json(claim.cached.value);
   if(!claim.allowed)return json({error:'Address lookup is busy. Please retry in a moment.'},429);
-  const base=deps.env('PHOTON_URL') ?? 'https://photon.komoot.io';
+  const base=deps.env('PHOTON_URL')?.trim() || 'https://photon.komoot.io';
   stage='provider';
   const result=await deps.fetch(`${base.replace(/\/$/,'')}/${path}?${params}`,{headers:{'User-Agent':'LocalLifeFYP/1.0 (https://github.com/weiee33/fyp2)','Accept-Language':'en'},signal:AbortSignal.timeout(10000)});
-  if(result.status===429)return json({error:'Address lookup is busy. Please retry in a moment.'},429);
-  if(!result.ok)return json({error:'Address lookup is unavailable. You can enter the address manually.'},502);
+  if (!result.ok) {
+    // Public operational metadata only. A provider URL or body can include the customer's address.
+    console.warn('customer-geocode provider response', path, result.status);
+    await result.body?.cancel();
+    if (result.status === 429) return json({error:'Address lookup is busy. Please retry.', code:'provider_busy'},429);
+    return json({error:'Address lookup is unavailable. Enter the address manually.', code:'provider_unavailable'},502);
+  }
   stage='decode';
   const source=await result.json();
+  if (!Array.isArray(source?.features)) throw new Error('Invalid Photon response');
   const first=source?.features?.[0];
   const coordinate=first?.geometry?.coordinates;
   const data=path==='reverse'?addressFields(first):first && first.properties?.countrycode?.toUpperCase()==='MY' && Array.isArray(coordinate) && coordinate.length===2 && coordinate.every(Number.isFinite)
@@ -59,6 +65,7 @@ export async function handleGeocode(request: Request,deps: Dependencies): Promis
   return json(data);
  } catch (error) {
   console.warn('customer-geocode failed', stage, error instanceof Error ? error.name : 'UnknownError');
-  return json({error:'Address lookup is unavailable. Please retry or enter the address manually.', code:stage},503);
+  const code = stage === 'provider' || stage === 'decode' ? 'provider_unavailable' : stage;
+  return json({error:'Address lookup is unavailable. Enter the address manually.', code},503);
  }
 }
