@@ -19,10 +19,12 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _textSecondary = Color(0xFF6B7280);
 
+  // 【核心修改】使用绝对定位 + Overlay 弹窗，确保 100% 能点到
   void _showAiMenu(BuildContext context) {
     final RenderBox button = context.findRenderObject() as RenderBox;
     final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
 
+    // 计算中间按钮相对于屏幕的位置，让菜单精准弹在按钮正上方
     final position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset(button.size.width / 2, 0), ancestor: overlay),
@@ -37,7 +39,7 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
 
     showMenu<int>(
       context: context,
-      position: position.shift(const Offset(-110, -130)),
+      position: position.shift(const Offset(-110, -140)), // 往左偏移居中，往上弹出
       color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -58,7 +60,7 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
             ],
           ),
         ),
-        // 已移除中间的 PopupMenuDivider，消除了那条隔阂线
+        const PopupMenuDivider(height: 1),
         PopupMenuItem<int>(
           value: 3,
           child: Row(
@@ -125,14 +127,14 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
                 children: [
                   _tab(0, Icons.home_outlined, isZh ? '首页' : (isMs ? 'Utama' : 'Home')),
                   _tab(1, Icons.receipt_long_outlined, isZh ? '预约' : (isMs ? 'Tempahan' : 'Bookings')),
-                  const SizedBox(width: 60),
+                  const SizedBox(width: 60), // 中间凸起按钮的留空
                   _tab(4, Icons.calendar_today_outlined, isZh ? '日程' : (isMs ? 'Jadual' : 'Schedule')),
                   _tab(5, Icons.person_outline_rounded, isZh ? '我的' : (isMs ? 'Profil' : 'Profile')),
                 ],
               ),
             ),
 
-            // 2. 中间凸起的网格按钮
+            // 2. 中间凸起的网格按钮（点击直接触发全局弹出菜单）
             Positioned(
               bottom: 24,
               child: Builder(
