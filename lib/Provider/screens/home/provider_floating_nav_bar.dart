@@ -4,11 +4,13 @@ import 'package:fyp2/shared/localization/app_language.dart';
 class ProviderFloatingNavBar extends StatefulWidget {
   final int currentIndex;
   final Function(int) onTabChanged;
+  final bool visible;
 
   const ProviderFloatingNavBar({
     super.key,
     required this.currentIndex,
     required this.onTabChanged,
+    this.visible = true,
   });
 
   @override
@@ -19,12 +21,11 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _textSecondary = Color(0xFF6B7280);
 
-  // 【核心修改】使用绝对定位 + Overlay 弹窗，确保 100% 能点到
   void _showAiMenu(BuildContext context) {
     final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+    Overlay.of(context).context.findRenderObject() as RenderBox;
 
-    // 计算中间按钮相对于屏幕的位置，让菜单精准弹在按钮正上方
     final position = RelativeRect.fromRect(
       Rect.fromPoints(
         button.localToGlobal(Offset(button.size.width / 2, 0), ancestor: overlay),
@@ -39,7 +40,7 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
 
     showMenu<int>(
       context: context,
-      position: position.shift(const Offset(-110, -140)), // 往左偏移居中，往上弹出
+      position: position.shift(const Offset(-110, -140)),
       color: Colors.white,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
@@ -55,7 +56,10 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
               const SizedBox(width: 12),
               Text(
                 isZh ? 'AI 匹配' : (isMs ? 'AI Padanan' : 'AI Job Match'),
-                style: const TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -65,11 +69,15 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
           value: 3,
           child: Row(
             children: [
-              const Icon(Icons.auto_awesome_outlined, color: _primaryOrange, size: 20),
+              const Icon(Icons.auto_awesome_outlined,
+                  color: _primaryOrange, size: 20),
               const SizedBox(width: 12),
               Text(
                 isZh ? 'AI 日程' : (isMs ? 'AI Jadual' : 'AI Smart Schedule'),
-                style: const TextStyle(color: Colors.black87, fontSize: 14, fontWeight: FontWeight.w500),
+                style: const TextStyle(
+                    color: Colors.black87,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500),
               ),
             ],
           ),
@@ -87,26 +95,26 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
     AppLanguage.watch(context);
 
     final keyboardOpen = MediaQuery.viewInsetsOf(context).bottom > 0;
-    if (keyboardOpen) {
-      return const SizedBox.shrink();
-    }
-
     final bottomGap = MediaQuery.viewPaddingOf(context).bottom + 16.0;
     final lang = Localizations.localeOf(context).languageCode;
     final isZh = lang == 'zh';
     final isMs = lang == 'ms';
 
-    return Positioned(
+    final shouldShow = widget.visible && !keyboardOpen;
+    final hiddenOffset = -(80 + bottomGap);
+
+    return AnimatedPositioned(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
       left: 16,
       right: 16,
-      bottom: bottomGap,
+      bottom: shouldShow ? bottomGap : hiddenOffset,
       child: SizedBox(
         height: 80,
         child: Stack(
           clipBehavior: Clip.none,
           alignment: Alignment.bottomCenter,
           children: [
-            // 1. 背景导航栏
             Container(
               height: 64,
               decoration: BoxDecoration(
@@ -125,16 +133,18 @@ class _ProviderFloatingNavBarState extends State<ProviderFloatingNavBar> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  _tab(0, Icons.home_outlined, isZh ? '首页' : (isMs ? 'Utama' : 'Home')),
-                  _tab(1, Icons.receipt_long_outlined, isZh ? '预约' : (isMs ? 'Tempahan' : 'Bookings')),
-                  const SizedBox(width: 60), // 中间凸起按钮的留空
-                  _tab(4, Icons.calendar_today_outlined, isZh ? '日程' : (isMs ? 'Jadual' : 'Schedule')),
-                  _tab(5, Icons.person_outline_rounded, isZh ? '我的' : (isMs ? 'Profil' : 'Profile')),
+                  _tab(0, Icons.home_outlined,
+                      isZh ? '首页' : (isMs ? 'Utama' : 'Home')),
+                  _tab(1, Icons.receipt_long_outlined,
+                      isZh ? '预约' : (isMs ? 'Tempahan' : 'Bookings')),
+                  const SizedBox(width: 60),
+                  _tab(4, Icons.calendar_today_outlined,
+                      isZh ? '日程' : (isMs ? 'Jadual' : 'Schedule')),
+                  _tab(5, Icons.person_outline_rounded,
+                      isZh ? '我的' : (isMs ? 'Profil' : 'Profile')),
                 ],
               ),
             ),
-
-            // 2. 中间凸起的网格按钮（点击直接触发全局弹出菜单）
             Positioned(
               bottom: 24,
               child: Builder(

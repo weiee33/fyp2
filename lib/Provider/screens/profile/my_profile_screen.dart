@@ -13,6 +13,7 @@ import 'service_areas_screen.dart';
 import 'working_hours_screen.dart';
 import 'privacy_screen.dart';
 import 'about_app_screen.dart';
+import 'help_centre.dart'; // <-- Added Help Centre import
 
 import 'package:fyp2/Provider/screens/services/my_services_screen.dart';
 import 'package:fyp2/Provider/screens/bookings/my_bookings_screen.dart';
@@ -43,8 +44,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   Map<String, dynamic>? _profile;
   bool _loading = true;
 
-  // Tab index: 0 = Home, 1 = Bookings, 2 = AI Match, 3 = AI Schedule, 4 = Schedule, 5 = Profile
+  // Tab index: 0 = Home, 1 = Bookings, 2 = AI Match, 3 = AI Schedule,
+  //            4 = Schedule, 5 = Profile
   int _tab = 0;
+
+  // --- Scroll-driven navigation visibility ---
+  bool _navVisible = true;
+  double _scrollTravel = 0;
 
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
@@ -54,6 +60,46 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   void initState() {
     super.initState();
     _load();
+  }
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification.depth != 0 ||
+        notification.metrics.axis != Axis.vertical ||
+        MediaQuery.accessibleNavigationOf(context)) {
+      return false;
+    }
+
+    if (notification is ScrollUpdateNotification &&
+        notification.dragDetails != null) {
+      final delta = notification.scrollDelta ?? 0;
+
+      if (notification.metrics.pixels <=
+          notification.metrics.minScrollExtent + 8) {
+        _scrollTravel = 0;
+        if (!_navVisible) setState(() => _navVisible = true);
+      } else if (!notification.metrics.outOfRange && delta != 0) {
+        if (_scrollTravel.sign != delta.sign) _scrollTravel = 0;
+        _scrollTravel += delta;
+        if (_scrollTravel.abs() >= 18) {
+          final visible = _scrollTravel < 0;
+          if (_navVisible != visible) {
+            setState(() => _navVisible = visible);
+          }
+          _scrollTravel = 0;
+        }
+      }
+    } else if (notification is ScrollEndNotification) {
+      _scrollTravel = 0;
+    }
+    return false;
+  }
+
+  void _selectTab(int index) {
+    setState(() {
+      _tab = index;
+      _navVisible = true;
+      _scrollTravel = 0;
+    });
   }
 
   Future<void> _load() async {
@@ -138,11 +184,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       );
     }
 
-    // Updated pages list to include AI screens directly
     final pages = [
-      ProviderHomeScreen(
-        onNavigateToTab: (index) => setState(() => _tab = index),
-      ),
+      ProviderHomeScreen(onNavigateToTab: _selectTab),
       const MyBookingsScreen(),
       const AiJobMatchingScreen(),
       const AiScheduleScreen(),
@@ -216,11 +259,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       body: Stack(
         children: [
           Positioned.fill(
-            child: pages[_tab],
+            child: NotificationListener<ScrollNotification>(
+              onNotification: _onScroll,
+              child: IndexedStack(
+                index: _tab,
+                children: pages,
+              ),
+            ),
           ),
           ProviderFloatingNavBar(
             currentIndex: _tab,
-            onTabChanged: (index) => setState(() => _tab = index),
+            onTabChanged: _selectTab,
+            visible: _navVisible,
           ),
         ],
       ),
@@ -450,6 +500,17 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             const SizedBox(height: 8),
             _menuGroup([
               _menuItem(
+                title: 'Help Centre',
+                subtitle: 'Contact admin and follow your requests',
+                icon: Icons.support_agent,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HelpCentreScreen()),
+                  );
+                },
+              ),
+              _menuItem(
                 title: 'Privacy',
                 subtitle: 'Review your privacy notice & data preferences',
                 icon: Icons.privacy_tip_outlined,
@@ -481,7 +542,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               InkWell(
                 onTap: _logout,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                   child: Row(
                     children: [
                       Container(
@@ -491,7 +553,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           color: Colors.red.shade50,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(Icons.logout, color: Colors.red.shade600, size: 20),
+                        child: Icon(Icons.logout,
+                            color: Colors.red.shade600, size: 20),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -517,7 +580,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           ],
                         ),
                       ),
-                      Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+                      Icon(Icons.chevron_right,
+                          color: Colors.grey.shade400, size: 20),
                     ],
                   ),
                 ),
