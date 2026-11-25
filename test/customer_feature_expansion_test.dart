@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:fyp2/Customer/core/customer_theme.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:fyp2/shared/chat/chat_photo.dart';
 import 'package:fyp2/Customer/services/provider_coverage_service.dart';
@@ -145,6 +147,72 @@ void main() {
       await t.pumpWidget(const SizedBox());
     },
   );
+  testWidgets('coverage card changes fill when a pin crosses the radius', (
+    t,
+  ) async {
+    capture.pixel(t);
+    const centre = LatLng(3.15, 101.7);
+    await t.pumpWidget(
+      capture.app(
+        AddAddressMapScreen(
+          service: addresses.Addresses(),
+          locate: () async => centre,
+          coverageService: ProviderCoverageService(
+            rpc: (_, _) async => [
+              {
+                'provider_id': 'one',
+                'business_name': 'Test provider',
+                'service_latitude': centre.latitude,
+                'service_longitude': centre.longitude,
+                'service_radius_km': 10,
+              },
+            ],
+          ),
+        ),
+      ),
+    );
+    await t.pumpAndSettle();
+    await t.tap(find.text('Show service areas'));
+    await t.pumpAndSettle();
+    final marker = find
+        .ancestor(
+          of: find.text('Test provider'),
+          matching: find.byType(GestureDetector),
+        )
+        .first;
+    t.widget<GestureDetector>(marker).onTap!();
+    await t.pump();
+    Color? fill(String label) => t
+        .widget<Material>(
+          find
+              .ancestor(
+                of: find.textContaining(label),
+                matching: find.byType(Material),
+              )
+              .first,
+        )
+        .color;
+    expect(
+      fill('Selected address in range'),
+      Color.alphaBlend(
+        CustomerTheme.success.withValues(alpha: .12),
+        Colors.white,
+      ),
+    );
+    t.widget<FlutterMap>(find.byType(FlutterMap)).options.onTap!(
+      const TapPosition(Offset.zero, Offset.zero),
+      const LatLng(3.25, 101.7),
+    );
+    await t.pumpAndSettle();
+    expect(
+      fill('Selected address outside range'),
+      Color.alphaBlend(
+        CustomerTheme.danger.withValues(alpha: .12),
+        Colors.white,
+      ),
+    );
+    await t.pumpWidget(const SizedBox());
+  });
   test('coverage uses distance from published pin, not customer city text', () {
     final provider = ProviderCoverage({
       'provider_id': 'p',

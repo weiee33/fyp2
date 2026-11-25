@@ -131,8 +131,9 @@ class CustomerSettingsScreen extends StatelessWidget {
           ),
           AccountGroup(
             children: [
-              AccountRow(
-                label: tr('Logout Your Account'),
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+                title: Text(tr('Log Out'), textAlign: TextAlign.center),
                 onTap: () => customerSignOut(context),
               ),
             ],

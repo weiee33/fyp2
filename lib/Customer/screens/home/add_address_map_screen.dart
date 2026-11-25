@@ -340,6 +340,9 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                     28,
                   );
               final minimum = (headerHeight / bounds.maxHeight).clamp(.14, .46);
+              final inRange = _coverageError == null
+                  ? _selectedProvider?.covers(_currentPosition)
+                  : null;
               return Stack(
                 children: [
                   // Full, fixed map viewport. Sheet gestures never resize or pan its camera.
@@ -513,7 +516,17 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                             ? Duration.zero
                             : const Duration(milliseconds: 200),
                         child: Material(
-                          color: Colors.white,
+                          color: switch (inRange) {
+                            true => Color.alphaBlend(
+                              CustomerTheme.success.withValues(alpha: .12),
+                              Colors.white,
+                            ),
+                            false => Color.alphaBlend(
+                              CustomerTheme.danger.withValues(alpha: .12),
+                              Colors.white,
+                            ),
+                            null => Colors.white,
+                          },
                           elevation: 2,
                           borderRadius: BorderRadius.circular(12),
                           child: Padding(
@@ -539,9 +552,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                     tr("{0} km radius · {1}", [
                                       _selectedProvider!.radiusKm.toInt(),
                                       tr(
-                                        _selectedProvider!.covers(
-                                              _currentPosition,
-                                            )
+                                        inRange == true
                                             ? 'Selected address in range'
                                             : 'Selected address outside range',
                                       ),

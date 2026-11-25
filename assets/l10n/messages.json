@@ -5402,5 +5402,49 @@
   "You can register with this email from {0} (Malaysia time).": [
     "您可以从 {0}（马来西亚时间）起使用此邮箱注册。",
     "Anda boleh mendaftar dengan e-mel ini mulai {0} (waktu Malaysia)."
+  ],
+  "Grow your service business, manage bookings, and connect with local customers effortlessly.": [
+    "轻松拓展您的服务业务、管理预约并联系本地客户。",
+    "Kembangkan perniagaan perkhidmatan anda, urus tempahan dan hubungi pelanggan setempat dengan mudah."
+  ],
+  "Contact Admin": [
+    "联系管理员",
+    "Hubungi pentadbir"
+  ],
+  "Booking and payout help": [
+    "预约与收款帮助",
+    "Bantuan tempahan dan bayaran kepada penyedia"
+  ],
+  "Open Booking Details to contact your customer or request support linked to that booking.": [
+    "打开预约详情即可联系客户，或就该预约寻求帮助。",
+    "Buka butiran tempahan untuk menghubungi pelanggan anda atau meminta bantuan bagi tempahan tersebut."
+  ],
+  "Use Profile to update your business details, services, service areas and working hours.": [
+    "前往个人资料页面，更新您的商家资料、服务项目、服务区域和营业时间。",
+    "Buka Profil untuk mengemas kini butiran perniagaan, perkhidmatan, kawasan perkhidmatan dan waktu bekerja anda."
+  ],
+  "Sign out of your account": [
+    "退出当前账号",
+    "Log keluar daripada akaun anda"
+  ],
+  "Provider data and privacy": [
+    "服务商数据与隐私",
+    "Data dan privasi penyedia perkhidmatan"
+  ],
+  "This notice explains how your business, verification, and operational data are handled across Local Life Service Assistant.": [
+    "本说明介绍 Local Life Service Assistant 如何处理您的商家资料、验证资料及运营数据。",
+    "Notis ini menerangkan cara Local Life Service Assistant mengendalikan data perniagaan, pengesahan dan operasi anda."
+  ],
+  "Admin Support Request": [
+    "管理员协助请求",
+    "Permintaan bantuan pentadbir"
+  ],
+  "Admin response": [
+    "管理员回复",
+    "Jawapan pentadbir"
+  ],
+  "Your request is waiting for admin review. Pull down to check for updates.": [
+    "您的请求正等待管理员审核。下拉刷新可查看最新进展。",
+    "Permintaan anda sedang menunggu semakan pentadbir. Tarik ke bawah untuk melihat perkembangan terkini."
   ]
 }
