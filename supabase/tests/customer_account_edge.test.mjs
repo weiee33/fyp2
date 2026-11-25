@@ -53,18 +53,40 @@ test('address parser handles federal territories and clears missing previous fie
  assert.deepEqual(addressFields({properties:{countrycode:'MY',city:'Kuala Lumpur',street:'Lorong Kuda',housenumber:'10'}}),{addressLine:'10, Lorong Kuda',city:'Kuala Lumpur',state:'Kuala Lumpur',postcode:''});
  assert.deepEqual(addressFields({properties:{countrycode:'SG',city:'Singapore'}}),{addressLine:'',city:'',state:'',postcode:''});
 });
-function geocodeFixture({claim={allowed:true},role='customer',active=true,source=[]}={}){
+function geocodeFixture({claim={allowed:true},role='customer',active=true,source={features:[]},status=200}={}){
  const calls=[];return {calls,fetch:async(url,options)=>{calls.push({url,options});
   if(url.includes('/account_identity'))return reply({role,is_active:active});
   if(url.includes('/customer_geocode_claim'))return reply(claim);
   if(url.includes('/customer_geocode_store'))return new Response(null,{status:204});
-  if(url.startsWith('https://photon.komoot.io/'))return reply(source);
+  if(url.startsWith('https://photon.komoot.io/'))return reply(source,status);
   throw new Error('Unexpected request');
  }};
 }
 test('geocoding rejects invalid coordinates before any upstream call',async()=>{
  const f=geocodeFixture();assert.equal((await handleGeocode(request({kind:'reverse',lat:91,lng:100}),{env,fetch:f.fetch})).status,400);assert.equal(f.calls.length,0);
 });
+test('a reverse lookup returns Malaysian address fields for the requested pin',async()=>{
+ const properties={countrycode:'MY',street:'Lorong Kuda',city:'Kuala Lumpur',postcode:'50088'};
+ const f=geocodeFixture({source:{features:[{properties}]}});
+ const result=await handleGeocode(request({kind:'reverse',lat:3.1579,lng:101.7116}),{env,fetch:f.fetch});
+ assert.equal(result.status,200);
+ assert.deepEqual(await result.json(),{addressLine:'Lorong Kuda',city:'Kuala Lumpur',state:'Kuala Lumpur',postcode:'50088'});
+ const upstream=new URL(f.calls[2].url);
+ assert.equal(upstream.pathname,'/reverse');
+ assert.equal(Number(upstream.searchParams.get('lat')),3.1579);
+ assert.equal(Number(upstream.searchParams.get('lon')),101.7116);
+});
+for(const [status,source,expected,code] of [
+ [403,{},502,'provider_unavailable'],[429,{},429,'provider_busy'],[200,{},503,'provider_unavailable'],
+]){
+ test(`Photon status ${status} with unusable data never caches an empty address`,async()=>{
+  const f=geocodeFixture({status,source});
+  const result=await handleGeocode(request({kind:'reverse',lat:3.1579,lng:101.7116}),{env,fetch:f.fetch});
+  assert.equal(result.status,expected);
+  assert.equal((await result.json()).code,code);
+  assert.equal(f.calls.length,3);
+ });
+}
 test('suspended customers cannot geocode even though identity lookup succeeds',async()=>{
  const f=geocodeFixture({active:false});
  assert.equal((await handleGeocode(request({kind:'search',query:'Kuala Lumpur'}),{env,fetch:f.fetch})).status,403);
