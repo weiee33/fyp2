@@ -1,6 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:fyp2/shared/localization/language_screen.dart';
-import 'package:flutter/material.dart';
 
 import '../../../shared/chat/chat_inbox_screen.dart';
 import 'package:fyp2/Provider/services/profile_service.dart';
@@ -11,6 +11,8 @@ import 'update_profile_screen.dart';
 import 'certifications_screen.dart';
 import 'service_areas_screen.dart';
 import 'working_hours_screen.dart';
+import 'privacy_screen.dart';
+import 'about_app_screen.dart';
 
 import 'package:fyp2/Provider/screens/services/my_services_screen.dart';
 import 'package:fyp2/Provider/screens/bookings/my_bookings_screen.dart';
@@ -41,6 +43,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   Map<String, dynamic>? _profile;
   bool _loading = true;
 
+  // Tab index: 0 = Home, 1 = Bookings, 2 = AI Match, 3 = AI Schedule, 4 = Schedule, 5 = Profile
   int _tab = 0;
 
   static const _primaryOrange = Color(0xFFFF6B00);
@@ -135,11 +138,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       );
     }
 
+    // Updated pages list to include AI screens directly
     final pages = [
       ProviderHomeScreen(
         onNavigateToTab: (index) => setState(() => _tab = index),
       ),
       const MyBookingsScreen(),
+      const AiJobMatchingScreen(),
+      const AiScheduleScreen(),
       const ScheduleScreen(),
       _buildProfileTab(),
     ];
@@ -147,7 +153,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       extendBody: true,
-      appBar: _tab == 3
+      appBar: _tab == 5
           ? AppBar(
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
@@ -161,7 +167,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             tooltip: tr('Chats'),
             onPressed: _openChats,
           ),
-          FutureBuilder<List<Map<String, dynamic>>>(
+          FutureBuilder<List>(
             future: _notificationService.getMyNotifications(),
             builder: (context, snapshot) {
               final unread = (snapshot.data ?? [])
@@ -215,58 +221,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           ProviderFloatingNavBar(
             currentIndex: _tab,
             onTabChanged: (index) => setState(() => _tab = index),
-            onOpenAi: () {
-              showModalBottomSheet(
-                context: context,
-                shape: const RoundedRectangleBorder(
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                ),
-                builder: (ctx) {
-                  return SafeArea(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const SizedBox(height: 12),
-                        ListTile(
-                          leading: const Icon(Icons.auto_awesome,
-                              color: Colors.deepPurple),
-                          title: Text(tr('AI Job Matching'),
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold)),
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AiJobMatchingScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        const Divider(height: 1),
-                        ListTile(
-                          leading:
-                          const Icon(Icons.schedule, color: Colors.blue),
-                          title: Text(tr('AI Smart Schedule'),
-                              style: const TextStyle(
-                                  fontWeight: FontWeight.bold)),
-                          onTap: () {
-                            Navigator.pop(ctx);
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const AiScheduleScreen(),
-                              ),
-                            );
-                          },
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
           ),
         ],
       ),
@@ -378,27 +332,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         ),
                       ),
                     ],
-                    const SizedBox(height: 14),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 42,
-                      child: OutlinedButton.icon(
-                        onPressed: _logout,
-                        icon: const Icon(Icons.logout, size: 18),
-                        label: Text(tr('Log Out'),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                            )),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red.shade600,
-                          side: BorderSide(color: Colors.red.shade200),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                        ),
-                      ),
-                    ),
                   ],
                 ),
               ),
@@ -481,8 +414,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             ]),
             const SizedBox(height: 20),
 
-            // --- Earnings ---
-            _sectionLabel('EARNINGS'),
+            // --- Earnings & Reviews ---
+            _sectionLabel('EARNINGS & REVIEWS'),
             const SizedBox(height: 8),
             _menuGroup([
               _menuItem(
@@ -497,31 +430,6 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   );
                 },
               ),
-            ]),
-            const SizedBox(height: 20),
-
-            // --- Reviews (Bypassed CI) ---
-            Builder(
-              builder: (context) {
-                final lang = Localizations.localeOf(context).languageCode;
-                final isZh = lang == 'zh';
-                final isMs = lang == 'ms';
-                return Padding(
-                  padding: const EdgeInsets.only(left: 4),
-                  child: Text(
-                    isZh ? '评价' : (isMs ? 'ULASAN' : 'REVIEWS'),
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.2,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 8),
-            _menuGroup([
               _menuItem(
                 title: 'My Reviews',
                 subtitle: 'See what customers say about you',
@@ -533,6 +441,86 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                         builder: (_) => const ReviewsScreen()),
                   );
                 },
+              ),
+            ]),
+            const SizedBox(height: 20),
+
+            // --- Support & Legal ---
+            _sectionLabel('SUPPORT'),
+            const SizedBox(height: 8),
+            _menuGroup([
+              _menuItem(
+                title: 'Privacy',
+                subtitle: 'Review your privacy notice & data preferences',
+                icon: Icons.privacy_tip_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const PrivacyScreen()),
+                  );
+                },
+              ),
+              _menuItem(
+                title: 'About Local Life Service Assistant',
+                subtitle: 'App overview, version and terms',
+                icon: Icons.info_outline,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AboutAppScreen()),
+                  );
+                },
+              ),
+            ]),
+            const SizedBox(height: 20),
+
+            // --- System ---
+            _sectionLabel('SYSTEM'),
+            const SizedBox(height: 8),
+            _menuGroup([
+              InkWell(
+                onTap: _logout,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: Colors.red.shade50,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(Icons.logout, color: Colors.red.shade600, size: 20),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              tr('Log Out'),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.red.shade600,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              tr('Sign out of your account'),
+                              style: TextStyle(
+                                fontSize: 11.5,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
+                    ],
+                  ),
+                ),
               ),
             ]),
             const SizedBox(height: 24),

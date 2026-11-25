@@ -36,15 +36,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     _load();
   }
 
-  // Helper to get language booleans for use in helper methods
-  Map<String, bool> _getLangVars() {
-    final lang = Localizations.localeOf(context).languageCode;
-    return {
-      'isZh': lang == 'zh',
-      'isMs': lang == 'ms',
-    };
-  }
-
   Future<void> _load() async {
     if (mounted) setState(() {
       _loading = true;
@@ -52,7 +43,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     });
 
     try {
-      // 1. Get all confirmed bookings
       final bookings = await _service.getMyBookings(status: 'Confirmed');
       if (bookings.isEmpty) {
         if (!mounted) return;
@@ -63,7 +53,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
         return;
       }
 
-      // 2. Extract fields needed for AI route planning
       final jobs = bookings.map((b) => {
         'booking_id': b['booking_id'],
         'address': b['customer_address'] ?? 'Unknown Address',
@@ -72,7 +61,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
         'total_amount': b['total_amount'] ?? 0,
       }).toList();
 
-      // 3. Call the AI function
       final response = await _client.functions.invoke(
         'provider-ai-smart-schedule',
         body: { 'bookings': jobs },
@@ -89,7 +77,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
         data = responseData as Map<String, dynamic>;
       }
 
-      // 4. Parse AI response safely
       final List<dynamic> aiSchedule = data['schedule'] ?? [];
       final List<Map<String, dynamic>> finalSchedule = [];
 
@@ -173,11 +160,10 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                 onRefresh: _load,
                 color: _primaryOrange,
                 child: _error != null
-                    ? _errorState()
+                    ? _errorState(isZh, isMs)
                     : ListView(
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                   children: [
-                    // Date header
                     Row(
                       children: [
                         Container(
@@ -206,7 +192,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                     ),
                     const SizedBox(height: 16),
 
-                    // Stats grid
                     Row(
                       children: [
                         _statCard(
@@ -240,7 +225,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Optimized Route Title
                     Row(
                       children: [
                         Container(
@@ -277,29 +261,23 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                         ),
                       )
                     else
-                      ..._schedule.map((b) => _scheduleTile(b)),
+                      ..._schedule.map((b) => _scheduleTile(b, isZh, isMs)),
                   ],
                 ),
               ),
             ),
           ),
 
-          // 👇 Floating Navigation Bar
           ProviderFloatingNavBar(
-            currentIndex: 2, // 2 is the Schedule tab
+            currentIndex: 3, // AI Schedule tab index
             onTabChanged: (index) => Navigator.pop(context),
-            onOpenAi: () {},
           ),
         ],
       ),
     );
   }
 
-  Widget _errorState() {
-    final langVars = _getLangVars();
-    final isZh = langVars['isZh']!;
-    final isMs = langVars['isMs']!;
-
+  Widget _errorState(bool isZh, bool isMs) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
       children: [
@@ -355,11 +333,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     );
   }
 
-  Widget _scheduleTile(Map<String, dynamic> b) {
-    final langVars = _getLangVars();
-    final isZh = langVars['isZh']!;
-    final isMs = langVars['isMs']!;
-
+  Widget _scheduleTile(Map<String, dynamic> b, bool isZh, bool isMs) {
     final step = b['ai_step'] as int? ?? 1;
     final travelDist = (b['ai_travel_distance'] as num?)?.toDouble() ?? 0;
     final travelTime = (b['ai_travel_time'] as num?)?.toInt() ?? 0;

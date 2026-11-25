@@ -1,4 +1,4 @@
-import 'dart:convert'; // Required for parsing JSON
+import 'dart:convert';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -20,11 +20,11 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   bool _loading = true;
   String? _error;
 
-  // 🎨 Unified Orange theme
+  // Unified Orange theme
   static const _primaryColor = Color(0xFFFF6B00);
   static const _accentColor = Color(0xFFFFF7ED);
 
-  // 👇 新增：本地硬编码翻译函数，避免修改 JSON 文件
+  // Local hardcoded translation function to avoid modifying JSON files
   String _localText(String key) {
     final langCode = Localizations.localeOf(context).languageCode;
     if (langCode == 'zh') {
@@ -34,7 +34,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       if (key == 'ai_intro') return 'Berdasarkan kemahiran dan sijil anda, AI kami mengesyorkan kategori perkhidmatan ini untuk anda.';
       if (key == 'ai_analyzing') return 'AI sedang menganalisis profil anda...';
     }
-    // 默认英文
+    // Default English
     if (key == 'ai_intro') return 'Based on your skills and certifications, our AI recommends these service categories for you.';
     if (key == 'ai_analyzing') return 'AI is analyzing your profile...';
 
@@ -230,7 +230,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  // 👇 修改：移除原来的 tr()，使用本地硬编码函数
                                   _localText('ai_intro'),
                                   style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
                                 ),
@@ -257,10 +256,10 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
             ),
           ),
 
+          // FIXED: Removed onOpenAi parameter
           ProviderFloatingNavBar(
-            currentIndex: 0,
+            currentIndex: 2, // AI Job Matching tab index
             onTabChanged: (index) => Navigator.pop(context),
-            onOpenAi: () {},
           ),
         ],
       ),
@@ -275,7 +274,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
           const CircularProgressIndicator(color: _primaryColor),
           const SizedBox(height: 24),
           Text(
-            // 👇 修改：移除原来的 tr()，使用本地硬编码函数
             _localText('ai_analyzing'),
             style: const TextStyle(color: Colors.grey, fontSize: 14),
           ),
