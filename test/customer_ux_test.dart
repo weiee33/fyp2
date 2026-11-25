@@ -274,6 +274,15 @@ void main() {
     expect(find.byTooltip('Chats'), findsNothing);
     expect(find.text('My Addresses'), findsNothing);
     expect(find.text('Account & Security'), findsOneWidget);
+    final label = find.text('Log Out');
+    await t.ensureVisible(label);
+    final tile = find.ancestor(of: label, matching: find.byType(ListTile));
+    expect(t.widget<ListTile>(tile).trailing, isNull);
+    expect(t.widget<Text>(label).textAlign, TextAlign.center);
+    expect(t.getCenter(label).dx, closeTo(t.getCenter(tile).dx, .5));
+    await t.tap(label);
+    await t.pumpAndSettle();
+    expect(find.text('Log out?'), findsOneWidget);
   });
   testWidgets(
     'delete account cancellation and server rejection keep customer on page',
