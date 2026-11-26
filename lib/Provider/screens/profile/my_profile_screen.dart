@@ -13,7 +13,7 @@ import 'service_areas_screen.dart';
 import 'working_hours_screen.dart';
 import 'privacy_screen.dart';
 import 'about_app_screen.dart';
-import 'help_centre.dart'; // <-- Added Help Centre import
+import 'help_centre.dart';
 
 import 'package:fyp2/Provider/screens/services/my_services_screen.dart';
 import 'package:fyp2/Provider/screens/bookings/my_bookings_screen.dart';
@@ -44,13 +44,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   Map<String, dynamic>? _profile;
   bool _loading = true;
 
-  // Tab index: 0 = Home, 1 = Bookings, 2 = AI Match, 3 = AI Schedule,
-  //            4 = Schedule, 5 = Profile
+  // Tab index
   int _tab = 0;
 
-  // --- Scroll-driven navigation visibility ---
+  // Scroll-driven navigation visibility
   bool _navVisible = true;
   double _scrollTravel = 0;
+
+  // Bio Expand State
+  bool _isBioExpanded = false;
 
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
@@ -347,7 +349,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                       color: Colors.orange, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
-                                    tr('{0} · {1} years', [rating, years]),
+                                    tr('{0} · {1} years experience', [rating, years]),
                                     style: const TextStyle(
                                       color: Colors.orange,
                                       fontSize: 13,
@@ -365,19 +367,55 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     ),
                     if (bio.isNotEmpty && bio != 'No bio yet') ...[
                       const SizedBox(height: 14),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: _lightOrange,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          bio,
-                          style: const TextStyle(
-                            color: Colors.black87,
-                            fontSize: 13,
-                            height: 1.4,
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            _isBioExpanded = !_isBioExpanded;
+                          });
+                        },
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: _lightOrange,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                bio,
+                                maxLines: _isBioExpanded ? null : 2,
+                                overflow: _isBioExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                                style: const TextStyle(
+                                  color: Colors.black87,
+                                  fontSize: 13,
+                                  height: 1.4,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    _isBioExpanded ? tr('See less') : tr('See more'),
+                                    style: const TextStyle(
+                                      color: _primaryOrange,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Icon(
+                                    _isBioExpanded
+                                        ? Icons.keyboard_arrow_up
+                                        : Icons.keyboard_arrow_down,
+                                    color: _primaryOrange,
+                                    size: 16,
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ),

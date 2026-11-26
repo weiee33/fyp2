@@ -147,14 +147,134 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     return results;
   }
 
-  void _onAccept(Map<String, dynamic> m) {
+  Future<void> _onAccept(Map<String, dynamic> m) async {
+    final categoryName = m['category'].toString();
+    final requiredSkill = m['requiredSkill']?.toString() ?? categoryName;
+
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(tr("Accepted: {0}", [m['category']])),
-        backgroundColor: Colors.green.shade600,
+        content: Row(
+          children: [
+            const SizedBox(
+              width: 16, height: 16,
+              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+            ),
+            const SizedBox(width: 12),
+            Text(tr("Adding {0} to your services...", [categoryName])),
+          ],
+        ),
+        backgroundColor: _primaryColor,
         behavior: SnackBarBehavior.floating,
       ),
     );
+
+    try {
+      String? catId;
+      String? providerId;
+
+      // 1. Get provider_id
+      try {
+        final pRes = await _client
+            .from('provider_profiles')
+            .select('provider_id')
+            .eq('user_id', _client.auth.currentUser!.id)
+            .maybeSingle();
+        if (pRes != null) {
+          providerId = pRes['provider_id']?.toString();
+        }
+      } catch (_) {}
+
+      // 2. Get category_id
+      try {
+        final catRes = await _client
+            .from('service_categories')
+            .select('category_id')
+            .ilike('category_name', '%$requiredSkill%')
+            .limit(1)
+            .maybeSingle();
+        if (catRes != null) {
+          catId = catRes['category_id']?.toString();
+        }
+      } catch (e) {
+        debugPrint("Find category error: $e");
+      }
+
+      // 3. Check for duplicate active service before inserting
+      if (providerId != null) {
+        final existingService = await _client
+            .from('services')
+            .select('service_id')
+            .eq('provider_id', providerId)
+            .eq('service_name', categoryName)
+            .eq('is_active', true)
+            .maybeSingle();
+
+        if (existingService != null) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(tr("You already have this service active in 'My Services'.")),
+              backgroundColor: Colors.orange.shade600,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+          setState(() {
+            _matches.removeWhere((x) => x['category'] == m['category']);
+          });
+          return;
+        }
+      }
+
+      // 4. Prepare insert data
+      final Map<String, dynamic> insertData = {
+        'service_name': categoryName,
+        'description': 'Professional $categoryName provided by certified experts.',
+        'pricing_type': 'Fixed',
+        'base_price': 50.00,
+        'estimated_duration': 60,
+        'is_active': true,
+      };
+
+      if (catId != null) insertData['category_id'] = catId;
+      if (providerId != null) insertData['provider_id'] = providerId;
+
+      // 5. Insert into services table
+      await _client.from('services').insert(insertData);
+
+      if (!mounted) return;
+
+      // 6. Remove from current recommendation list
+      setState(() {
+        _matches.removeWhere((x) => x['category'] == m['category']);
+      });
+
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(Icons.check_circle, color: Colors.white, size: 20),
+              const SizedBox(width: 8),
+              Text(tr("Successfully added to My Services!")),
+            ],
+          ),
+          backgroundColor: Colors.green.shade600,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(tr("Failed to add service: {0}", [e.toString()])),
+          backgroundColor: Colors.red.shade600,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   void _onNotInterested(Map<String, dynamic> m) {
@@ -256,9 +376,8 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
             ),
           ),
 
-          // FIXED: Removed onOpenAi parameter
           ProviderFloatingNavBar(
-            currentIndex: 2, // AI Job Matching tab index
+            currentIndex: 2,
             onTabChanged: (index) => Navigator.pop(context),
           ),
         ],

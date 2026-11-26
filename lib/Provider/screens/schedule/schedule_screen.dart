@@ -22,7 +22,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   String? _error;
   List<Map<String, dynamic>> _bookings = [];
 
-  // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -69,11 +68,15 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         return;
       }
 
+      // 👇 只查未来的、且未完成/未取消的单子
+      final now = DateTime.now().toUtc().toIso8601String();
+
       final res = await _client
           .from('bookings')
           .select()
           .eq('provider_id', providerId)
-          .neq('booking_status', 'Cancelled')
+          .not('booking_status', 'in', '(Cancelled,Completed)') // 排除 Cancelled 和 Completed
+          .gte('scheduled_datetime', now) // 只查未来的单子
           .order('scheduled_datetime', ascending: true);
 
       if (!mounted) return;
@@ -104,24 +107,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return dt.isBefore(DateTime.now());
   }
 
-  Map<String, List<Map<String, dynamic>>> _groupBookings() {
+  // 因为数据库已经过滤了，这里现在只剩下 upcoming
+  List<Map<String, dynamic>> _groupUpcoming() {
     final upcoming = <Map<String, dynamic>>[];
-    final expired = <Map<String, dynamic>>[];
-    final completed = <Map<String, dynamic>>[];
-
     for (final b in _bookings) {
-      final status = (b['booking_status'] ?? '').toString().toLowerCase();
-
-      if (status == 'completed') {
-        completed.add(b);
-      } else if (_isExpired(b)) {
-        expired.add(b);
-      } else {
-        upcoming.add(b);
-      }
+      if (!_isExpired(b)) upcoming.add(b);
     }
-
-    return {'upcoming': upcoming, 'expired': expired, 'completed': completed};
+    return upcoming;
   }
 
   Map<String, List<Map<String, dynamic>>> _groupByDate(
@@ -150,9 +142,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final today = DateTime.now();
     return _bookings.where((b) {
       if (_isExpired(b)) return false;
-      if ((b['booking_status'] ?? '').toString().toLowerCase() == 'completed') {
-        return false;
-      }
       final raw = b['scheduled_datetime']?.toString();
       if (raw == null) return false;
       final dt = DateTime.tryParse(raw)?.toLocal();
@@ -167,9 +156,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final tomorrow = DateTime.now().add(const Duration(days: 1));
     return _bookings.where((b) {
       if (_isExpired(b)) return false;
-      if ((b['booking_status'] ?? '').toString().toLowerCase() == 'completed') {
-        return false;
-      }
       final raw = b['scheduled_datetime']?.toString();
       if (raw == null) return false;
       final dt = DateTime.tryParse(raw)?.toLocal();
@@ -186,9 +172,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final endOfWeek = startOfWeek.add(const Duration(days: 7));
     return _bookings.where((b) {
       if (_isExpired(b)) return false;
-      if ((b['booking_status'] ?? '').toString().toLowerCase() == 'completed') {
-        return false;
-      }
       final raw = b['scheduled_datetime']?.toString();
       if (raw == null) return false;
       final dt = DateTime.tryParse(raw)?.toLocal();
@@ -232,7 +215,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Error State ====================
   Widget _errorState(bool isZh, bool isMs) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
@@ -294,7 +276,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Empty State ====================
   Widget _emptyState() {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
@@ -338,26 +319,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Main Content ====================
   Widget _buildContent(bool isZh, bool isMs) {
-    final grouped = _groupBookings();
-    final upcoming = grouped['upcoming'] ?? [];
-    final expired = grouped['expired'] ?? [];
-    final completed = grouped['completed'] ?? [];
-
+    final upcoming = _groupUpcoming();
     final upcomingGrouped = _groupByDate(upcoming);
-    final expiredGrouped = _groupByDate(expired);
-    final completedGrouped = _groupByDate(completed);
-
     final upcomingKeys = upcomingGrouped.keys.toList()..sort();
-    final expiredKeys = expiredGrouped.keys.toList()..sort();
-    final completedKeys = completedGrouped.keys.toList()..sort();
 
     return ListView(
-      // 👇 关键修改：底部留出 120 的空间给悬浮导航栏
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       children: [
-        // ---- Stats ----
         Row(
           children: [
             _statCard(
@@ -384,7 +353,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         ),
         const SizedBox(height: 20),
 
-        // ---- Upcoming Section ----
         if (upcoming.isNotEmpty) ...[
           _sectionTitle(
             icon: Icons.schedule,
@@ -395,81 +363,24 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           const SizedBox(height: 12),
           ...upcomingKeys.map((dateKey) {
             final items = upcomingGrouped[dateKey]!;
-            return _dateGroup(dateKey, items, expired: false);
+            return _dateGroup(dateKey, items);
           }),
-          const SizedBox(height: 20),
-        ],
-
-        // ---- Expired Section ----
-        if (expired.isNotEmpty) ...[
-          _sectionTitle(
-            icon: Icons.warning_amber_rounded,
-            title: isZh ? '已过期' : (isMs ? 'Tamat Tempoh' : 'Expired Schedule'),
-            count: expired.length,
-            color: Colors.grey.shade700,
-          ),
-          const SizedBox(height: 8),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.orange.shade50,
-              borderRadius: BorderRadius.circular(10),
-              border: Border.all(color: Colors.orange.shade200),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.info_outline,
-                  size: 16,
-                  color: Colors.orange.shade700,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    isZh
-                        ? '请联系客户讨论这些过去的预约。'
-                        : (isMs
-                        ? 'Sila hubungi pelanggan untuk membincangkan temujanji lepas ini.'
-                        : 'Please contact the customer to discuss these past appointments.'),
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.orange.shade800,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
+        ] else
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 32),
+            child: Center(
+              child: Text(
+                tr('No upcoming bookings'),
+                style: const TextStyle(color: Colors.grey),
+              ),
             ),
           ),
-          const SizedBox(height: 12),
-          ...expiredKeys.map((dateKey) {
-            final items = expiredGrouped[dateKey]!;
-            return _dateGroup(dateKey, items, expired: true);
-          }),
-          const SizedBox(height: 20),
-        ],
-
-        // ---- Completed Section ----
-        if (completed.isNotEmpty) ...[
-          _sectionTitle(
-            icon: Icons.check_circle,
-            title: isZh ? '已完成' : (isMs ? 'Selesai' : 'Completed Schedule'),
-            count: completed.length,
-            color: _successGreen,
-          ),
-          const SizedBox(height: 12),
-          ...completedKeys.map((dateKey) {
-            final items = completedGrouped[dateKey]!;
-            return _dateGroup(dateKey, items, expired: false, completed: true);
-          }),
-        ],
 
         const SizedBox(height: 16),
       ],
     );
   }
 
-  // ==================== Section Title ====================
   Widget _sectionTitle({
     required IconData icon,
     required String title,
@@ -517,37 +428,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Date Group ====================
-  Widget _dateGroup(
-      String dateKey,
-      List<Map<String, dynamic>> items, {
-        required bool expired,
-        bool completed = false,
-      }) {
-    final headerColor = completed
-        ? _successGreen
-        : expired
-        ? Colors.grey.shade700
-        : _primaryOrange;
-
-    final badgeBg = completed
-        ? Colors.green.shade50
-        : expired
-        ? Colors.grey.shade100
-        : _lightOrange;
-
-    final badgeBorder = completed
-        ? Colors.green.shade200
-        : expired
-        ? Colors.grey.shade300
-        : _borderOrange;
-
-    final lineColor = completed
-        ? Colors.green.shade200
-        : expired
-        ? Colors.grey.shade300
-        : _borderOrange;
-
+  Widget _dateGroup(String dateKey, List<Map<String, dynamic>> items) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -561,7 +442,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: headerColor,
+                  color: _primaryOrange,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -588,31 +469,30 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: badgeBg,
+                  color: _lightOrange,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: badgeBorder),
+                  border: Border.all(color: _borderOrange),
                 ),
                 child: Text(
                   '${items.length}',
-                  style: TextStyle(
-                    color: headerColor,
+                  style: const TextStyle(
+                    color: _primaryOrange,
                     fontSize: 11,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              Expanded(child: Container(height: 1, color: lineColor)),
+              Expanded(child: Container(height: 1, color: _borderOrange)),
             ],
           ),
         ),
-        ...items.map((b) => _bookingCard(b, expired: expired)),
+        ...items.map((b) => _bookingCard(b)),
         const SizedBox(height: 8),
       ],
     );
   }
 
-  // ==================== Stat Card ====================
   Widget _statCard({
     required String label,
     required int count,
@@ -663,8 +543,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Booking Card ====================
-  Widget _bookingCard(Map<String, dynamic> b, {bool expired = false}) {
+  Widget _bookingCard(Map<String, dynamic> b) {
     final lang = Localizations.localeOf(context).languageCode;
     final isZh = lang == 'zh';
     final isMs = lang == 'ms';
@@ -677,19 +556,13 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final amount = b['total_amount'];
     final instructions = b['special_instructions']?.toString() ?? '';
 
-    final cardBg = expired ? Colors.grey.shade50 : Colors.white;
-    final borderColor = expired ? Colors.grey.shade300 : _borderOrange;
-    final timeBg = expired ? Colors.grey.shade100 : _lightOrange;
-    final timeBorder = expired ? Colors.grey.shade300 : _borderOrange;
-    final timeColor = expired ? Colors.grey.shade700 : _primaryOrange;
-
     return Card(
       elevation: 1,
-      color: cardBg,
+      color: Colors.white,
       margin: const EdgeInsets.only(bottom: 10),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: borderColor),
+        side: const BorderSide(color: _borderOrange),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
@@ -706,38 +579,34 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     width: 62,
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     decoration: BoxDecoration(
-                      color: timeBg,
+                      color: _lightOrange,
                       borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: timeBorder),
+                      border: Border.all(color: _borderOrange),
                     ),
                     child: Column(
                       children: [
                         Text(
                           _formatTime(scheduledAt),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.bold,
-                            color: timeColor,
+                            color: _primaryOrange,
                           ),
                         ),
                         if (duration != null)
                           Text(
                             '${duration}m',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 10,
-                              color: expired
-                                  ? Colors.grey.shade600
-                                  : Colors.grey,
+                              color: Colors.grey,
                             ),
                           )
                         else
                           Text(
                             isZh ? '小时' : (isMs ? 'jam' : 'hrs'),
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 10,
-                              color: expired
-                                  ? Colors.grey.shade600
-                                  : Colors.grey,
+                              color: Colors.grey,
                             ),
                           ),
                       ],
@@ -750,12 +619,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       children: [
                         Text(
                           serviceName,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
-                            color: expired
-                                ? Colors.grey.shade700
-                                : Colors.black87,
+                            color: Colors.black87,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -764,22 +631,18 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         if (address.isNotEmpty)
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.location_on_outlined,
                                 size: 14,
-                                color: expired
-                                    ? Colors.grey.shade500
-                                    : Colors.grey,
+                                color: Colors.grey,
                               ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   address,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 12,
-                                    color: expired
-                                        ? Colors.grey.shade500
-                                        : Colors.grey,
+                                    color: Colors.grey,
                                   ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
@@ -791,22 +654,18 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              Icon(
+                              const Icon(
                                 Icons.notes,
                                 size: 14,
-                                color: expired
-                                    ? Colors.grey.shade500
-                                    : Colors.grey,
+                                color: Colors.grey,
                               ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
                                   instructions,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     fontSize: 12,
-                                    color: expired
-                                        ? Colors.grey.shade500
-                                        : Colors.grey,
+                                    color: Colors.grey,
                                     fontStyle: FontStyle.italic,
                                   ),
                                   maxLines: 1,
@@ -820,60 +679,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                           const SizedBox(height: 4),
                           Text(
                             'RM ${(amount as num).toStringAsFixed(2)}',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 13,
                               fontWeight: FontWeight.bold,
-                              color: expired
-                                  ? Colors.grey.shade600
-                                  : _primaryOrange,
+                              color: _primaryOrange,
                             ),
                           ),
                         ],
                       ],
                     ),
                   ),
-                  expired ? _expiredChip(isZh, isMs) : _statusChip(status),
+                  _statusChip(status),
                 ],
               ),
-
-              if (expired) ...[
-                const SizedBox(height: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.orange.shade200),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.info_outline,
-                        size: 14,
-                        color: Colors.orange.shade700,
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          isZh
-                              ? '请联系客户进行讨论。'
-                              : (isMs
-                              ? 'Sila hubungi pelanggan untuk berbincang.'
-                              : 'Please contact the customer to discuss.'),
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.orange.shade800,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
             ],
           ),
         ),
@@ -881,36 +699,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _expiredChip(bool isZh, bool isMs) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade200,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.warning_amber_rounded,
-            size: 11,
-            color: Colors.grey.shade700,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            isZh ? '已过期' : (isMs ? 'TAMAT' : 'EXPIRED'),
-            style: TextStyle(
-              fontSize: 10,
-              color: Colors.grey.shade700,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ==================== Details Dialog ====================
   Future<void> _showDetailsDialog(Map<String, dynamic> b) async {
     final lang = Localizations.localeOf(context).languageCode;
     final isZh = lang == 'zh';
@@ -926,7 +714,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final bookingId = b['booking_id']?.toString() ?? '';
     final customerId = b['customer_id']?.toString();
     final coordinates = b['customer_coordinates']?.toString();
-    final expired = _isExpired(b);
 
     String customerName = 'Customer';
     if (customerId != null) {
@@ -956,25 +743,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: expired ? Colors.grey.shade200 : _lightOrange,
+                  color: _lightOrange,
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Icon(
-                  expired ? Icons.warning_amber_rounded : Icons.event_note,
-                  color: expired ? Colors.grey.shade700 : _primaryOrange,
+                child: const Icon(
+                  Icons.event_note,
+                  color: _primaryOrange,
                   size: 20,
                 ),
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  expired
-                      ? (isZh
-                      ? '已过期预约'
-                      : (isMs ? 'Tempahan Tamat' : 'Expired Booking'))
-                      : (isZh
-                      ? '预约详情'
-                      : (isMs ? 'Butiran Tempahan' : 'Booking Details')),
+                  isZh ? '预约详情' : (isMs ? 'Butiran Tempahan' : 'Booking Details'),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -988,41 +769,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (expired) ...[
-                  Container(
-                    padding: const EdgeInsets.all(10),
-                    margin: const EdgeInsets.only(bottom: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade50,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.orange.shade200),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.info_outline,
-                          size: 16,
-                          color: Colors.orange.shade700,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            isZh
-                                ? '此预约时间已过。请联系客户进行讨论。'
-                                : (isMs
-                                ? 'Temujanji ini telah berlalu. Sila hubungi pelanggan untuk berbincang.'
-                                : 'This appointment has passed. Please contact the customer to discuss.'),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.orange.shade800,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
                 _detailRow('Customer', customerName, Icons.person_outline),
                 _detailRow('Service', serviceName, Icons.build_outlined),
                 _detailRow('Status', status, Icons.info_outline),
@@ -1069,7 +815,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   status: status,
                   customerId: customerId,
                   customerName: customerName,
-                  expired: expired,
                   isZh: isZh,
                   isMs: isMs,
                 ),
@@ -1088,7 +833,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Map Preview ====================
   Widget _mapPreview(String coordinates, String address, bool isZh, bool isMs) {
     final parts = coordinates.split(',');
     double? lat, lng;
@@ -1191,28 +935,23 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Action Buttons ====================
   Widget _buildActionButtons({
     required BuildContext ctx,
     required String bookingId,
     required String status,
     required String? customerId,
     required String customerName,
-    required bool expired,
     required bool isZh,
     required bool isMs,
   }) {
     final lowerStatus = status.toLowerCase();
-    final isCompleted = lowerStatus == 'completed';
-    final isCancelled = lowerStatus == 'cancelled';
     final isInProgress = lowerStatus == 'in-progress';
     final isConfirmed = lowerStatus == 'confirmed';
     final isPending = lowerStatus == 'pending';
 
     final buttons = <Widget>[];
 
-    // ---- Chat: any active booking ----
-    if (customerId != null && !isCompleted && !isCancelled) {
+    if (customerId != null) {
       buttons.add(
         _actionButton(
           label: isZh
@@ -1229,8 +968,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       );
     }
 
-    // ---- Accept: Pending + not expired ----
-    if (isPending && !expired) {
+    if (isPending) {
       buttons.add(
         _actionButton(
           label: isZh
@@ -1247,8 +985,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       );
     }
 
-    // ---- Cancel: Pending + not expired ----
-    if (isPending && !expired) {
+    if (isPending) {
       buttons.add(
         _actionButton(
           label: isZh
@@ -1295,8 +1032,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       );
     }
 
-    // ---- Start Job: Confirmed + not expired ----
-    if (isConfirmed && !expired) {
+    if (isConfirmed) {
       buttons.add(
         _actionButton(
           label: isZh ? '开始服务' : (isMs ? 'Mula Kerja' : 'Start Job'),
@@ -1311,7 +1047,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       );
     }
 
-    // ---- Mark as Completed: In-Progress only ----
     if (isInProgress) {
       buttons.add(
         _actionButton(
@@ -1329,30 +1064,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       );
     }
 
-    // ---- Empty state ----
     if (buttons.isEmpty) {
-      final message = isCompleted
-          ? (isZh
-          ? '此预约已完成。'
-          : (isMs ? 'Tempahan ini telah selesai.' : 'This booking is completed.'))
-          : isCancelled
-          ? (isZh
-          ? '此预约已取消。'
-          : (isMs
-          ? 'Tempahan ini telah dibatalkan.'
-          : 'This booking was cancelled.'))
-          : expired
-          ? (isZh
-          ? '此预约已过期。没有可用的操作。'
-          : (isMs
-          ? 'Tempahan ini telah tamat. Tiada tindakan tersedia.'
-          : 'This booking has expired. No action is available.'))
-          : (isZh
-          ? '没有可用的操作。'
-          : (isMs
-          ? 'Tiada tindakan tersedia untuk tempahan ini.'
-          : 'No action is available for this booking.'));
-
       return Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -1365,7 +1077,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                message,
+                isZh
+                    ? '没有可用的操作。'
+                    : (isMs
+                    ? 'Tiada tindakan tersedia untuk tempahan ini.'
+                    : 'No action is available for this booking.'),
                 style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
               ),
             ),
@@ -1434,7 +1150,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Friendly Error Mapper ====================
   String _friendlyError(Object e) {
     final raw = e.toString();
 
@@ -1465,7 +1180,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         .replaceAll(', details: , hint: null)', ')');
   }
 
-  // ==================== Update Status (via BookingService) ====================
   Future<void> _updateStatus(
       String bookingId, String newStatus, bool isZh, bool isMs) async {
     try {
@@ -1522,7 +1236,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
-  // ==================== Cancel Booking (via BookingService) ====================
   Future<void> _cancelBooking(String bookingId, bool isZh, bool isMs) async {
     try {
       await _bookingService.cancel(bookingId, 'Cancelled by provider');
@@ -1562,7 +1275,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
-  // ==================== Sync Earnings Record ====================
   Future<void> _syncEarningsRecord(Map<String, dynamic> bookingRow) async {
     try {
       final bookingId = bookingRow['booking_id']?.toString();
@@ -1598,7 +1310,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
-  // ==================== Open Chat ====================
   void _openChat(String bookingId) {
     Navigator.push(
       context,
@@ -1640,23 +1351,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Status Chip ====================
   Widget _statusChip(String status) {
     Color bg;
     Color fg;
     IconData icon;
 
     switch (status.toLowerCase()) {
-      case 'completed':
-        bg = Colors.green.shade50;
-        fg = Colors.green.shade700;
-        icon = Icons.check_circle;
-        break;
-      case 'cancelled':
-        bg = Colors.red.shade50;
-        fg = Colors.red.shade700;
-        icon = Icons.cancel;
-        break;
       case 'in-progress':
         bg = Colors.blue.shade50;
         fg = Colors.blue.shade700;
@@ -1697,7 +1397,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  // ==================== Formatters ====================
   String _formatHeader(String dateKey) {
     final lang = Localizations.localeOf(context).languageCode;
     final isZh = lang == 'zh';
@@ -1715,7 +1414,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
       if (diff == 0) return isZh ? '今天' : (isMs ? 'Hari Ini' : 'Today');
       if (diff == 1) return isZh ? '明天' : (isMs ? 'Esok' : 'Tomorrow');
-      if (diff == -1) return isZh ? '昨天' : (isMs ? 'Semalam' : 'Yesterday');
 
       return DateFormat.yMMMd().format(dt);
     } catch (_) {

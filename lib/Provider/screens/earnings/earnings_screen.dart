@@ -21,7 +21,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
-  static const _borderOrange = Color(0xFFFFE0CC);
+  static const _bgWhite = Color(0xFFF8F9FA);
 
   @override
   void initState() {
@@ -77,10 +77,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
     for (final row in _rows) {
       final parsed = _parseDate(row);
       if (parsed == null) continue;
-
       final rowDate = DateTime(parsed.year, parsed.month, parsed.day);
       final diff = rowDate.difference(monday).inDays;
-
       if (diff >= 0 && diff < 7) {
         result[diff] += _amount(row);
       }
@@ -124,9 +122,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
       final parsed = _parseDate(row);
       if (parsed == null) continue;
       final idx = years.indexOf(parsed.year);
-      if (idx >= 0) {
-        result[idx] += _amount(row);
-      }
+      if (idx >= 0) result[idx] += _amount(row);
     }
     return result;
   }
@@ -140,6 +136,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
     AppLanguage.watch(context);
     if (_loading) {
       return const Scaffold(
+        backgroundColor: _bgWhite,
         body: Center(
           child: CircularProgressIndicator(color: _primaryOrange),
         ),
@@ -178,148 +175,243 @@ class _EarningsScreenState extends State<EarningsScreen> {
         : 10.0;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: _bgWhite,
       appBar: AppBar(
-        title: Text(tr('Earnings')),
-        backgroundColor: _primaryOrange,
-        foregroundColor: Colors.white,
+        title: Text(
+          tr('Earnings'),
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        backgroundColor: _bgWhite,
+        foregroundColor: Colors.black87, // 浅色背景下用深色字
         elevation: 0,
         automaticallyImplyLeading: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none),
+            onPressed: () {},
+          )
+        ],
       ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
           color: _primaryOrange,
           child: ListView(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             children: [
-              // Chart Card
-              Card(
-                elevation: 2,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: _borderOrange),
+              // ===== 👑 顶部总览卡片 (Hero Card) =====
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [_primaryOrange, Color(0xFFFF8C42)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primaryOrange.withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          tr('Total Balance'),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const Icon(Icons.account_balance_wallet_outlined, color: Colors.white70),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          "RM${month.toStringAsFixed(2)}",
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 6),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Text(
+                              'This Month',
+                              style: TextStyle(color: Colors.white, fontSize: 10),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    // 下方小数据组
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _miniStat('Today', "RM${today.toStringAsFixed(0)}", Icons.today),
+                        Container(width: 1, height: 24, color: Colors.white.withValues(alpha: 0.3)),
+                        _miniStat('This Week', "RM${week.toStringAsFixed(0)}", Icons.date_range),
+                        Container(width: 1, height: 24, color: Colors.white.withValues(alpha: 0.3)),
+                        _miniStat('Pending', "RM${pending.toStringAsFixed(0)}", Icons.hourglass_empty),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // ===== 📈 图表卡片 =====
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(20),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Icon(
-                            Icons.show_chart,
-                            color: _primaryOrange,
-                            size: 20,
-                          ),
-                          const SizedBox(width: 8),
                           Text(
                             tr('Earnings Trend'),
                             style: const TextStyle(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.bold,
-                              color: _primaryOrange,
+                              color: Colors.black87,
                             ),
                           ),
+                          _buildToggle(),
                         ],
                       ),
                       const SizedBox(height: 4),
                       Text(
                         tr(chartSubtitle),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
+                        style: const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
-                      const SizedBox(height: 12),
-                      _buildToggle(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
                       SizedBox(
-                        height: 220,
+                        height: 200,
                         child: hasData
-                            ? BarChart(
-                          BarChartData(
-                            alignment: BarChartAlignment.spaceAround,
+                            ? LineChart(
+                          LineChartData(
                             maxY: maxY,
-                            barGroups:
-                            List.generate(chartValues.length, (i) {
-                              return BarChartGroupData(
-                                x: i,
-                                barRods: [
-                                  BarChartRodData(
-                                    toY: chartValues[i],
-                                    color: _primaryOrange,
-                                    width: 12,
-                                    borderRadius:
-                                    BorderRadius.circular(6),
-                                  ),
-                                ],
-                              );
-                            }),
-                            titlesData: FlTitlesData(
-                              show: true,
-                              bottomTitles: AxisTitles(
-                                sideTitles: SideTitles(
-                                  showTitles: true,
-                                  reservedSize: 28,
-                                  getTitlesWidget: (value, meta) {
-                                    final idx = value.toInt();
-                                    if (idx < 0 ||
-                                        idx >= chartLabels.length) {
-                                      return const SizedBox();
-                                    }
-                                    return Padding(
-                                      padding: const EdgeInsets.only(
-                                        top: 6,
-                                      ),
-                                      child: Text(
-                                        tr(chartLabels[idx]),
-                                        style: const TextStyle(
-                                          fontSize: 10,
-                                          color: Colors.grey,
-                                        ),
+                            minY: 0,
+                            lineTouchData: LineTouchData(
+                              touchTooltipData: LineTouchTooltipData(
+                                getTooltipItems: (touchedSpots) {
+                                  return touchedSpots.map((spot) {
+                                    return LineTooltipItem(
+                                      'RM ${spot.y.toStringAsFixed(0)}',
+                                      const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
                                       ),
                                     );
-                                  },
-                                ),
-                              ),
-                              leftTitles: const AxisTitles(
-                                sideTitles:
-                                SideTitles(showTitles: false),
-                              ),
-                              topTitles: const AxisTitles(
-                                sideTitles:
-                                SideTitles(showTitles: false),
-                              ),
-                              rightTitles: const AxisTitles(
-                                sideTitles:
-                                SideTitles(showTitles: false),
+                                  }).toList();
+                                },
                               ),
                             ),
                             gridData: FlGridData(
                               show: true,
                               drawVerticalLine: false,
-                              horizontalInterval: (maxY / 3).clamp(
-                                1,
-                                double.infinity,
+                              horizontalInterval: maxY > 4 ? (maxY / 4) : 1,
+                              getDrawingHorizontalLine: (value) => FlLine(
+                                color: Colors.grey.shade100,
+                                strokeWidth: 1,
                               ),
-                              getDrawingHorizontalLine: (value) =>
-                                  FlLine(
-                                    color: Colors.grey.shade200,
-                                    strokeWidth: 1,
-                                  ),
+                            ),
+                            titlesData: FlTitlesData(
+                              show: true,
+                              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              bottomTitles: AxisTitles(
+                                sideTitles: SideTitles(
+                                  showTitles: true,
+                                  reservedSize: 30,
+                                  // 👇 关键点 1：强制间隔为 1
+                                  interval: 1.0,
+                                  getTitlesWidget: (value, meta) {
+                                    // 👇 关键点 2：如果坐标不是整数（包含小数），直接隐藏不渲染
+                                    if (value % 1 != 0) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    final idx = value.toInt();
+                                    if (idx < 0 || idx >= chartLabels.length) {
+                                      return const SizedBox.shrink();
+                                    }
+
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 8),
+                                      child: Text(
+                                        tr(chartLabels[idx]),
+                                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
                             ),
                             borderData: FlBorderData(show: false),
+                            lineBarsData: [
+                              LineChartBarData(
+                                spots: List.generate(chartValues.length, (i) => FlSpot(i.toDouble(), chartValues[i])),
+                                isCurved: true,
+                                color: _primaryOrange,
+                                barWidth: 4,
+                                isStrokeCapRound: true,
+                                dotData: const FlDotData(show: false),
+                                belowBarData: BarAreaData(
+                                  show: true,
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      _primaryOrange.withValues(alpha: 0.3),
+                                      _primaryOrange.withValues(alpha: 0.0),
+                                    ],
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         )
                             : Center(
                           child: Text(
                             tr('No earnings data yet'),
-                            style: TextStyle(
-                              color: Colors.grey,
-                              fontSize: 13,
-                            ),
+                            style: const TextStyle(color: Colors.grey, fontSize: 13),
                           ),
                         ),
                       ),
@@ -328,175 +420,25 @@ class _EarningsScreenState extends State<EarningsScreen> {
                 ),
               ),
 
-              const SizedBox(height: 20),
-
-              // Stat Cards
-              GridView.count(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-                childAspectRatio: 1.6,
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                children: [
-                  _statCard(
-                    label: 'Today',
-                    value: "RM${today.toStringAsFixed(0)}",
-                    icon: Icons.today,
-                    color: const Color(0xFF3B82F6),
-                  ),
-                  _statCard(
-                    label: 'This Week',
-                    value: "RM${week.toStringAsFixed(0)}",
-                    icon: Icons.date_range,
-                    color: const Color(0xFF10B981),
-                  ),
-                  _statCard(
-                    label: 'This Month',
-                    value: "RM${month.toStringAsFixed(0)}",
-                    icon: Icons.calendar_month,
-                    color: const Color(0xFF8B5CF6),
-                  ),
-                  _statCard(
-                    label: 'Pending',
-                    value: "RM${pending.toStringAsFixed(0)}",
-                    icon: Icons.hourglass_bottom,
-                    color: const Color(0xFFF59E0B),
-                  ),
-                ],
-              ),
-
               const SizedBox(height: 24),
 
-              // Recent Transactions
-              Builder(
-                builder: (context) {
-                  final lang = Localizations.localeOf(context).languageCode;
-                  final isZh = lang == 'zh';
-                  final isMs = lang == 'ms';
-                  return Text(
-                    isZh
-                        ? '最近的交易'
-                        : (isMs ? 'Transaksi Terkini' : 'Recent Transactions'),
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.bold,
-                      color: _primaryOrange,
-                    ),
-                  );
-                },
+              // ===== 📋 最近交易列表 =====
+              Text(
+                tr('Recent Transactions'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
               ),
               const SizedBox(height: 12),
 
               if (_rows.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 30),
-                  child: Center(
-                    child: Column(
-                      children: [
-                        Icon(
-                          Icons.receipt_long_outlined,
-                          size: 56,
-                          color: Colors.grey.shade400,
-                        ),
-                        const SizedBox(height: 12),
-                        Builder(
-                          builder: (context) {
-                            final lang =
-                                Localizations.localeOf(context).languageCode;
-                            final isZh = lang == 'zh';
-                            final isMs = lang == 'ms';
-                            return Text(
-                              isZh
-                                  ? '暂无交易记录'
-                                  : (isMs
-                                  ? 'Tiada transaksi lagi'
-                                  : 'No transactions yet'),
-                              style: TextStyle(
-                                color: Colors.grey.shade600,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 14,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                )
+                _buildEmptyState()
               else
-                ..._rows.take(15).map((row) {
-                  final date = _parseDate(row);
-                  final dateStr = date != null
-                      ? '${date.day}/${date.month}/${date.year}'
-                      : '';
-                  final amount = _amount(row);
+                ..._rows.take(15).map((row) => _buildTransactionItem(row)),
 
-                  return Builder(
-                    builder: (context) {
-                      final lang =
-                          Localizations.localeOf(context).languageCode;
-                      final isZh = lang == 'zh';
-                      final isMs = lang == 'ms';
-
-                      final serviceName = row['service_name']?.toString() ??
-                          (isZh
-                              ? '服务付款'
-                              : (isMs ? 'Bayaran Perkhidmatan' : 'Service Payment'));
-                      final customerName = row['customer_name']?.toString() ??
-                          (isZh ? '客户' : (isMs ? 'Pelanggan' : 'Customer'));
-
-                      return Card(
-                        elevation: 0,
-                        margin: const EdgeInsets.only(bottom: 10),
-                        color: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          side: const BorderSide(color: _borderOrange),
-                        ),
-                        child: ListTile(
-                          leading: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: _lightOrange,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(
-                              Icons.attach_money,
-                              color: _primaryOrange,
-                            ),
-                          ),
-                          title: Text(
-                            serviceName,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w600,
-                              fontSize: 14,
-                              color: Color(0xFF111827),
-                            ),
-                          ),
-                          subtitle: Text(
-                            '$customerName · $dateStr',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          trailing: Text(
-                            '+ RM${amount.toStringAsFixed(2)}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.green,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                }),
-
-              const SizedBox(height: 16),
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -504,17 +446,46 @@ class _EarningsScreenState extends State<EarningsScreen> {
     );
   }
 
+  // 顶部卡片内部的小数据
+  Widget _miniStat(String label, String value, IconData icon) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(icon, size: 12, color: Colors.white70),
+            const SizedBox(width: 4),
+            Text(
+              tr(label),
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 优雅的 Toggle 切换
   Widget _buildToggle() {
     return Container(
       decoration: BoxDecoration(
         color: _lightOrange,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: _borderOrange),
       ),
-      padding: const EdgeInsets.all(4),
+      padding: const EdgeInsets.all(3),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _toggleBtn('Mon - Sun', 0),
+          _toggleBtn('Weekly', 0),
           _toggleBtn('Monthly', 1),
           _toggleBtn('Yearly', 2),
         ],
@@ -524,81 +495,168 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
   Widget _toggleBtn(String label, int value) {
     final selected = _chartView == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _chartView = value),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: selected ? _primaryOrange : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Text(
-              tr(label),
-              style: TextStyle(
-                color: selected ? Colors.white : _primaryOrange,
-                fontSize: 12,
-                fontWeight: selected ? FontWeight.bold : FontWeight.w500,
-              ),
-            ),
+    return GestureDetector(
+      onTap: () => setState(() => _chartView = value),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: selected ? Colors.white : Colors.transparent,
+          borderRadius: BorderRadius.circular(8),
+          boxShadow: selected ? [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))
+          ] : [],
+        ),
+        child: Text(
+          tr(label),
+          style: TextStyle(
+            color: selected ? _primaryOrange : Colors.grey.shade600,
+            fontSize: 11,
+            fontWeight: selected ? FontWeight.bold : FontWeight.w500,
           ),
         ),
       ),
     );
   }
 
-  Widget _statCard({
-    required String label,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
-    return Card(
-      elevation: 2,
-      color: Colors.white,
-      shape: RoundedRectangleBorder(
+  // 还原设计图的卡片列表
+  Widget _buildTransactionItem(Map<String, dynamic> row) {
+    final date = _parseDate(row);
+    final dateStr = date != null ? '${date.day} ${_monthName(date.month)}' : '';
+    final amount = _amount(row);
+    final isPending = row['payment_status'] == 'Pending' || row['status'] == 'Pending';
+
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
+    final serviceName = row['service_name']?.toString() ??
+        (isZh ? '服务付款' : (isMs ? 'Bayaran Perkhidmatan' : 'Service Payment'));
+    final customerName = row['customer_name']?.toString() ??
+        (isZh ? '客户' : (isMs ? 'Pelanggan' : 'Customer'));
+
+    // 随机给列表项分配设计图中不同的边框颜色，但没有破坏整体色调
+    final borderColors = [Colors.blue.shade300, Colors.purple.shade300, Colors.orange.shade300, Colors.pink.shade300, Colors.green.shade300];
+    final colorIndex = serviceName.hashCode % borderColors.length;
+    final borderColor = borderColors[colorIndex.abs()];
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        side: const BorderSide(color: _borderOrange),
+        border: Border.all(color: Colors.grey.shade100, width: 1),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
+      child: Row(
+        children: [
+          // 左侧彩色竖条
+          Container(
+            width: 4,
+            height: 40,
+            decoration: BoxDecoration(
+              color: borderColor,
+              borderRadius: BorderRadius.circular(4),
+            ),
+          ),
+          const SizedBox(width: 12),
+          // 服务图标
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: _lightOrange,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.work_outline, color: _primaryOrange, size: 20),
+          ),
+          const SizedBox(width: 12),
+          // 标题与副标题
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(8),
+                Text(
+                  serviceName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    color: Colors.black87,
                   ),
-                  child: Icon(icon, color: color, size: 16),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    tr(label),
-                    style: const TextStyle(
-                      color: Colors.grey,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    overflow: TextOverflow.ellipsis,
+                const SizedBox(height: 4),
+                Text(
+                  '$customerName · $dateStr',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+          ),
+          // 右侧金额与状态
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                'RM${amount.toStringAsFixed(2)}',
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: isPending ? Colors.orange.shade50 : Colors.green.shade50,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  tr(isPending ? 'Pending' : 'Paid'),
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    color: isPending ? Colors.orange.shade700 : Colors.green.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _monthName(int month) {
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    return months[month - 1];
+  }
+
+  Widget _buildEmptyState() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 30),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 56,
+              color: Colors.grey.shade300,
+            ),
+            const SizedBox(height: 12),
             Text(
-              value,
+              tr('No transactions yet'),
               style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: color,
+                color: Colors.grey.shade500,
+                fontWeight: FontWeight.w500,
+                fontSize: 14,
               ),
             ),
           ],

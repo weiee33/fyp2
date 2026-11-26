@@ -8,6 +8,10 @@ import 'package:fyp2/Provider/services/notification_service.dart';
 import 'package:fyp2/Provider/screens/earnings/earnings_screen.dart';
 import 'package:fyp2/Provider/screens/profile/service_areas_screen.dart';
 
+import 'package:fyp2/Provider/screens/services/my_services_screen.dart';
+import 'package:fyp2/Provider/screens/profile/working_hours_screen.dart';
+import 'package:fyp2/Provider/screens/review/review_screen.dart';
+
 class ProviderHomeScreen extends StatefulWidget {
   final Function(int) onNavigateToTab;
 
@@ -25,10 +29,10 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   String? _error;
 
   Map<String, dynamic>? _profile;
-  double _todayEarnings = 0.0;
+  double _weekEarnings = 0.0;
   int _pendingCount = 0;
-  int _activeCount = 0;
-  int _completedThisWeek = 0;
+  int _todoTodayCount = 0;
+  int _completedToday = 0;
   List<Map<String, dynamic>> _recentPending = [];
 
   static const _primaryOrange = Color(0xFFFF6B00);
@@ -65,43 +69,63 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       final providerId = profileRow['provider_id'].toString();
 
       final today = DateTime.now();
-      final startOfDay =
-      DateTime(today.year, today.month, today.day).toUtc().toIso8601String();
+      final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
+      final startOfWeekStr = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day).toUtc().toIso8601String();
+
+      // 1. Fetch Earnings
       final earningsRes = await _client
           .from('provider_earnings')
-          .select('net_earnings')
+          .select('net_earnings, created_at')
           .eq('provider_id', providerId)
-          .gte('created_at', startOfDay);
+          .gte('created_at', startOfWeekStr);
 
-      _todayEarnings = (earningsRes as List).fold(
-          0.0,
-              (sum, row) =>
-          sum + ((row['net_earnings'] as num?)?.toDouble() ?? 0.0));
+      final earningsList = List<Map<String, dynamic>>.from(earningsRes);
+      _weekEarnings = earningsList.fold(
+          0.0, (sum, row) => sum + ((row['net_earnings'] as num?)?.toDouble() ?? 0.0));
 
+      // 2. Fetch Bookings
       final bookingsRes = await _client
           .from('bookings')
-          .select(
-          'booking_id, booking_status, scheduled_datetime, service_name_snapshot, total_amount')
+          .select('booking_id, booking_status, scheduled_datetime, service_name_snapshot, total_amount, created_at')
           .eq('provider_id', providerId)
           .neq('booking_status', 'Cancelled')
           .order('scheduled_datetime', ascending: true);
 
       final bookings = List<Map<String, dynamic>>.from(bookingsRes);
+      final todayStartLocal = DateTime(today.year, today.month, today.day);
 
-      _pendingCount =
-          bookings.where((b) => b['booking_status'] == 'Pending').length;
-      _activeCount =
-          bookings.where((b) => b['booking_status'] == 'In-Progress').length;
+      // Pending Stats (Only today and future)
+      final validPending = bookings.where((b) {
+        if (b['booking_status'] != 'Pending') return false;
+        final scheduledAt = b['scheduled_datetime']?.toString();
+        if (scheduledAt == null) return true;
+        final dt = DateTime.tryParse(scheduledAt)?.toLocal();
+        if (dt == null) return true;
+        return dt.isAfter(todayStartLocal) || dt.isAtSameMomentAs(todayStartLocal);
+      }).toList();
 
-      _completedThisWeek = bookings.where((b) {
-        if (b['booking_status'] != 'Completed') return false;
-        return true;
+      _pendingCount = validPending.length;
+      _recentPending = validPending.take(3).toList();
+
+      // To Do (Today) Stats (Confirmed + In-Progress for Today)
+      _todoTodayCount = bookings.where((b) {
+        if (b['booking_status'] != 'Confirmed' && b['booking_status'] != 'In-Progress') return false;
+        final dateStr = b['scheduled_datetime']?.toString();
+        if (dateStr == null) return false;
+        final dt = DateTime.tryParse(dateStr)?.toLocal();
+        if (dt == null) return false;
+        return dt.year == today.year && dt.month == today.month && dt.day == today.day;
       }).length;
 
-      _recentPending = bookings
-          .where((b) => b['booking_status'] == 'Pending')
-          .take(3)
-          .toList();
+      // Done (Today) Stats
+      _completedToday = bookings.where((b) {
+        if (b['booking_status'] != 'Completed') return false;
+        final dateStr = b['scheduled_datetime']?.toString();
+        if (dateStr == null) return false;
+        final dt = DateTime.tryParse(dateStr)?.toLocal();
+        if (dt == null) return false;
+        return dt.year == today.year && dt.month == today.month && dt.day == today.day;
+      }).length;
 
       if (mounted) {
         setState(() => _loading = false);
@@ -186,7 +210,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(
             children: [
-              // ==================== Top Header ====================
+              // Top Header
               Container(
                 padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
                 decoration: const BoxDecoration(
@@ -206,16 +230,12 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Builder(builder: (context) {
-                              final lang =
-                                  Localizations.localeOf(context).languageCode;
+                              final lang = Localizations.localeOf(context).languageCode;
                               return Text(
                                 lang == 'zh'
                                     ? '你好,'
-                                    : (lang == 'ms'
-                                    ? 'Selamat kembali,'
-                                    : 'Good day,'),
-                                style: const TextStyle(
-                                    color: Colors.white70, fontSize: 14),
+                                    : (lang == 'ms' ? 'Selamat kembali,' : 'Good day,'),
+                                style: const TextStyle(color: Colors.white70, fontSize: 14),
                               );
                             }),
                             Text(
@@ -241,8 +261,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                                 return Stack(
                                   clipBehavior: Clip.none,
                                   children: [
-                                    _iconBtn(Icons.notifications_outlined,
-                                        _openNotifications),
+                                    _iconBtn(Icons.notifications_outlined, _openNotifications),
                                     if (unread > 0)
                                       Positioned(
                                         right: 4,
@@ -250,8 +269,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                                         child: Container(
                                           padding: const EdgeInsets.all(4),
                                           decoration: const BoxDecoration(
-                                              color: Colors.red,
-                                              shape: BoxShape.circle),
+                                              color: Colors.red, shape: BoxShape.circle),
                                           constraints: const BoxConstraints(
                                               minWidth: 16, minHeight: 16),
                                           child: Text(
@@ -272,7 +290,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
                     InkWell(
                       onTap: () {
                         Navigator.push(
@@ -284,63 +302,67 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                       borderRadius: BorderRadius.circular(8),
                       child: Row(
                         children: [
-                          const Icon(Icons.location_on,
-                              color: Colors.white, size: 16),
+                          const Icon(Icons.location_on, color: Colors.white, size: 16),
                           const SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               '$region · $radius km',
-                              style: const TextStyle(
-                                  color: Colors.white, fontSize: 13),
+                              style: const TextStyle(color: Colors.white, fontSize: 13),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const Icon(Icons.keyboard_arrow_down,
-                              color: Colors.white, size: 18),
+                          const Icon(Icons.keyboard_arrow_down, color: Colors.white, size: 18),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
+
+                    // Balance Card
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20, vertical: 16),
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                       decoration: BoxDecoration(
                         color: Colors.white,
                         borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Builder(builder: (context) {
-                                final lang = Localizations.localeOf(context)
-                                    .languageCode;
+                                final lang = Localizations.localeOf(context).languageCode;
                                 return Text(
-                                  lang == 'zh'
-                                      ? '今日收益'
-                                      : (lang == 'ms'
-                                      ? 'Pendapatan Hari Ini'
-                                      : 'Today\'s Earnings'),
+                                  lang == 'zh' ? '总余额' : (lang == 'ms' ? 'Jumlah Baki' : 'Total Balance'),
                                   style: const TextStyle(
-                                      color: Colors.grey, fontSize: 13),
+                                    color: Colors.grey,
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 );
                               }),
-                              const SizedBox(height: 4),
-                              Text(
-                                'RM ${_todayEarnings.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black87,
-                                ),
-                              ),
+                              const Icon(Icons.account_balance_wallet_outlined, color: _primaryOrange, size: 24),
                             ],
                           ),
-                          const Icon(Icons.account_balance_wallet_outlined,
-                              color: _primaryOrange, size: 32),
+                          const SizedBox(height: 6),
+                          Text(
+                            'RM ${_weekEarnings.toStringAsFixed(2)}',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -348,7 +370,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                 ),
               ),
 
-              // ==================== Dashboard Cards ====================
+              // Dashboard Cards
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -359,9 +381,9 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                       children: [
                         _statCard('Pending', _pendingCount, Colors.orange),
                         const SizedBox(width: 10),
-                        _statCard('Active', _activeCount, Colors.blue),
+                        _statCard('To Do (Today)', _todoTodayCount, Colors.blue),
                         const SizedBox(width: 10),
-                        _statCard('Done (Wk)', _completedThisWeek, Colors.green),
+                        _statCard('Done (Today)', _completedToday, Colors.green),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -380,31 +402,52 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                       );
                     }),
                     const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        _quickActionBtn(
-                            Icons.book, 'Bookings', () => widget.onNavigateToTab(1)),
-                        const SizedBox(width: 10),
-                        _quickActionBtn(Icons.attach_money, 'Earnings', () {
-                          Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                  builder: (_) => const EarningsScreen()));
-                        }),
-                        const SizedBox(width: 10),
-                        _quickActionBtn(
-                            Icons.schedule, 'Schedule', () => widget.onNavigateToTab(2)),
-                      ],
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: [
+                          _quickActionBtn(
+                              Icons.book, 'Bookings', () => widget.onNavigateToTab(1)),
+                          const SizedBox(width: 10),
+                          _quickActionBtn(Icons.attach_money, 'Earnings', () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const EarningsScreen()));
+                          }),
+                          const SizedBox(width: 10),
+                          // Schedule Removed
+                          _quickActionBtn(Icons.work_outline, 'My Services', () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const MyServicesScreen()));
+                          }),
+                          const SizedBox(width: 10),
+                          _quickActionBtn(Icons.access_time_outlined, 'Working Hours', () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const WorkingHoursScreen()));
+                          }),
+                          const SizedBox(width: 10),
+                          _quickActionBtn(Icons.star_outline, 'Reviews', () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => const ReviewsScreen()));
+                          }),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 24),
 
-                    // Recent Pending Bookings
+                    // Pending Requests
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Builder(builder: (context) {
-                          final lang =
-                              Localizations.localeOf(context).languageCode;
+                          final lang = Localizations.localeOf(context).languageCode;
                           return Text(
                             lang == 'zh'
                                 ? '待处理请求'
@@ -420,14 +463,11 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                         TextButton(
                           onPressed: () => widget.onNavigateToTab(1),
                           child: Builder(builder: (context) {
-                            final lang =
-                                Localizations.localeOf(context).languageCode;
+                            final lang = Localizations.localeOf(context).languageCode;
                             return Text(
                               lang == 'zh'
                                   ? '查看全部'
-                                  : (lang == 'ms'
-                                  ? 'Lihat semua'
-                                  : 'View all'),
+                                  : (lang == 'ms' ? 'Lihat semua' : 'View all'),
                               style: const TextStyle(
                                   color: _primaryOrange, fontSize: 13),
                             );
@@ -447,12 +487,10 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                             border: Border.all(color: _borderOrange)),
                         child: Column(
                           children: [
-                            const Icon(Icons.inbox_outlined,
-                                size: 48, color: Colors.grey),
+                            const Icon(Icons.inbox_outlined, size: 48, color: Colors.grey),
                             const SizedBox(height: 12),
                             Builder(builder: (context) {
-                              final lang =
-                                  Localizations.localeOf(context).languageCode;
+                              final lang = Localizations.localeOf(context).languageCode;
                               return Text(
                                 lang == 'zh'
                                     ? '暂无待处理请求'
@@ -497,7 +535,7 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   Widget _statCard(String label, int count, Color color) {
     return Expanded(
       child: Container(
-        height: 80, // Ensure consistent height
+        height: 80,
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -518,12 +556,12 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
               String displayLabel = label;
               if (lang == 'zh') {
                 if (label == 'Pending') displayLabel = '待处理';
-                if (label == 'Active') displayLabel = '进行中';
-                if (label == 'Done (Wk)') displayLabel = '已完成';
+                if (label == 'To Do (Today)') displayLabel = '今日待办';
+                if (label == 'Done (Today)') displayLabel = '今日完成';
               } else if (lang == 'ms') {
                 if (label == 'Pending') displayLabel = 'Tertunda';
-                if (label == 'Active') displayLabel = 'Aktif';
-                if (label == 'Done (Wk)') displayLabel = 'Selesai';
+                if (label == 'To Do (Today)') displayLabel = 'Tugasan (Hari ini)';
+                if (label == 'Done (Today)') displayLabel = 'Selesai (Hari ini)';
               }
               return Text(
                 displayLabel,
@@ -541,43 +579,51 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   }
 
   Widget _quickActionBtn(IconData icon, String label, VoidCallback onTap) {
-    return Expanded(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: _borderOrange),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, color: _primaryOrange, size: 24),
-              const SizedBox(height: 8),
-              Builder(builder: (context) {
-                final lang = Localizations.localeOf(context).languageCode;
-                String displayLabel = label;
-                if (lang == 'zh') {
-                  if (label == 'Bookings') displayLabel = '预约';
-                  if (label == 'Earnings') displayLabel = '收益';
-                  if (label == 'Schedule') displayLabel = '日程';
-                } else if (lang == 'ms') {
-                  if (label == 'Bookings') displayLabel = 'Tempahan';
-                  if (label == 'Earnings') displayLabel = 'Pendapatan';
-                  if (label == 'Schedule') displayLabel = 'Jadual';
-                }
-                return Text(
-                  displayLabel,
-                  style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87),
-                );
-              }),
-            ],
-          ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(14),
+      child: Container(
+        width: 100,
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: _borderOrange),
+        ),
+        child: Column(
+          children: [
+            Icon(icon, color: _primaryOrange, size: 24),
+            const SizedBox(height: 8),
+            Builder(builder: (context) {
+              final lang = Localizations.localeOf(context).languageCode;
+              String displayLabel = label;
+              if (lang == 'zh') {
+                if (label == 'Bookings') displayLabel = '预约';
+                if (label == 'Earnings') displayLabel = '收益';
+                if (label == 'Schedule') displayLabel = '日程';
+                if (label == 'My Services') displayLabel = '我的服务';
+                if (label == 'Working Hours') displayLabel = '工作时间';
+                if (label == 'Reviews') displayLabel = '评价';
+              } else if (lang == 'ms') {
+                if (label == 'Bookings') displayLabel = 'Tempahan';
+                if (label == 'Earnings') displayLabel = 'Pendapatan';
+                if (label == 'Schedule') displayLabel = 'Jadual';
+                if (label == 'My Services') displayLabel = 'Perkhidmatan Saya';
+                if (label == 'Working Hours') displayLabel = 'Waktu Bekerja';
+                if (label == 'Reviews') displayLabel = 'Ulasan';
+              }
+              return Text(
+                displayLabel,
+                style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87),
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              );
+            }),
+          ],
         ),
       ),
     );

@@ -41,8 +41,23 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     try {
       final items = await _service.getMyBookings(status: statusMap[tabs[_tab]]);
       if (!mounted) return;
+
+      // 👇 过滤逻辑：如果单子时间已过，且状态不是 Completed，则直接隐藏
+      final now = DateTime.now();
+      final filteredItems = items.where((b) {
+        final status = (b['booking_status'] ?? '').toString().toLowerCase();
+        if (status == 'completed') return true; // Completed 永远显示
+
+        final dateStr = b['scheduled_datetime']?.toString() ?? b['booking_date']?.toString();
+        if (dateStr == null) return true;
+        final dt = DateTime.tryParse(dateStr)?.toLocal();
+        if (dt == null) return true;
+
+        return dt.isAfter(now); // 未来的单子显示，过期的隐藏
+      }).toList();
+
       setState(() {
-        _items = items;
+        _items = filteredItems;
         _loading = false;
       });
     } catch (e) {

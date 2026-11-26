@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/booking_service.dart';
 import '../../../Customer/services/customer_transaction_service.dart'
     show bookingError;
+import '../../../shared/chat/chat_screen.dart';
 
 class BookingDetailScreen extends StatefulWidget {
   final String bookingId;
@@ -29,6 +30,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
 
+  // 🧱 Unified button geometry
+  static const _btnRadius = 12.0;
+  static const _btnHeight = 48.0;
+
   @override
   void initState() {
     super.initState();
@@ -44,7 +49,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
           _b = booking;
           _error = null;
         });
-        // 加载完订单后，去获取客户信息
         await _fetchCustomerInfo();
       }
     } catch (error) {
@@ -54,11 +58,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     }
   }
 
-  // 单独写一个查询客户信息的方法
   Future<void> _fetchCustomerInfo() async {
     if (_b == null) return;
 
-    // 1. 先尝试从嵌套数据里直接拿
     final nestedUser = _b!['customer_profiles']?['users'];
     if (nestedUser != null) {
       if (mounted) {
@@ -70,7 +72,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       return;
     }
 
-    // 2. 如果嵌套里没有，直接用 customer_id 去 users 表查
     final cid = _b!['customer_id']?.toString();
     if (cid != null && cid.isNotEmpty) {
       try {
@@ -99,24 +100,12 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       await _service.updateStatus(widget.bookingId, status);
       if (mounted) await _load();
     } catch (error) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(tr(bookingError(error))),
-            backgroundColor: Colors.red.shade600,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
-      }
+      if (mounted) _showErrorSnack(bookingError(error));
     } finally {
       if (mounted) setState(() => _acting = false);
     }
   }
 
-  // ========== Cancel with Validation ==========
   Future<void> _cancel() async {
     final controller = TextEditingController();
     final formKey = GlobalKey<FormState>();
@@ -188,13 +177,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 Navigator.pop(context, controller.text.trim());
               }
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _primaryOrange,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+            style: _primaryBtnStyle().copyWith(
+              padding: WidgetStateProperty.all(
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             ),
             child: Text(tr('Confirm')),
           ),
@@ -211,19 +197,96 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         await _service.cancel(widget.bookingId, reason);
         if (mounted) await _load();
       } catch (error) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(tr(bookingError(error))),
-              backgroundColor: Colors.red.shade600,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
+        if (mounted) _showErrorSnack(bookingError(error));
       } finally {
         if (mounted) setState(() => _acting = false);
       }
     }
+  }
+
+  // ========== Shared button styles ==========
+
+  ButtonStyle _primaryBtnStyle() => ElevatedButton.styleFrom(
+    backgroundColor: _primaryOrange,
+    foregroundColor: Colors.white,
+    elevation: 0,
+    minimumSize: const Size(0, _btnHeight),
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(_btnRadius),
+    ),
+    textStyle: const TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+    ),
+  );
+
+  ButtonStyle _outlineBtnStyle() => OutlinedButton.styleFrom(
+    foregroundColor: _primaryOrange,
+    minimumSize: const Size(0, _btnHeight),
+    padding: const EdgeInsets.symmetric(horizontal: 20),
+    side: const BorderSide(color: _primaryOrange, width: 1.5),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(_btnRadius),
+    ),
+    textStyle: const TextStyle(
+      fontSize: 14,
+      fontWeight: FontWeight.w600,
+    ),
+  );
+
+  /// One builder for every action button → guaranteed consistency.
+  Widget _actionButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    bool outlined = false,
+  }) {
+    final child = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 18),
+        const SizedBox(width: 8),
+        Text(tr(label)),
+      ],
+    );
+    return outlined
+        ? OutlinedButton(
+      onPressed: onPressed,
+      style: _outlineBtnStyle(),
+      child: child,
+    )
+        : ElevatedButton(
+      onPressed: onPressed,
+      style: _primaryBtnStyle(),
+      child: child,
+    );
+  }
+
+  void _showErrorSnack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(tr(message)),
+        backgroundColor: Colors.red.shade600,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+    );
+  }
+
+  void _openChat() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        // 🚀 直接使用高级版的 ConversationScreen，无需再维护两个 ChatScreen 文件
+        builder: (_) => ConversationScreen(
+          customer: false, // 告诉聊天室，当前是商家端
+          bookingId: widget.bookingId,
+        ),
+      ),
+    );
   }
 
   // ========== Status Badge ==========
@@ -275,7 +338,9 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         elevation: 0,
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator(color: _primaryOrange))
+          ? const Center(
+        child: CircularProgressIndicator(color: _primaryOrange),
+      )
           : _b == null
           ? Center(
         child: Text(
@@ -349,7 +414,6 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       ],
                     ),
                     const Divider(height: 20),
-                    // 👇 这里使用了我们查到的 _customerName 和 _customerPhone
                     _row('Customer', _customerName),
                     _row('Contact', _customerPhone),
                     _row(
@@ -360,7 +424,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                       'Date',
                       '${_b!['booking_date']} ${_b!['scheduled_time']}',
                     ),
-                    _row('Address', _b!['customer_address'] ?? '-'),
+                    _row(
+                      'Address',
+                      _b!['customer_address'] ?? '-',
+                    ),
                     _row(
                       'Payment',
                       tr("RM{0} · {1}", [
@@ -385,9 +452,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 decoration: BoxDecoration(
                   color: _lightOrange,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _borderOrange,
-                  ),
+                  border: Border.all(color: _borderOrange),
                 ),
                 child: Row(
                   children: [
@@ -434,7 +499,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
                         children: [
                           Text(
                             tr('Special Instructions'),
@@ -462,7 +528,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
             const SizedBox(height: 24),
 
-            // ===== Action Buttons =====
+            // ===== Action Buttons (all consistent) =====
             if (_acting)
               const Center(
                 child: Padding(
@@ -473,80 +539,55 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
                 ),
               )
             else
-              Wrap(
-                spacing: 10,
-                runSpacing: 10,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (_b!['can_accept'] == true)
-                    ElevatedButton.icon(
+                  // Primary: Accept
+                  if (_b!['can_accept'] == true) ...[
+                    _actionButton(
+                      label: 'Accept',
+                      icon: Icons.check,
                       onPressed: () => _update('Confirmed'),
-                      icon: const Icon(Icons.check, size: 18),
-                      label: Text(tr('Accept')),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryOrange,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14,
-                        ),
-                      ),
                     ),
-                  if (_b!['can_accept'] == true)
-                    OutlinedButton.icon(
+                    const SizedBox(height: 10),
+                    // Secondary: Decline
+                    _actionButton(
+                      label: 'Decline',
+                      icon: Icons.close,
                       onPressed: _cancel,
-                      icon: const Icon(Icons.close, size: 18),
-                      label: Text(tr('Decline')),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: _primaryOrange,
-                        side: const BorderSide(
-                          color: _primaryOrange,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14,
-                        ),
-                      ),
+                      outlined: true,
                     ),
-                  if (_b!['can_start'] == true)
-                    ElevatedButton.icon(
+                    const SizedBox(height: 10),
+                  ],
+
+                  // Primary: Start Service
+                  if (_b!['can_start'] == true) ...[
+                    _actionButton(
+                      label: 'Start Service',
+                      icon: Icons.play_arrow,
                       onPressed: () => _update('In-Progress'),
-                      icon: const Icon(Icons.play_arrow, size: 18),
-                      label: Text(tr('Start Service')),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryOrange,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14,
-                        ),
-                      ),
                     ),
-                  if (_b!['booking_status'] == 'In-Progress')
-                    ElevatedButton.icon(
+                    const SizedBox(height: 10),
+                  ],
+
+                  // Primary: Complete Service
+                  if (_b!['booking_status'] == 'In-Progress') ...[
+                    _actionButton(
+                      label: 'Complete Service',
+                      icon: Icons.done_all,
                       onPressed: () => _update('Completed'),
-                      icon: const Icon(Icons.done_all, size: 18),
-                      label: Text(tr('Complete Service')),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _primaryOrange,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 14,
-                        ),
-                      ),
                     ),
+                    const SizedBox(height: 10),
+                  ],
+
+                  // Secondary: Chat (always visible so vendor can
+                  // reach the customer at any stage)
+                  _actionButton(
+                    label: 'Chat with Customer',
+                    icon: Icons.chat_bubble_outline,
+                    onPressed: _openChat,
+                    outlined: true,
+                  ),
                 ],
               ),
 

@@ -1,5 +1,6 @@
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../services/service_service.dart';
 
 class EditServiceScreen extends StatefulWidget {
@@ -13,6 +14,7 @@ class EditServiceScreen extends StatefulWidget {
 class _EditServiceScreenState extends State<EditServiceScreen> {
   final _formKey = GlobalKey<FormState>();
   final _service = ServiceService();
+  final _client = Supabase.instance.client;
 
   final _title = TextEditingController();
   final _desc = TextEditingController();
@@ -28,9 +30,6 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
 
   // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
-  static const _lightOrange = Color(0xFFFFF7ED);
-  static const _borderOrange = Color(0xFFFFE0CC);
-
   bool get _isEditing => widget.existing != null;
 
   @override
@@ -90,10 +89,38 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
         );
       }
 
+      // 👇 核心新增：查重校验逻辑
+      final serviceName = _title.text.trim();
+
+      // 去数据库查同名且 is_active = true 的服务
+      final existing = await _client
+          .from('services')
+          .select('service_id')
+          .eq('provider_id', pid)
+          .eq('service_name', serviceName)
+          .eq('is_active', true)
+          .maybeSingle();
+
+      if (existing != null) {
+        // 如果是新增，且查到了同名的
+        if (!_isEditing) {
+          _showError(tr("You already have an active service named '{0}'.", [serviceName]));
+          setState(() => _saving = false);
+          return;
+        }
+        // 如果是编辑，查到的 ID 不是当前正在编辑的 ID，说明撞名了
+        if (existing['service_id'] != widget.existing!['service_id']) {
+          _showError(tr("Another active service already uses this name."));
+          setState(() => _saving = false);
+          return;
+        }
+      }
+      // 👆 查重逻辑结束
+
       final data = {
         'provider_id': pid,
         'category_id': _categoryId,
-        'service_name': _title.text.trim(),
+        'service_name': serviceName,
         'description': _desc.text.trim(),
         'pricing_type': _pricing,
         'base_price': double.tryParse(_price.text.trim()) ?? 0,
