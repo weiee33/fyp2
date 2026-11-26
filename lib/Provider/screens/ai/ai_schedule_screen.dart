@@ -60,8 +60,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
 
       final now = DateTime.now().toUtc().toIso8601String();
 
-      // 👇 关键修复：在这里加入 Join 查询
-      // 假设你的 bookings 表有 customer_id 和 service_id 关联
       final res = await _client
           .from('bookings')
           .select('*, customer_profiles!inner(users(full_name)), services!bookings_service_id_fkey(service_name)')
@@ -145,11 +143,11 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     }
   }
 
-  String _formatTime(int minutes) {
+  String _formatTime(int minutes, bool isZh, bool isMs) {
     final h = minutes ~/ 60;
     final m = minutes % 60;
-    if (h == 0) return tr("{0}m", [m]);
-    return tr("{0}h {1}m", [h, m]);
+    if (h == 0) return isZh ? '$m 分钟' : (isMs ? '$m minit' : '${m}m');
+    return isZh ? '$h 小时 $m 分钟' : (isMs ? '$h jam $m minit' : '${h}h ${m}m');
   }
 
   @override
@@ -164,7 +162,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
       extendBody: true,
       appBar: AppBar(
         title: Text(
-          tr('AI Smart Schedule'),
+          isZh ? 'AI 智能日程' : (isMs ? 'Jadual Pintar AI' : 'AI Smart Schedule'),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: _primaryOrange,
@@ -225,21 +223,29 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                         const SizedBox(width: 10),
                         _statCard(
                           label: isZh ? '总距离' : (isMs ? 'Jumlah Jarak' : 'Total Distance'),
-                          value: tr("{0} km", [_totalDistanceKm.toStringAsFixed(1)]),
+                          value: isZh
+                              ? '${_totalDistanceKm.toStringAsFixed(1)} 公里'
+                              : (isMs
+                              ? '${_totalDistanceKm.toStringAsFixed(1)} km'
+                              : '${_totalDistanceKm.toStringAsFixed(1)} km'),
                           icon: Icons.route_outlined,
                           color: _successGreen,
                         ),
                         const SizedBox(width: 10),
                         _statCard(
                           label: isZh ? '行程时间' : (isMs ? 'Masa Perjalanan' : 'Travel Time'),
-                          value: _formatTime(_totalTravelMin),
+                          value: _formatTime(_totalTravelMin, isZh, isMs),
                           icon: Icons.timer_outlined,
                           color: const Color(0xFF8B5CF6),
                         ),
                         const SizedBox(width: 10),
                         _statCard(
                           label: isZh ? '预计收入' : (isMs ? 'Anggaran Pendapatan' : 'Est. Earnings'),
-                          value: tr("RM{0}", [_estimatedEarnings.toStringAsFixed(0)]),
+                          value: isZh
+                              ? 'RM${_estimatedEarnings.toStringAsFixed(0)}'
+                              : (isMs
+                              ? 'RM${_estimatedEarnings.toStringAsFixed(0)}'
+                              : 'RM${_estimatedEarnings.toStringAsFixed(0)}'),
                           icon: Icons.attach_money,
                           color: const Color(0xFFF59E0B),
                         ),
@@ -277,7 +283,11 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                         padding: const EdgeInsets.symmetric(vertical: 32),
                         child: Center(
                           child: Text(
-                            tr('No confirmed bookings today'),
+                            isZh
+                                ? '今天暂无已确认的预约'
+                                : (isMs
+                                ? 'Tiada tempahan yang disahkan hari ini'
+                                : 'No confirmed bookings today'),
                             style: const TextStyle(color: Colors.grey),
                           ),
                         ),
@@ -332,7 +342,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
           child: ElevatedButton.icon(
             onPressed: _load,
             icon: const Icon(Icons.refresh),
-            label: Text(tr('Retry')),
+            label: Text(isZh ? '重试' : (isMs ? 'Cuba lagi' : 'Retry')),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primaryOrange,
               foregroundColor: Colors.white,
@@ -350,21 +360,22 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     final travelDist = (b['ai_travel_distance'] as num?)?.toDouble() ?? 0;
     final travelTime = (b['ai_travel_time'] as num?)?.toInt() ?? 0;
 
-    // 👇 从 Join 的数据里提取真实客户名和服务名
-    final cust = b['customer_profiles']?['users']?['full_name']?.toString() ?? tr('Customer');
-    final svc = b['services']?['service_name']?.toString() ?? tr('Service');
+    final cust = b['customer_profiles']?['users']?['full_name']?.toString() ??
+        (isZh ? '客户' : (isMs ? 'Pelanggan' : 'Customer'));
+    final svc = b['services']?['service_name']?.toString() ??
+        (isZh ? '服务' : (isMs ? 'Perkhidmatan' : 'Service'));
 
-    final address = b['customer_address']?.toString() ?? tr('Address');
+    final address = b['customer_address']?.toString() ??
+        (isZh ? '地址' : (isMs ? 'Alamat' : 'Address'));
     final duration = (b['duration_minutes'] as num?)?.toInt() ?? 60;
     final amount = (b['total_amount'] as num?)?.toDouble() ?? 0;
 
-    // 格式化时间（如果你有 scheduled_datetime 可以替换这里的 step）
     final scheduledAt = b['scheduled_datetime']?.toString();
     String timeStr = 'Step $step';
     if (scheduledAt != null) {
       final dt = DateTime.tryParse(scheduledAt)?.toLocal();
       if (dt != null) {
-        timeStr = DateFormat('HH:mm').format(dt); // 像图2一样显示具体时间
+        timeStr = DateFormat('HH:mm').format(dt);
       }
     }
 
@@ -411,7 +422,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 👇 左侧的时间/步骤卡片，更像图2的设计
                 Container(
                   width: 64,
                   padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
@@ -432,7 +442,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        tr("{0}m", [duration]),
+                        isZh ? '$duration 分钟' : (isMs ? '$duration minit' : '${duration}m'),
                         style: const TextStyle(fontSize: 11, color: Colors.grey),
                       ),
                     ],
@@ -448,7 +458,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                         children: [
                           Expanded(
                             child: Text(
-                              svc, // 服务名称
+                              svc,
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                                 fontSize: 14,
@@ -458,7 +468,6 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          // 添加一个跟图2一样的 CONFIRMED 标签
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
@@ -466,7 +475,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              tr('CONFIRMED'),
+                              isZh ? '已确认' : (isMs ? 'DISAHKAN' : 'CONFIRMED'),
                               style: TextStyle(color: Colors.blue.shade700, fontSize: 9, fontWeight: FontWeight.bold),
                             ),
                           ),
@@ -474,7 +483,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        cust, // 客户名字
+                        cust,
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.grey,
@@ -499,7 +508,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                       Row(
                         children: [
                           Text(
-                            tr("RM{0}", [amount.toStringAsFixed(2)]),
+                            'RM${amount.toStringAsFixed(2)}',
                             style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _primaryOrange),
                           ),
                         ],

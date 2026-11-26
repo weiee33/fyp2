@@ -68,15 +68,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         return;
       }
 
-      // 👇 只查未来的、且未完成/未取消的单子
       final now = DateTime.now().toUtc().toIso8601String();
 
       final res = await _client
           .from('bookings')
           .select()
           .eq('provider_id', providerId)
-          .not('booking_status', 'in', '(Cancelled,Completed)') // 排除 Cancelled 和 Completed
-          .gte('scheduled_datetime', now) // 只查未来的单子
+          .not('booking_status', 'in', '(Cancelled,Completed)')
+          .gte('scheduled_datetime', now)
           .order('scheduled_datetime', ascending: true);
 
       if (!mounted) return;
@@ -107,7 +106,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     return dt.isBefore(DateTime.now());
   }
 
-  // 因为数据库已经过滤了，这里现在只剩下 upcoming
   List<Map<String, dynamic>> _groupUpcoming() {
     final upcoming = <Map<String, dynamic>>[];
     for (final b in _bookings) {
@@ -191,7 +189,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          tr('Schedule'),
+          isZh ? '日程' : (isMs ? 'Jadual' : 'Schedule'),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: _primaryOrange,
@@ -209,7 +207,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         child: _error != null
             ? _errorState(isZh, isMs)
             : _bookings.isEmpty
-            ? _emptyState()
+            ? _emptyState(isZh, isMs)
             : _buildContent(isZh, isMs),
       ),
     );
@@ -238,7 +236,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         const SizedBox(height: 16),
         Center(
           child: Text(
-            tr('Failed to load schedule'),
+            isZh
+                ? '加载日程失败'
+                : (isMs ? 'Gagal memuatkan jadual' : 'Failed to load schedule'),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -249,7 +249,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         const SizedBox(height: 6),
         Center(
           child: Text(
-            _error ?? 'Unknown error',
+            _error ??
+                (isZh
+                    ? '未知错误'
+                    : (isMs ? 'Ralat tidak diketahui' : 'Unknown error')),
             style: const TextStyle(fontSize: 12, color: Colors.grey),
             textAlign: TextAlign.center,
             maxLines: 4,
@@ -261,7 +264,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           child: ElevatedButton.icon(
             onPressed: _load,
             icon: const Icon(Icons.refresh),
-            label: Text(tr('Retry')),
+            label: Text(isZh ? '重试' : (isMs ? 'Cuba lagi' : 'Retry')),
             style: ElevatedButton.styleFrom(
               backgroundColor: _primaryOrange,
               foregroundColor: Colors.white,
@@ -276,7 +279,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _emptyState() {
+  Widget _emptyState(bool isZh, bool isMs) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
       children: [
@@ -299,7 +302,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         const SizedBox(height: 16),
         Center(
           child: Text(
-            tr('No scheduled bookings'),
+            isZh
+                ? '暂无已安排的预约'
+                : (isMs
+                ? 'Tiada tempahan yang dijadualkan'
+                : 'No scheduled bookings'),
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
@@ -310,7 +317,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         const SizedBox(height: 6),
         Center(
           child: Text(
-            tr('Your appointments will appear here'),
+            isZh
+                ? '您的预约将显示在这里'
+                : (isMs
+                ? 'Temu janji anda akan dipaparkan di sini'
+                : 'Your appointments will appear here'),
             style: const TextStyle(fontSize: 13, color: Colors.grey),
             textAlign: TextAlign.center,
           ),
@@ -356,7 +367,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         if (upcoming.isNotEmpty) ...[
           _sectionTitle(
             icon: Icons.schedule,
-            title: isZh ? '即将到来' : (isMs ? 'Akan Datang' : 'Upcoming Schedule'),
+            title: isZh
+                ? '即将到来'
+                : (isMs ? 'Akan Datang' : 'Upcoming Schedule'),
             count: upcoming.length,
             color: _primaryOrange,
           ),
@@ -370,7 +383,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             padding: const EdgeInsets.symmetric(vertical: 32),
             child: Center(
               child: Text(
-                tr('No upcoming bookings'),
+                isZh
+                    ? '暂无即将到来的预约'
+                    : (isMs
+                    ? 'Tiada tempahan akan datang'
+                    : 'No upcoming bookings'),
                 style: const TextStyle(color: Colors.grey),
               ),
             ),
@@ -548,7 +565,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final isZh = lang == 'zh';
     final isMs = lang == 'ms';
 
-    final serviceName = b['service_name_snapshot']?.toString() ?? 'Service';
+    final serviceName = b['service_name_snapshot']?.toString() ??
+        (isZh ? '服务' : (isMs ? 'Perkhidmatan' : 'Service'));
     final address = b['customer_address']?.toString() ?? '';
     final status = b['booking_status']?.toString() ?? 'Pending';
     final scheduledAt = b['scheduled_datetime']?.toString();
@@ -689,7 +707,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       ],
                     ),
                   ),
-                  _statusChip(status),
+                  _statusChip(status, isZh, isMs),
                 ],
               ),
             ],
@@ -704,7 +722,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final isZh = lang == 'zh';
     final isMs = lang == 'ms';
 
-    final serviceName = b['service_name_snapshot']?.toString() ?? 'Service';
+    final serviceName = b['service_name_snapshot']?.toString() ??
+        (isZh ? '服务' : (isMs ? 'Perkhidmatan' : 'Service'));
     final address = b['customer_address']?.toString() ?? '-';
     final status = b['booking_status']?.toString() ?? 'Pending';
     final scheduledAt = b['scheduled_datetime']?.toString();
@@ -715,7 +734,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final customerId = b['customer_id']?.toString();
     final coordinates = b['customer_coordinates']?.toString();
 
-    String customerName = 'Customer';
+    String customerName = isZh ? '客户' : (isMs ? 'Pelanggan' : 'Customer');
     if (customerId != null) {
       try {
         final row = await _client
@@ -769,36 +788,52 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                _detailRow('Customer', customerName, Icons.person_outline),
-                _detailRow('Service', serviceName, Icons.build_outlined),
-                _detailRow('Status', status, Icons.info_outline),
                 _detailRow(
-                  'Date & Time',
+                  isZh ? '客户' : (isMs ? 'Pelanggan' : 'Customer'),
+                  customerName,
+                  Icons.person_outline,
+                ),
+                _detailRow(
+                  isZh ? '服务' : (isMs ? 'Perkhidmatan' : 'Service'),
+                  serviceName,
+                  Icons.build_outlined,
+                ),
+                _detailRow(
+                  isZh ? '状态' : (isMs ? 'Status' : 'Status'),
+                  status,
+                  Icons.info_outline,
+                ),
+                _detailRow(
+                  isZh ? '日期和时间' : (isMs ? 'Tarikh & Masa' : 'Date & Time'),
                   _formatFullDateTime(scheduledAt),
                   Icons.access_time,
                 ),
                 if (duration != null)
                   _detailRow(
-                    'Duration',
-                    '$duration minutes',
+                    isZh ? '时长' : (isMs ? 'Tempoh' : 'Duration'),
+                    '$duration ${isZh ? '分钟' : (isMs ? 'minit' : 'minutes')}',
                     Icons.timer_outlined,
                   ),
                 if (amount != null)
                   _detailRow(
-                    'Total',
+                    isZh ? '总计' : (isMs ? 'Jumlah' : 'Total'),
                     'RM ${(amount as num).toStringAsFixed(2)}',
                     Icons.attach_money,
                   ),
-                _detailRow('Address', address, Icons.location_on_outlined),
+                _detailRow(
+                  isZh ? '地址' : (isMs ? 'Alamat' : 'Address'),
+                  address,
+                  Icons.location_on_outlined,
+                ),
                 if (instructions.isNotEmpty)
                   _detailRow(
-                    'Instructions',
+                    isZh ? '指示' : (isMs ? 'Arahan' : 'Instructions'),
                     instructions,
                     Icons.notes_outlined,
                   ),
                 if (bookingId.isNotEmpty)
                   _detailRow(
-                    'Booking ID',
+                    isZh ? '预约号' : (isMs ? 'ID Tempahan' : 'Booking ID'),
                     '${bookingId.substring(0, 8)}...',
                     Icons.confirmation_number_outlined,
                   ),
@@ -825,7 +860,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             TextButton(
               onPressed: () => Navigator.pop(ctx),
               style: TextButton.styleFrom(foregroundColor: _primaryOrange),
-              child: Text(tr('Close')),
+              child: Text(isZh ? '关闭' : (isMs ? 'Tutup' : 'Close')),
             ),
           ],
         ),
@@ -1152,27 +1187,58 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   String _friendlyError(Object e) {
     final raw = e.toString();
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
 
     if (raw.contains('Invalid service progress transition')) {
-      return 'This action is not allowed at the current booking status.';
+      return isZh
+          ? '当前预约状态下不允许此操作。'
+          : (isMs
+          ? 'Tindakan ini tidak dibenarkan pada status tempahan semasa.'
+          : 'This action is not allowed at the current booking status.');
     }
     if (raw.contains('Customer payment must succeed before service starts')) {
-      return 'Customer payment has not been completed yet. Please wait.';
+      return isZh
+          ? '客户付款尚未完成，请稍候。'
+          : (isMs
+          ? 'Pembayaran pelanggan belum selesai. Sila tunggu.'
+          : 'Customer payment has not been completed yet. Please wait.');
     }
     if (raw.contains('This service is not scheduled to start yet')) {
-      return 'This service is not scheduled to start yet. Try again closer to the appointment time.';
+      return isZh
+          ? '此服务尚未到预定开始时间，请在接近预约时间时重试。'
+          : (isMs
+          ? 'Perkhidmatan ini belum dijadualkan untuk bermula. Cuba lagi hampir dengan masa temu janji.'
+          : 'This service is not scheduled to start yet. Try again closer to the appointment time.');
     }
     if (raw.contains('An active verified provider account is required')) {
-      return 'Your provider account is not verified or active.';
+      return isZh
+          ? '您的服务商账户未验证或未激活。'
+          : (isMs
+          ? 'Akaun penyedia anda tidak disahkan atau tidak aktif.'
+          : 'Your provider account is not verified or active.');
     }
     if (raw.contains('Booking not found')) {
-      return 'Booking not found or does not belong to you.';
+      return isZh
+          ? '找不到预约或不属于您。'
+          : (isMs
+          ? 'Tempahan tidak dijumpai atau bukan milik anda.'
+          : 'Booking not found or does not belong to you.');
     }
     if (raw.contains('This booking request is no longer available')) {
-      return 'This booking can no longer be modified. It has already been accepted or the time slot has passed.';
+      return isZh
+          ? '此预约已无法修改。它已被接受或时间段已过。'
+          : (isMs
+          ? 'Tempahan ini tidak boleh diubah lagi. Ia telah diterima atau slot masa telah berlalu.'
+          : 'This booking can no longer be modified. It has already been accepted or the time slot has passed.');
     }
     if (raw.contains('Explain why the requested slot cannot be accepted')) {
-      return 'Please provide a valid reason for cancellation.';
+      return isZh
+          ? '请提供有效的取消理由。'
+          : (isMs
+          ? 'Sila berikan alasan yang sah untuk pembatalan.'
+          : 'Please provide a valid reason for cancellation.');
     }
     return raw
         .replaceAll('PostgrestException(message: ', '')
@@ -1351,26 +1417,36 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     );
   }
 
-  Widget _statusChip(String status) {
+  Widget _statusChip(String status, bool isZh, bool isMs) {
     Color bg;
     Color fg;
     IconData icon;
+    String displayText;
 
     switch (status.toLowerCase()) {
       case 'in-progress':
         bg = Colors.blue.shade50;
         fg = Colors.blue.shade700;
         icon = Icons.play_circle;
+        displayText = isZh ? '进行中' : (isMs ? 'SEDANG BERJALAN' : 'IN-PROGRESS');
         break;
       case 'confirmed':
         bg = _lightOrange;
         fg = _primaryOrange;
         icon = Icons.verified;
+        displayText = isZh ? '已确认' : (isMs ? 'DISAHKAN' : 'CONFIRMED');
+        break;
+      case 'pending':
+        bg = Colors.grey.shade100;
+        fg = Colors.grey.shade700;
+        icon = Icons.pending;
+        displayText = isZh ? '待处理' : (isMs ? 'TERTUNDA' : 'PENDING');
         break;
       default:
         bg = Colors.grey.shade100;
         fg = Colors.grey.shade700;
         icon = Icons.pending;
+        displayText = status.toUpperCase();
     }
 
     return Container(
@@ -1385,7 +1461,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           Icon(icon, size: 11, color: fg),
           const SizedBox(width: 4),
           Text(
-            status.toUpperCase(),
+            displayText,
             style: TextStyle(
               fontSize: 10,
               color: fg,

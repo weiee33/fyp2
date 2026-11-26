@@ -116,9 +116,16 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
+      final lang = Localizations.localeOf(context).languageCode;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr('Failed to load profile. Please try again.')),
+          content: Text(
+            lang == 'zh'
+                ? '加载个人资料失败，请重试。'
+                : (lang == 'ms'
+                ? 'Gagal memuatkan profil. Sila cuba lagi.'
+                : 'Failed to load profile. Please try again.'),
+          ),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -127,20 +134,39 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   }
 
   Future<void> _logout() async {
+    final lang = Localizations.localeOf(context).languageCode;
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(tr('Log Out')),
-        content: Text(tr('Are you sure you want to log out?')),
+        title: Text(
+          lang == 'zh'
+              ? '登出'
+              : (lang == 'ms' ? 'Log Keluar' : 'Log Out'),
+        ),
+        content: Text(
+          lang == 'zh'
+              ? '您确定要登出吗？'
+              : (lang == 'ms'
+              ? 'Adakah anda pasti mahu log keluar?'
+              : 'Are you sure you want to log out?'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(tr('Cancel')),
+            child: Text(
+              lang == 'zh'
+                  ? '取消'
+                  : (lang == 'ms' ? 'Batal' : 'Cancel'),
+            ),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(tr('Log Out')),
+            child: Text(
+              lang == 'zh'
+                  ? '登出'
+                  : (lang == 'ms' ? 'Log Keluar' : 'Log Out'),
+            ),
           ),
         ],
       ),
@@ -186,6 +212,8 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       );
     }
 
+    final lang = Localizations.localeOf(context).languageCode;
+
     final pages = [
       ProviderHomeScreen(onNavigateToTab: _selectTab),
       const MyBookingsScreen(),
@@ -204,12 +232,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: Text(tr('Profile'),
-            style: const TextStyle(fontWeight: FontWeight.w600)),
+        title: Text(
+          lang == 'zh'
+              ? '个人资料'
+              : (lang == 'ms' ? 'Profil' : 'Profile'),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.chat_bubble_outline),
-            tooltip: tr('Chats'),
+            tooltip: lang == 'zh'
+                ? '聊天'
+                : (lang == 'ms' ? 'Sembang' : 'Chats'),
             onPressed: _openChats,
           ),
           FutureBuilder<List>(
@@ -222,7 +256,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    tooltip: tr('Notifications'),
+                    tooltip: lang == 'zh'
+                        ? '通知'
+                        : (lang == 'ms'
+                        ? 'Pemberitahuan'
+                        : 'Notifications'),
                     onPressed: _openNotifications,
                   ),
                   if (unread > 0)
@@ -280,8 +318,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   }
 
   Widget _buildProfileTab() {
-    final name = _profile?['business_name'] ?? tr('My Business');
-    final bio = _profile?['bio'] ?? 'No bio yet';
+    final lang = Localizations.localeOf(context).languageCode;
+    final name = _profile?['business_name'] ??
+        (lang == 'zh'
+            ? '我的业务'
+            : (lang == 'ms' ? 'Perniagaan Saya' : 'My Business'));
+    final bio = _profile?['bio'] ??
+        (lang == 'zh'
+            ? '暂无简介'
+            : (lang == 'ms' ? 'Tiada bio lagi' : 'No bio yet'));
     final rating = _profile?['overall_rating'] ?? 0;
     final years = _profile?['years_experience'] ?? 0;
     final status = _profile?['verification_status'] ?? 'Pending';
@@ -349,7 +394,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                       color: Colors.orange, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
-                                    tr('{0} · {1} years experience', [rating, years]),
+                                    lang == 'zh'
+                                        ? '$rating · $years 年经验'
+                                        : (lang == 'ms'
+                                        ? '$rating · $years tahun pengalaman'
+                                        : '$rating · $years years experience'),
                                     style: const TextStyle(
                                       color: Colors.orange,
                                       fontSize: 13,
@@ -387,7 +436,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                               Text(
                                 bio,
                                 maxLines: _isBioExpanded ? null : 2,
-                                overflow: _isBioExpanded ? TextOverflow.visible : TextOverflow.ellipsis,
+                                overflow: _isBioExpanded
+                                    ? TextOverflow.visible
+                                    : TextOverflow.ellipsis,
                                 style: const TextStyle(
                                   color: Colors.black87,
                                   fontSize: 13,
@@ -399,7 +450,17 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   Text(
-                                    _isBioExpanded ? tr('See less') : tr('See more'),
+                                    _isBioExpanded
+                                        ? (lang == 'zh'
+                                        ? '收起'
+                                        : (lang == 'ms'
+                                        ? 'Tutup'
+                                        : 'See less'))
+                                        : (lang == 'zh'
+                                        ? '查看更多'
+                                        : (lang == 'ms'
+                                        ? 'Lihat lagi'
+                                        : 'See more')),
                                     style: const TextStyle(
                                       color: _primaryOrange,
                                       fontSize: 12,
@@ -427,12 +488,24 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             const SizedBox(height: 24),
 
             // --- Account Settings ---
-            _sectionLabel('ACCOUNT'),
+            _sectionLabel(
+              lang == 'zh'
+                  ? '账户'
+                  : (lang == 'ms' ? 'AKAUN' : 'ACCOUNT'),
+            ),
             const SizedBox(height: 8),
             _menuGroup([
               _menuItem(
-                title: 'Update Personal Info',
-                subtitle: 'Name, bio, phone, and profile photo',
+                title: lang == 'zh'
+                    ? '更新个人信息'
+                    : (lang == 'ms'
+                    ? 'Kemas Kini Maklumat Peribadi'
+                    : 'Update Personal Info'),
+                subtitle: lang == 'zh'
+                    ? '姓名、简介、电话和头像'
+                    : (lang == 'ms'
+                    ? 'Nama, bio, telefon dan foto profil'
+                    : 'Name, bio, phone, and profile photo'),
                 icon: Icons.edit_outlined,
                 onTap: () async {
                   await Navigator.push(
@@ -445,8 +518,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
               ),
               _languageItem(),
               _menuItem(
-                title: 'Certifications',
-                subtitle: 'Upload and manage your certificates',
+                title: lang == 'zh'
+                    ? '证书'
+                    : (lang == 'ms' ? 'Sijil' : 'Certifications'),
+                subtitle: lang == 'zh'
+                    ? '上传和管理您的证书'
+                    : (lang == 'ms'
+                    ? 'Muat naik dan urus sijil anda'
+                    : 'Upload and manage your certificates'),
                 icon: Icons.workspace_premium_outlined,
                 onTap: () {
                   Navigator.push(
@@ -460,12 +539,22 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             const SizedBox(height: 20),
 
             // --- Service Settings ---
-            _sectionLabel('SERVICE SETTINGS'),
+            _sectionLabel(
+              lang == 'zh'
+                  ? '服务设置'
+                  : (lang == 'ms' ? 'TETAPAN PERKHIDMATAN' : 'SERVICE SETTINGS'),
+            ),
             const SizedBox(height: 8),
             _menuGroup([
               _menuItem(
-                title: 'My Services',
-                subtitle: 'Services you offer to customers',
+                title: lang == 'zh'
+                    ? '我的服务'
+                    : (lang == 'ms' ? 'Perkhidmatan Saya' : 'My Services'),
+                subtitle: lang == 'zh'
+                    ? '您向客户提供的服务'
+                    : (lang == 'ms'
+                    ? 'Perkhidmatan yang anda tawarkan'
+                    : 'Services you offer to customers'),
                 icon: Icons.work_outline,
                 onTap: () {
                   Navigator.push(
@@ -476,8 +565,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 },
               ),
               _menuItem(
-                title: 'Service Areas',
-                subtitle: 'Where you work and travel radius',
+                title: lang == 'zh'
+                    ? '服务区域'
+                    : (lang == 'ms' ? 'Kawasan Perkhidmatan' : 'Service Areas'),
+                subtitle: lang == 'zh'
+                    ? '您的工作地点和出行半径'
+                    : (lang == 'ms'
+                    ? 'Di mana anda bekerja dan radius perjalanan'
+                    : 'Where you work and travel radius'),
                 icon: Icons.location_on_outlined,
                 onTap: () {
                   Navigator.push(
@@ -488,8 +583,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 },
               ),
               _menuItem(
-                title: 'Working Hours',
-                subtitle: 'Set your weekly availability',
+                title: lang == 'zh'
+                    ? '工作时间'
+                    : (lang == 'ms' ? 'Waktu Bekerja' : 'Working Hours'),
+                subtitle: lang == 'zh'
+                    ? '设置您的每周可用时间'
+                    : (lang == 'ms'
+                    ? 'Tetapkan ketersediaan mingguan anda'
+                    : 'Set your weekly availability'),
                 icon: Icons.access_time_outlined,
                 onTap: () {
                   Navigator.push(
@@ -503,12 +604,26 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             const SizedBox(height: 20),
 
             // --- Earnings & Reviews ---
-            _sectionLabel('EARNINGS & REVIEWS'),
+            _sectionLabel(
+              lang == 'zh'
+                  ? '收益与评价'
+                  : (lang == 'ms'
+                  ? 'PENDAPATAN & ULASAN'
+                  : 'EARNINGS & REVIEWS'),
+            ),
             const SizedBox(height: 8),
             _menuGroup([
               _menuItem(
-                title: 'Earnings Dashboard',
-                subtitle: 'View your income and payouts',
+                title: lang == 'zh'
+                    ? '收益面板'
+                    : (lang == 'ms'
+                    ? 'Papan Pemuka Pendapatan'
+                    : 'Earnings Dashboard'),
+                subtitle: lang == 'zh'
+                    ? '查看您的收入和付款'
+                    : (lang == 'ms'
+                    ? 'Lihat pendapatan dan pembayaran anda'
+                    : 'View your income and payouts'),
                 icon: Icons.attach_money,
                 onTap: () {
                   Navigator.push(
@@ -519,8 +634,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 },
               ),
               _menuItem(
-                title: 'My Reviews',
-                subtitle: 'See what customers say about you',
+                title: lang == 'zh'
+                    ? '我的评价'
+                    : (lang == 'ms' ? 'Ulasan Saya' : 'My Reviews'),
+                subtitle: lang == 'zh'
+                    ? '查看客户对您的评价'
+                    : (lang == 'ms'
+                    ? 'Lihat apa yang pelanggan katakan tentang anda'
+                    : 'See what customers say about you'),
                 icon: Icons.star_outline,
                 onTap: () {
                   Navigator.push(
@@ -534,12 +655,22 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             const SizedBox(height: 20),
 
             // --- Support & Legal ---
-            _sectionLabel('SUPPORT'),
+            _sectionLabel(
+              lang == 'zh'
+                  ? '支持'
+                  : (lang == 'ms' ? 'SOKONGAN' : 'SUPPORT'),
+            ),
             const SizedBox(height: 8),
             _menuGroup([
               _menuItem(
-                title: 'Help Centre',
-                subtitle: 'Contact admin and follow your requests',
+                title: lang == 'zh'
+                    ? '帮助中心'
+                    : (lang == 'ms' ? 'Pusat Bantuan' : 'Help Centre'),
+                subtitle: lang == 'zh'
+                    ? '联系管理员并跟踪您的请求'
+                    : (lang == 'ms'
+                    ? 'Hubungi admin dan ikuti permintaan anda'
+                    : 'Contact admin and follow your requests'),
                 icon: Icons.support_agent,
                 onTap: () {
                   Navigator.push(
@@ -549,8 +680,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 },
               ),
               _menuItem(
-                title: 'Privacy',
-                subtitle: 'Review your privacy notice & data preferences',
+                title: lang == 'zh'
+                    ? '隐私'
+                    : (lang == 'ms' ? 'Privasi' : 'Privacy'),
+                subtitle: lang == 'zh'
+                    ? '查看您的隐私声明和数据偏好'
+                    : (lang == 'ms'
+                    ? 'Semak notis privasi & keutamaan data anda'
+                    : 'Review your privacy notice & data preferences'),
                 icon: Icons.privacy_tip_outlined,
                 onTap: () {
                   Navigator.push(
@@ -560,8 +697,16 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 },
               ),
               _menuItem(
-                title: 'About Local Life Service Assistant',
-                subtitle: 'App overview, version and terms',
+                title: lang == 'zh'
+                    ? '关于本地生活服务助手'
+                    : (lang == 'ms'
+                    ? 'Mengenai Pembantu Perkhidmatan Kehidupan Tempatan'
+                    : 'About Local Life Service Assistant'),
+                subtitle: lang == 'zh'
+                    ? '应用概述、版本和条款'
+                    : (lang == 'ms'
+                    ? 'Gambaran keseluruhan apl, versi dan terma'
+                    : 'App overview, version and terms'),
                 icon: Icons.info_outline,
                 onTap: () {
                   Navigator.push(
@@ -574,7 +719,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             const SizedBox(height: 20),
 
             // --- System ---
-            _sectionLabel('SYSTEM'),
+            _sectionLabel(
+              lang == 'zh'
+                  ? '系统'
+                  : (lang == 'ms' ? 'SISTEM' : 'SYSTEM'),
+            ),
             const SizedBox(height: 8),
             _menuGroup([
               InkWell(
@@ -600,7 +749,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              tr('Log Out'),
+                              lang == 'zh'
+                                  ? '登出'
+                                  : (lang == 'ms' ? 'Log Keluar' : 'Log Out'),
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -609,7 +760,11 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             ),
                             const SizedBox(height: 2),
                             Text(
-                              tr('Sign out of your account'),
+                              lang == 'zh'
+                                  ? '退出您的账户'
+                                  : (lang == 'ms'
+                                  ? 'Log keluar dari akaun anda'
+                                  : 'Sign out of your account'),
                               style: TextStyle(
                                 fontSize: 11.5,
                                 color: Colors.grey.shade600,
@@ -643,7 +798,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                             const Icon(Icons.check_circle,
                                 color: Colors.white, size: 20),
                             const SizedBox(width: 8),
-                            Text(tr('Submitted for verification')),
+                            Text(
+                              lang == 'zh'
+                                  ? '已提交验证'
+                                  : (lang == 'ms'
+                                  ? 'Dihantar untuk pengesahan'
+                                  : 'Submitted for verification'),
+                            ),
                           ],
                         ),
                         backgroundColor: Colors.green.shade600,
@@ -656,9 +817,15 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                     _load();
                   },
                   icon: const Icon(Icons.verified_outlined),
-                  label: Text(tr('Submit for Verification'),
-                      style: const TextStyle(
-                          fontSize: 15, fontWeight: FontWeight.bold)),
+                  label: Text(
+                    lang == 'zh'
+                        ? '提交验证'
+                        : (lang == 'ms'
+                        ? 'Hantar untuk Pengesahan'
+                        : 'Submit for Verification'),
+                    style: const TextStyle(
+                        fontSize: 15, fontWeight: FontWeight.bold),
+                  ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primaryOrange,
                     foregroundColor: Colors.white,
@@ -679,7 +846,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     return Padding(
       padding: const EdgeInsets.only(left: 4),
       child: Text(
-        tr(text),
+        text,
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.bold,
@@ -743,7 +910,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    tr(title),
+                    title,
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
@@ -752,7 +919,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    tr(subtitle),
+                    subtitle,
                     style: TextStyle(
                       fontSize: 11.5,
                       color: Colors.grey.shade600,
@@ -837,30 +1004,45 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
   }
 
   Widget _statusBadge(String status) {
+    final lang = Localizations.localeOf(context).languageCode;
+
     Color bg;
     Color fg;
     IconData icon;
+    String displayStatus;
 
     switch (status.toLowerCase()) {
       case 'verified':
         bg = Colors.green.shade50;
         fg = Colors.green.shade700;
         icon = Icons.verified;
+        displayStatus = lang == 'zh'
+            ? '已验证'
+            : (lang == 'ms' ? 'DISAHKAN' : 'VERIFIED');
         break;
       case 'rejected':
         bg = Colors.red.shade50;
         fg = Colors.red.shade700;
         icon = Icons.cancel;
+        displayStatus = lang == 'zh'
+            ? '已拒绝'
+            : (lang == 'ms' ? 'DITOLAK' : 'REJECTED');
         break;
       case 'suspended':
         bg = Colors.grey.shade200;
         fg = Colors.grey.shade700;
         icon = Icons.block;
+        displayStatus = lang == 'zh'
+            ? '已暂停'
+            : (lang == 'ms' ? 'DIGANTUNG' : 'SUSPENDED');
         break;
       default:
         bg = _lightOrange;
         fg = _primaryOrange;
         icon = Icons.pending;
+        displayStatus = lang == 'zh'
+            ? '待处理'
+            : (lang == 'ms' ? 'TERTUNDA' : 'PENDING');
     }
 
     return Container(
@@ -875,7 +1057,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           Icon(icon, size: 14, color: fg),
           const SizedBox(width: 4),
           Text(
-            tr(status),
+            displayStatus,
             style: TextStyle(
               color: fg,
               fontSize: 12,

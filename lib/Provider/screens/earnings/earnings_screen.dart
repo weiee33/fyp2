@@ -45,7 +45,13 @@ class _EarningsScreenState extends State<EarningsScreen> {
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr("Failed to load earnings: {0}", [e])),
+          content: Text(
+            Localizations.localeOf(context).languageCode == 'zh'
+                ? '加载收益失败：$e'
+                : (Localizations.localeOf(context).languageCode == 'ms'
+                ? 'Gagal memuatkan pendapatan: $e'
+                : 'Failed to load earnings: $e'),
+          ),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -174,15 +180,17 @@ class _EarningsScreenState extends State<EarningsScreen> {
         ? chartValues.reduce((a, b) => a > b ? a : b) * 1.2
         : 10.0;
 
+    final lang = Localizations.localeOf(context).languageCode;
+
     return Scaffold(
       backgroundColor: _bgWhite,
       appBar: AppBar(
         title: Text(
-          tr('Earnings'),
+          lang == 'zh' ? '收益' : (lang == 'ms' ? 'Pendapatan' : 'Earnings'),
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
         ),
         backgroundColor: _bgWhite,
-        foregroundColor: Colors.black87, // 浅色背景下用深色字
+        foregroundColor: Colors.black87,
         elevation: 0,
         automaticallyImplyLeading: true,
         actions: [
@@ -199,7 +207,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
           child: ListView(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             children: [
-              // ===== 👑 顶部总览卡片 (Hero Card) =====
+              // ===== Hero Card =====
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -224,14 +232,17 @@ class _EarningsScreenState extends State<EarningsScreen> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          tr('Total Balance'),
+                          lang == 'zh'
+                              ? '总余额'
+                              : (lang == 'ms' ? 'Jumlah Baki' : 'Total Balance'),
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.9),
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const Icon(Icons.account_balance_wallet_outlined, color: Colors.white70),
+                        const Icon(Icons.account_balance_wallet_outlined,
+                            color: Colors.white70),
                       ],
                     ),
                     const SizedBox(height: 8),
@@ -251,29 +262,56 @@ class _EarningsScreenState extends State<EarningsScreen> {
                         Padding(
                           padding: const EdgeInsets.only(bottom: 6),
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(10),
                             ),
-                            child: const Text(
-                              'This Month',
-                              style: TextStyle(color: Colors.white, fontSize: 10),
+                            child: Text(
+                              lang == 'zh'
+                                  ? '本月'
+                                  : (lang == 'ms' ? 'Bulan Ini' : 'This Month'),
+                              style: const TextStyle(
+                                  color: Colors.white, fontSize: 10),
                             ),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 20),
-                    // 下方小数据组
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _miniStat('Today', "RM${today.toStringAsFixed(0)}", Icons.today),
-                        Container(width: 1, height: 24, color: Colors.white.withValues(alpha: 0.3)),
-                        _miniStat('This Week', "RM${week.toStringAsFixed(0)}", Icons.date_range),
-                        Container(width: 1, height: 24, color: Colors.white.withValues(alpha: 0.3)),
-                        _miniStat('Pending', "RM${pending.toStringAsFixed(0)}", Icons.hourglass_empty),
+                        _miniStat(
+                          lang == 'zh'
+                              ? '今日'
+                              : (lang == 'ms' ? 'Hari Ini' : 'Today'),
+                          "RM${today.toStringAsFixed(0)}",
+                          Icons.today,
+                        ),
+                        Container(
+                            width: 1,
+                            height: 24,
+                            color: Colors.white.withValues(alpha: 0.3)),
+                        _miniStat(
+                          lang == 'zh'
+                              ? '本周'
+                              : (lang == 'ms' ? 'Minggu Ini' : 'This Week'),
+                          "RM${week.toStringAsFixed(0)}",
+                          Icons.date_range,
+                        ),
+                        Container(
+                            width: 1,
+                            height: 24,
+                            color: Colors.white.withValues(alpha: 0.3)),
+                        _miniStat(
+                          lang == 'zh'
+                              ? '待处理'
+                              : (lang == 'ms' ? 'Tertunda' : 'Pending'),
+                          "RM${pending.toStringAsFixed(0)}",
+                          Icons.hourglass_empty,
+                        ),
                       ],
                     ),
                   ],
@@ -282,7 +320,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
               const SizedBox(height: 24),
 
-              // ===== 📈 图表卡片 =====
+              // ===== Chart Card =====
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
@@ -304,7 +342,11 @@ class _EarningsScreenState extends State<EarningsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            tr('Earnings Trend'),
+                            lang == 'zh'
+                                ? '收益趋势'
+                                : (lang == 'ms'
+                                ? 'Trend Pendapatan'
+                                : 'Earnings Trend'),
                             style: const TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
@@ -316,8 +358,9 @@ class _EarningsScreenState extends State<EarningsScreen> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        tr(chartSubtitle),
-                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                        chartSubtitle,
+                        style:
+                        const TextStyle(fontSize: 12, color: Colors.grey),
                       ),
                       const SizedBox(height: 20),
                       SizedBox(
@@ -353,31 +396,37 @@ class _EarningsScreenState extends State<EarningsScreen> {
                             ),
                             titlesData: FlTitlesData(
                               show: true,
-                              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                              leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                              topTitles: const AxisTitles(
+                                  sideTitles:
+                                  SideTitles(showTitles: false)),
+                              rightTitles: const AxisTitles(
+                                  sideTitles:
+                                  SideTitles(showTitles: false)),
+                              leftTitles: const AxisTitles(
+                                  sideTitles:
+                                  SideTitles(showTitles: false)),
                               bottomTitles: AxisTitles(
                                 sideTitles: SideTitles(
                                   showTitles: true,
                                   reservedSize: 30,
-                                  // 👇 关键点 1：强制间隔为 1
                                   interval: 1.0,
                                   getTitlesWidget: (value, meta) {
-                                    // 👇 关键点 2：如果坐标不是整数（包含小数），直接隐藏不渲染
                                     if (value % 1 != 0) {
                                       return const SizedBox.shrink();
                                     }
-
                                     final idx = value.toInt();
-                                    if (idx < 0 || idx >= chartLabels.length) {
+                                    if (idx < 0 ||
+                                        idx >= chartLabels.length) {
                                       return const SizedBox.shrink();
                                     }
-
                                     return Padding(
-                                      padding: const EdgeInsets.only(top: 8),
+                                      padding:
+                                      const EdgeInsets.only(top: 8),
                                       child: Text(
-                                        tr(chartLabels[idx]),
-                                        style: const TextStyle(fontSize: 10, color: Colors.grey),
+                                        chartLabels[idx],
+                                        style: const TextStyle(
+                                            fontSize: 10,
+                                            color: Colors.grey),
                                       ),
                                     );
                                   },
@@ -387,18 +436,24 @@ class _EarningsScreenState extends State<EarningsScreen> {
                             borderData: FlBorderData(show: false),
                             lineBarsData: [
                               LineChartBarData(
-                                spots: List.generate(chartValues.length, (i) => FlSpot(i.toDouble(), chartValues[i])),
+                                spots: List.generate(
+                                    chartValues.length,
+                                        (i) => FlSpot(
+                                        i.toDouble(), chartValues[i])),
                                 isCurved: true,
                                 color: _primaryOrange,
                                 barWidth: 4,
                                 isStrokeCapRound: true,
-                                dotData: const FlDotData(show: false),
+                                dotData:
+                                const FlDotData(show: false),
                                 belowBarData: BarAreaData(
                                   show: true,
                                   gradient: LinearGradient(
                                     colors: [
-                                      _primaryOrange.withValues(alpha: 0.3),
-                                      _primaryOrange.withValues(alpha: 0.0),
+                                      _primaryOrange.withValues(
+                                          alpha: 0.3),
+                                      _primaryOrange.withValues(
+                                          alpha: 0.0),
                                     ],
                                     begin: Alignment.topCenter,
                                     end: Alignment.bottomCenter,
@@ -410,8 +465,13 @@ class _EarningsScreenState extends State<EarningsScreen> {
                         )
                             : Center(
                           child: Text(
-                            tr('No earnings data yet'),
-                            style: const TextStyle(color: Colors.grey, fontSize: 13),
+                            lang == 'zh'
+                                ? '暂无收益数据'
+                                : (lang == 'ms'
+                                ? 'Tiada data pendapatan lagi'
+                                : 'No earnings data yet'),
+                            style: const TextStyle(
+                                color: Colors.grey, fontSize: 13),
                           ),
                         ),
                       ),
@@ -422,9 +482,11 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
               const SizedBox(height: 24),
 
-              // ===== 📋 最近交易列表 =====
+              // ===== Recent Transactions =====
               Text(
-                tr('Recent Transactions'),
+                lang == 'zh'
+                    ? '最近交易'
+                    : (lang == 'ms' ? 'Transaksi Terkini' : 'Recent Transactions'),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
@@ -446,7 +508,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
     );
   }
 
-  // 顶部卡片内部的小数据
   Widget _miniStat(String label, String value, IconData icon) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -456,7 +517,7 @@ class _EarningsScreenState extends State<EarningsScreen> {
             Icon(icon, size: 12, color: Colors.white70),
             const SizedBox(width: 4),
             Text(
-              tr(label),
+              label,
               style: const TextStyle(color: Colors.white70, fontSize: 11),
             ),
           ],
@@ -474,8 +535,8 @@ class _EarningsScreenState extends State<EarningsScreen> {
     );
   }
 
-  // 优雅的 Toggle 切换
   Widget _buildToggle() {
+    final lang = Localizations.localeOf(context).languageCode;
     return Container(
       decoration: BoxDecoration(
         color: _lightOrange,
@@ -485,9 +546,12 @@ class _EarningsScreenState extends State<EarningsScreen> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _toggleBtn('Weekly', 0),
-          _toggleBtn('Monthly', 1),
-          _toggleBtn('Yearly', 2),
+          _toggleBtn(
+              lang == 'zh' ? '每周' : (lang == 'ms' ? 'Mingguan' : 'Weekly'), 0),
+          _toggleBtn(
+              lang == 'zh' ? '每月' : (lang == 'ms' ? 'Bulanan' : 'Monthly'), 1),
+          _toggleBtn(
+              lang == 'zh' ? '每年' : (lang == 'ms' ? 'Tahunan' : 'Yearly'), 2),
         ],
       ),
     );
@@ -503,12 +567,17 @@ class _EarningsScreenState extends State<EarningsScreen> {
         decoration: BoxDecoration(
           color: selected ? Colors.white : Colors.transparent,
           borderRadius: BorderRadius.circular(8),
-          boxShadow: selected ? [
-            BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 4, offset: const Offset(0, 2))
-          ] : [],
+          boxShadow: selected
+              ? [
+            BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 4,
+                offset: const Offset(0, 2))
+          ]
+              : [],
         ),
         child: Text(
-          tr(label),
+          label,
           style: TextStyle(
             color: selected ? _primaryOrange : Colors.grey.shade600,
             fontSize: 11,
@@ -519,12 +588,12 @@ class _EarningsScreenState extends State<EarningsScreen> {
     );
   }
 
-  // 还原设计图的卡片列表
   Widget _buildTransactionItem(Map<String, dynamic> row) {
     final date = _parseDate(row);
     final dateStr = date != null ? '${date.day} ${_monthName(date.month)}' : '';
     final amount = _amount(row);
-    final isPending = row['payment_status'] == 'Pending' || row['status'] == 'Pending';
+    final isPending =
+        row['payment_status'] == 'Pending' || row['status'] == 'Pending';
 
     final lang = Localizations.localeOf(context).languageCode;
     final isZh = lang == 'zh';
@@ -535,8 +604,13 @@ class _EarningsScreenState extends State<EarningsScreen> {
     final customerName = row['customer_name']?.toString() ??
         (isZh ? '客户' : (isMs ? 'Pelanggan' : 'Customer'));
 
-    // 随机给列表项分配设计图中不同的边框颜色，但没有破坏整体色调
-    final borderColors = [Colors.blue.shade300, Colors.purple.shade300, Colors.orange.shade300, Colors.pink.shade300, Colors.green.shade300];
+    final borderColors = [
+      Colors.blue.shade300,
+      Colors.purple.shade300,
+      Colors.orange.shade300,
+      Colors.pink.shade300,
+      Colors.green.shade300
+    ];
     final colorIndex = serviceName.hashCode % borderColors.length;
     final borderColor = borderColors[colorIndex.abs()];
 
@@ -550,7 +624,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
       ),
       child: Row(
         children: [
-          // 左侧彩色竖条
           Container(
             width: 4,
             height: 40,
@@ -560,7 +633,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
             ),
           ),
           const SizedBox(width: 12),
-          // 服务图标
           Container(
             width: 44,
             height: 44,
@@ -568,10 +640,10 @@ class _EarningsScreenState extends State<EarningsScreen> {
               color: _lightOrange,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.work_outline, color: _primaryOrange, size: 20),
+            child:
+            const Icon(Icons.work_outline, color: _primaryOrange, size: 20),
           ),
           const SizedBox(width: 12),
-          // 标题与副标题
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -599,7 +671,6 @@ class _EarningsScreenState extends State<EarningsScreen> {
               ],
             ),
           ),
-          // 右侧金额与状态
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
@@ -613,17 +684,23 @@ class _EarningsScreenState extends State<EarningsScreen> {
               ),
               const SizedBox(height: 4),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                padding:
+                const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: isPending ? Colors.orange.shade50 : Colors.green.shade50,
+                  color:
+                  isPending ? Colors.orange.shade50 : Colors.green.shade50,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(
-                  tr(isPending ? 'Pending' : 'Paid'),
+                  isPending
+                      ? (isZh ? '待处理' : (isMs ? 'Tertunda' : 'Pending'))
+                      : (isZh ? '已支付' : (isMs ? 'Dibayar' : 'Paid')),
                   style: TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.bold,
-                    color: isPending ? Colors.orange.shade700 : Colors.green.shade700,
+                    color: isPending
+                        ? Colors.orange.shade700
+                        : Colors.green.shade700,
                   ),
                 ),
               ),
@@ -635,11 +712,15 @@ class _EarningsScreenState extends State<EarningsScreen> {
   }
 
   String _monthName(int month) {
-    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
     return months[month - 1];
   }
 
   Widget _buildEmptyState() {
+    final lang = Localizations.localeOf(context).languageCode;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 30),
       child: Center(
@@ -652,7 +733,9 @@ class _EarningsScreenState extends State<EarningsScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              tr('No transactions yet'),
+              lang == 'zh'
+                  ? '暂无交易'
+                  : (lang == 'ms' ? 'Tiada transaksi lagi' : 'No transactions yet'),
               style: TextStyle(
                 color: Colors.grey.shade500,
                 fontWeight: FontWeight.w500,

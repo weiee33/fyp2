@@ -20,24 +20,24 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   bool _loading = true;
   String? _error;
 
-  // Unified Orange theme
   static const _primaryColor = Color(0xFFFF6B00);
   static const _accentColor = Color(0xFFFFF7ED);
 
-  // Local hardcoded translation function to avoid modifying JSON files
-  String _localText(String key) {
-    final langCode = Localizations.localeOf(context).languageCode;
-    if (langCode == 'zh') {
-      if (key == 'ai_intro') return '根据您的技能和证书，我们的AI为您推荐这些服务类别。';
-      if (key == 'ai_analyzing') return 'AI 正在分析您的个人资料...';
-    } else if (langCode == 'ms') {
-      if (key == 'ai_intro') return 'Berdasarkan kemahiran dan sijil anda, AI kami mengesyorkan kategori perkhidmatan ini untuk anda.';
-      if (key == 'ai_analyzing') return 'AI sedang menganalisis profil anda...';
+  String _localText(String key, bool isZh, bool isMs) {
+    if (key == 'ai_intro') {
+      return isZh
+          ? '根据您的技能和证书，我们的AI为您推荐这些服务类别。'
+          : (isMs
+          ? 'Berdasarkan kemahiran dan sijil anda, AI kami mengesyorkan kategori perkhidmatan ini untuk anda.'
+          : 'Based on your skills and certifications, our AI recommends these service categories for you.');
     }
-    // Default English
-    if (key == 'ai_intro') return 'Based on your skills and certifications, our AI recommends these service categories for you.';
-    if (key == 'ai_analyzing') return 'AI is analyzing your profile...';
-
+    if (key == 'ai_analyzing') {
+      return isZh
+          ? 'AI 正在分析您的个人资料...'
+          : (isMs
+          ? 'AI sedang menganalisis profil anda...'
+          : 'AI is analyzing your profile...');
+    }
     return '';
   }
 
@@ -57,7 +57,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       final profile = await _service.getMyProfile();
       final certs = await _service.getCertifications();
 
-      // Call the Supabase Edge Function (Gemini API).
       final response = await _client.functions.invoke(
         'provider-ai-job-match',
         body: {
@@ -148,6 +147,10 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   }
 
   Future<void> _onAccept(Map<String, dynamic> m) async {
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     final categoryName = m['category'].toString();
     final requiredSkill = m['requiredSkill']?.toString() ?? categoryName;
 
@@ -160,7 +163,13 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
             ),
             const SizedBox(width: 12),
-            Text(tr("Adding {0} to your services...", [categoryName])),
+            Text(
+              isZh
+                  ? '正在将 $categoryName 添加到您的服务...'
+                  : (isMs
+                  ? 'Menambah $categoryName ke perkhidmatan anda...'
+                  : 'Adding $categoryName to your services...'),
+            ),
           ],
         ),
         backgroundColor: _primaryColor,
@@ -172,7 +181,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       String? catId;
       String? providerId;
 
-      // 1. Get provider_id
       try {
         final pRes = await _client
             .from('provider_profiles')
@@ -184,7 +192,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
         }
       } catch (_) {}
 
-      // 2. Get category_id
       try {
         final catRes = await _client
             .from('service_categories')
@@ -199,7 +206,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
         debugPrint("Find category error: $e");
       }
 
-      // 3. Check for duplicate active service before inserting
       if (providerId != null) {
         final existingService = await _client
             .from('services')
@@ -214,7 +220,13 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(tr("You already have this service active in 'My Services'.")),
+              content: Text(
+                isZh
+                    ? '您的“我的服务”中已有此服务。'
+                    : (isMs
+                    ? 'Anda sudah mempunyai perkhidmatan ini dalam "Perkhidmatan Saya".'
+                    : 'You already have this service active in "My Services".'),
+              ),
               backgroundColor: Colors.orange.shade600,
               behavior: SnackBarBehavior.floating,
             ),
@@ -226,7 +238,6 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
         }
       }
 
-      // 4. Prepare insert data
       final Map<String, dynamic> insertData = {
         'service_name': categoryName,
         'description': 'Professional $categoryName provided by certified experts.',
@@ -239,12 +250,10 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       if (catId != null) insertData['category_id'] = catId;
       if (providerId != null) insertData['provider_id'] = providerId;
 
-      // 5. Insert into services table
       await _client.from('services').insert(insertData);
 
       if (!mounted) return;
 
-      // 6. Remove from current recommendation list
       setState(() {
         _matches.removeWhere((x) => x['category'] == m['category']);
       });
@@ -256,7 +265,13 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
             children: [
               const Icon(Icons.check_circle, color: Colors.white, size: 20),
               const SizedBox(width: 8),
-              Text(tr("Successfully added to My Services!")),
+              Text(
+                isZh
+                    ? '成功添加到我的服务！'
+                    : (isMs
+                    ? 'Berjaya ditambah ke Perkhidmatan Saya!'
+                    : 'Successfully added to My Services!'),
+              ),
             ],
           ),
           backgroundColor: Colors.green.shade600,
@@ -269,7 +284,13 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(tr("Failed to add service: {0}", [e.toString()])),
+          content: Text(
+            isZh
+                ? '添加服务失败：$e'
+                : (isMs
+                ? 'Gagal menambah perkhidmatan: $e'
+                : 'Failed to add service: $e'),
+          ),
           backgroundColor: Colors.red.shade600,
           behavior: SnackBarBehavior.floating,
         ),
@@ -278,12 +299,22 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   }
 
   void _onNotInterested(Map<String, dynamic> m) {
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     setState(() {
       _matches.removeWhere((x) => x['category'] == m['category']);
     });
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(tr("Removed: {0}", [m['category']])),
+        content: Text(
+          isZh
+              ? '已移除：${m['category']}'
+              : (isMs
+              ? 'Dibuang: ${m['category']}'
+              : 'Removed: ${m['category']}'),
+        ),
         backgroundColor: Colors.grey.shade700,
         behavior: SnackBarBehavior.floating,
       ),
@@ -293,11 +324,18 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     return Scaffold(
       backgroundColor: Colors.white,
       extendBody: true,
       appBar: AppBar(
-        title: Text(tr('AI Job Matching')),
+        title: Text(
+          isZh ? 'AI 职位匹配' : (isMs ? 'Padanan Pekerjaan AI' : 'AI Job Matching'),
+          style: const TextStyle(fontWeight: FontWeight.w600),
+        ),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -307,7 +345,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
         children: [
           Positioned.fill(
             child: _loading
-                ? _buildAiLoading()
+                ? _buildAiLoading(isZh, isMs)
                 : SafeArea(
               child: RefreshIndicator(
                 onRefresh: _load,
@@ -325,7 +363,10 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                               const SizedBox(height: 12),
                               Text(_error!, style: const TextStyle(color: Colors.grey), textAlign: TextAlign.center),
                               const SizedBox(height: 12),
-                              ElevatedButton(onPressed: _load, child: Text(tr('Retry'))),
+                              ElevatedButton(
+                                onPressed: _load,
+                                child: Text(isZh ? '重试' : (isMs ? 'Cuba lagi' : 'Retry')),
+                              ),
                             ],
                           ),
                         ),
@@ -350,7 +391,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: Text(
-                                  _localText('ai_intro'),
+                                  _localText('ai_intro', isZh, isMs),
                                   style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.4),
                                 ),
                               ),
@@ -364,11 +405,18 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 48),
                           child: Center(
-                            child: Text(tr('No recommendations available'), style: const TextStyle(color: Colors.grey)),
+                            child: Text(
+                              isZh
+                                  ? '暂无推荐'
+                                  : (isMs
+                                  ? 'Tiada cadangan tersedia'
+                                  : 'No recommendations available'),
+                              style: const TextStyle(color: Colors.grey),
+                            ),
                           ),
                         )
                       else
-                        ..._matches.map((m) => _matchCard(m)),
+                        ..._matches.map((m) => _matchCard(m, isZh, isMs)),
                     ],
                   ],
                 ),
@@ -385,7 +433,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     );
   }
 
-  Widget _buildAiLoading() {
+  Widget _buildAiLoading(bool isZh, bool isMs) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -393,7 +441,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
           const CircularProgressIndicator(color: _primaryColor),
           const SizedBox(height: 24),
           Text(
-            _localText('ai_analyzing'),
+            _localText('ai_analyzing', isZh, isMs),
             style: const TextStyle(color: Colors.grey, fontSize: 14),
           ),
         ],
@@ -401,7 +449,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     );
   }
 
-  Widget _matchCard(Map<String, dynamic> m) {
+  Widget _matchCard(Map<String, dynamic> m, bool isZh, bool isMs) {
     final matchPercent = m['matchPercent'] as int;
     final hasSkill = m['hasSkill'] as bool;
     final reason = m['reason']?.toString() ?? '';
@@ -426,7 +474,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
               children: [
                 Expanded(
                   child: Text(
-                    tr(m['category'].toString()),
+                    m['category'].toString(),
                     style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                 ),
@@ -437,7 +485,11 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    tr("{0}% match", [matchPercent]),
+                    isZh
+                        ? '$matchPercent% 匹配'
+                        : (isMs
+                        ? '$matchPercent% padanan'
+                        : '$matchPercent% match'),
                     style: TextStyle(color: matchColor, fontSize: 12, fontWeight: FontWeight.w700),
                   ),
                 ),
@@ -464,8 +516,16 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                 Expanded(
                   child: Text(
                     hasSkill
-                        ? tr("You have: {0} certificate", [m['requiredSkill'] ?? ''])
-                        : tr("Missing: {0} certification", [m['requiredSkill'] ?? '']),
+                        ? (isZh
+                        ? '您有：${m['requiredSkill'] ?? ''} 证书'
+                        : (isMs
+                        ? 'Anda mempunyai: sijil ${m['requiredSkill'] ?? ''}'
+                        : 'You have: ${m['requiredSkill'] ?? ''} certificate'))
+                        : (isZh
+                        ? '缺少：${m['requiredSkill'] ?? ''} 认证'
+                        : (isMs
+                        ? 'Tiada: pensijilan ${m['requiredSkill'] ?? ''}'
+                        : 'Missing: ${m['requiredSkill'] ?? ''} certification')),
                     style: TextStyle(
                       fontSize: 12,
                       color: hasSkill ? Colors.green.shade700 : Colors.orange.shade700,
@@ -487,7 +547,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: Text(tr('Accept')),
+                    child: Text(isZh ? '接受' : (isMs ? 'Terima' : 'Accept')),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -500,7 +560,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
-                    child: Text(tr('Not Interested')),
+                    child: Text(isZh ? '不感兴趣' : (isMs ? 'Tidak Berminat' : 'Not Interested')),
                   ),
                 ),
               ],
