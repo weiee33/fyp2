@@ -1,3 +1,4 @@
+import '../../shared/new_password.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/account_access.dart';
 
@@ -15,6 +16,7 @@ class AuthService {
     required String fullName,
     required String phone,
   }) async {
+    requireNewPassword(password);
     final response = await _client.auth.signUp(
       email: email.trim(),
       password: password,

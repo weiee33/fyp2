@@ -165,6 +165,7 @@ void main() {
                 'service_latitude': centre.latitude,
                 'service_longitude': centre.longitude,
                 'service_radius_km': 10,
+                'services': ['Plumbing'],
               },
             ],
           ),
@@ -182,16 +183,25 @@ void main() {
         .first;
     t.widget<GestureDetector>(marker).onTap!();
     await t.pump();
-    Color? fill(String label) => t
-        .widget<Material>(
-          find
-              .ancestor(
-                of: find.textContaining(label),
-                matching: find.byType(Material),
-              )
-              .first,
-        )
-        .color;
+    expect(find.text('Plumbing'), findsNothing);
+    await t.tap(find.text('Selected address in range'));
+    await t.pumpAndSettle();
+    expect(find.text('Plumbing'), findsOneWidget);
+    await t.tap(find.text('Selected address in range'));
+    await t.pumpAndSettle();
+    expect(find.text('Plumbing'), findsNothing);
+    Color? fill(String label) {
+      final tile = find.byType(ExpansionTile);
+      expect(
+        find.descendant(of: tile, matching: find.text(label)),
+        findsOneWidget,
+      );
+      final card = find
+          .ancestor(of: tile, matching: find.byType(Material))
+          .first;
+      return t.widget<Material>(card).color;
+    }
+
     expect(
       fill('Selected address in range'),
       Color.alphaBlend(

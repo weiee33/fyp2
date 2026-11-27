@@ -301,12 +301,16 @@ class _CustomerBookingDetailScreenState
                     ),
                     BookingSection(
                       title: _nextStepTitle(booking),
-                      icon: booking.paymentStatus == 'Success'
+                      icon: booking.cancelledAfterPayment
+                          ? null
+                          : booking.paymentStatus == 'Success'
                           ? Icons.check_circle
                           : booking.needsNewBooking
                           ? Icons.cancel
                           : Icons.info_outline,
-                      accentColor: booking.paymentStatus == 'Success'
+                      accentColor: booking.cancelledAfterPayment
+                          ? const Color(0xFFB42318)
+                          : booking.paymentStatus == 'Success'
                           ? const Color(0xFF157347)
                           : booking.needsNewBooking
                           ? const Color(0xFFB42318)
@@ -537,11 +541,7 @@ class _CustomerBookingDetailScreenState
   }
 
   String _nextStepTitle(CustomerBooking booking) {
-    if (booking.hasReceipt &&
-        booking.status == 'Cancelled' &&
-        booking.paymentStatus != 'Refunded') {
-      return 'Payment received · Booking cancelled';
-    }
+    if (booking.cancelledAfterPayment) return 'Booking cancelled';
     if (booking.hasReceipt) {
       return booking.paymentStatus == 'Refunded'
           ? 'Payment refunded'
@@ -555,10 +555,8 @@ class _CustomerBookingDetailScreenState
   }
 
   String? _nextStepMessage(CustomerBooking booking) {
-    if (booking.hasReceipt &&
-        booking.status == 'Cancelled' &&
-        booking.paymentStatus != 'Refunded') {
-      return 'Your payment is recorded, but this appointment is cancelled. Check the support request below for refund review. Do not pay again.';
+    if (booking.cancelledAfterPayment) {
+      return 'Payment received. Check your support request for refund updates.';
     }
     if (booking.hasReceipt) {
       return 'View your receipt below for the verified payment record.';

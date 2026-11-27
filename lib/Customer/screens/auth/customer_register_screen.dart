@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/new_password.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import '../../../shared/brand/brand_splash.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
@@ -269,13 +270,11 @@ class _CustomerRegisterScreenState extends State<CustomerRegisterScreen> {
                       controller: _passwordController,
                       enabled: !_loading,
                       obscureText: _obscurePassword,
-                      validator: (value) => trOrNull(
-                        ((v) => (v == null || v.length < 6)
-                            ? 'Must be 6+ characters'
-                            : null)(value),
-                      ),
+                      validator: (value) =>
+                          trOrNull(validateNewPassword(value)),
                       decoration: InputDecoration(
                         hintText: '••••••••',
+                        helperText: tr(newPasswordLengthHint),
                         prefixIcon: const Icon(Icons.lock_outline),
                         suffixIcon: IconButton(
                           icon: Icon(

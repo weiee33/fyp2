@@ -394,7 +394,7 @@ class _FilterSheetState extends State<_FilterSheet> {
       physics: customerScrollPhysics(context),
       padding: EdgeInsets.fromLTRB(
         20,
-        20,
+        0,
         20,
         MediaQuery.viewInsetsOf(context).bottom + 24,
       ),
@@ -443,12 +443,14 @@ class _FilterSheetState extends State<_FilterSheet> {
               spacing: 8,
               children: [
                 ChoiceChip(
+                  showCheckmark: false,
                   label: Text(tr('Any')),
                   selected: _rating == null,
                   onSelected: (_) => setState(() => _rating = null),
                 ),
                 for (final rating in [1.0, 2.0, 3.0, 4.0, 5.0])
                   ChoiceChip(
+                    showCheckmark: false,
                     label: Text(tr('${rating.toInt()}+ ★')),
                     selected: _rating == rating,
                     onSelected: (_) => setState(() => _rating = rating),

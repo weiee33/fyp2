@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:fyp2/Customer/widgets/booking_section.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -215,4 +216,31 @@ void main() {
       await t.pumpWidget(const SizedBox());
     });
   }
+  testWidgets(
+    'paid cancellation highlights the cancellation and keeps the payment record',
+    (t) async {
+      capture.pixel(t);
+      final data = fixtures.booking(status: 'Cancelled', paid: true);
+      await t.pumpWidget(
+        capture.app(
+          CustomerBookingDetailScreen(
+            bookingId: data['booking_id'],
+            transactions: CustomerTransactionService(rpc: (_, _) async => data),
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      final message = find.text(
+        'Payment received. Check your support request for refund updates.',
+      );
+      final section = t.widget<BookingSection>(
+        find.ancestor(of: message, matching: find.byType(BookingSection)),
+      );
+      expect(section.title, 'Booking cancelled');
+      expect(section.icon, isNull);
+      expect(section.accentColor, const Color(0xFFB42318));
+      expect(find.text('Paid'), findsWidgets);
+      await t.pumpWidget(const SizedBox());
+    },
+  );
 }

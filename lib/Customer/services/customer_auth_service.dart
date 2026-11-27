@@ -1,3 +1,4 @@
+import '../../shared/new_password.dart';
 import '../widgets/malaysia_phone_field.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../shared/account_access.dart';
@@ -16,6 +17,7 @@ class CustomerAuthService {
     required String fullName,
     required String phone,
   }) async {
+    requireNewPassword(password);
     await _client.rpc(
       'customer_registration_check',
       params: {'p_email': email.trim()},
