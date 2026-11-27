@@ -184,29 +184,34 @@ class _EarningsScreenState extends State<EarningsScreen> {
 
     return Scaffold(
       backgroundColor: _bgWhite,
+      // 👇 AppBar 修改为橙色背景，白色文字，并去掉了 action 按钮
       appBar: AppBar(
         title: Text(
           lang == 'zh' ? '收益' : (lang == 'ms' ? 'Pendapatan' : 'Earnings'),
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+            color: Colors.white, // 👈 强制标题为白色
+          ),
         ),
-        backgroundColor: _bgWhite,
-        foregroundColor: Colors.black87,
+        backgroundColor: _primaryOrange, // 👈 修改为橙色背景
+        foregroundColor: Colors.white,  // 👈 箭头和图标改为白色
         elevation: 0,
         automaticallyImplyLeading: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
-          )
-        ],
+        // 👈 删除了 actions 里面的 IconButton
       ),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _load,
           color: _primaryOrange,
           child: ListView(
+            // 👇 添加了 BouncingScrollPhysics 实现拉到底部的弹性效果
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             children: [
+              const SizedBox(height: 8), // 稍微加一点间距
               // ===== Hero Card =====
               Container(
                 padding: const EdgeInsets.all(20),

@@ -13,12 +13,16 @@ class MyBookingsScreen extends StatefulWidget {
 class _MyBookingsScreenState extends State<MyBookingsScreen> {
   final _service = BookingService();
 
-  final tabs = ['New', 'Confirmed', 'In-Progress', 'Completed'];
+  // 标签只有这 5 个
+  final tabs = ['New', 'Confirmed', 'In-Progress', 'Completed', 'Cancelled'];
+
+  // 映射到数据库的真实状态
   final statusMap = {
     'New': 'Pending',
     'Confirmed': 'Confirmed',
     'In-Progress': 'In-Progress',
     'Completed': 'Completed',
+    'Cancelled': 'Cancelled',
   };
 
   int _tab = 0;
@@ -42,11 +46,13 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       final items = await _service.getMyBookings(status: statusMap[tabs[_tab]]);
       if (!mounted) return;
 
-      // 👇 过滤逻辑：如果单子时间已过，且状态不是 Completed，则直接隐藏
+      // 过滤逻辑：如果单子时间已过，且状态不是 Completed / Cancelled，则直接隐藏
       final now = DateTime.now();
       final filteredItems = items.where((b) {
         final status = (b['booking_status'] ?? '').toString().toLowerCase();
-        if (status == 'completed') return true; // Completed 永远显示
+
+        // 已完成和已取消的永远显示，不受时间限制
+        if (status == 'completed' || status == 'cancelled') return true;
 
         final dateStr = b['scheduled_datetime']?.toString() ?? b['booking_date']?.toString();
         if (dateStr == null) return true;
@@ -63,26 +69,118 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(tr("Failed to load bookings: {0}", [e])),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      final lang = Localizations.localeOf(context).languageCode;
+      _showAppDialog(
+        title: lang == 'zh' ? '错误' : (lang == 'ms' ? 'Ralat' : 'Error'),
+        message: lang == 'zh'
+            ? '加载预约失败：$e'
+            : (lang == 'ms' ? 'Gagal memuatkan tempahan: $e' : 'Failed to load bookings: $e'),
+        isError: true,
       );
     }
+  }
+
+  // ============= 通用弹窗组件 (Pop-up Box) =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // 翻译 Tab 标题
+  String _translateTab(String tab) {
+    final lang = Localizations.localeOf(context).languageCode;
+    if (lang == 'zh') {
+      if (tab == 'New') return '新订单';
+      if (tab == 'Confirmed') return '已确认';
+      if (tab == 'In-Progress') return '进行中';
+      if (tab == 'Completed') return '已完成';
+      if (tab == 'Cancelled') return '已取消';
+    } else if (lang == 'ms') {
+      if (tab == 'New') return 'Baharu';
+      if (tab == 'Confirmed') return 'Disahkan';
+      if (tab == 'In-Progress') return 'Sedang Berjalan';
+      if (tab == 'Completed') return 'Selesai';
+      if (tab == 'Cancelled') return 'Dibatalkan';
+    }
+    return tab;
   }
 
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(tr('My Bookings')),
+        title: Text(
+          isZh ? '我的预约' : (isMs ? 'Tempahan Saya' : 'My Bookings'),
+          // 👇 强制指定白色
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -122,7 +220,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                             ),
                           ),
                           child: Text(
-                            tr(tabs[i]),
+                            _translateTab(tabs[i]),
                             style: TextStyle(
                               color: selected ? Colors.white : _primaryOrange,
                               fontWeight: FontWeight.w600,
@@ -148,8 +246,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                 onRefresh: _load,
                 color: _primaryOrange,
                 child: _items.isEmpty
-                    ? _buildEmpty()
+                    ? _buildEmpty(isZh, isMs)
                     : ListView(
+                  // 👇 添加了 BouncingScrollPhysics 实现拉到底部的弹性效果
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
                   padding: const EdgeInsets.only(
                     left: 16,
                     right: 16,
@@ -157,7 +259,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     bottom: 120,
                   ),
                   children: _items
-                      .map((b) => _bookingCard(b))
+                      .map((b) => _bookingCard(b, isZh, isMs))
                       .toList(),
                 ),
               ),
@@ -168,8 +270,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(bool isZh, bool isMs) {
     return ListView(
+      // 👇 无数据页面也加上弹性效果
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       padding: const EdgeInsets.only(bottom: 120),
       children: [
         const SizedBox(height: 100),
@@ -177,7 +283,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         const SizedBox(height: 12),
         Center(
           child: Text(
-            tr('No bookings'),
+            isZh ? '暂无预约' : (isMs ? 'Tiada tempahan' : 'No bookings'),
             style: const TextStyle(
               color: Colors.grey,
               fontSize: 14,
@@ -188,7 +294,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         const SizedBox(height: 4),
         Center(
           child: Text(
-            tr('New booking requests will appear here'),
+            isZh
+                ? '新的预约请求将显示在这里'
+                : (isMs
+                ? 'Permintaan tempahan baharu akan dipaparkan di sini'
+                : 'New booking requests will appear here'),
             style: const TextStyle(color: Colors.grey, fontSize: 12),
           ),
         ),
@@ -196,7 +306,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
-  Widget _bookingCard(Map<String, dynamic> b) {
+  Widget _bookingCard(Map<String, dynamic> b, bool isZh, bool isMs) {
     final rawId = b['booking_id']?.toString() ?? '';
     final shortId = rawId.isEmpty
         ? 'N/A'
@@ -204,8 +314,9 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
 
     final cust =
         b['customer_profiles']?['users']?['full_name']?.toString() ??
-            tr('Customer');
-    final svc = b['services']?['service_name']?.toString() ?? tr('Service');
+            (isZh ? '客户' : (isMs ? 'Pelanggan' : 'Customer'));
+    final svc = b['services']?['service_name']?.toString() ??
+        (isZh ? '服务' : (isMs ? 'Perkhidmatan' : 'Service'));
 
     final amountRaw = b['total_amount'];
     final amountText = amountRaw == null
@@ -215,7 +326,8 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
         : amountRaw.toString());
 
     final status = b['booking_status']?.toString() ?? 'Pending';
-    final date = b['booking_date']?.toString() ?? tr('Date TBA');
+    final date = b['booking_date']?.toString() ??
+        (isZh ? '日期待定' : (isMs ? 'Tarikh TBD' : 'Date TBA'));
 
     return Card(
       elevation: 1,
@@ -228,8 +340,12 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       child: InkWell(
         onTap: () {
           if (rawId.isEmpty) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(tr('Booking ID missing'))),
+            _showAppDialog(
+              title: isZh ? '错误' : (isMs ? 'Ralat' : 'Error'),
+              message: isZh
+                  ? '预约 ID 缺失'
+                  : (isMs ? 'ID Tempahan tiada' : 'Booking ID missing'),
+              isError: true,
             );
             return;
           }
@@ -266,7 +382,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                       ),
                       const SizedBox(width: 10),
                       Text(
-                        tr('#$shortId'),
+                        '#$shortId',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 14,
@@ -276,7 +392,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                     ],
                   ),
                   Text(
-                    tr(amountRaw == null ? '—' : tr("RM{0}", [amountText])),
+                    amountRaw == null ? '—' : 'RM$amountText',
                     style: const TextStyle(
                       color: _primaryOrange,
                       fontWeight: FontWeight.bold,
@@ -303,9 +419,11 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  _statusBadge(status),
+                  _statusBadge(status, isZh, isMs),
                   Text(
-                    tr('View detail →'),
+                    isZh
+                        ? '查看详情 →'
+                        : (isMs ? 'Lihat butiran →' : 'View detail →'),
                     style: const TextStyle(
                       color: _primaryOrange,
                       fontWeight: FontWeight.w600,
@@ -337,38 +455,42 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
     );
   }
 
-  Widget _statusBadge(String status) {
+  Widget _statusBadge(String status, bool isZh, bool isMs) {
     Color bg;
     Color fg;
     IconData icon;
+    String displayStatus;
 
-    // ✨ Consistent with BookingDetailScreen colors
     switch (status.toLowerCase()) {
       case 'confirmed':
-        bg = const Color(0xFFECFDF5); // Light green
-        fg = const Color(0xFF10B981); // Green
+        bg = const Color(0xFFECFDF5);
+        fg = const Color(0xFF10B981);
         icon = Icons.check_circle_outline;
+        displayStatus = isZh ? '已确认' : (isMs ? 'DISAHKAN' : 'CONFIRMED');
         break;
       case 'in-progress':
         bg = _lightOrange;
         fg = _primaryOrange;
         icon = Icons.timelapse;
+        displayStatus = isZh ? '进行中' : (isMs ? 'SEDANG BERJALAN' : 'IN-PROGRESS');
         break;
       case 'completed':
-        bg = const Color(0xFFF3F4F6); // Light grey
-        fg = const Color(0xFF6B7280); // Grey
+        bg = const Color(0xFFF3F4F6);
+        fg = const Color(0xFF6B7280);
         icon = Icons.done_all;
+        displayStatus = isZh ? '已完成' : (isMs ? 'SELESAI' : 'COMPLETED');
         break;
       case 'cancelled':
-        bg = const Color(0xFFFEF2F2); // Light red
-        fg = const Color(0xFFEF4444); // Red
+        bg = const Color(0xFFFEF2F2);
+        fg = const Color(0xFFEF4444);
         icon = Icons.cancel_outlined;
+        displayStatus = isZh ? '已取消' : (isMs ? 'DIBATALKAN' : 'CANCELLED');
         break;
-      default:
-      // Pending / New
-        bg = const Color(0xFFFEF3C7); // Light amber
-        fg = const Color(0xFFF59E0B); // Amber
+      default: // pending / new
+        bg = const Color(0xFFFEF3C7);
+        fg = const Color(0xFFF59E0B);
         icon = Icons.pending_outlined;
+        displayStatus = isZh ? '新订单' : (isMs ? 'BAHARU' : 'NEW');
     }
 
     return Container(
@@ -383,7 +505,7 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
           Icon(icon, size: 13, color: fg),
           const SizedBox(width: 4),
           Text(
-            tr(status),
+            displayStatus,
             style: TextStyle(
               color: fg,
               fontSize: 11,

@@ -52,7 +52,14 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         await _fetchCustomerInfo();
       }
     } catch (error) {
-      if (mounted) setState(() => _error = bookingError(error));
+      if (mounted) {
+        setState(() => _error = bookingError(error));
+        _showAppDialog(
+          title: 'Error',
+          message: bookingError(error),
+          isError: true,
+        );
+      }
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -100,7 +107,13 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
       await _service.updateStatus(widget.bookingId, status);
       if (mounted) await _load();
     } catch (error) {
-      if (mounted) _showErrorSnack(bookingError(error));
+      if (mounted) {
+        _showAppDialog(
+          title: 'Error',
+          message: bookingError(error),
+          isError: true,
+        );
+      }
     } finally {
       if (mounted) setState(() => _acting = false);
     }
@@ -197,7 +210,13 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         await _service.cancel(widget.bookingId, reason);
         if (mounted) await _load();
       } catch (error) {
-        if (mounted) _showErrorSnack(bookingError(error));
+        if (mounted) {
+          _showAppDialog(
+            title: 'Error',
+            message: bookingError(error),
+            isError: true,
+          );
+        }
       } finally {
         if (mounted) setState(() => _acting = false);
       }
@@ -235,18 +254,20 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     ),
   );
 
-  /// One builder for every action button → guaranteed consistency.
+  // 支持可选 Icon
   Widget _actionButton({
     required String label,
-    required IconData icon,
+    IconData? icon, // 改成可选参数
     required VoidCallback? onPressed,
     bool outlined = false,
   }) {
     final child = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 18),
-        const SizedBox(width: 8),
+        if (icon != null) ...[
+          Icon(icon, size: 18),
+          const SizedBox(width: 8),
+        ],
         Text(tr(label)),
       ],
     );
@@ -263,16 +284,67 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     );
   }
 
-  void _showErrorSnack(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(tr(message)),
-        backgroundColor: Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
+  // ========== Pop-up Box 弹窗 ==========
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -280,9 +352,8 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        // 🚀 直接使用高级版的 ConversationScreen，无需再维护两个 ChatScreen 文件
         builder: (_) => ConversationScreen(
-          customer: false, // 告诉聊天室，当前是商家端
+          customer: false,
           bookingId: widget.bookingId,
         ),
       ),
@@ -332,7 +403,14 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(tr('Booking Detail')),
+        title: Text(
+          tr('Booking Detail'),
+          // 👇 强制指定白色
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -352,7 +430,10 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
         onRefresh: _load,
         color: _primaryOrange,
         child: ListView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          // 👇 添加了 BouncingScrollPhysics 实现拉到底部的弹性效果
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(16),
           children: [
             if (_error != null)
@@ -528,7 +609,7 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
 
             const SizedBox(height: 24),
 
-            // ===== Action Buttons (all consistent) =====
+            // ===== Action Buttons =====
             if (_acting)
               const Center(
                 child: Padding(
@@ -542,49 +623,44 @@ class _BookingDetailScreenState extends State<BookingDetailScreen> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Primary: Accept
+                  // 1. Accept (无图标)
                   if (_b!['can_accept'] == true) ...[
                     _actionButton(
                       label: 'Accept',
-                      icon: Icons.check,
                       onPressed: () => _update('Confirmed'),
                     ),
                     const SizedBox(height: 10),
-                    // Secondary: Decline
+                    // 2. Decline (无图标)
                     _actionButton(
                       label: 'Decline',
-                      icon: Icons.close,
                       onPressed: _cancel,
                       outlined: true,
                     ),
                     const SizedBox(height: 10),
                   ],
 
-                  // Primary: Start Service
+                  // 3. Start Service (无图标)
                   if (_b!['can_start'] == true) ...[
                     _actionButton(
                       label: 'Start Service',
-                      icon: Icons.play_arrow,
                       onPressed: () => _update('In-Progress'),
                     ),
                     const SizedBox(height: 10),
                   ],
 
-                  // Primary: Complete Service
+                  // 4. Complete Service (无图标)
                   if (_b!['booking_status'] == 'In-Progress') ...[
                     _actionButton(
                       label: 'Complete Service',
-                      icon: Icons.done_all,
                       onPressed: () => _update('Completed'),
                     ),
                     const SizedBox(height: 10),
                   ],
 
-                  // Secondary: Chat (always visible so vendor can
-                  // reach the customer at any stage)
+                  // 5. Chat with Customer (保留图标)
                   _actionButton(
                     label: 'Chat with Customer',
-                    icon: Icons.chat_bubble_outline,
+                    icon: Icons.chat_bubble_outline, // 保留图标
                     onPressed: _openChat,
                     outlined: true,
                   ),

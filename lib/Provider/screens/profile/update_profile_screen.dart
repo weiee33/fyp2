@@ -34,7 +34,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
-  static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
   void initState() {
@@ -67,7 +66,11 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError("Failed to load profile: $e");
+      _showAppDialog(
+        title: 'Error',
+        message: "Failed to load profile: $e",
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -92,11 +95,19 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       });
     } catch (e) {
       if (!mounted) return;
-      _showError("Failed to pick image: $e");
+      _showAppDialog(
+        title: 'Error',
+        message: "Failed to pick image: $e",
+        isError: true,
+      );
     }
   }
 
   void _showImageSourceSheet() {
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -107,7 +118,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
           children: [
             ListTile(
               leading: const Icon(Icons.photo_library, color: _primaryOrange),
-              title: Text(tr('Choose from Gallery')),
+              title: Text(isZh ? '从相册选择' : (isMs ? 'Pilih dari Galeri' : 'Choose from Gallery')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.gallery);
@@ -115,7 +126,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.camera_alt, color: _primaryOrange),
-              title: Text(tr('Take a Photo')),
+              title: Text(isZh ? '拍照' : (isMs ? 'Ambil Gambar' : 'Take a Photo')),
               onTap: () {
                 Navigator.pop(ctx);
                 _pickImage(ImageSource.camera);
@@ -125,7 +136,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
                 title: Text(
-                  tr('Remove Photo'),
+                  isZh ? '移除照片' : (isMs ? 'Buang Gambar' : 'Remove Photo'),
                   style: const TextStyle(color: Colors.red),
                 ),
                 onTap: () {
@@ -172,29 +183,23 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(tr('Profile updated successfully')),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+
+      _showAppDialog(
+        title: 'Success',
+        message: 'Profile updated successfully.',
+        isError: false,
       );
 
-      await Future.delayed(const Duration(milliseconds: 800));
+      await Future.delayed(const Duration(milliseconds: 1200));
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError("Save failed: $e");
+      _showAppDialog(
+        title: 'Error',
+        message: "Save failed: $e",
+        isError: true,
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -205,20 +210,76 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     }
   }
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+  // ============= Pop-up Box 弹窗 =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
-  String? _validateRequired(String? v, String label) {
+  String? _validateRequired(String? v, String labelEn, String labelZh, String labelMs) {
+    final lang = Localizations.localeOf(context).languageCode;
     if (v == null || v.trim().isEmpty) {
-      return tr("{0} is required", [tr(label)]);
+      if (lang == 'zh') return '$labelZh不能为空';
+      if (lang == 'ms') return '$labelMs diperlukan';
+      return '$labelEn is required';
     }
     return null;
   }
@@ -226,19 +287,37 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   String? _validateYears(String? v) {
     if (v == null || v.trim().isEmpty) return null;
     final n = int.tryParse(v.trim());
-    if (n == null) return 'Please enter a valid number';
-    if (n < 0) return 'Cannot be negative';
-    if (n > 80) return 'Value is too large';
+    final lang = Localizations.localeOf(context).languageCode;
+    if (n == null) {
+      return lang == 'zh' ? '请输入有效的数字' : (lang == 'ms' ? 'Masukkan nombor yang sah' : 'Please enter a valid number');
+    }
+    if (n < 0) {
+      return lang == 'zh' ? '不能为负数' : (lang == 'ms' ? 'Tidak boleh negatif' : 'Cannot be negative');
+    }
+    if (n > 80) {
+      return lang == 'zh' ? '数值太大' : (lang == 'ms' ? 'Nilai terlalu besar' : 'Value is too large');
+    }
     return null;
   }
 
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(tr('Update Profile')),
+        // 👇 强制 AppBar 标题为白色
+        title: Text(
+          isZh ? '更新个人资料' : (isMs ? 'Kemas Kini Profil' : 'Update Profile'),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -249,6 +328,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
       )
           : SafeArea(
         child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
@@ -261,7 +343,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                   child: TextButton.icon(
                     onPressed: _saving ? null : _showImageSourceSheet,
                     icon: const Icon(Icons.photo_camera_outlined),
-                    label: Text(tr('Change Photo')),
+                    label: Text(isZh ? '更改照片' : (isMs ? 'Tukar Gambar' : 'Change Photo')),
                     style: TextButton.styleFrom(
                       foregroundColor: _primaryOrange,
                     ),
@@ -269,22 +351,25 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                _label('Full Name'),
+                _label(isZh ? '全名' : (isMs ? 'Nama Penuh' : 'Full Name')),
                 TextFormField(
                   controller: _fullName,
                   textInputAction: TextInputAction.next,
                   enabled: !_saving,
-                  validator: (value) => trOrNull(
-                    ((v) => _validateRequired(v, 'Full name'))(value),
+                  validator: (value) => _validateRequired(
+                      value,
+                      'Full name',
+                      '全名',
+                      'Nama penuh'
                   ),
                   decoration: _inputDecoration(
-                    hint: 'Your full name',
+                    hint: isZh ? '您的全名' : (isMs ? 'Nama penuh anda' : 'Your full name'),
                     icon: Icons.person_outline,
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                _label('Phone Number'),
+                _label(isZh ? '电话号码' : (isMs ? 'Nombor Telefon' : 'Phone Number')),
                 TextFormField(
                   controller: _phone,
                   keyboardType: TextInputType.phone,
@@ -297,55 +382,58 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                 ),
                 const SizedBox(height: 16),
 
-                _label('Business Name'),
+                _label(isZh ? '业务名称' : (isMs ? 'Nama Perniagaan' : 'Business Name')),
                 TextFormField(
                   controller: _name,
                   textInputAction: TextInputAction.next,
                   enabled: !_saving,
-                  validator: (value) => trOrNull(
-                    ((v) => _validateRequired(v, 'Business name'))(value),
+                  validator: (value) => _validateRequired(
+                      value,
+                      'Business name',
+                      '业务名称',
+                      'Nama perniagaan'
                   ),
                   decoration: _inputDecoration(
-                    hint: 'e.g. ABC Services',
+                    hint: isZh ? '例如：ABC Services' : (isMs ? 'cth. ABC Services' : 'e.g. ABC Services'),
                     icon: Icons.storefront_outlined,
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                _label('Bio'),
+                _label(isZh ? '个人简介' : (isMs ? 'Bio' : 'Bio')),
                 TextFormField(
                   controller: _bio,
                   maxLines: 3,
                   enabled: !_saving,
                   decoration: _inputDecoration(
-                    hint: 'Tell customers about your services...',
+                    hint: isZh ? '向客户介绍您的服务...' : (isMs ? 'Beritahu pelanggan tentang perkhidmatan anda...' : 'Tell customers about your services...'),
                     icon: Icons.description_outlined,
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                _label('Years of Experience'),
+                _label(isZh ? '工作经验（年）' : (isMs ? 'Pengalaman Kerja (tahun)' : 'Years of Experience')),
                 TextFormField(
                   controller: _years,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.next,
                   enabled: !_saving,
-                  validator: (value) => trOrNull(_validateYears(value)),
+                  validator: _validateYears,
                   decoration: _inputDecoration(
-                    hint: 'e.g. 5',
+                    hint: isZh ? '例如：5' : (isMs ? 'cth. 5' : 'e.g. 5'),
                     icon: Icons.timeline_outlined,
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                _label('City'),
+                _label(isZh ? '城市' : (isMs ? 'Bandar' : 'City')),
                 TextFormField(
                   controller: _city,
                   textInputAction: TextInputAction.done,
                   enabled: !_saving,
                   onFieldSubmitted: (_) => _save(),
                   decoration: _inputDecoration(
-                    hint: 'e.g. Kuala Lumpur',
+                    hint: isZh ? '例如：吉隆坡' : (isMs ? 'cth. Kuala Lumpur' : 'e.g. Kuala Lumpur'),
                     icon: Icons.location_city_outlined,
                   ),
                 ),
@@ -373,11 +461,9 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
                       ),
                     )
                         : Text(
-                      tr(
-                        _uploadingPhoto
-                            ? 'Uploading photo...'
-                            : 'Save Changes',
-                      ),
+                      isZh ? ( _uploadingPhoto ? '上传照片中...' : '保存更改' )
+                          : (isMs ? ( _uploadingPhoto ? 'Memuat naik gambar...' : 'Simpan Perubahan' )
+                          : ( _uploadingPhoto ? 'Uploading photo...' : 'Save Changes' )),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -433,7 +519,6 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
             child: IconButton(
               icon: const Icon(Icons.edit, color: Colors.white, size: 18),
               onPressed: _saving ? null : _showImageSourceSheet,
-              tooltip: trOrNull('Edit photo'),
               constraints: const BoxConstraints(),
               padding: const EdgeInsets.all(6),
             ),
@@ -446,7 +531,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(
-      tr(text),
+      text,
       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
     ),
   );
@@ -456,7 +541,7 @@ class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
     required IconData icon,
   }) {
     return InputDecoration(
-      hintText: trOrNull(hint),
+      hintText: hint,
       hintStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,

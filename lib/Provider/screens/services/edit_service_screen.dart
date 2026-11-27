@@ -65,9 +65,13 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
     } catch (e) {
       if (!mounted) return;
       final lang = Localizations.localeOf(context).languageCode;
-      _showError(lang == 'zh'
-          ? '加载失败：$e'
-          : (lang == 'ms' ? 'Gagal memuatkan: $e' : 'Failed to load: $e'));
+      _showAppDialog(
+        title: 'Error',
+        message: lang == 'zh'
+            ? '加载失败：$e'
+            : (lang == 'ms' ? 'Gagal memuatkan: $e' : 'Failed to load: $e'),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -79,9 +83,13 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
 
     if (_formKey.currentState?.validate() != true) return;
     if (_categoryId == null) {
-      _showError(lang == 'zh'
-          ? '请选择类别'
-          : (lang == 'ms' ? 'Sila pilih kategori' : 'Please select a category'));
+      _showAppDialog(
+        title: 'Error',
+        message: lang == 'zh'
+            ? '请选择类别'
+            : (lang == 'ms' ? 'Sila pilih kategori' : 'Please select a category'),
+        isError: true,
+      );
       return;
     }
 
@@ -102,7 +110,6 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       // 👇 核心新增：查重校验逻辑
       final serviceName = _title.text.trim();
 
-      // 去数据库查同名且 is_active = true 的服务
       final existing = await _client
           .from('services')
           .select('service_id')
@@ -112,28 +119,33 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
           .maybeSingle();
 
       if (existing != null) {
-        // 如果是新增，且查到了同名的
         if (!_isEditing) {
-          _showError(lang == 'zh'
-              ? '您已经有一个名为“$serviceName”的活跃服务。'
-              : (lang == 'ms'
-              ? 'Anda sudah mempunyai perkhidmatan aktif bernama "$serviceName".'
-              : 'You already have an active service named "$serviceName".'));
+          _showAppDialog(
+            title: 'Error',
+            message: lang == 'zh'
+                ? '您已经有一个名为“$serviceName”的活跃服务。'
+                : (lang == 'ms'
+                ? 'Anda sudah mempunyai perkhidmatan aktif bernama "$serviceName".'
+                : 'You already have an active service named "$serviceName".'),
+            isError: true,
+          );
           setState(() => _saving = false);
           return;
         }
-        // 如果是编辑，查到的 ID 不是当前正在编辑的 ID，说明撞名了
         if (existing['service_id'] != widget.existing!['service_id']) {
-          _showError(lang == 'zh'
-              ? '另一个活跃服务已使用此名称。'
-              : (lang == 'ms'
-              ? 'Perkhidmatan aktif lain sudah menggunakan nama ini.'
-              : 'Another active service already uses this name.'));
+          _showAppDialog(
+            title: 'Error',
+            message: lang == 'zh'
+                ? '另一个活跃服务已使用此名称。'
+                : (lang == 'ms'
+                ? 'Perkhidmatan aktif lain sudah menggunakan nama ini.'
+                : 'Another active service already uses this name.'),
+            isError: true,
+          );
           setState(() => _saving = false);
           return;
         }
       }
-      // 👆 查重逻辑结束
 
       final data = {
         'provider_id': pid,
@@ -152,50 +164,97 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(_isEditing
-                  ? (lang == 'zh'
-                  ? '服务已更新'
-                  : (lang == 'ms' ? 'Perkhidmatan dikemas kini' : 'Service updated'))
-                  : (lang == 'zh'
-                  ? '服务已添加'
-                  : (lang == 'ms' ? 'Perkhidmatan ditambah' : 'Service added'))),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+
+      _showAppDialog(
+        title: 'Success',
+        message: _isEditing
+            ? (lang == 'zh'
+            ? '服务已更新'
+            : (lang == 'ms' ? 'Perkhidmatan dikemas kini' : 'Service updated'))
+            : (lang == 'zh'
+            ? '服务已添加'
+            : (lang == 'ms' ? 'Perkhidmatan ditambah' : 'Service added')),
+        isError: false,
       );
 
-      await Future.delayed(const Duration(milliseconds: 600));
+      await Future.delayed(const Duration(milliseconds: 1200));
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError(lang == 'zh'
-          ? '保存失败：$e'
-          : (lang == 'ms' ? 'Gagal menyimpan: $e' : 'Save failed: $e'));
+      _showAppDialog(
+        title: 'Error',
+        message: lang == 'zh'
+            ? '保存失败：$e'
+            : (lang == 'ms' ? 'Gagal menyimpan: $e' : 'Save failed: $e'),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+  // ============= Pop-up Box 弹窗 =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -267,6 +326,10 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
           _isEditing
               ? (isZh ? '编辑服务' : (isMs ? 'Edit Perkhidmatan' : 'Edit Service'))
               : (isZh ? '添加服务' : (isMs ? 'Tambah Perkhidmatan' : 'Add Service')),
+          style: const TextStyle(
+            color: Colors.white, // 👈 强制标题白色
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
@@ -278,6 +341,10 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
       )
           : SafeArea(
         child: SingleChildScrollView(
+          // 👇 添加弹性滑动
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
@@ -418,12 +485,20 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                 ),
                 const SizedBox(height: 28),
 
-                // ---- Save Button ----
+                // ---- Save Button (无图标) ----
                 SizedBox(
                   height: 52,
-                  child: ElevatedButton.icon(
+                  child: ElevatedButton(
                     onPressed: _saving ? null : _save,
-                    icon: _saving
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
+                    ),
+                    child: _saving
                         ? const SizedBox(
                       height: 20,
                       width: 20,
@@ -432,25 +507,14 @@ class _EditServiceScreenState extends State<EditServiceScreen> {
                         color: Colors.white,
                       ),
                     )
-                        : Icon(_isEditing ? Icons.save : Icons.add),
-                    label: Text(
-                      _saving
-                          ? (isZh ? '保存中...' : (isMs ? 'Menyimpan...' : 'Saving...'))
-                          : (_isEditing
+                        : Text(
+                      _isEditing
                           ? (isZh ? '保存更改' : (isMs ? 'Simpan Perubahan' : 'Save Changes'))
-                          : (isZh ? '添加服务' : (isMs ? 'Tambah Perkhidmatan' : 'Add Service'))),
+                          : (isZh ? '添加服务' : (isMs ? 'Tambah Perkhidmatan' : 'Add Service')),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _primaryOrange,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 2,
                     ),
                   ),
                 ),

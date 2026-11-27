@@ -14,6 +14,8 @@ import 'working_hours_screen.dart';
 import 'privacy_screen.dart';
 import 'about_app_screen.dart';
 import 'help_centre.dart';
+// 假设你有一个修改密码的页面，如果没有请替换为你自己的页面
+// import 'change_password_screen.dart';
 
 import 'package:fyp2/Provider/screens/services/my_services_screen.dart';
 import 'package:fyp2/Provider/screens/bookings/my_bookings_screen.dart';
@@ -53,6 +55,12 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
   // Bio Expand State
   bool _isBioExpanded = false;
+
+  // 折叠面板展开状态
+  bool _accountExpanded = true;
+  bool _serviceExpanded = false;
+  bool _earningsExpanded = false;
+  bool _supportExpanded = false;
 
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
@@ -117,18 +125,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
       if (!mounted) return;
       setState(() => _loading = false);
       final lang = Localizations.localeOf(context).languageCode;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            lang == 'zh'
-                ? '加载个人资料失败，请重试。'
-                : (lang == 'ms'
-                ? 'Gagal memuatkan profil. Sila cuba lagi.'
-                : 'Failed to load profile. Please try again.'),
-          ),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showAppDialog(
+        title: lang == 'zh' ? '错误' : (lang == 'ms' ? 'Ralat' : 'Error'),
+        message: lang == 'zh'
+            ? '加载个人资料失败，请重试。'
+            : (lang == 'ms'
+            ? 'Gagal memuatkan profil. Sila cuba lagi.'
+            : 'Failed to load profile. Please try again.'),
+        isError: true,
       );
     }
   }
@@ -201,6 +205,70 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     );
   }
 
+  // ============= Pop-up Box 弹窗 =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
@@ -236,7 +304,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
           lang == 'zh'
               ? '个人资料'
               : (lang == 'ms' ? 'Profil' : 'Profile'),
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
         ),
         actions: [
           IconButton(
@@ -319,14 +387,17 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
   Widget _buildProfileTab() {
     final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     final name = _profile?['business_name'] ??
-        (lang == 'zh'
+        (isZh
             ? '我的业务'
-            : (lang == 'ms' ? 'Perniagaan Saya' : 'My Business'));
+            : (isMs ? 'Perniagaan Saya' : 'My Business'));
     final bio = _profile?['bio'] ??
-        (lang == 'zh'
+        (isZh
             ? '暂无简介'
-            : (lang == 'ms' ? 'Tiada bio lagi' : 'No bio yet'));
+            : (isMs ? 'Tiada bio lagi' : 'No bio yet'));
     final rating = _profile?['overall_rating'] ?? 0;
     final years = _profile?['years_experience'] ?? 0;
     final status = _profile?['verification_status'] ?? 'Pending';
@@ -339,6 +410,10 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
         onRefresh: _load,
         color: _primaryOrange,
         child: ListView(
+          // 👇 弹性物理效果
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
           children: [
             // --- Profile Card ---
@@ -394,9 +469,9 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                       color: Colors.orange, size: 16),
                                   const SizedBox(width: 4),
                                   Text(
-                                    lang == 'zh'
+                                    isZh
                                         ? '$rating · $years 年经验'
-                                        : (lang == 'ms'
+                                        : (isMs
                                         ? '$rating · $years tahun pengalaman'
                                         : '$rating · $years years experience'),
                                     style: const TextStyle(
@@ -451,14 +526,14 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                                 children: [
                                   Text(
                                     _isBioExpanded
-                                        ? (lang == 'zh'
+                                        ? (isZh
                                         ? '收起'
-                                        : (lang == 'ms'
+                                        : (isMs
                                         ? 'Tutup'
                                         : 'See less'))
-                                        : (lang == 'zh'
+                                        : (isZh
                                         ? '查看更多'
-                                        : (lang == 'ms'
+                                        : (isMs
                                         ? 'Lihat lagi'
                                         : 'See more')),
                                     style: const TextStyle(
@@ -488,249 +563,166 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             const SizedBox(height: 24),
 
             // --- Account Settings ---
-            _sectionLabel(
-              lang == 'zh'
-                  ? '账户'
-                  : (lang == 'ms' ? 'AKAUN' : 'ACCOUNT'),
+            _buildExpandableGroup(
+              title: isZh ? '账户' : (isMs ? 'AKAUN' : 'ACCOUNT'),
+              isExpanded: _accountExpanded,
+              onToggle: () => setState(() => _accountExpanded = !_accountExpanded),
+              children: [
+                _menuItem(
+                  title: isZh ? '更新个人信息' : (isMs ? 'Kemas Kini Maklumat Peribadi' : 'Update Personal Info'),
+                  icon: Icons.edit_outlined,
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const UpdateProfileScreen()),
+                    );
+                    _load();
+                  },
+                ),
+                _menuItem(
+                  title: isZh ? '修改密码' : (isMs ? 'Tukar Kata Laluan' : 'Change Password'),
+                  icon: Icons.lock_outline,
+                  onTap: () {
+                    // 如果你有修改密码的页面，请在这里跳转
+                    // Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()));
+                    _showAppDialog(
+                      title: isZh ? '提示' : (isMs ? 'Info' : 'Info'),
+                      message: isZh ? '修改密码功能即将推出' : (isMs ? 'Ciri tukar kata laluan akan datang' : 'Change password feature coming soon'),
+                      isError: false,
+                    );
+                  },
+                ),
+                _languageItem(),
+                _menuItem(
+                  title: isZh ? '证书' : (isMs ? 'Sijil' : 'Certifications'),
+                  icon: Icons.workspace_premium_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const CertificationsScreen()),
+                    );
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            _menuGroup([
-              _menuItem(
-                title: lang == 'zh'
-                    ? '更新个人信息'
-                    : (lang == 'ms'
-                    ? 'Kemas Kini Maklumat Peribadi'
-                    : 'Update Personal Info'),
-                subtitle: lang == 'zh'
-                    ? '姓名、简介、电话和头像'
-                    : (lang == 'ms'
-                    ? 'Nama, bio, telefon dan foto profil'
-                    : 'Name, bio, phone, and profile photo'),
-                icon: Icons.edit_outlined,
-                onTap: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const UpdateProfileScreen()),
-                  );
-                  _load();
-                },
-              ),
-              _languageItem(),
-              _menuItem(
-                title: lang == 'zh'
-                    ? '证书'
-                    : (lang == 'ms' ? 'Sijil' : 'Certifications'),
-                subtitle: lang == 'zh'
-                    ? '上传和管理您的证书'
-                    : (lang == 'ms'
-                    ? 'Muat naik dan urus sijil anda'
-                    : 'Upload and manage your certificates'),
-                icon: Icons.workspace_premium_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const CertificationsScreen()),
-                  );
-                },
-              ),
-            ]),
             const SizedBox(height: 20),
 
             // --- Service Settings ---
-            _sectionLabel(
-              lang == 'zh'
-                  ? '服务设置'
-                  : (lang == 'ms' ? 'TETAPAN PERKHIDMATAN' : 'SERVICE SETTINGS'),
+            _buildExpandableGroup(
+              title: isZh ? '服务设置' : (isMs ? 'TETAPAN PERKHIDMATAN' : 'SERVICE SETTINGS'),
+              isExpanded: _serviceExpanded,
+              onToggle: () => setState(() => _serviceExpanded = !_serviceExpanded),
+              children: [
+                _menuItem(
+                  title: isZh ? '我的服务' : (isMs ? 'Perkhidmatan Saya' : 'My Services'),
+                  icon: Icons.work_outline,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const MyServicesScreen()),
+                    );
+                  },
+                ),
+                _menuItem(
+                  title: isZh ? '服务区域' : (isMs ? 'Kawasan Perkhidmatan' : 'Service Areas'),
+                  icon: Icons.location_on_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ServiceAreasScreen()),
+                    );
+                  },
+                ),
+                _menuItem(
+                  title: isZh ? '工作时间' : (isMs ? 'Waktu Bekerja' : 'Working Hours'),
+                  icon: Icons.access_time_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const WorkingHoursScreen()),
+                    );
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            _menuGroup([
-              _menuItem(
-                title: lang == 'zh'
-                    ? '我的服务'
-                    : (lang == 'ms' ? 'Perkhidmatan Saya' : 'My Services'),
-                subtitle: lang == 'zh'
-                    ? '您向客户提供的服务'
-                    : (lang == 'ms'
-                    ? 'Perkhidmatan yang anda tawarkan'
-                    : 'Services you offer to customers'),
-                icon: Icons.work_outline,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const MyServicesScreen()),
-                  );
-                },
-              ),
-              _menuItem(
-                title: lang == 'zh'
-                    ? '服务区域'
-                    : (lang == 'ms' ? 'Kawasan Perkhidmatan' : 'Service Areas'),
-                subtitle: lang == 'zh'
-                    ? '您的工作地点和出行半径'
-                    : (lang == 'ms'
-                    ? 'Di mana anda bekerja dan radius perjalanan'
-                    : 'Where you work and travel radius'),
-                icon: Icons.location_on_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const ServiceAreasScreen()),
-                  );
-                },
-              ),
-              _menuItem(
-                title: lang == 'zh'
-                    ? '工作时间'
-                    : (lang == 'ms' ? 'Waktu Bekerja' : 'Working Hours'),
-                subtitle: lang == 'zh'
-                    ? '设置您的每周可用时间'
-                    : (lang == 'ms'
-                    ? 'Tetapkan ketersediaan mingguan anda'
-                    : 'Set your weekly availability'),
-                icon: Icons.access_time_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const WorkingHoursScreen()),
-                  );
-                },
-              ),
-            ]),
             const SizedBox(height: 20),
 
             // --- Earnings & Reviews ---
-            _sectionLabel(
-              lang == 'zh'
-                  ? '收益与评价'
-                  : (lang == 'ms'
-                  ? 'PENDAPATAN & ULASAN'
-                  : 'EARNINGS & REVIEWS'),
+            _buildExpandableGroup(
+              title: isZh ? '收益与评价' : (isMs ? 'PENDAPATAN & ULASAN' : 'EARNINGS & REVIEWS'),
+              isExpanded: _earningsExpanded,
+              onToggle: () => setState(() => _earningsExpanded = !_earningsExpanded),
+              children: [
+                _menuItem(
+                  title: isZh ? '收益面板' : (isMs ? 'Papan Pemuka Pendapatan' : 'Earnings Dashboard'),
+                  icon: Icons.attach_money,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const EarningsScreen()),
+                    );
+                  },
+                ),
+                _menuItem(
+                  title: isZh ? '我的评价' : (isMs ? 'Ulasan Saya' : 'My Reviews'),
+                  icon: Icons.star_outline,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const ReviewsScreen()),
+                    );
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            _menuGroup([
-              _menuItem(
-                title: lang == 'zh'
-                    ? '收益面板'
-                    : (lang == 'ms'
-                    ? 'Papan Pemuka Pendapatan'
-                    : 'Earnings Dashboard'),
-                subtitle: lang == 'zh'
-                    ? '查看您的收入和付款'
-                    : (lang == 'ms'
-                    ? 'Lihat pendapatan dan pembayaran anda'
-                    : 'View your income and payouts'),
-                icon: Icons.attach_money,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const EarningsScreen()),
-                  );
-                },
-              ),
-              _menuItem(
-                title: lang == 'zh'
-                    ? '我的评价'
-                    : (lang == 'ms' ? 'Ulasan Saya' : 'My Reviews'),
-                subtitle: lang == 'zh'
-                    ? '查看客户对您的评价'
-                    : (lang == 'ms'
-                    ? 'Lihat apa yang pelanggan katakan tentang anda'
-                    : 'See what customers say about you'),
-                icon: Icons.star_outline,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const ReviewsScreen()),
-                  );
-                },
-              ),
-            ]),
             const SizedBox(height: 20),
 
             // --- Support & Legal ---
-            _sectionLabel(
-              lang == 'zh'
-                  ? '支持'
-                  : (lang == 'ms' ? 'SOKONGAN' : 'SUPPORT'),
+            _buildExpandableGroup(
+              title: isZh ? '支持' : (isMs ? 'SOKONGAN' : 'SUPPORT'),
+              isExpanded: _supportExpanded,
+              onToggle: () => setState(() => _supportExpanded = !_supportExpanded),
+              children: [
+                _menuItem(
+                  title: isZh ? '帮助中心' : (isMs ? 'Pusat Bantuan' : 'Help Centre'),
+                  icon: Icons.support_agent,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const HelpCentreScreen()),
+                    );
+                  },
+                ),
+                _menuItem(
+                  title: isZh ? '隐私' : (isMs ? 'Privasi' : 'Privacy'),
+                  icon: Icons.privacy_tip_outlined,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const PrivacyScreen()),
+                    );
+                  },
+                ),
+                _menuItem(
+                  title: isZh ? '关于本地生活服务助手' : (isMs ? 'Mengenai Pembantu Perkhidmatan Kehidupan Tempatan' : 'About Local Life Service Assistant'),
+                  icon: Icons.info_outline,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AboutAppScreen()),
+                    );
+                  },
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            _menuGroup([
-              _menuItem(
-                title: lang == 'zh'
-                    ? '帮助中心'
-                    : (lang == 'ms' ? 'Pusat Bantuan' : 'Help Centre'),
-                subtitle: lang == 'zh'
-                    ? '联系管理员并跟踪您的请求'
-                    : (lang == 'ms'
-                    ? 'Hubungi admin dan ikuti permintaan anda'
-                    : 'Contact admin and follow your requests'),
-                icon: Icons.support_agent,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HelpCentreScreen()),
-                  );
-                },
-              ),
-              _menuItem(
-                title: lang == 'zh'
-                    ? '隐私'
-                    : (lang == 'ms' ? 'Privasi' : 'Privacy'),
-                subtitle: lang == 'zh'
-                    ? '查看您的隐私声明和数据偏好'
-                    : (lang == 'ms'
-                    ? 'Semak notis privasi & keutamaan data anda'
-                    : 'Review your privacy notice & data preferences'),
-                icon: Icons.privacy_tip_outlined,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const PrivacyScreen()),
-                  );
-                },
-              ),
-              _menuItem(
-                title: lang == 'zh'
-                    ? '关于本地生活服务助手'
-                    : (lang == 'ms'
-                    ? 'Mengenai Pembantu Perkhidmatan Kehidupan Tempatan'
-                    : 'About Local Life Service Assistant'),
-                subtitle: lang == 'zh'
-                    ? '应用概述、版本和条款'
-                    : (lang == 'ms'
-                    ? 'Gambaran keseluruhan apl, versi dan terma'
-                    : 'App overview, version and terms'),
-                icon: Icons.info_outline,
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AboutAppScreen()),
-                  );
-                },
-              ),
-            ]),
             const SizedBox(height: 20),
 
-            // --- System ---
-            _sectionLabel(
-              lang == 'zh'
-                  ? '系统'
-                  : (lang == 'ms' ? 'SISTEM' : 'SYSTEM'),
-            ),
-            const SizedBox(height: 8),
+            // --- System (直接显示，不折叠) ---
             _menuGroup([
               InkWell(
                 onTap: _logout,
                 child: Padding(
-                  padding:
-                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                   child: Row(
                     children: [
                       Container(
@@ -740,41 +732,20 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                           color: Colors.red.shade50,
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Icon(Icons.logout,
-                            color: Colors.red.shade600, size: 20),
+                        child: Icon(Icons.logout, color: Colors.red.shade600, size: 20),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              lang == 'zh'
-                                  ? '登出'
-                                  : (lang == 'ms' ? 'Log Keluar' : 'Log Out'),
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.red.shade600,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              lang == 'zh'
-                                  ? '退出您的账户'
-                                  : (lang == 'ms'
-                                  ? 'Log keluar dari akaun anda'
-                                  : 'Sign out of your account'),
-                              style: TextStyle(
-                                fontSize: 11.5,
-                                color: Colors.grey.shade600,
-                              ),
-                            ),
-                          ],
+                        child: Text(
+                          isZh ? '登出' : (isMs ? 'Log Keluar' : 'Log Out'),
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.red.shade600,
+                          ),
                         ),
                       ),
-                      Icon(Icons.chevron_right,
-                          color: Colors.grey.shade400, size: 20),
+                      Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
                     ],
                   ),
                 ),
@@ -788,50 +759,28 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 height: 50,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    await _service
-                        .updateProfile({'verification_status': 'Pending'});
+                    await _service.updateProfile({'verification_status': 'Pending'});
                     if (!mounted) return;
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Row(
-                          children: [
-                            const Icon(Icons.check_circle,
-                                color: Colors.white, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              lang == 'zh'
-                                  ? '已提交验证'
-                                  : (lang == 'ms'
-                                  ? 'Dihantar untuk pengesahan'
-                                  : 'Submitted for verification'),
-                            ),
-                          ],
-                        ),
-                        backgroundColor: Colors.green.shade600,
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
+                    _showAppDialog(
+                      title: isZh ? '成功' : (isMs ? 'Berjaya' : 'Success'),
+                      message: isZh
+                          ? '已提交验证'
+                          : (isMs
+                          ? 'Dihantar untuk pengesahan'
+                          : 'Submitted for verification'),
+                      isError: false,
                     );
                     _load();
                   },
                   icon: const Icon(Icons.verified_outlined),
                   label: Text(
-                    lang == 'zh'
-                        ? '提交验证'
-                        : (lang == 'ms'
-                        ? 'Hantar untuk Pengesahan'
-                        : 'Submit for Verification'),
-                    style: const TextStyle(
-                        fontSize: 15, fontWeight: FontWeight.bold),
+                    isZh ? '提交验证' : (isMs ? 'Hantar untuk Pengesahan' : 'Submit for Verification'),
+                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: _primaryOrange,
                     foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ),
@@ -842,17 +791,52 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
     );
   }
 
-  Widget _sectionLabel(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 4),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.bold,
-          letterSpacing: 1.2,
-          color: Colors.grey.shade600,
-        ),
+  // 自定义手风琴折叠控件
+  Widget _buildExpandableGroup({
+    required String title,
+    required bool isExpanded,
+    required VoidCallback onToggle,
+    required List<Widget> children,
+  }) {
+    return Card(
+      elevation: 0,
+      color: Colors.white,
+      margin: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14),
+        side: const BorderSide(color: _borderOrange),
+      ),
+      child: Column(
+        children: [
+          InkWell(
+            onTap: onToggle,
+            borderRadius: BorderRadius.circular(14),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  Icon(
+                    isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    color: Colors.grey.shade500,
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (isExpanded) ...[
+            Divider(height: 1, color: Colors.grey.shade200),
+            ...children,
+          ],
+        ],
       ),
     );
   }
@@ -885,14 +869,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
 
   Widget _menuItem({
     required String title,
-    required String subtitle,
     required IconData icon,
     required VoidCallback onTap,
   }) {
     return InkWell(
       onTap: onTap,
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Container(
@@ -906,26 +889,13 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             ),
             const SizedBox(width: 12),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF111827),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                      fontSize: 11.5,
-                      color: Colors.grey.shade600,
-                    ),
-                  ),
-                ],
+              child: Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Color(0xFF111827),
+                ),
               ),
             ),
             Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
@@ -950,7 +920,7 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
             );
           },
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             child: Row(
               children: [
                 Container(
@@ -965,36 +935,16 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isZh
-                            ? '应用语言'
-                            : (isMs ? 'Bahasa Aplikasi' : 'App Language'),
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF111827),
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isZh
-                            ? '更改应用语言'
-                            : (isMs
-                            ? 'Tukar bahasa aplikasi'
-                            : 'Change app language'),
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    isZh ? '应用语言' : (isMs ? 'Bahasa Aplikasi' : 'App Language'),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
                   ),
                 ),
-                Icon(Icons.chevron_right,
-                    color: Colors.grey.shade400, size: 20),
+                Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
               ],
             ),
           ),

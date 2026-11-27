@@ -72,7 +72,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       final startOfWeek = today.subtract(Duration(days: today.weekday - 1));
       final startOfWeekStr = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day).toUtc().toIso8601String();
 
-      // 1. Fetch Earnings
       final earningsRes = await _client
           .from('provider_earnings')
           .select('net_earnings, created_at')
@@ -83,7 +82,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       _weekEarnings = earningsList.fold(
           0.0, (sum, row) => sum + ((row['net_earnings'] as num?)?.toDouble() ?? 0.0));
 
-      // 2. Fetch Bookings
       final bookingsRes = await _client
           .from('bookings')
           .select('booking_id, booking_status, scheduled_datetime, service_name_snapshot, total_amount, created_at')
@@ -94,7 +92,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       final bookings = List<Map<String, dynamic>>.from(bookingsRes);
       final todayStartLocal = DateTime(today.year, today.month, today.day);
 
-      // Pending Stats (Only today and future)
       final validPending = bookings.where((b) {
         if (b['booking_status'] != 'Pending') return false;
         final scheduledAt = b['scheduled_datetime']?.toString();
@@ -107,7 +104,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
       _pendingCount = validPending.length;
       _recentPending = validPending.take(3).toList();
 
-      // To Do (Today) Stats (Confirmed + In-Progress for Today)
       _todoTodayCount = bookings.where((b) {
         if (b['booking_status'] != 'Confirmed' && b['booking_status'] != 'In-Progress') return false;
         final dateStr = b['scheduled_datetime']?.toString();
@@ -117,7 +113,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
         return dt.year == today.year && dt.month == today.month && dt.day == today.day;
       }).length;
 
-      // Done (Today) Stats
       _completedToday = bookings.where((b) {
         if (b['booking_status'] != 'Completed') return false;
         final dateStr = b['scheduled_datetime']?.toString();
@@ -207,7 +202,10 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
         onRefresh: _loadData,
         color: _primaryOrange,
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          // 👇 添加了 BouncingScrollPhysics 实现拉到底部有弹性的感觉
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           child: Column(
             children: [
               // Top Header
@@ -215,10 +213,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 60, 20, 24),
                 decoration: const BoxDecoration(
                   color: _primaryOrange,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(24),
-                    bottomRight: Radius.circular(24),
-                  ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -250,8 +244,13 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                         ),
                         Row(
                           children: [
-                            _iconBtn(Icons.chat_bubble_outline, _openChats),
-                            const SizedBox(width: 8),
+                            IconButton(
+                              icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
+                              onPressed: _openChats,
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                            ),
+                            const SizedBox(width: 16),
                             FutureBuilder<List<Map<String, dynamic>>>(
                               future: _notificationService.getMyNotifications(),
                               builder: (context, snapshot) {
@@ -261,13 +260,18 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                                 return Stack(
                                   clipBehavior: Clip.none,
                                   children: [
-                                    _iconBtn(Icons.notifications_outlined, _openNotifications),
+                                    IconButton(
+                                      icon: const Icon(Icons.notifications_outlined, color: Colors.white, size: 24),
+                                      onPressed: _openNotifications,
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                    ),
                                     if (unread > 0)
                                       Positioned(
-                                        right: 4,
-                                        top: 4,
+                                        right: -2,
+                                        top: -2,
                                         child: Container(
-                                          padding: const EdgeInsets.all(4),
+                                          padding: const EdgeInsets.all(3),
                                           decoration: const BoxDecoration(
                                               color: Colors.red, shape: BoxShape.circle),
                                           constraints: const BoxConstraints(
@@ -318,7 +322,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    // Balance Card
                     Container(
                       width: double.infinity,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -370,13 +373,11 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                 ),
               ),
 
-              // Dashboard Cards
               Padding(
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Stats Row
                     Row(
                       children: [
                         _statCard('Pending', _pendingCount, Colors.orange),
@@ -388,7 +389,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Quick Actions
                     Builder(builder: (context) {
                       final lang = Localizations.localeOf(context).languageCode;
                       return Text(
@@ -416,7 +416,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                                     builder: (_) => const EarningsScreen()));
                           }),
                           const SizedBox(width: 10),
-                          // Schedule Removed
                           _quickActionBtn(Icons.work_outline, 'My Services', () {
                             Navigator.push(
                                 context,
@@ -442,7 +441,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                     ),
                     const SizedBox(height: 24),
 
-                    // Pending Requests
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -513,21 +511,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _iconBtn(IconData icon, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.2),
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, color: Colors.white, size: 22),
       ),
     );
   }

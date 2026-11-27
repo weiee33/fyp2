@@ -56,6 +56,8 @@ class _ProviderSupportState extends State<ProviderSupportScreen> {
     return e.toString().replaceFirst('Exception: ', '');
   }
 
+  // 👇 删除了没用到的 _showAppDialog
+
   Future<void> _compose() async {
     final id = await Navigator.push<String>(
       context,
@@ -78,21 +80,34 @@ class _ProviderSupportState extends State<ProviderSupportScreen> {
     if (mounted) await _load();
   }
 
+  String _translate(BuildContext context, String en, String zh, String ms) {
+    final lang = Localizations.localeOf(context).languageCode;
+    if (lang == 'zh') return zh;
+    if (lang == 'ms') return ms;
+    return en;
+  }
+
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: _primaryOrange,
+        foregroundColor: Colors.white,
         elevation: 0,
-        title: Text(tr('Help Centre')),
+        title: Text(
+          _translate(context, 'Help Centre', '帮助中心', 'Pusat Bantuan'),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: _load,
         color: _primaryOrange,
         child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(20),
           children: [
             ProviderSupportCard(
@@ -102,57 +117,57 @@ class _ProviderSupportState extends State<ProviderSupportScreen> {
                   const Icon(Icons.support_agent_rounded, color: _primaryOrange, size: 36),
                   const SizedBox(height: 12),
                   Text(
-                    tr('How can we help?'),
+                    _translate(context, 'How can we help?', '我们能帮您什么？', 'Bagaimana kami boleh membantu?'),
                     textAlign: TextAlign.center,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    tr('Ask a question, share feedback or make a complaint.'),
+                    _translate(context, 'Ask a question, share feedback or make a complaint.', '提出问题、分享反馈或提出投诉。', 'Tanya soalan, kongsi maklum balas atau buat aduan.'),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 18),
                   FilledButton(
                     style: FilledButton.styleFrom(backgroundColor: _primaryOrange, foregroundColor: Colors.white),
                     onPressed: _compose,
-                    child: Text(tr('Contact Admin')),
+                    child: Text(_translate(context, 'Contact Support', '联系客服', 'Hubungi Sokongan')),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-            Text(tr('Before you send'), style: Theme.of(context).textTheme.titleMedium),
+            Text(_translate(context, 'Before you send', '发送前', 'Sebelum anda hantar'), style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             ProviderSupportCard(
               child: Column(
                 children: [
                   _HelpTopic(
-                    title: tr('Booking and payout help'),
-                    body: tr('Open Booking Details to contact your customer or request support linked to that booking.'),
+                    title: _translate(context, 'Booking and payout help', '预约与付款帮助', 'Bantuan tempahan dan pembayaran'),
+                    body: _translate(context, 'Open Booking Details to contact your customer or request support linked to that booking.', '打开预约详情联系您的客户或请求与该预约相关的支持。', 'Buka Butiran Tempahan untuk menghubungi pelanggan anda atau meminta sokongan berkaitan tempahan tersebut.'),
                   ),
                   const Divider(),
                   _HelpTopic(
-                    title: tr('Account and privacy help'),
-                    body: tr('Use Profile to update your business details, services, service areas and working hours.'),
+                    title: _translate(context, 'Account and privacy help', '账户与隐私帮助', 'Bantuan akaun dan privasi'),
+                    body: _translate(context, 'Use Profile to update your business details, services, service areas and working hours.', '使用“我的”来更新您的业务详情、服务、服务区域和工作时间。', 'Gunakan Profil untuk mengemas kini butiran perniagaan, perkhidmatan, kawasan perkhidmatan dan waktu bekerja anda.'),
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            Text(tr('Your support requests'), style: Theme.of(context).textTheme.titleMedium),
+            Text(_translate(context, 'Your support requests', '您的支持请求', 'Permintaan sokongan anda'), style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             if (_error != null)
               ProviderSupportCard(
                 child: Column(
                   children: [
-                    Text(tr(_error!)),
-                    TextButton(onPressed: _load, child: Text(tr('Retry'))),
+                    Text(_error!),
+                    TextButton(onPressed: _load, child: Text(_translate(context, 'Retry', '重试', 'Cuba lagi'))),
                   ],
                 ),
               ),
             if (_requests.isEmpty && !_loading && _error == null)
               ProviderSupportCard(
-                child: Text(tr('No support requests yet. Your messages and support responses will appear here.')),
+                child: Text(_translate(context, 'No support requests yet. Your messages and support responses will appear here.', '暂无支持请求。您的消息和支持回复将在此显示。', 'Tiada permintaan sokongan lagi. Mesej dan respons sokongan anda akan dipaparkan di sini.')),
               ),
             for (final row in _requests)
               Padding(
@@ -162,10 +177,9 @@ class _ProviderSupportState extends State<ProviderSupportScreen> {
                     contentPadding: EdgeInsets.zero,
                     title: Text(row['subject'] as String, maxLines: 2, overflow: TextOverflow.ellipsis),
                     subtitle: Text(
-                      '${tr(row['subject'] == null ? 'General enquiry' : 'Booking support')}\n${tr(row['status'] as String)} · ${formatSupportDate(row['created_at'])}',
+                      '${_translate(context, row['booking_id'] == null ? 'General enquiry' : 'Booking support', row['booking_id'] == null ? '一般咨询' : '预约支持', row['booking_id'] == null ? 'Pertanyaan umum' : 'Sokongan tempahan')}\n${row['status'] as String} · ${formatSupportDate(row['created_at'])}',
                     ),
                     trailing: const Icon(Icons.chevron_right),
-                    // 修改 1：把 dispute_id 改成 id
                     onTap: () => _open(row['id'] as String),
                   ),
                 ),
@@ -173,7 +187,7 @@ class _ProviderSupportState extends State<ProviderSupportScreen> {
             if (_loading)
               const Center(child: Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator(color: _primaryOrange))),
             if (_more && !_loading)
-              TextButton(onPressed: () => _load(more: true), child: Text(tr('Load more'))),
+              TextButton(onPressed: () => _load(more: true), child: Text(_translate(context, 'Load more', '加载更多', 'Muat lagi'))),
             const SizedBox(height: 16),
             SizedBox(height: MediaQuery.paddingOf(context).bottom),
           ],
@@ -231,6 +245,8 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
     super.dispose();
   }
 
+  // 👇 删除了没用到的 _showAppDialog
+
   Future<void> _pick(ImageSource source) async {
     if (_picking || _locked || _photos.length >= 3) return;
     setState(() => _picking = true);
@@ -258,7 +274,9 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      if (mounted) {
+        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _picking = false);
     }
@@ -266,8 +284,18 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
 
   String? _validateText(String? value, int minimum, int maximum) {
     final count = value?.trim().runes.length ?? 0;
-    if (count < minimum) return minimum == 3 ? tr('Enter at least 3 characters') : tr('Enter at least 10 characters');
-    if (count > maximum) return tr('Use no more than {0} characters.', [maximum]);
+    if (count < minimum) {
+      final lang = Localizations.localeOf(context).languageCode;
+      if (lang == 'zh') return minimum == 3 ? '请输入至少 3 个字符' : '请输入至少 10 个字符';
+      if (lang == 'ms') return minimum == 3 ? 'Masukkan sekurang-kurangnya 3 aksara' : 'Masukkan sekurang-kurangnya 10 aksara';
+      return minimum == 3 ? 'Enter at least 3 characters' : 'Enter at least 10 characters';
+    }
+    if (count > maximum) {
+      final lang = Localizations.localeOf(context).languageCode;
+      if (lang == 'zh') return '最多使用 $maximum 个字符。';
+      if (lang == 'ms') return 'Gunakan tidak lebih daripada $maximum aksara.';
+      return 'Use no more than $maximum characters.';
+    }
     return null;
   }
 
@@ -289,10 +317,19 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
       );
       if (mounted) Navigator.pop(context, id);
     } catch (e) {
-      if (mounted) setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      if (mounted) {
+        setState(() => _error = e.toString().replaceFirst('Exception: ', ''));
+      }
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+  }
+
+  String _translate(BuildContext context, String en, String zh, String ms) {
+    final lang = Localizations.localeOf(context).languageCode;
+    if (lang == 'zh') return zh;
+    if (lang == 'ms') return ms;
+    return en;
   }
 
   @override
@@ -303,14 +340,20 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
       child: Scaffold(
         backgroundColor: const Color(0xFFF5F7FA),
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black87,
+          backgroundColor: _primaryOrange,
+          foregroundColor: Colors.white,
           elevation: 0,
-          title: Text(tr(widget.bookingId == null ? 'Contact Admin' : 'Request Admin Support')),
+          title: Text(
+            _translate(context, widget.bookingId == null ? 'Contact Support' : 'Request Support', widget.bookingId == null ? '联系客服' : '请求支持', widget.bookingId == null ? 'Hubungi Sokongan' : 'Minta Sokongan'),
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+          ),
         ),
         body: Form(
           key: _form,
           child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
             padding: const EdgeInsets.all(20),
             children: [
               if (widget.bookingId != null)
@@ -318,7 +361,7 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(tr('Linked booking'), style: Theme.of(context).textTheme.labelLarge?.copyWith(color: _primaryOrange)),
+                      Text(_translate(context, 'Linked booking', '关联预约', 'Tempahan berkaitan'), style: Theme.of(context).textTheme.labelLarge?.copyWith(color: _primaryOrange)),
                       const SizedBox(height: 6),
                       Text(widget.bookingId!),
                     ],
@@ -329,7 +372,7 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
                 controller: _subject,
                 readOnly: _locked,
                 maxLength: 150,
-                decoration: InputDecoration(labelText: tr('Subject')),
+                decoration: InputDecoration(labelText: _translate(context, 'Subject', '主题', 'Subjek')),
                 validator: (v) => _validateText(v, 3, 150),
               ),
               const SizedBox(height: 12),
@@ -340,15 +383,15 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
                 maxLines: 10,
                 maxLength: 4000,
                 decoration: InputDecoration(
-                  labelText: tr(widget.bookingId == null ? 'Your message' : 'Describe the issue'),
+                  labelText: _translate(context, widget.bookingId == null ? 'Your message' : 'Describe the issue', widget.bookingId == null ? '您的消息' : '描述问题', widget.bookingId == null ? 'Mesej anda' : 'Terangkan isu'),
                   alignLabelWithHint: true,
                 ),
                 validator: (v) => _validateText(v, 10, 4000),
               ),
               const SizedBox(height: 16),
-              Text(tr('Photos (optional)'), style: Theme.of(context).textTheme.titleMedium),
+              Text(_translate(context, 'Photos (optional)', '照片（可选）', 'Foto (pilihan)'), style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 6),
-              Text(tr('Up to 3 photos · 5 MB each')),
+              Text(_translate(context, 'Up to 3 photos · 5 MB each', '最多 3 张照片 · 每张 5 MB', 'Sehingga 3 foto · 5 MB setiap satu')),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 10,
@@ -389,7 +432,7 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
                         child: OutlinedButton.icon(
                           onPressed: _picking ? null : () => _pick(ImageSource.gallery),
                           icon: const Icon(Icons.photo_library_outlined),
-                          label: Text(tr('Gallery')),
+                          label: Text(_translate(context, 'Gallery', '相册', 'Galeri')),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -397,7 +440,7 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
                         child: OutlinedButton.icon(
                           onPressed: _picking ? null : () => _pick(ImageSource.camera),
                           icon: const Icon(Icons.camera_alt_outlined),
-                          label: Text(tr('Camera')),
+                          label: Text(_translate(context, 'Camera', '相机', 'Kamera')),
                         ),
                       ),
                     ],
@@ -405,11 +448,12 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
                 ),
               if (_picking) const LinearProgressIndicator(),
               const SizedBox(height: 20),
+              // 👇 显示错误信息
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: Text(
-                    tr(_error!),
+                    _error!,
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
@@ -417,7 +461,9 @@ class _ProviderComposeState extends State<ProviderSupportComposeScreen> {
               FilledButton(
                 style: FilledButton.styleFrom(backgroundColor: _primaryOrange, foregroundColor: Colors.white),
                 onPressed: _sending || _picking ? null : _send,
-                child: Text(tr(_sending ? 'Sending request…' : _locked ? 'Retry sending' : 'Send to Admin')),
+                child: Text(
+                  _translate(context, _sending ? 'Sending request…' : _locked ? 'Retry sending' : 'Send to Admin', _sending ? '发送请求中...' : _locked ? '重试发送' : '发送给管理员', _sending ? 'Menghantar permintaan...' : _locked ? 'Cuba hantar semula' : 'Hantar kepada Admin'),
+                ),
               ),
               SizedBox(height: 24 + MediaQuery.paddingOf(context).bottom),
             ],
@@ -461,6 +507,15 @@ class _ProviderDetailState extends State<ProviderSupportDetailScreen> {
     }
   }
 
+  // 👇 删除了没用到的 _showAppDialog
+
+  String _translate(BuildContext context, String en, String zh, String ms) {
+    final lang = Localizations.localeOf(context).languageCode;
+    if (lang == 'zh') return zh;
+    if (lang == 'ms') return ms;
+    return en;
+  }
+
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
@@ -468,23 +523,29 @@ class _ProviderDetailState extends State<ProviderSupportDetailScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black87,
+        backgroundColor: _primaryOrange,
+        foregroundColor: Colors.white,
         elevation: 0,
-        title: Text(tr('Admin Support Request')),
+        title: Text(
+          _translate(context, 'Admin Support Request', '管理员支持请求', 'Permintaan Sokongan Admin'),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: _load,
         color: _primaryOrange,
         child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(20),
           children: [
             if (_error != null)
               ProviderSupportCard(
                 child: Column(
                   children: [
-                    Text(tr(_error!)),
-                    TextButton(onPressed: _load, child: Text(tr('Retry'))),
+                    Text(_error!),
+                    TextButton(onPressed: _load, child: Text(_translate(context, 'Retry', '重试', 'Cuba lagi'))),
                   ],
                 ),
               ),
@@ -496,7 +557,7 @@ class _ProviderDetailState extends State<ProviderSupportDetailScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Chip(
-                      label: Text(tr(row['status'] as String), style: const TextStyle(color: _primaryOrange, fontWeight: FontWeight.w600)),
+                      label: Text(row['status'] as String, style: const TextStyle(color: _primaryOrange, fontWeight: FontWeight.w600)),
                       side: const BorderSide(color: _primaryOrange),
                       backgroundColor: _primaryOrange.withValues(alpha: .08),
                     ),
@@ -506,10 +567,9 @@ class _ProviderDetailState extends State<ProviderSupportDetailScreen> {
                     Text(formatSupportDate(row['created_at']), style: Theme.of(context).textTheme.bodySmall),
                     const SizedBox(height: 16),
                     SelectableText(row['description'] as String),
-                    // 移除 booking_id 的展示（因为新表没这个字段）
                     if (row['booking_id'] != null) ...[
                       const SizedBox(height: 16),
-                      Text('${tr('Booking reference')}: ${row['booking_id']}', style: Theme.of(context).textTheme.bodySmall),
+                      Text('${_translate(context, 'Booking reference', '预约参考', 'Rujukan tempahan')}: ${row['booking_id']}', style: Theme.of(context).textTheme.bodySmall),
                     ],
                   ],
                 ),
@@ -533,16 +593,15 @@ class _ProviderDetailState extends State<ProviderSupportDetailScreen> {
                         ),
                         const SizedBox(width: 12),
                         Expanded(
-                          child: Text(tr('Admin response'), style: Theme.of(context).textTheme.titleMedium?.copyWith(color: _primaryOrange, fontWeight: FontWeight.w700)),
+                          child: Text(_translate(context, 'Admin response', '管理员回复', 'Respons admin'), style: Theme.of(context).textTheme.titleMedium?.copyWith(color: _primaryOrange, fontWeight: FontWeight.w700)),
                         ),
                       ],
                     ),
                     Divider(height: 28, color: _primaryOrange.withValues(alpha: .2)),
-                    // 修改 2：把 resolution 改成 admin_reply
                     if ((row['admin_reply'] as String?)?.trim().isNotEmpty == true)
                       SelectableText(row['admin_reply'] as String, style: const TextStyle(height: 1.5))
                     else
-                      Text(tr('Your request is waiting for admin review. Pull down to check for updates.'), style: const TextStyle(height: 1.5, color: Colors.grey)),
+                      Text(_translate(context, 'Your request is waiting for admin review. Pull down to check for updates.', '您的请求正在等待管理员审核。下拉刷新以查看更新。', 'Permintaan anda sedang menunggu semakan admin. Tarik ke bawah untuk menyemak kemas kini.'), style: const TextStyle(height: 1.5, color: Colors.grey)),
                   ],
                 ),
               ),

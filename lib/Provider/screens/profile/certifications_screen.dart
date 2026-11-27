@@ -1,6 +1,7 @@
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../services/profile_service.dart';
 import 'edit_certification_screen.dart';
 
@@ -24,7 +25,6 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
   bool _loading = true;
   bool _submitting = false;
 
-  // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
@@ -55,7 +55,11 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showError("Failed to load certifications: $e");
+      _showAppDialog(
+        title: 'Error',
+        message: 'Failed to load certifications: $e',
+        isError: true,
+      );
     }
   }
 
@@ -71,30 +75,19 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
         final file = res.files.first;
         setState(() => _file = file);
 
-        // 👇 Auto-fill logic based on file name (Name_Issuer_YYYY-MM-DD.ext)
         final nameParts = file.name.split('.').first.split('_');
-
         if (nameParts.isNotEmpty) {
-          // Part 1: Certification Name
           _name.text = nameParts[0];
-
-          // Part 2: Issuer
-          if (nameParts.length > 1) {
-            _issuer.text = nameParts[1];
-          }
-
-          // Part 3: Expiry Date (Regex check for YYYY-MM-DD)
+          if (nameParts.length > 1) _issuer.text = nameParts[1];
           if (nameParts.length > 2) {
             final lastPart = nameParts.last;
             final dateRegex = RegExp(r'^\d{4}-\d{2}-\d{2}$');
-            if (dateRegex.hasMatch(lastPart)) {
-              _expiry.text = lastPart;
-            }
+            if (dateRegex.hasMatch(lastPart)) _expiry.text = lastPart;
           }
         }
       }
     } catch (e) {
-      _showError("Failed to pick file: $e");
+      _showAppDialog(title: 'Error', message: 'Failed to pick file: $e', isError: true);
     }
   }
 
@@ -152,11 +145,11 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       setState(() => _file = null);
 
       if (!mounted) return;
-      _showSuccess('Certification added');
+      _showAppDialog(title: 'Success', message: 'Certification added', isError: false);
       await _load();
     } catch (e) {
       if (!mounted) return;
-      _showError("Failed to add: $e");
+      _showAppDialog(title: 'Error', message: 'Failed to add: $e', isError: true);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -167,21 +160,18 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text(
-          tr('Delete Certification'),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        content: Text(tr('Are you sure?')),
+        title: const Text('Delete Certification', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
-            child: Text(tr('Cancel')),
+            child: const Text('Cancel'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(tr('Delete')),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -192,11 +182,11 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     try {
       await _service.deleteCertification(id);
       if (!mounted) return;
-      _showSuccess('Deleted');
+      _showAppDialog(title: 'Deleted', message: 'Certification deleted.', isError: false);
       await _load();
     } catch (e) {
       if (!mounted) return;
-      _showError("Delete failed: $e");
+      _showAppDialog(title: 'Error', message: 'Delete failed: $e', isError: true);
     }
   }
 
@@ -212,37 +202,75 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     }
   }
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white, size: 20),
-            const SizedBox(width: 8),
-            Text(msg),
-          ],
-        ),
-        backgroundColor: Colors.green.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   String? _required(String? v, String label) {
     if (v == null || v.trim().isEmpty) {
-      return tr("{0} is required", [tr(label)]);
+      final lang = Localizations.localeOf(context).languageCode;
+      if (lang == 'zh') return '$label不能为空';
+      if (lang == 'ms') return '$label diperlukan';
+      return '$label is required';
     }
     return null;
   }
@@ -257,7 +285,14 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(tr('Certifications')),
+        // 👇 强制设置标题颜色为白色
+        title: Text(
+          isZh ? '证书' : (isMs ? 'Sijil' : 'Certifications'),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -267,277 +302,295 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
         child: CircularProgressIndicator(color: _primaryOrange),
       )
           : SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            // ---- Add Form ----
-            Card(
-              elevation: 2,
-              color: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: const BorderSide(color: _borderOrange),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Text(
-                        tr('Add New Certification'),
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: _primaryOrange,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      _label('Certification Name'),
-                      TextFormField(
-                        controller: _name,
-                        textInputAction: TextInputAction.next,
-                        enabled: !_submitting,
-                        validator: (value) => trOrNull(
-                          ((v) =>
-                              _required(v, 'Certification name'))(value),
-                        ),
-                        decoration: _inputDecoration(
-                          hint: 'e.g. First Aid Certificate',
-                          icon: Icons.workspace_premium_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      _label('Issuer'),
-                      TextFormField(
-                        controller: _issuer,
-                        textInputAction: TextInputAction.next,
-                        enabled: !_submitting,
-                        validator: (value) => trOrNull(
-                          ((v) => _required(v, 'Issuer'))(value),
-                        ),
-                        decoration: _inputDecoration(
-                          hint: 'e.g. Red Crescent',
-                          icon: Icons.business_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      _label('Expiry Date'),
-                      TextFormField(
-                        controller: _expiry,
-                        readOnly: true,
-                        enabled: !_submitting,
-                        onTap: _pickExpiryDate,
-                        decoration: _inputDecoration(
-                          hint: 'Tap to select date',
-                          icon: Icons.calendar_today_outlined,
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-                      _label('Certificate File (Optional)'),
-                      OutlinedButton.icon(
-                        onPressed: _submitting ? null : _pickFile,
-                        icon: Icon(
-                          _file == null
-                              ? Icons.upload_file_outlined
-                              : Icons.check_circle_outline,
-                          color: _primaryOrange,
-                        ),
-                        label: Text(
-                          tr(_file == null ? 'Choose File' : _file!.name),
-                          overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: _primaryOrange),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding:
-                          const EdgeInsets.symmetric(vertical: 14),
-                          side: const BorderSide(color: _primaryOrange),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+        child: RefreshIndicator(
+          onRefresh: _load,
+          color: _primaryOrange,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
+            padding: const EdgeInsets.all(16),
+            children: [
+              // ---- Add Form ----
+              Card(
+                elevation: 2,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: _borderOrange),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          isZh ? '添加新证书' : (isMs ? 'Tambah Sijil Baharu' : 'Add New Certification'),
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: _primaryOrange,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      SizedBox(
-                        height: 48,
-                        child: ElevatedButton.icon(
-                          onPressed: _submitting ? null : _add,
-                          icon: _submitting
-                              ? const SizedBox(
-                            height: 18,
-                            width: 18,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Colors.white,
-                            ),
-                          )
-                              : const Icon(Icons.add),
+                        const SizedBox(height: 16),
+                        _label(isZh ? '证书名称' : (isMs ? 'Nama Sijil' : 'Certification Name')),
+                        TextFormField(
+                          controller: _name,
+                          textInputAction: TextInputAction.next,
+                          enabled: !_submitting,
+                          validator: (value) => _required(
+                            value,
+                            isZh ? '证书名称' : (isMs ? 'Nama Sijil' : 'Certification name'),
+                          ),
+                          decoration: _inputDecoration(
+                            hint: isZh ? '例如：急救证书' : (isMs ? 'cth. Sijil Bantuan Awal' : 'e.g. First Aid Certificate'),
+                            icon: Icons.workspace_premium_outlined,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _label(isZh ? '颁发机构' : (isMs ? 'Pengeluar' : 'Issuer')),
+                        TextFormField(
+                          controller: _issuer,
+                          textInputAction: TextInputAction.next,
+                          enabled: !_submitting,
+                          validator: (value) => _required(
+                            value,
+                            isZh ? '颁发机构' : (isMs ? 'Pengeluar' : 'Issuer'),
+                          ),
+                          decoration: _inputDecoration(
+                            hint: isZh ? '例如：红十字会' : (isMs ? 'cth. Bulan Sabit Merah' : 'e.g. Red Crescent'),
+                            icon: Icons.business_outlined,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _label(isZh ? '到期日期' : (isMs ? 'Tarikh Luput' : 'Expiry Date')),
+                        TextFormField(
+                          controller: _expiry,
+                          readOnly: true,
+                          enabled: !_submitting,
+                          onTap: _pickExpiryDate,
+                          decoration: _inputDecoration(
+                            hint: isZh ? '点击选择日期' : (isMs ? 'Ketik untuk pilih tarikh' : 'Tap to select date'),
+                            icon: Icons.calendar_today_outlined,
+                          ),
+                        ),
+                        const SizedBox(height: 14),
+                        _label(isZh ? '证书文件（可选）' : (isMs ? 'Fail Sijil (Pilihan)' : 'Certificate File (Optional)')),
+                        OutlinedButton.icon(
+                          onPressed: _submitting ? null : _pickFile,
+                          icon: Icon(
+                            _file == null
+                                ? Icons.upload_file_outlined
+                                : Icons.check_circle_outline,
+                            color: _primaryOrange,
+                          ),
                           label: Text(
-                            tr(
-                              _submitting
-                                  ? 'Adding...'
-                                  : 'Add Certification',
-                            ),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                            ),
+                            _file == null
+                                ? (isZh ? '选择文件' : (isMs ? 'Pilih Fail' : 'Choose File'))
+                                : _file!.name,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(color: _primaryOrange),
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: _primaryOrange,
-                            foregroundColor: Colors.white,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            side: const BorderSide(color: _primaryOrange),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            // ---- List ----
-            Text(
-              tr('My Certifications'),
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-                color: _primaryOrange,
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (_items.isEmpty)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 32),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(
-                        Icons.folder_open_outlined,
-                        size: 56,
-                        color: Colors.grey.shade400,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        tr('No certifications yet'),
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )
-            else
-              ..._items.map((c) {
-                final id = c['certification_id']?.toString() ?? '';
-                final name = c['certification_name'] ?? '-';
-                final issuer = c['issuer'] ?? '-';
-                final expiry = c['expiry_date']?.toString();
-                final fileUrl = c['file_url']?.toString();
-
-                return Card(
-                  elevation: 1,
-                  color: Colors.white,
-                  margin: const EdgeInsets.only(bottom: 10),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(color: _borderOrange),
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 4),
-                    leading: Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: _lightOrange,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.workspace_premium,
-                        color: _primaryOrange,
-                      ),
-                    ),
-                    title: Text(
-                      name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                        color: Color(0xFF111827),
-                      ),
-                    ),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 4),
-                        Text(
-                          issuer,
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey,
-                          ),
-                        ),
-                        if (expiry != null && expiry.isNotEmpty)
-                          Text(
-                            tr("Expires: {0}", [expiry]),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          height: 48,
+                          child: ElevatedButton(
+                            onPressed: _submitting ? null : _add,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _primaryOrange,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: _submitting
+                                ? const SizedBox(
+                              height: 18,
+                              width: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                                : Text(
+                              isZh ? '添加证书' : (isMs ? 'Tambah Sijil' : 'Add Certification'),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
+                        ),
                       ],
                     ),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+
+              // ---- List ----
+              Text(
+                isZh ? '我的证书' : (isMs ? 'Sijil Saya' : 'My Certifications'),
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: _primaryOrange,
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              if (_items.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 32),
+                  child: Center(
+                    child: Column(
                       children: [
-                        if (fileUrl != null && fileUrl.isNotEmpty)
-                          IconButton(
-                            icon: const Icon(
-                              Icons.file_present,
-                              color: _primaryOrange,
-                              size: 20,
+                        Icon(
+                          Icons.folder_open_outlined,
+                          size: 56,
+                          color: Colors.grey.shade400,
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          isZh ? '暂无证书' : (isMs ? 'Tiada sijil lagi' : 'No certifications yet'),
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                ..._items.map((c) {
+                  final id = c['certification_id']?.toString() ?? '';
+                  final name = c['certification_name'] ?? '-';
+                  final issuer = c['issuer'] ?? '-';
+                  final expiry = c['expiry_date']?.toString();
+                  final fileUrl = c['file_url']?.toString();
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Slidable(
+                        key: ValueKey(id),
+                        endActionPane: ActionPane(
+                          motion: const DrawerMotion(),
+                          extentRatio: 0.5,
+                          children: [
+                            if (fileUrl != null && fileUrl.isNotEmpty)
+                              SlidableAction(
+                                borderRadius: BorderRadius.circular(12),
+                                onPressed: (_) {
+                                  _showAppDialog(
+                                    title: 'File URL',
+                                    message: fileUrl,
+                                    isError: false,
+                                  );
+                                },
+                                backgroundColor: Colors.blue.shade600,
+                                foregroundColor: Colors.white,
+                                icon: Icons.file_present,
+                                label: isZh ? '文件' : (isMs ? 'Fail' : 'File'),
+                              ),
+                            SlidableAction(
+                              borderRadius: BorderRadius.circular(12),
+                              onPressed: (_) => _openEdit(c),
+                              backgroundColor: _primaryOrange,
+                              foregroundColor: Colors.white,
+                              icon: Icons.edit_outlined,
+                              label: isZh ? '编辑' : (isMs ? 'Edit' : 'Edit'),
                             ),
-                            tooltip: trOrNull('View File'),
-                            onPressed: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    "File URL: $fileUrl",
+                            SlidableAction(
+                              borderRadius: BorderRadius.circular(12),
+                              onPressed: (_) => _delete(id),
+                              backgroundColor: Colors.red.shade600,
+                              foregroundColor: Colors.white,
+                              icon: Icons.delete_outline,
+                              label: isZh ? '删除' : (isMs ? 'Padam' : 'Delete'),
+                            ),
+                          ],
+                        ),
+                        child: Card(
+                          elevation: 1,
+                          color: Colors.white,
+                          margin: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: const BorderSide(color: _borderOrange),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(14),
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: _lightOrange,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: const Icon(
+                                    Icons.workspace_premium,
+                                    color: _primaryOrange,
                                   ),
                                 ),
-                              );
-                            },
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
+                                          color: Color(0xFF111827),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        issuer,
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                      if (expiry != null && expiry.isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Text(
+                                          isZh ? '到期: $expiry' : (isMs ? 'Luput: $expiry' : 'Expires: $expiry'),
+                                          style: const TextStyle(
+                                            fontSize: 12,
+                                            color: Colors.grey,
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.edit_outlined,
-                            color: _primaryOrange,
-                            size: 20,
-                          ),
-                          tooltip: trOrNull('Edit'),
-                          onPressed: () => _openEdit(c),
                         ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            color: Colors.red,
-                            size: 20,
-                          ),
-                          tooltip: trOrNull('Delete'),
-                          onPressed:
-                          id.isEmpty ? null : () => _delete(id),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                );
-              }),
-          ],
+                  );
+                }),
+            ],
+          ),
         ),
       ),
     );
@@ -546,7 +599,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(
-      tr(text),
+      text,
       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
     ),
   );
@@ -556,7 +609,7 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     required IconData icon,
   }) {
     return InputDecoration(
-      hintText: trOrNull(hint),
+      hintText: hint,
       hintStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,

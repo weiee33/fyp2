@@ -178,6 +178,70 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }).length;
   }
 
+  // ============= Pop-up Box 弹窗 =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
@@ -190,7 +254,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       appBar: AppBar(
         title: Text(
           isZh ? '日程' : (isMs ? 'Jadual' : 'Schedule'),
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white, // 👈 明确指定白色
+          ),
         ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
@@ -215,6 +282,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _errorState(bool isZh, bool isMs) {
     return ListView(
+      // 👇 添加弹性效果
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
       children: [
         const SizedBox(height: 60),
@@ -281,6 +352,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _emptyState(bool isZh, bool isMs) {
     return ListView(
+      // 👇 添加弹性效果
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
       children: [
         const SizedBox(height: 60),
@@ -336,6 +411,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final upcomingKeys = upcomingGrouped.keys.toList()..sort();
 
     return ListView(
+      // 👇 添加弹性效果
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       children: [
         Row(
@@ -943,15 +1022,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       double? lat, double? lng, String address, bool isZh, bool isMs) async {
     if (lat == null || lng == null) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(isZh
-              ? '该预约没有可用的坐标'
-              : (isMs
-              ? 'Tiada koordinat tersedia untuk tempahan ini'
-              : 'No coordinates available for this booking')),
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showAppDialog(
+        title: 'Error',
+        message: isZh
+            ? '该预约没有可用的坐标'
+            : (isMs
+            ? 'Tiada koordinat tersedia untuk tempahan ini'
+            : 'No coordinates available for this booking'),
+        isError: true,
       );
       return;
     }
@@ -1264,40 +1342,21 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       }
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                isZh
-                    ? '预约已标记为 $newStatus'
-                    : (isMs
-                    ? 'Tempahan ditanda sebagai $newStatus'
-                    : 'Booking marked as $newStatus'),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      _showAppDialog(
+        title: isZh ? '成功' : (isMs ? 'Berjaya' : 'Success'),
+        message: isZh
+            ? '预约已标记为 $newStatus'
+            : (isMs
+            ? 'Tempahan ditanda sebagai $newStatus'
+            : 'Booking marked as $newStatus'),
+        isError: false,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_friendlyError(e)),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      _showAppDialog(
+        title: isZh ? '错误' : (isMs ? 'Ralat' : 'Error'),
+        message: _friendlyError(e),
+        isError: true,
       );
     }
   }
@@ -1307,36 +1366,19 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       await _bookingService.cancel(bookingId, 'Cancelled by provider');
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(isZh
-                  ? '预约已取消'
-                  : (isMs ? 'Tempahan dibatalkan' : 'Booking cancelled')),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      _showAppDialog(
+        title: isZh ? '成功' : (isMs ? 'Berjaya' : 'Success'),
+        message: isZh
+            ? '预约已取消'
+            : (isMs ? 'Tempahan dibatalkan' : 'Booking cancelled'),
+        isError: false,
       );
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_friendlyError(e)),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 4),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+      _showAppDialog(
+        title: isZh ? '错误' : (isMs ? 'Ralat' : 'Error'),
+        message: _friendlyError(e),
+        isError: true,
       );
     }
   }

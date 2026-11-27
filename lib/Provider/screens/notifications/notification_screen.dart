@@ -1,5 +1,7 @@
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import '../../services/notification_service.dart';
 import 'notification_detail_screen.dart';
 
@@ -15,11 +17,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   List<Map<String, dynamic>> _items = [];
   bool _loading = true;
   String _filter = 'All';
+  final Set<String> _busy = {};
 
   // 🎨 Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
   static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
+
+  // 过滤器列表
+  final List<String> _filters = ['All', 'Bookings', 'Messages', 'Payments'];
 
   @override
   void initState() {
@@ -39,8 +45,76 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      _showError('Failed to load: $e');
+      _showAppDialog(
+        title: 'Error',
+        message: 'Failed to load notifications. Please retry.',
+        isError: true,
+      );
     }
+  }
+
+  // ============= Pop-up Box 弹窗 =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   List<Map<String, dynamic>> get _filtered {
@@ -73,38 +147,25 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   Future<void> _delete(String id) async {
+    if (!_busy.add(id)) return;
     try {
       await _service.deleteNotification(id);
       if (!mounted) return;
-      setState(
-            () => _items.removeWhere((n) => n['notification_id'].toString() == id),
+      setState(() => _items.removeWhere((n) => n['notification_id'].toString() == id));
+      _showAppDialog(
+        title: 'Success',
+        message: 'Notification deleted.',
+        isError: false,
       );
-      _showSuccess('Notification deleted');
     } catch (e) {
-      _showError('Delete failed: $e');
+      _showAppDialog(
+        title: 'Error',
+        message: 'Delete failed: $e',
+        isError: true,
+      );
+    } finally {
+      _busy.remove(id);
     }
-  }
-
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
-  }
-
-  void _showSuccess(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.green.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-    );
   }
 
   String _formatTime(String? raw) {
@@ -123,9 +184,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     if (diff.inMinutes < 60) {
       return isZh
           ? '${diff.inMinutes} 分钟前'
-          : (isMs
-          ? '${diff.inMinutes} minit lalu'
-          : '${diff.inMinutes} min ago');
+          : (isMs ? '${diff.inMinutes} minit lalu' : '${diff.inMinutes} min ago');
     }
     if (diff.inHours < 24) {
       return isZh
@@ -152,64 +211,50 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(tr('Notifications')),
+        title: Text(
+          isZh ? '通知' : (isMs ? 'Pemberitahuan' : 'Notifications'),
+          // 👇 强制指定白色
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: _loading
-          ? const Center(
-          child: CircularProgressIndicator(color: _primaryOrange))
-          : SafeArea(
+      body: SafeArea(
+        bottom: false,
         child: Column(
           children: [
-            // ---- Filter Tabs ----
+            // 👇 固定的横向滚动胶囊标签
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 10,
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    _filterChip(
-                      'All',
-                      isZh ? '全部' : (isMs ? 'Semua' : 'All'),
-                    ),
-                    const SizedBox(width: 8),
-                    _filterChip(
-                      'Bookings',
-                      isZh ? '预约' : (isMs ? 'Tempahan' : 'Bookings'),
-                    ),
-                    const SizedBox(width: 8),
-                    _filterChip(
-                      'Messages',
-                      isZh ? '消息' : (isMs ? 'Mesej' : 'Messages'),
-                    ),
-                    const SizedBox(width: 8),
-                    _filterChip(
-                      'Payments',
-                      isZh ? '付款' : (isMs ? 'Bayaran' : 'Payments'),
-                    ),
-                  ],
-                ),
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              child: _buildFilterCarousel(isZh, isMs),
             ),
             const Divider(height: 1),
 
-            // ---- List ----
+            // 👇 列表部分（带有弹性效果）
             Expanded(
-              child: list.isEmpty
+              child: _loading
+                  ? const Center(
+                child: CircularProgressIndicator(color: _primaryOrange),
+              )
+                  : list.isEmpty
                   ? _buildEmpty(isZh, isMs)
                   : RefreshIndicator(
                 onRefresh: _load,
                 color: _primaryOrange,
                 child: ListView.builder(
-                  padding: const EdgeInsets.all(16),
+                  // 👇 弹性物理效果
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 12),
                   itemCount: list.length,
-                  itemBuilder: (_, i) => _notificationTile(list[i]),
+                  itemBuilder: (context, i) => _notificationTile(list[i], isZh, isMs),
                 ),
               ),
             ),
@@ -219,129 +264,177 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
   }
 
-  Widget _filterChip(String value, String label) {
-    final selected = _filter == value;
-    return GestureDetector(
-      onTap: () => setState(() => _filter = value),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: selected ? _primaryOrange : _lightOrange,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: selected ? _primaryOrange : _borderOrange),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: selected ? Colors.white : _primaryOrange,
-            fontWeight: FontWeight.w600,
-            fontSize: 13,
-          ),
+  // 横向滚动的胶囊标签 (和 MyBookings 类似)
+  Widget _buildFilterCarousel(bool isZh, bool isMs) {
+    return SizedBox(
+      height: 40,
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: List.generate(_filters.length, (index) {
+            final filter = _filters[index];
+            final isSelected = _filter == filter;
+            String label = filter;
+
+            if (filter == 'All') label = isZh ? '全部' : (isMs ? 'Semua' : 'All');
+            if (filter == 'Bookings') label = isZh ? '预约' : (isMs ? 'Tempahan' : 'Bookings');
+            if (filter == 'Messages') label = isZh ? '消息' : (isMs ? 'Mesej' : 'Messages');
+            if (filter == 'Payments') label = isZh ? '付款' : (isMs ? 'Bayaran' : 'Payments');
+
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: GestureDetector(
+                onTap: () {
+                  HapticFeedback.selectionClick();
+                  setState(() => _filter = filter);
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isSelected ? _primaryOrange : _lightOrange,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: isSelected ? _primaryOrange : _borderOrange,
+                    ),
+                  ),
+                  child: Text(
+                    label,
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : _primaryOrange,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }),
         ),
       ),
     );
   }
 
-  Widget _notificationTile(Map<String, dynamic> n) {
-    final isRead = n['is_read'] == true;
-    final type = n['notification_type']?.toString() ?? '';
-    final icon = _iconForType(type);
-    final color = _colorForType(type);
+  // 滑动操作卡片
+  Widget _notificationTile(Map<String, dynamic> n, bool isZh, bool isMs) {
+    final String id = n['notification_id'].toString();
+    final bool isRead = n['is_read'] == true;
+    final String type = n['notification_type']?.toString() ?? '';
 
-    return Dismissible(
-      key: ValueKey(n['notification_id']),
-      direction: DismissDirection.endToStart,
-      background: Container(
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        margin: const EdgeInsets.only(bottom: 10),
-        decoration: BoxDecoration(
-          color: Colors.red.shade400,
-          borderRadius: BorderRadius.circular(12),
-        ),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      onDismissed: (_) => _delete(n['notification_id'].toString()),
-      child: Card(
-        elevation: isRead ? 0 : 1,
-        margin: const EdgeInsets.only(bottom: 10),
-        color: isRead ? _lightOrange : Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-          side: BorderSide(
-            color: isRead ? _borderOrange : color.withValues(alpha: 0.3),
-            width: 1,
+    // 纯图标（无圆圈背景）
+    final IconData icon = _iconForType(type);
+    final Color color = _colorForType(type);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Slidable(
+          key: ValueKey(id),
+          endActionPane: ActionPane(
+            motion: const DrawerMotion(),
+            extentRatio: 0.35,
+            children: [
+              SlidableAction(
+                borderRadius: BorderRadius.circular(16),
+                onPressed: (_) => _delete(id),
+                backgroundColor: Colors.red.shade600,
+                foregroundColor: Colors.white,
+                icon: Icons.delete_outline,
+                label: isZh ? '删除' : (isMs ? 'Padam' : 'Delete'),
+              ),
+            ],
           ),
-        ),
-        child: InkWell(
-          onTap: () => _openDetail(n),
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Icon(icon, color: color, size: 22),
+          child: InkWell(
+            onTap: () => _openDetail(n),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: isRead ? Colors.white : _lightOrange,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: isRead ? _borderOrange : color.withValues(alpha: 0.3),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              tr(n['title']?.toString() ?? 'Notification'),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 纯图标
+                  Icon(icon, color: color, size: 24),
+                  const SizedBox(width: 16),
+
+                  // 内容
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                n['title']?.toString() ?? 'Notification',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: isRead ? FontWeight.w600 : FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              _formatTime(n['created_at']?.toString()),
                               style: TextStyle(
-                                fontWeight: isRead
-                                    ? FontWeight.w500
-                                    : FontWeight.bold,
-                                fontSize: 14,
+                                fontSize: 11,
+                                color: isRead ? Colors.grey : _primaryOrange,
+                                fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
                             ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          n['message']?.toString() ?? '',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: isRead ? Colors.grey.shade600 : Colors.black87,
+                            height: 1.4,
                           ),
-                          if (!isRead)
-                            Container(
-                              width: 8,
-                              height: 8,
-                              decoration: BoxDecoration(
-                                color: color,
-                                shape: BoxShape.circle,
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        n['message']?.toString() ?? '',
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _formatTime(n['created_at']?.toString()),
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey,
-                        ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+
+                  // 未读小圆点
+                  if (!isRead) ...[
+                    const SizedBox(width: 12),
+                    Container(
+                      margin: const EdgeInsets.only(top: 6),
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        color: _primaryOrange,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
         ),

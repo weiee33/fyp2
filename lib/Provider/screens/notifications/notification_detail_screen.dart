@@ -25,208 +25,236 @@ class NotificationDetailScreen extends StatelessWidget {
     final isZh = lang == 'zh';
     final isMs = lang == 'ms';
 
+    // 判断是否是聊天消息
+    final isChat = RegExp(r'^chat/[0-9a-fA-F-]{36}$').hasMatch(chatLink);
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(tr('Notification Detail')),
+        title: Text(
+          tr('Notification Detail'),
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
+        ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (RegExp(r'^chat/[0-9a-fA-F-]{36}$').hasMatch(chatLink))
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 16),
-                  child: FilledButton.icon(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => ConversationScreen(
-                          customer: false,
-                          conversationId: chatLink.substring(5),
-                        ),
-                      ),
+      body: ListView(
+        // 👇 使用 BookingDetailScreen 相同的物理效果
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        padding: const EdgeInsets.all(16),
+        children: [
+          // ---- Header Card ----
+          Card(
+            elevation: 2,
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: _borderOrange),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Type badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
                     ),
-                    icon: const Icon(Icons.chat_bubble_outline),
-                    label: Text(
-                      isZh
-                          ? '打开聊天'
-                          : (isMs ? 'Buka perbualan' : 'Open conversation'),
-                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    decoration: BoxDecoration(
+                      color: color.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: _primaryOrange,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                    ),
-                  ),
-                ),
-
-              // ---- Header Card ----
-              Card(
-                elevation: 2,
-                color: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: _borderOrange),
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Type badge
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(icon, size: 14, color: color),
-                            const SizedBox(width: 6),
-                            Text(
-                              tr(type.isEmpty ? 'Notification' : type),
-                              style: TextStyle(
-                                color: color,
-                                fontSize: 11,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 14),
-
-                      // Title
-                      Text(
-                        tr(data['title']?.toString() ?? 'Notification'),
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: _primaryOrange,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      // Timestamp
-                      Text(
-                        _formatTime(data['created_at']?.toString(), isZh, isMs),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-
-                      // Divider
-                      const Divider(height: 1),
-                      const SizedBox(height: 20),
-
-                      // Message
-                      Text(
-                        isZh
-                            ? '消息内容'
-                            : (isMs ? 'Mesej' : 'Message'),
-                        style: const TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        data['message']?.toString() ?? '',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          height: 1.5,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              // ---- Related Booking Card ----
-              if (bookingId != null && bookingId.isNotEmpty)
-                Card(
-                  elevation: 2,
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: _borderOrange),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
                     child: Row(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: _lightOrange,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.receipt_long_outlined,
-                            color: _primaryOrange,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                isZh
-                                    ? '关联预约'
-                                    : (isMs
-                                    ? 'Tempahan Berkaitan'
-                                    : 'Related Booking'),
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '#${bookingId.length >= 8 ? bookingId.substring(0, 8) : bookingId}',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 15,
-                                  color: _primaryOrange,
-                                ),
-                              ),
-                            ],
+                        Icon(icon, size: 14, color: color),
+                        const SizedBox(width: 6),
+                        Text(
+                          tr(type.isEmpty ? 'Notification' : type),
+                          style: TextStyle(
+                            color: color,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ),
-              const SizedBox(height: 24),
+                  const SizedBox(height: 14),
 
-              // ---- View Booking Button ----
+                  // Title
+                  Text(
+                    tr(data['title']?.toString() ?? 'Notification'),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: _primaryOrange,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+
+                  // Timestamp
+                  Text(
+                    _formatTime(data['created_at']?.toString(), isZh, isMs),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Divider
+                  const Divider(height: 1),
+                  const SizedBox(height: 20),
+
+                  // Message
+                  Text(
+                    isZh
+                        ? '消息内容'
+                        : (isMs ? 'Mesej' : 'Message'),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    data['message']?.toString() ?? '',
+                    style: const TextStyle(
+                      fontSize: 15,
+                      height: 1.5,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // ---- Related Booking Card ----
+          if (bookingId != null && bookingId.isNotEmpty)
+            Card(
+              elevation: 2,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+                side: const BorderSide(color: _borderOrange),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: _lightOrange,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.receipt_long_outlined,
+                        color: _primaryOrange,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isZh
+                                ? '关联预约'
+                                : (isMs
+                                ? 'Tempahan Berkaitan'
+                                : 'Related Booking'),
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '#${bookingId.length >= 8 ? bookingId.substring(0, 8) : bookingId}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 15,
+                              color: _primaryOrange,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          const SizedBox(height: 24),
+
+          // ===== Action Buttons =====
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // 1. 聊天按钮 (放在上面)
+              if (isChat)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: SizedBox(
+                    height: 48,
+                    child: OutlinedButton(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ConversationScreen(
+                            customer: false,
+                            conversationId: chatLink.substring(5),
+                          ),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: _primaryOrange,
+                        side: const BorderSide(color: _primaryOrange, width: 1.5),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.chat_bubble_outline, size: 18),
+                          const SizedBox(width: 8),
+                          Text(
+                            isZh
+                                ? '与客户聊天'
+                                : (isMs
+                                ? 'Sembang dengan Pelanggan'
+                                : 'Chat with Customer'),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+              // 2. 查看预约按钮 (放在最下方)
               if (bookingId != null && bookingId.isNotEmpty)
                 SizedBox(
                   height: 52,
-                  child: ElevatedButton.icon(
+                  child: ElevatedButton(
                     onPressed: () {
                       Navigator.push(
                         context,
@@ -236,16 +264,6 @@ class NotificationDetailScreen extends StatelessWidget {
                         ),
                       );
                     },
-                    icon: const Icon(Icons.arrow_forward),
-                    label: Text(
-                      isZh
-                          ? '查看预约详情'
-                          : (isMs ? 'Lihat Tempahan' : 'View Booking'),
-                      style: const TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryOrange,
                       foregroundColor: Colors.white,
@@ -254,11 +272,24 @@ class NotificationDetailScreen extends StatelessWidget {
                       ),
                       elevation: 2,
                     ),
+                    child: Text(
+                      isZh
+                          ? '查看预约详情'
+                          : (isMs ? 'Lihat Tempahan' : 'View Booking'),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
             ],
           ),
-        ),
+
+          // 👇 最关键的一步：加上 BookingDetail 末尾一模一样的 40 像素留白
+          // 这样就能保证滑到底部时，按钮能被完整弹出来，且不会被系统手势条遮挡
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }

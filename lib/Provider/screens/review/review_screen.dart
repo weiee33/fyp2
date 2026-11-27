@@ -37,12 +37,10 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to load reviews: $e'),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showAppDialog(
+        title: 'Error',
+        message: 'Failed to load reviews: $e',
+        isError: true,
       );
     }
   }
@@ -56,13 +54,88 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     return sum / _reviews.length;
   }
 
+  // ============= Pop-up Box 弹窗 =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(tr('My Reviews')),
+        // 👇 强制 AppBar 标题为白色
+        title: Text(
+          isZh ? '我的评价' : (isMs ? 'Ulasan Saya' : 'My Reviews'),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -81,15 +154,17 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
           color: _primaryOrange,
           child: _reviews.isEmpty
               ? ListView(
-            physics: const AlwaysScrollableScrollPhysics(),
+            // 👇 添加弹性效果
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
             children: [
               const SizedBox(height: 120),
-              Icon(Icons.star_border,
-                  size: 56, color: Colors.grey.shade400),
+              Icon(Icons.star_border, size: 56, color: Colors.grey.shade400),
               const SizedBox(height: 12),
               Center(
                 child: Text(
-                  tr('No reviews yet'),
+                  isZh ? '暂无评价' : (isMs ? 'Tiada ulasan lagi' : 'No reviews yet'),
                   style: TextStyle(
                     color: Colors.grey.shade600,
                     fontWeight: FontWeight.w600,
@@ -100,11 +175,15 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
             ],
           )
               : ListView(
+            // 👇 添加弹性效果
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: BouncingScrollPhysics(),
+            ),
             padding: const EdgeInsets.all(16),
             children: [
-              _summaryCard(),
+              _summaryCard(isZh, isMs),
               const SizedBox(height: 16),
-              ..._reviews.map((r) => _reviewCard(r)),
+              ..._reviews.map((r) => _reviewCard(r, isZh, isMs)),
             ],
           ),
         ),
@@ -112,7 +191,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     );
   }
 
-  Widget _summaryCard() {
+  Widget _summaryCard(bool isZh, bool isMs) {
     return Card(
       elevation: 1,
       color: _lightOrange,
@@ -149,46 +228,34 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
             ),
             const SizedBox(width: 20),
             Expanded(
-              child: Builder(
-                builder: (context) {
-                  final lang = Localizations.localeOf(context).languageCode;
-                  final isZh = lang == 'zh';
-                  final isMs = lang == 'ms';
-
-                  final reviewText = isZh
-                      ? '${_reviews.length} 条评价'
-                      : (isMs
-                      ? '${_reviews.length} ulasan'
-                      : '${_reviews.length} review(s)');
-
-                  final avgText = isZh
-                      ? '所有可见评价的平均分'
-                      : (isMs
-                      ? 'Purata penilaian daripada semua ulasan'
-                      : 'Average rating from all visible reviews');
-
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        reviewText,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF111827),
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        avgText,
-                        style: TextStyle(
-                          fontSize: 11.5,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  );
-                },
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isZh
+                        ? '${_reviews.length} 条评价'
+                        : (isMs
+                        ? '${_reviews.length} ulasan'
+                        : '${_reviews.length} review(s)'),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF111827),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    isZh
+                        ? '所有可见评价的平均分'
+                        : (isMs
+                        ? 'Purata penilaian daripada semua ulasan'
+                        : 'Average rating from all visible reviews'),
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -197,7 +264,7 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
     );
   }
 
-  Widget _reviewCard(Map<String, dynamic> r) {
+  Widget _reviewCard(Map<String, dynamic> r, bool isZh, bool isMs) {
     final rating = (r['rating_score'] as num?)?.toInt() ?? 0;
     final comment = r['review_comment']?.toString() ?? '';
     final verified = r['is_verified_booking'] == true;
@@ -211,11 +278,11 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
         : '';
 
     final customerRaw = r['customer'];
-    String customerName = 'Unknown';
+    String customerName = isZh ? '未知客户' : (isMs ? 'Pelanggan Tidak Dikenali' : 'Unknown');
     String customerPhoto = '';
 
     if (customerRaw is Map) {
-      customerName = customerRaw['full_name']?.toString() ?? 'No Name';
+      customerName = customerRaw['full_name']?.toString() ?? (isZh ? '无名' : (isMs ? 'Tiada Nama' : 'No Name'));
       final rawPhoto = customerRaw['profile_photo_url']?.toString() ?? '';
 
       if (rawPhoto.isNotEmpty) {
@@ -338,7 +405,6 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
                 ),
               ),
             ],
-            // Optional: Display review image if provided in DB
             if (imageUrl.isNotEmpty) ...[
               const SizedBox(height: 10),
               ClipRRect(

@@ -140,6 +140,7 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
         _loading = false;
         _error = "AI failed to plan your route. Please try again.";
       });
+      _showErrorDialog();
     }
   }
 
@@ -148,6 +149,79 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
     final m = minutes % 60;
     if (h == 0) return isZh ? '$m 分钟' : (isMs ? '$m minit' : '${m}m');
     return isZh ? '$h 小时 $m 分钟' : (isMs ? '$h jam $m minit' : '${h}h ${m}m');
+  }
+
+  void _showErrorDialog() {
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.error_outline,
+                    color: Colors.red.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  isZh ? '规划失败' : (isMs ? 'Perancangan Gagal' : 'Plan Failed'),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  isZh
+                      ? 'AI 无法规划您的路线，请重试。'
+                      : (isMs
+                      ? 'AI gagal merancang laluan anda. Sila cuba lagi.'
+                      : 'AI failed to plan your route. Please try again.'),
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _load();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      isZh ? '重试' : (isMs ? 'Cuba Lagi' : 'Retry'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -163,7 +237,11 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
       appBar: AppBar(
         title: Text(
           isZh ? 'AI 智能日程' : (isMs ? 'Jadual Pintar AI' : 'AI Smart Schedule'),
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          // 👇 强制指定白色
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
@@ -182,6 +260,9 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
                 child: _error != null
                     ? _errorState(isZh, isMs)
                     : ListView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                   children: [
                     Row(
@@ -311,6 +392,9 @@ class _AiScheduleScreenState extends State<AiScheduleScreen> {
 
   Widget _errorState(bool isZh, bool isMs) {
     return ListView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 120),
       children: [
         const SizedBox(height: 60),

@@ -19,6 +19,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   List<Map<String, dynamic>> _matches = [];
   bool _loading = true;
   String? _error;
+  bool _isProcessing = false;
 
   static const _primaryColor = Color(0xFFFF6B00);
   static const _accentColor = Color(0xFFFFF7ED);
@@ -147,6 +148,9 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
   }
 
   Future<void> _onAccept(Map<String, dynamic> m) async {
+    if (_isProcessing) return;
+    setState(() => _isProcessing = true);
+
     final lang = Localizations.localeOf(context).languageCode;
     final isZh = lang == 'zh';
     final isMs = lang == 'ms';
@@ -154,26 +158,18 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     final categoryName = m['category'].toString();
     final requiredSkill = m['requiredSkill']?.toString() ?? categoryName;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const SizedBox(
-              width: 16, height: 16,
-              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              isZh
-                  ? '正在将 $categoryName 添加到您的服务...'
-                  : (isMs
-                  ? 'Menambah $categoryName ke perkhidmatan anda...'
-                  : 'Adding $categoryName to your services...'),
-            ),
-          ],
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: Card(
+          elevation: 8,
+          shape: CircleBorder(),
+          child: Padding(
+            padding: EdgeInsets.all(24.0),
+            child: CircularProgressIndicator(color: _primaryColor),
+          ),
         ),
-        backgroundColor: _primaryColor,
-        behavior: SnackBarBehavior.floating,
       ),
     );
 
@@ -217,22 +213,19 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
         if (existingService != null) {
           if (!mounted) return;
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                isZh
-                    ? '您的“我的服务”中已有此服务。'
-                    : (isMs
-                    ? 'Anda sudah mempunyai perkhidmatan ini dalam "Perkhidmatan Saya".'
-                    : 'You already have this service active in "My Services".'),
-              ),
-              backgroundColor: Colors.orange.shade600,
-              behavior: SnackBarBehavior.floating,
-            ),
+          Navigator.pop(context);
+          _showAppDialog(
+            title: isZh ? '服务已存在' : (isMs ? 'Perkhidmatan Sudah Ada' : 'Service Exists'),
+            message: isZh
+                ? '您的“我的服务”中已有此服务。'
+                : (isMs
+                ? 'Anda sudah mempunyai perkhidmatan ini dalam "Perkhidmatan Saya".'
+                : 'You already have this service active in "My Services".'),
+            isError: true,
           );
           setState(() {
             _matches.removeWhere((x) => x['category'] == m['category']);
+            _isProcessing = false;
           });
           return;
         }
@@ -254,46 +247,36 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
 
       if (!mounted) return;
 
+      Navigator.pop(context);
+
       setState(() {
         _matches.removeWhere((x) => x['category'] == m['category']);
+        _isProcessing = false;
       });
 
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                isZh
-                    ? '成功添加到我的服务！'
-                    : (isMs
-                    ? 'Berjaya ditambah ke Perkhidmatan Saya!'
-                    : 'Successfully added to My Services!'),
-              ),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-        ),
+      _showAppDialog(
+        title: isZh ? '成功' : (isMs ? 'Berjaya' : 'Success'),
+        message: isZh
+            ? '成功添加到我的服务！'
+            : (isMs
+            ? 'Berjaya ditambah ke Perkhidmatan Saya!'
+            : 'Successfully added to My Services!'),
+        isError: false,
       );
 
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).hideCurrentSnackBar();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            isZh
-                ? '添加服务失败：$e'
-                : (isMs
-                ? 'Gagal menambah perkhidmatan: $e'
-                : 'Failed to add service: $e'),
-          ),
-          backgroundColor: Colors.red.shade600,
-          behavior: SnackBarBehavior.floating,
-        ),
+      Navigator.pop(context);
+      setState(() => _isProcessing = false);
+
+      _showAppDialog(
+        title: isZh ? '添加失败' : (isMs ? 'Gagal Menambah' : 'Add Failed'),
+        message: isZh
+            ? '添加服务失败：$e'
+            : (isMs
+            ? 'Gagal menambah perkhidmatan: $e'
+            : 'Failed to add service: $e'),
+        isError: true,
       );
     }
   }
@@ -306,18 +289,79 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
     setState(() {
       _matches.removeWhere((x) => x['category'] == m['category']);
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          isZh
-              ? '已移除：${m['category']}'
-              : (isMs
-              ? 'Dibuang: ${m['category']}'
-              : 'Removed: ${m['category']}'),
-        ),
-        backgroundColor: Colors.grey.shade700,
-        behavior: SnackBarBehavior.floating,
-      ),
+
+    _showAppDialog(
+      title: isZh ? '已移除' : (isMs ? 'Dibuang' : 'Removed'),
+      message: isZh
+          ? '已移除推荐：${m['category']}'
+          : (isMs
+          ? 'Dibuang: ${m['category']}'
+          : 'Removed: ${m['category']}'),
+      isError: false,
+    );
+  }
+
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryColor,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      Localizations.localeOf(context).languageCode == 'zh'
+                          ? '知道了'
+                          : (Localizations.localeOf(context).languageCode == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -334,7 +378,11 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
       appBar: AppBar(
         title: Text(
           isZh ? 'AI 职位匹配' : (isMs ? 'Padanan Pekerjaan AI' : 'AI Job Matching'),
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          // 👇 强制指定白色
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+          ),
         ),
         backgroundColor: _primaryColor,
         foregroundColor: Colors.white,
@@ -351,6 +399,9 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                 onRefresh: _load,
                 color: _primaryColor,
                 child: ListView(
+                  physics: const AlwaysScrollableScrollPhysics(
+                    parent: BouncingScrollPhysics(),
+                  ),
                   padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                   children: [
                     if (_error != null)
@@ -540,7 +591,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _onAccept(m),
+                    onPressed: _isProcessing ? null : () => _onAccept(m),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _primaryColor,
                       foregroundColor: Colors.white,
@@ -553,7 +604,7 @@ class _AiJobMatchingScreenState extends State<AiJobMatchingScreen> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () => _onNotInterested(m),
+                    onPressed: _isProcessing ? null : () => _onNotInterested(m),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: _primaryColor,
                       side: const BorderSide(color: _primaryColor),

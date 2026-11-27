@@ -31,7 +31,6 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
 
   // 🎨 Unified Orange + White theme
   static const _primaryOrange = Color(0xFFFF6B00);
-  static const _lightOrange = Color(0xFFFFF7ED);
   static const _borderOrange = Color(0xFFFFE0CC);
 
   @override
@@ -51,7 +50,11 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError("Failed to load working hours: $e");
+      _showAppDialog(
+        title: 'Error',
+        message: "Failed to load working hours: $e",
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -110,51 +113,135 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
       await _service.setWorkingHours(rows);
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(tr('Working hours saved')),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+
+      _showAppDialog(
+        title: 'Success',
+        message: 'Working hours saved.',
+        isError: false,
       );
-      await Future.delayed(const Duration(milliseconds: 600));
+
+      await Future.delayed(const Duration(milliseconds: 1200));
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError("Save failed: $e");
+      _showAppDialog(
+        title: 'Error',
+        message: "Save failed: $e",
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+  // ============= Pop-up Box 弹窗 =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
+  }
+
+  String _translateDay(String day, bool isZh, bool isMs) {
+    if (isZh) {
+      switch (day) {
+        case 'Monday': return '星期一';
+        case 'Tuesday': return '星期二';
+        case 'Wednesday': return '星期三';
+        case 'Thursday': return '星期四';
+        case 'Friday': return '星期五';
+        case 'Saturday': return '星期六';
+        case 'Sunday': return '星期日';
+      }
+    } else if (isMs) {
+      switch (day) {
+        case 'Monday': return 'Isnin';
+        case 'Tuesday': return 'Selasa';
+        case 'Wednesday': return 'Rabu';
+        case 'Thursday': return 'Khamis';
+        case 'Friday': return 'Jumaat';
+        case 'Saturday': return 'Sabtu';
+        case 'Sunday': return 'Ahad';
+      }
+    }
+    return day;
   }
 
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(tr('Working Hours')),
+        // 👇 强制 AppBar 标题为白色
+        title: Text(
+          isZh ? '工作时间' : (isMs ? 'Waktu Bekerja' : 'Working Hours'),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -165,6 +252,10 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
       )
           : SafeArea(
         child: ListView(
+          // 👇 添加 BouncingScrollPhysics 实现弹性效果
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(16),
           children: [
             ...List.generate(
@@ -186,7 +277,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            tr(days[i]),
+                            _translateDay(days[i], isZh, isMs),
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
@@ -196,7 +287,9 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                           Row(
                             children: [
                               Text(
-                                tr(_on[i]! ? 'ON' : 'OFF'),
+                                _on[i]!
+                                    ? (isZh ? '开启' : (isMs ? 'BUKA' : 'ON'))
+                                    : (isZh ? '关闭' : (isMs ? 'TUTUP' : 'OFF')),
                                 style: TextStyle(
                                   color: _on[i]!
                                       ? _primaryOrange
@@ -234,7 +327,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                                 padding:
                                 const EdgeInsets.symmetric(vertical: 12),
                               ),
-                              child: Text(tr(_start[i]!.format(context))),
+                              child: Text(_start[i]!.format(context)),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -254,7 +347,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                                 padding:
                                 const EdgeInsets.symmetric(vertical: 12),
                               ),
-                              child: Text(tr(_end[i]!.format(context))),
+                              child: Text(_end[i]!.format(context)),
                             ),
                           ),
                         ],
@@ -287,7 +380,7 @@ class _WorkingHoursScreenState extends State<WorkingHoursScreen> {
                   ),
                 )
                     : Text(
-                  tr('Save'),
+                  isZh ? '保存' : (isMs ? 'Simpan' : 'Save'),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

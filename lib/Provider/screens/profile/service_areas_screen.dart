@@ -67,7 +67,11 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       }
     } catch (e) {
       if (!mounted) return;
-      _showError("Failed to load: $e");
+      _showAppDialog(
+        title: 'Error',
+        message: "Failed to load: $e",
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -89,60 +93,121 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       });
 
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const Icon(Icons.check_circle, color: Colors.white, size: 20),
-              const SizedBox(width: 8),
-              Text(tr('Service areas saved')),
-            ],
-          ),
-          backgroundColor: Colors.green.shade600,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
+
+      _showAppDialog(
+        title: 'Success',
+        message: 'Service areas saved.',
+        isError: false,
       );
 
-      await Future.delayed(const Duration(milliseconds: 600));
+      await Future.delayed(const Duration(milliseconds: 1200));
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {
       if (!mounted) return;
-      _showError("Save failed: $e");
+      _showAppDialog(
+        title: 'Error',
+        message: "Save failed: $e",
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _saving = false);
     }
   }
 
-  void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: Colors.red.shade600,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
+  // ============= Pop-up Box 弹窗 =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 
   // ============ Validators ============
   String? _validateCity(String? v) {
     final value = v?.trim() ?? '';
-    if (value.isEmpty) return 'City is required';
-    if (value.length < 2) return 'City name is too short';
+    final lang = Localizations.localeOf(context).languageCode;
+    if (value.isEmpty) {
+      return lang == 'zh' ? '城市为必填项' : (lang == 'ms' ? 'Bandar diperlukan' : 'City is required');
+    }
+    if (value.length < 2) {
+      return lang == 'zh' ? '城市名称太短' : (lang == 'ms' ? 'Nama bandar terlalu pendek' : 'City name is too short');
+    }
     return null;
   }
 
   String? _validateRadius(String? v) {
     final value = v?.trim() ?? '';
-    if (value.isEmpty) return 'Service radius is required';
+    final lang = Localizations.localeOf(context).languageCode;
+    if (value.isEmpty) {
+      return lang == 'zh' ? '服务半径为必填项' : (lang == 'ms' ? 'Radius perkhidmatan diperlukan' : 'Service radius is required');
+    }
     final n = int.tryParse(value);
-    if (n == null) return 'Enter a valid number';
-    if (n < 1) return 'Radius must be at least 1 km';
-    if (n > 200) return 'Radius cannot exceed 200 km';
+    if (n == null) {
+      return lang == 'zh' ? '请输入有效的数字' : (lang == 'ms' ? 'Masukkan nombor yang sah' : 'Enter a valid number');
+    }
+    if (n < 1) {
+      return lang == 'zh' ? '半径至少为 1 公里' : (lang == 'ms' ? 'Radius mestilah sekurang-kurangnya 1 km' : 'Radius must be at least 1 km');
+    }
+    if (n > 200) {
+      return lang == 'zh' ? '半径不能超过 200 公里' : (lang == 'ms' ? 'Radius tidak boleh melebihi 200 km' : 'Radius cannot exceed 200 km');
+    }
     return null;
   }
 
@@ -156,7 +221,14 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(tr('Service Areas')),
+        // 👇 强制 AppBar 标题为白色
+        title: Text(
+          isZh ? '服务区域' : (isMs ? 'Kawasan Perkhidmatan' : 'Service Areas'),
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         backgroundColor: _primaryOrange,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -167,6 +239,10 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
       )
           : SafeArea(
         child: SingleChildScrollView(
+          // 👇 加上了 BouncingScrollPhysics 实现弹性效果
+          physics: const AlwaysScrollableScrollPhysics(
+            parent: BouncingScrollPhysics(),
+          ),
           padding: const EdgeInsets.all(16),
           child: Form(
             key: _formKey,
@@ -203,7 +279,9 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                tr('Where do you work?'),
+                                isZh
+                                    ? '您在哪里工作？'
+                                    : (isMs ? 'Di manakah anda bekerja?' : 'Where do you work?'),
                                 style: const TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 15,
@@ -212,9 +290,11 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                tr(
-                                  'Set your region, city, and travel radius',
-                                ),
+                                isZh
+                                    ? '设置您的地区、城市和出行半径'
+                                    : (isMs
+                                    ? 'Tetapkan wilayah, bandar dan radius perjalanan anda'
+                                    : 'Set your region, city, and travel radius'),
                                 style: const TextStyle(
                                   color: Colors.grey,
                                   fontSize: 12,
@@ -230,18 +310,18 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                 const SizedBox(height: 20),
 
                 // ---- Region ----
-                _label('Region'),
+                _label(isZh ? '地区' : (isMs ? 'Wilayah' : 'Region')),
                 DropdownButtonFormField<String>(
                   initialValue: _region,
                   decoration: _inputDecoration(
-                    hint: 'Select a region',
+                    hint: isZh ? '选择地区' : (isMs ? 'Pilih wilayah' : 'Select a region'),
                     icon: Icons.map_outlined,
                   ),
                   items: _regions
                       .map(
                         (r) => DropdownMenuItem(
                       value: r,
-                      child: Text(tr(r)),
+                      child: Text(r),
                     ),
                   )
                       .toList(),
@@ -252,30 +332,30 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                 const SizedBox(height: 16),
 
                 // ---- City ----
-                _label('City'),
+                _label(isZh ? '城市' : (isMs ? 'Bandar' : 'City')),
                 TextFormField(
                   controller: _city,
                   textInputAction: TextInputAction.next,
                   enabled: !_saving,
-                  validator: (value) => trOrNull(_validateCity(value)),
+                  validator: _validateCity,
                   decoration: _inputDecoration(
-                    hint: 'e.g. Kuala Lumpur',
+                    hint: isZh ? '例如：吉隆坡' : (isMs ? 'cth. Kuala Lumpur' : 'e.g. Kuala Lumpur'),
                     icon: Icons.location_city_outlined,
                   ),
                 ),
                 const SizedBox(height: 16),
 
                 // ---- Radius ----
-                _label('Service Radius (km)'),
+                _label(isZh ? '服务半径（公里）' : (isMs ? 'Radius Perkhidmatan (km)' : 'Service Radius (km)')),
                 TextFormField(
                   controller: _radius,
                   keyboardType: TextInputType.number,
                   textInputAction: TextInputAction.done,
                   enabled: !_saving,
-                  validator: (value) => trOrNull(_validateRadius(value)),
+                  validator: _validateRadius,
                   onFieldSubmitted: (_) => _save(),
                   decoration: _inputDecoration(
-                    hint: 'e.g. 10',
+                    hint: isZh ? '例如：10' : (isMs ? 'cth. 10' : 'e.g. 10'),
                     icon: Icons.radar_outlined,
                   ),
                 ),
@@ -283,9 +363,11 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                 Padding(
                   padding: const EdgeInsets.only(left: 4),
                   child: Text(
-                    tr(
-                      'How far are you willing to travel from your service centre?',
-                    ),
+                    isZh
+                        ? '您愿意从服务中心出发走多远？'
+                        : (isMs
+                        ? 'Sejauh mana anda sanggup mengembara dari pusat perkhidmatan anda?'
+                        : 'How far are you willing to travel from your service centre?'),
                     style: const TextStyle(
                       fontSize: 11,
                       color: Colors.grey,
@@ -320,8 +402,8 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                     ),
                     title: Text(
                       _centre == null
-                          ? tr('Publish your service area')
-                          : tr('Service centre selected'),
+                          ? (isZh ? '发布您的服务区域' : (isMs ? 'Terbitkan kawasan perkhidmatan anda' : 'Publish your service area'))
+                          : (isZh ? '已选择服务中心' : (isMs ? 'Pusat perkhidmatan dipilih' : 'Service centre selected')),
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
@@ -330,13 +412,16 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                     ),
                     subtitle: Text(
                       _centre == null
-                          ? tr(
-                        'Choose a public map pin so customers can see your coverage.',
-                      )
-                          : tr("{0}, {1} · Tap to change", [
-                        _centre!.latitude.toStringAsFixed(4),
-                        _centre!.longitude.toStringAsFixed(4),
-                      ]),
+                          ? (isZh
+                          ? '在地图上选择图钉，以便客户看到您的覆盖范围。'
+                          : (isMs
+                          ? 'Pilih pin peta awam supaya pelanggan dapat melihat liputan anda.'
+                          : 'Choose a public map pin so customers can see your coverage.'))
+                          : (isZh
+                          ? '${_centre!.latitude.toStringAsFixed(4)}, ${_centre!.longitude.toStringAsFixed(4)} · 点击更改'
+                          : (isMs
+                          ? '${_centre!.latitude.toStringAsFixed(4)}, ${_centre!.longitude.toStringAsFixed(4)} · Ketik untuk tukar'
+                          : '${_centre!.latitude.toStringAsFixed(4)}, ${_centre!.longitude.toStringAsFixed(4)} · Tap to change')),
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,
@@ -351,8 +436,14 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                         ? null
                         : () async {
                       if (_validateRadius(_radius.text) != null) {
-                        _showError(
-                          'Enter a service radius from 1 to 200 km first.',
+                        _showAppDialog(
+                          title: 'Error',
+                          message: isZh
+                              ? '请先输入 1 到 200 公里之间的服务半径。'
+                              : (isMs
+                              ? 'Masukkan radius perkhidmatan dari 1 hingga 200 km terlebih dahulu.'
+                              : 'Enter a service radius from 1 to 200 km first.'),
+                          isError: true,
                         );
                         return;
                       }
@@ -377,7 +468,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                         ? null
                         : () => setState(() => _centre = null),
                     child: Text(
-                      tr('Remove public map pin'),
+                      isZh ? '移除公共地图图钉' : (isMs ? 'Alih keluar pin peta awam' : 'Remove public map pin'),
                       style: const TextStyle(color: Colors.red),
                     ),
                   ),
@@ -399,7 +490,9 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
                     )
                         : const Icon(Icons.save_outlined),
                     label: Text(
-                      tr(_saving ? 'Saving...' : 'Save'),
+                      _saving
+                          ? (isZh ? '保存中...' : (isMs ? 'Menyimpan...' : 'Saving...'))
+                          : (isZh ? '保存' : (isMs ? 'Simpan' : 'Save')),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -427,7 +520,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
   Widget _label(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 6),
     child: Text(
-      tr(text),
+      text,
       style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
     ),
   );
@@ -437,7 +530,7 @@ class _ServiceAreasScreenState extends State<ServiceAreasScreen> {
     required IconData icon,
   }) {
     return InputDecoration(
-      hintText: trOrNull(hint),
+      hintText: hint,
       hintStyle: const TextStyle(color: Colors.grey),
       prefixIcon: Icon(icon, color: Colors.grey),
       filled: true,

@@ -18,7 +18,6 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
   late LatLng? _point = widget.initial;
   final _map = MapController();
   bool _locating = false;
-  String? _error;
 
   // 🎨 Unified theme colors
   static const _primaryOrange = Color(0xFFFF6B00);
@@ -31,10 +30,73 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
     super.dispose();
   }
 
+  // ============= Pop-up Box 弹窗 =============
+  void _showAppDialog({required String title, required String message, required bool isError}) {
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        final lang = Localizations.localeOf(context).languageCode;
+        return Dialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          elevation: 10,
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isError ? Colors.red.shade50 : Colors.green.shade50,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isError ? Icons.error_outline : Icons.check_circle_outline,
+                    color: isError ? Colors.red.shade600 : Colors.green.shade600,
+                    size: 40,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  title,
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  message,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade700, height: 1.4),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  height: 44,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _primaryOrange,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: Text(
+                      lang == 'zh' ? '知道了' : (lang == 'ms' ? 'OK' : 'OK'),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> _locate() async {
     setState(() {
       _locating = true;
-      _error = null;
     });
     try {
       final point = await CustomerLocationService.currentPosition();
@@ -49,9 +111,15 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
       _map.move(point, 12);
     } catch (_) {
       if (mounted) {
-        setState(
-              () => _error =
-          'Location unavailable. Tap the map to select your service centre.',
+        final lang = Localizations.localeOf(context).languageCode;
+        _showAppDialog(
+          title: lang == 'zh' ? '定位失败' : (lang == 'ms' ? 'Gagal mencari lokasi' : 'Location Error'),
+          message: lang == 'zh'
+              ? '无法获取当前位置。请点击地图选择您服务中心的位置。'
+              : (lang == 'ms'
+              ? 'Lokasi tidak tersedia. Ketik peta untuk memilih pusat perkhidmatan anda.'
+              : 'Location unavailable. Tap the map to select your service centre.'),
+          isError: true,
         );
       }
     } finally {
@@ -62,12 +130,15 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
   @override
   Widget build(BuildContext context) {
     AppLanguage.watch(context);
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
 
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
-          tr('Service area centre'),
+          isZh ? '服务区域中心' : (isMs ? 'Pusat kawasan perkhidmatan' : 'Service area centre'),
           style: const TextStyle(fontWeight: FontWeight.w600),
         ),
         backgroundColor: _primaryOrange,
@@ -86,9 +157,11 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
               ),
             ),
             child: Text(
-              tr(
-                'Tap your business or service-area centre. This pin and your service radius will be visible to customers.',
-              ),
+              isZh
+                  ? '点击您的业务或服务区域中心。此图钉和您的服务半径将对客户可见。'
+                  : (isMs
+                  ? 'Ketik pusat perniagaan atau kawasan perkhidmatan anda. Pin ini dan radius perkhidmatan anda akan kelihatan kepada pelanggan.'
+                  : 'Tap your business or service-area centre. This pin and your service radius will be visible to customers.'),
               style: const TextStyle(
                 fontSize: 13,
                 color: Colors.black87,
@@ -96,24 +169,6 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
               ),
             ),
           ),
-
-          if (_error != null)
-            Container(
-              padding: const EdgeInsets.all(12),
-              color: Colors.red.shade50,
-              child: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.red, size: 18),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _error!,
-                      style: const TextStyle(color: Colors.red, fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-            ),
 
           // ---- Map Area ----
           Expanded(
@@ -196,12 +251,16 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
                 children: [
                   Text(
                     _point == null
-                        ? tr('Select a pin to continue')
-                        : tr("{0} km from {1}, {2}", [
-                      widget.radiusKm.toInt(),
-                      _point!.latitude.toStringAsFixed(4),
-                      _point!.longitude.toStringAsFixed(4),
-                    ]),
+                        ? (isZh
+                        ? '选择一个图钉以继续'
+                        : (isMs
+                        ? 'Pilih pin untuk meneruskan'
+                        : 'Select a pin to continue'))
+                        : (isZh
+                        ? '距离 ${_point!.latitude.toStringAsFixed(4)}, ${_point!.longitude.toStringAsFixed(4)} 约 ${widget.radiusKm.toInt()} 公里'
+                        : (isMs
+                        ? '${widget.radiusKm.toInt()} km dari ${_point!.latitude.toStringAsFixed(4)}, ${_point!.longitude.toStringAsFixed(4)}'
+                        : '${widget.radiusKm.toInt()} km from ${_point!.latitude.toStringAsFixed(4)}, ${_point!.longitude.toStringAsFixed(4)}')),
                     style: const TextStyle(
                       fontSize: 13,
                       color: Colors.black87,
@@ -214,7 +273,9 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
                     onPressed: _locating ? null : _locate,
                     icon: const Icon(Icons.my_location, color: _primaryOrange),
                     label: Text(
-                      tr(_locating ? 'Locating…' : 'Use my location'),
+                      _locating
+                          ? (isZh ? '定位中...' : (isMs ? 'Mencari lokasi...' : 'Locating...'))
+                          : (isZh ? '使用我的位置' : (isMs ? 'Guna lokasi saya' : 'Use my location')),
                       style: const TextStyle(color: _primaryOrange),
                     ),
                   ),
@@ -235,7 +296,11 @@ class _ServiceAreaMapState extends State<ServiceAreaMapScreen> {
                         elevation: 0,
                       ),
                       child: Text(
-                        tr('Use this service centre'),
+                        isZh
+                            ? '使用此服务中心'
+                            : (isMs
+                            ? 'Gunakan pusat perkhidmatan ini'
+                            : 'Use this service centre'),
                         style: const TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
