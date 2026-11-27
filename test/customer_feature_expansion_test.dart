@@ -19,6 +19,17 @@ import 'customer_ux_test.dart' as addresses;
 
 void main() {
   setUpAll(() async {
+    // The widget test has no native path_provider. Isolate the map's tile
+    // cache so rendering the real map also works during screenshot capture.
+    final cacheDirectory = Directory.systemTemp.createTempSync('coverage-map-');
+    final tileCache = BuiltInMapCachingProvider.getOrCreateInstance(
+      cacheDirectory: cacheDirectory.path,
+      maxCacheSize: null,
+    );
+    addTearDown(() async {
+      await tileCache.destroy();
+      await cacheDirectory.delete(recursive: true);
+    });
     const root = String.fromEnvironment('FLUTTER_FONT_ROOT');
     if (root.isNotEmpty) {
       for (final entry in {
@@ -173,21 +184,26 @@ void main() {
       ),
     );
     await t.pumpAndSettle();
-    await t.tap(find.text('Show service areas'));
+    await t.tap(find.byTooltip('Show service areas'));
     await t.pumpAndSettle();
-    final marker = find
-        .ancestor(
-          of: find.text('Test provider'),
-          matching: find.byType(GestureDetector),
-        )
-        .first;
-    t.widget<GestureDetector>(marker).onTap!();
-    await t.pump();
+    final card = find.ancestor(
+      of: find.byTooltip('Hide service areas'),
+      matching: find.byType(BackdropFilter),
+    );
+    expect(
+      find.descendant(
+        of: card,
+        matching: find.text('Test provider · 10 km radius'),
+      ),
+      findsOneWidget,
+    );
+    expect(t.getTopLeft(card).dy - t.getTopLeft(find.byType(FlutterMap)).dy, 6);
+    await capture.proof(t, 'map-coverage-compact');
     expect(find.text('Plumbing'), findsNothing);
-    await t.tap(find.text('Selected address in range'));
+    await t.tap(find.text('In range'));
     await t.pumpAndSettle();
     expect(find.text('Plumbing'), findsOneWidget);
-    await t.tap(find.text('Selected address in range'));
+    await t.tap(find.text('In range'));
     await t.pumpAndSettle();
     expect(find.text('Plumbing'), findsNothing);
     Color? fill(String label) {
@@ -203,11 +219,11 @@ void main() {
     }
 
     expect(
-      fill('Selected address in range'),
+      fill('In range'),
       Color.alphaBlend(
         CustomerTheme.success.withValues(alpha: .12),
         Colors.white,
-      ),
+      ).withValues(alpha: .84),
     );
     t.widget<FlutterMap>(find.byType(FlutterMap)).options.onTap!(
       const TapPosition(Offset.zero, Offset.zero),
@@ -215,12 +231,17 @@ void main() {
     );
     await t.pumpAndSettle();
     expect(
-      fill('Selected address outside range'),
+      fill('Outside range'),
       Color.alphaBlend(
         CustomerTheme.danger.withValues(alpha: .12),
         Colors.white,
-      ),
+      ).withValues(alpha: .84),
     );
+    await t.tap(find.byTooltip('Hide service areas'));
+    await t.pumpAndSettle();
+    expect(find.text('Outside range'), findsNothing);
+    expect(find.text('Test provider'), findsNothing);
+    expect(find.byTooltip('Show service areas'), findsOneWidget);
     await t.pumpWidget(const SizedBox());
   });
   test('coverage uses distance from published pin, not customer city text', () {

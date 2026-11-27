@@ -732,11 +732,13 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
             if (row['image_path'] != null && row['local_photo'] == null)
               _photoView(row['image_path'].toString()),
             if ((row['content'] ?? '').toString().isNotEmpty)
-              SelectableText.rich(
-                user
-                    ? TextSpan(text: row['content'].toString())
-                    : _replyText(row['content'].toString()),
-                style: const TextStyle(height: 1.5),
+              SelectionArea(
+                child: Text.rich(
+                  user
+                      ? TextSpan(text: row['content'].toString())
+                      : _replyText(row['content'].toString()),
+                  style: const TextStyle(height: 1.5),
+                ),
               ),
             ...cards.map((raw) {
               final a = Map<String, dynamic>.from(raw);
