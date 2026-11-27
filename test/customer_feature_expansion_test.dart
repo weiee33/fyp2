@@ -19,6 +19,17 @@ import 'customer_ux_test.dart' as addresses;
 
 void main() {
   setUpAll(() async {
+    // The widget test has no native path_provider. Isolate the map's tile
+    // cache so rendering the real map also works during screenshot capture.
+    final cacheDirectory = Directory.systemTemp.createTempSync('coverage-map-');
+    final tileCache = BuiltInMapCachingProvider.getOrCreateInstance(
+      cacheDirectory: cacheDirectory.path,
+      maxCacheSize: null,
+    );
+    addTearDown(() async {
+      await tileCache.destroy();
+      await cacheDirectory.delete(recursive: true);
+    });
     const root = String.fromEnvironment('FLUTTER_FONT_ROOT');
     if (root.isNotEmpty) {
       for (final entry in {
