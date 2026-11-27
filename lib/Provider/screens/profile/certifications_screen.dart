@@ -55,9 +55,10 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _loading = false);
+      final lang = Localizations.localeOf(context).languageCode;
       _showAppDialog(
-        title: 'Error',
-        message: 'Failed to load certifications: $e',
+        title: lang == 'zh' ? '错误' : (lang == 'ms' ? 'Ralat' : 'Error'),
+        message: lang == 'zh' ? '加载证书失败：$e' : (lang == 'ms' ? 'Gagal memuatkan sijil: $e' : 'Failed to load certifications: $e'),
         isError: true,
       );
     }
@@ -87,7 +88,12 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
         }
       }
     } catch (e) {
-      _showAppDialog(title: 'Error', message: 'Failed to pick file: $e', isError: true);
+      final lang = Localizations.localeOf(context).languageCode;
+      _showAppDialog(
+        title: lang == 'zh' ? '错误' : (lang == 'ms' ? 'Ralat' : 'Error'),
+        message: lang == 'zh' ? '选择文件失败：$e' : (lang == 'ms' ? 'Gagal memilih fail: $e' : 'Failed to pick file: $e'),
+        isError: true,
+      );
     }
   }
 
@@ -145,33 +151,52 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
       setState(() => _file = null);
 
       if (!mounted) return;
-      _showAppDialog(title: 'Success', message: 'Certification added', isError: false);
+      final lang = Localizations.localeOf(context).languageCode;
+      _showAppDialog(
+        title: lang == 'zh' ? '成功' : (lang == 'ms' ? 'Berjaya' : 'Success'),
+        message: lang == 'zh' ? '证书已添加' : (lang == 'ms' ? 'Sijil ditambah' : 'Certification added'),
+        isError: false,
+      );
       await _load();
     } catch (e) {
       if (!mounted) return;
-      _showAppDialog(title: 'Error', message: 'Failed to add: $e', isError: true);
+      final lang = Localizations.localeOf(context).languageCode;
+      _showAppDialog(
+        title: lang == 'zh' ? '错误' : (lang == 'ms' ? 'Ralat' : 'Error'),
+        message: lang == 'zh' ? '添加失败：$e' : (lang == 'ms' ? 'Gagal menambah: $e' : 'Failed to add: $e'),
+        isError: true,
+      );
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
   }
 
   Future<void> _delete(String id) async {
+    final lang = Localizations.localeOf(context).languageCode;
+    final isZh = lang == 'zh';
+    final isMs = lang == 'ms';
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Delete Certification', style: TextStyle(fontWeight: FontWeight.bold)),
-        content: const Text('Are you sure?'),
+        title: Text(
+          isZh ? '删除证书' : (isMs ? 'Padam Sijil' : 'Delete Certification'),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text(
+          isZh ? '您确定吗？' : (isMs ? 'Adakah anda pasti?' : 'Are you sure?'),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
-            child: const Text('Cancel'),
+            child: Text(isZh ? '取消' : (isMs ? 'Batal' : 'Cancel')),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
+            child: Text(isZh ? '删除' : (isMs ? 'Padam' : 'Delete')),
           ),
         ],
       ),
@@ -182,11 +207,19 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     try {
       await _service.deleteCertification(id);
       if (!mounted) return;
-      _showAppDialog(title: 'Deleted', message: 'Certification deleted.', isError: false);
+      _showAppDialog(
+        title: isZh ? '已删除' : (isMs ? 'Dipadam' : 'Deleted'),
+        message: isZh ? '证书已删除。' : (isMs ? 'Sijil dipadamkan.' : 'Certification deleted.'),
+        isError: false,
+      );
       await _load();
     } catch (e) {
       if (!mounted) return;
-      _showAppDialog(title: 'Error', message: 'Delete failed: $e', isError: true);
+      _showAppDialog(
+        title: isZh ? '错误' : (isMs ? 'Ralat' : 'Error'),
+        message: isZh ? '删除失败：$e' : (isMs ? 'Gagal memadam: $e' : 'Delete failed: $e'),
+        isError: true,
+      );
     }
   }
 
@@ -285,7 +318,6 @@ class _CertificationsScreenState extends State<CertificationsScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        // 👇 强制设置标题颜色为白色
         title: Text(
           isZh ? '证书' : (isMs ? 'Sijil' : 'Certifications'),
           style: const TextStyle(
