@@ -157,13 +157,38 @@ void main() {
   });
   for (final role in MobileAccountRole.values) {
     test(
+      '${role.name} registration enforces both password length limits',
+      () async {
+        fixture.role = role.name;
+        fixture.confirmed = false;
+        Future<Object?> register(int length) => fixture.service.register(
+          email: 'test@example.invalid',
+          password: 'x' * length,
+          fullName: 'Test User',
+          phone: '102049818',
+          accountRole: role,
+        );
+        for (final length in [11, 129]) {
+          await expectLater(register(length), throwsFormatException);
+        }
+        expect(fixture.requests, isEmpty);
+        for (final length in [12, 128]) {
+          await register(length);
+          expect(
+            jsonDecode(fixture.requests.last.body)['password'],
+            'x' * length,
+          );
+        }
+      },
+    );
+    test(
       '${role.name} registration stops before signup during email cooldown',
       () async {
         fixture.registrationBlocked = true;
         await expectLater(
           fixture.service.register(
             email: 'test@example.invalid',
-            password: 'secret',
+            password: 'registration-pass',
             fullName: 'Test User',
             phone: '102049818',
             accountRole: role,
@@ -214,7 +239,7 @@ void main() {
         fixture.confirmed = false;
         final registration = await fixture.service.register(
           email: ' test@example.invalid ',
-          password: 'secret',
+          password: 'registration-pass',
           fullName: ' Test User ',
           phone: '102049818',
           accountRole: role,
@@ -317,7 +342,7 @@ void main() {
       fixture.role = 'provider';
       final result = await fixture.service.register(
         email: 'test@example.invalid',
-        password: 'secret',
+        password: 'registration-pass',
         fullName: 'Test',
         phone: '102049818',
         accountRole: MobileAccountRole.customer,

@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/new_password.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
@@ -262,7 +263,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                             autocorrect: false,
                             decoration: InputDecoration(
                               labelText: trOrNull('New password'),
-                              helperText: trOrNull('Use 12–128 characters'),
+                              helperText: tr(newPasswordLengthHint),
                               suffixIcon: IconButton(
                                 tooltip: trOrNull('Show or hide password'),
                                 onPressed: () =>
@@ -279,9 +280,7 @@ class _RecoveryState extends State<CustomerForgotPasswordScreen> {
                                   widget.requireCurrentPassword &&
                                       v == _currentPassword.text
                                   ? 'Choose a different new password'
-                                  : (v?.length ?? 0) >= 12 && v!.length <= 128
-                                  ? null
-                                  : 'Use 12–128 characters')(value),
+                                  : validateNewPassword(v))(value),
                             ),
                           ),
                           const SizedBox(height: 16),

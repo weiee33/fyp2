@@ -65,9 +65,10 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       if (mounted && version == _coverageVersion) {
         setState(() {
           _coverage = rows;
-          if (_selectedProvider != null &&
-              !rows.any((p) => p.id == _selectedProvider!.id)) {
-            _selectedProvider = null;
+          if (_selectedProvider != null) {
+            _selectedProvider = rows
+                .where((p) => p.id == _selectedProvider!.id)
+                .firstOrNull;
           }
         });
       }
@@ -415,11 +416,14 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                             MarkerLayer(
                               markers: [
                                 if (_showCoverage)
-                                  ..._coverage.map(
-                                    (p) => Marker(
+                                  ..._coverage.map((p) {
+                                    final showName =
+                                        _coverage.length == 1 ||
+                                        _selectedProvider?.id == p.id;
+                                    return Marker(
                                       point: p.centre,
-                                      width: 150,
-                                      height: 64,
+                                      width: showName ? 150 : 48,
+                                      height: showName ? 64 : 48,
                                       child: Semantics(
                                         label: tr(
                                           "{0}, {1} kilometre service radius",
@@ -427,6 +431,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                         ),
                                         button: true,
                                         child: GestureDetector(
+                                          behavior: HitTestBehavior.opaque,
                                           onTap: () => setState(
                                             () => _selectedProvider = p,
                                           ),
@@ -437,34 +442,38 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                                 color: Colors.blue,
                                                 size: 26,
                                               ),
-                                              Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                      vertical: 3,
+                                              if (showName)
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 3,
+                                                      ),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          8,
+                                                        ),
+                                                  ),
+                                                  child: Text(
+                                                    p.name,
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: const TextStyle(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w600,
                                                     ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: Text(
-                                                  p.name,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: const TextStyle(
-                                                    fontSize: 11,
-                                                    fontWeight: FontWeight.w600,
                                                   ),
                                                 ),
-                                              ),
                                             ],
                                           ),
                                         ),
                                       ),
-                                    ),
-                                  ),
+                                    );
+                                  }),
                                 Marker(
                                   point: _currentPosition,
                                   width: 48,
@@ -541,29 +550,57 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                     onTap: _loadCoverage,
                                     child: Text(tr(_coverageError!)),
                                   )
-                                else if (_selectedProvider != null) ...[
-                                  Text(
-                                    _selectedProvider!.name,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
+                                else if (_selectedProvider case final provider?)
+                                  ExpansionTile(
+                                    key: ValueKey(provider.id),
+                                    tilePadding: EdgeInsets.zero,
+                                    dense: true,
+                                    shape: const Border(),
+                                    collapsedShape: const Border(),
+                                    expandedCrossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    title: Text(
+                                      tr('{0} · {1} km radius', [
+                                        provider.name,
+                                        provider.radiusKm.toInt(),
+                                      ]),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
-                                  ),
-                                  Text(
-                                    tr("{0} km radius · {1}", [
-                                      _selectedProvider!.radiusKm.toInt(),
+                                    subtitle: Text(
                                       tr(
                                         inRange == true
                                             ? 'Selected address in range'
                                             : 'Selected address outside range',
                                       ),
-                                    ]),
-                                  ),
-                                  Text(
-                                    _selectedProvider!.services.join(' · '),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ] else
+                                    ),
+                                    children: [
+                                      if (provider.services.isNotEmpty)
+                                        ConstrainedBox(
+                                          constraints: BoxConstraints(
+                                            maxHeight: bounds.maxHeight * .16,
+                                          ),
+                                          child: SingleChildScrollView(
+                                            child: Text(
+                                              provider.services.join(' · '),
+                                            ),
+                                          ),
+                                        ),
+                                      Text(
+                                        tr(
+                                          'Provider-declared areas. Confirm availability before booking.',
+                                        ),
+                                        style: const TextStyle(
+                                          fontSize: 11,
+                                          color: CustomerTheme.textSecondary,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                else
                                   Text(
                                     tr(
                                       _coverage.isEmpty
@@ -574,15 +611,6 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                             ),
                                     ),
                                   ),
-                                Text(
-                                  tr(
-                                    'Provider-declared areas. Confirm availability before booking.',
-                                  ),
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.black54,
-                                  ),
-                                ),
                               ],
                             ),
                           ),

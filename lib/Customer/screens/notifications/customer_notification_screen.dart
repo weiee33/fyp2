@@ -331,6 +331,7 @@ class _CustomerNotificationScreenState
           final isSelected = _activeFilter == filter;
 
           return ChoiceChip(
+            showCheckmark: false,
             label: Text(tr(filter)),
             selected: isSelected,
             onSelected: (selected) {

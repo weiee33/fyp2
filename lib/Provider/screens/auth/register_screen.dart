@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/new_password.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -63,8 +64,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   String? _validatePassword(String? value) {
     final password = value ?? '';
     if (password.isEmpty) return 'Password is required';
-    if (password.length < 6) return 'Password must be at least 6 characters';
-    return null;
+    return validateNewPassword(password);
   }
 
   // ========== Register Logic ==========
@@ -243,7 +243,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       onPressed: () =>
                           setState(() => _obscurePassword = !_obscurePassword),
                     ),
-                  ),
+                  ).copyWith(helperText: tr(newPasswordLengthHint)),
                 ),
                 const SizedBox(height: 32),
 

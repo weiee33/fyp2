@@ -58,6 +58,8 @@ class CustomerBooking {
       : null;
   String get paymentStatus =>
       payment?['payment_status']?.toString() ?? 'Not paid';
+  bool get cancelledAfterPayment =>
+      status == 'Cancelled' && paymentStatus == 'Success';
   bool get hasReceipt =>
       paymentStatus == 'Success' || paymentStatus == 'Refunded';
   String get shortId =>

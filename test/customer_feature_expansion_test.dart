@@ -165,6 +165,7 @@ void main() {
                 'service_latitude': centre.latitude,
                 'service_longitude': centre.longitude,
                 'service_radius_km': 10,
+                'services': ['Plumbing'],
               },
             ],
           ),
@@ -182,6 +183,13 @@ void main() {
         .first;
     t.widget<GestureDetector>(marker).onTap!();
     await t.pump();
+    expect(find.text('Plumbing'), findsNothing);
+    await t.tap(find.text('Selected address in range'));
+    await t.pumpAndSettle();
+    expect(find.text('Plumbing'), findsOneWidget);
+    await t.tap(find.text('Selected address in range'));
+    await t.pumpAndSettle();
+    expect(find.text('Plumbing'), findsNothing);
     Color? fill(String label) => t
         .widget<Material>(
           find
