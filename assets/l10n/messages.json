@@ -4067,6 +4067,14 @@
     "已完成的日程",
     "Jadual selesai"
   ],
+  "In range": [
+    "服务范围内",
+    "Dalam liputan"
+  ],
+  "Outside range": [
+    "服务范围外",
+    "Di luar liputan"
+  ],
   "Selected address in range": [
     "所选地址在服务范围内",
     "Alamat dipilih dalam kawasan liputan"

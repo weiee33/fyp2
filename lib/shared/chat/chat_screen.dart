@@ -515,7 +515,9 @@ class _ConversationState extends State<ConversationScreen> {
                                         ),
                                       )
                                     else
-                                      SelectableText(m['body'].toString()),
+                                      SelectionArea(
+                                        child: Text(m['body'].toString()),
+                                      ),
                                     const SizedBox(height: 4),
                                     if (date != null)
                                       Text(

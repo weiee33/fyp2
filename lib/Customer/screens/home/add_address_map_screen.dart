@@ -1,6 +1,7 @@
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'dart:async';
+import 'dart:ui' show ImageFilter;
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
@@ -65,11 +66,10 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       if (mounted && version == _coverageVersion) {
         setState(() {
           _coverage = rows;
-          if (_selectedProvider != null) {
-            _selectedProvider = rows
-                .where((p) => p.id == _selectedProvider!.id)
-                .firstOrNull;
-          }
+          final selectedId = _selectedProvider?.id;
+          _selectedProvider = rows.length == 1
+              ? rows.single
+              : rows.where((p) => p.id == selectedId).firstOrNull;
         });
       }
     } catch (_) {
@@ -92,6 +92,141 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
       _coverageVersion++;
       _coverageLoading = false;
     }
+  }
+
+  Widget _coverageCard(bool? inRange, double mapHeight) {
+    final tint = !_showCoverage || inRange == null
+        ? CustomerTheme.primarySurface
+        : Color.alphaBlend(
+            (inRange ? CustomerTheme.success : CustomerTheme.danger).withValues(
+              alpha: .12,
+            ),
+            Colors.white,
+          );
+    final visibilityLabel = _showCoverage
+        ? tr('Hide service areas')
+        : tr('Show service areas');
+    Widget summary;
+    if (!_showCoverage) {
+      summary = InkWell(
+        onTap: _toggleCoverage,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(visibilityLabel),
+        ),
+      );
+    } else if (_coverageError != null) {
+      summary = TextButton(
+        onPressed: _loadCoverage,
+        child: Text(tr(_coverageError!)),
+      );
+    } else if (_selectedProvider case final provider?) {
+      summary = ExpansionTile(
+        key: ValueKey(provider.id),
+        tilePadding: const EdgeInsetsDirectional.only(start: 12),
+        childrenPadding: const EdgeInsetsDirectional.only(start: 12, bottom: 8),
+        dense: true,
+        shape: const Border(),
+        collapsedShape: const Border(),
+        expandedCrossAxisAlignment: CrossAxisAlignment.start,
+        title: Text(
+          tr('{0} · {1} km radius', [provider.name, provider.radiusKm.toInt()]),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Row(
+          children: [
+            DecoratedBox(
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: inRange == true
+                    ? CustomerTheme.success
+                    : CustomerTheme.danger,
+              ),
+              child: const SizedBox.square(dimension: 8),
+            ),
+            const SizedBox(width: 6),
+            Flexible(
+              child: Text(tr(inRange == true ? 'In range' : 'Outside range')),
+            ),
+          ],
+        ),
+        children: [
+          if (provider.services.isNotEmpty)
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: mapHeight * .16),
+              child: SingleChildScrollView(
+                child: Text(provider.services.join(' · ')),
+              ),
+            ),
+          Text(
+            tr('Provider-declared areas. Confirm availability before booking.'),
+            style: const TextStyle(
+              fontSize: 11,
+              color: CustomerTheme.textSecondary,
+            ),
+          ),
+        ],
+      );
+    } else if (_coverageLoading) {
+      summary = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Text(tr('Loading…')),
+      );
+    } else {
+      summary = Padding(
+        padding: const EdgeInsets.all(12),
+        child: Text(
+          _coverage.isEmpty
+              ? tr('No published service areas near this address.')
+              : tr('{0} providers nearby · Tap a blue marker', [
+                  _coverage.length,
+                ]),
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 6, sigmaY: 6),
+        child: Material(
+          color: tint.withValues(alpha: .84),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      child: Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: summary,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    tooltip: visibilityLabel,
+                    color: CustomerTheme.primaryDark,
+                    onPressed: _toggleCoverage,
+                    icon: Icon(
+                      _showCoverage
+                          ? Icons.visibility_off_outlined
+                          : Icons.visibility_outlined,
+                    ),
+                  ),
+                ],
+              ),
+              if (_showCoverage && _coverageLoading)
+                const LinearProgressIndicator(minHeight: 2),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -493,130 +628,11 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                         ),
                   ),
                   Positioned(
-                    top: 12,
+                    top: 6,
                     left: 12,
                     right: 12,
-                    child: Align(
-                      alignment: Alignment.topLeft,
-                      child: FilledButton.tonalIcon(
-                        onPressed: _toggleCoverage,
-                        icon: Icon(
-                          _showCoverage
-                              ? Icons.layers_clear_outlined
-                              : Icons.layers_outlined,
-                        ),
-                        label: Text(
-                          tr(
-                            _showCoverage
-                                ? 'Hide service areas'
-                                : 'Show service areas',
-                          ),
-                        ),
-                      ),
-                    ),
+                    child: _coverageCard(inRange, bounds.maxHeight),
                   ),
-                  if (_showCoverage)
-                    Positioned(
-                      top: 62,
-                      left: 12,
-                      right: 12,
-                      child: AnimatedSize(
-                        duration: MediaQuery.disableAnimationsOf(context)
-                            ? Duration.zero
-                            : const Duration(milliseconds: 200),
-                        child: Material(
-                          color: switch (inRange) {
-                            true => Color.alphaBlend(
-                              CustomerTheme.success.withValues(alpha: .12),
-                              Colors.white,
-                            ),
-                            false => Color.alphaBlend(
-                              CustomerTheme.danger.withValues(alpha: .12),
-                              Colors.white,
-                            ),
-                            null => Colors.white,
-                          },
-                          elevation: 2,
-                          borderRadius: BorderRadius.circular(12),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (_coverageLoading)
-                                  const LinearProgressIndicator(),
-                                if (_coverageError != null)
-                                  InkWell(
-                                    onTap: _loadCoverage,
-                                    child: Text(tr(_coverageError!)),
-                                  )
-                                else if (_selectedProvider case final provider?)
-                                  ExpansionTile(
-                                    key: ValueKey(provider.id),
-                                    tilePadding: EdgeInsets.zero,
-                                    dense: true,
-                                    shape: const Border(),
-                                    collapsedShape: const Border(),
-                                    expandedCrossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    title: Text(
-                                      tr('{0} · {1} km radius', [
-                                        provider.name,
-                                        provider.radiusKm.toInt(),
-                                      ]),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    subtitle: Text(
-                                      tr(
-                                        inRange == true
-                                            ? 'Selected address in range'
-                                            : 'Selected address outside range',
-                                      ),
-                                    ),
-                                    children: [
-                                      if (provider.services.isNotEmpty)
-                                        ConstrainedBox(
-                                          constraints: BoxConstraints(
-                                            maxHeight: bounds.maxHeight * .16,
-                                          ),
-                                          child: SingleChildScrollView(
-                                            child: Text(
-                                              provider.services.join(' · '),
-                                            ),
-                                          ),
-                                        ),
-                                      Text(
-                                        tr(
-                                          'Provider-declared areas. Confirm availability before booking.',
-                                        ),
-                                        style: const TextStyle(
-                                          fontSize: 11,
-                                          color: CustomerTheme.textSecondary,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                else
-                                  Text(
-                                    tr(
-                                      _coverage.isEmpty
-                                          ? 'No published service areas near this address.'
-                                          : tr(
-                                              "{0} providers nearby · Tap a blue marker",
-                                              [_coverage.length],
-                                            ),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
                   DraggableScrollableSheet(
                     controller: _sheet,
                     initialChildSize: .55,

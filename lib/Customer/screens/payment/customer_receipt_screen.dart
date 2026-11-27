@@ -220,9 +220,11 @@ class _CustomerReceiptScreenState extends State<CustomerReceiptScreen> {
                             ),
                           ),
                           const SizedBox(height: 5),
-                          SelectableText(
-                            row.$2,
-                            style: const TextStyle(fontSize: 14, height: 1.4),
+                          SelectionArea(
+                            child: Text(
+                              row.$2,
+                              style: const TextStyle(fontSize: 14, height: 1.4),
+                            ),
                           ),
                         ],
                       ),
