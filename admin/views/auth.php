@@ -24,7 +24,24 @@
 <?php elseif ($page==='mfa'): ?>
     <div class="auth-icon"><?= viewIcon('shield') ?></div><span class="eyebrow">TWO-STEP VERIFICATION</span><h1><?= $factors?'One more step.':'Protect your account.' ?></h1>
     <?php if ($factors): ?><p class="auth-intro">Enter the six-digit code from your authenticator app.</p><form class="stack-form" method="post" action="<?= e(url('mfa')) ?>"><?= viewFields('verify') ?><?php if(count($factors)>1): ?><div><label for="factor_id">Authenticator</label><select id="factor_id" name="factor_id" required><?php foreach($factors as $factor): ?><option value="<?= e($factor['id']) ?>"><?= e($factor['friendly_name'] ?? 'Authenticator') ?></option><?php endforeach; ?></select></div><?php else: ?><input type="hidden" name="factor_id" value="<?= e($factors[0]['id']) ?>"><?php endif; ?><div><label for="code">Verification code</label><input class="code-input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="000000" autofocus></div><button class="button button-primary button-full">Verify & continue <?= viewIcon('arrow') ?></button></form>
-    <?php elseif (!empty($_SESSION['enrollment'])): $enrollment=$_SESSION['enrollment']; ?><p class="auth-intro">Scan this code with an authenticator app, then enter the code it generates.</p><div class="qr-wrap"><?php $qr=(string)($enrollment['totp']['qr_code'] ?? ''); if(str_starts_with($qr,'data:image/')): ?><img src="<?= e($qr) ?>" width="190" height="190" alt="Authenticator setup QR code"><?php elseif(str_starts_with(ltrim($qr),'<svg')): ?><img src="data:image/svg+xml;base64,<?= e(base64_encode($qr)) ?>" width="190" height="190" alt="Authenticator setup QR code"><?php endif; ?></div><details class="setup-key"><summary>Can’t scan the code?</summary><p>Enter this setup key in your authenticator:</p><code><?= e($enrollment['totp']['secret'] ?? '') ?></code></details><form class="stack-form" method="post" action="<?= e(url('mfa')) ?>"><?= viewFields('verify') ?><input type="hidden" name="factor_id" value="<?= e($enrollment['id']) ?>"><div><label for="code">Verification code</label><input class="code-input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="000000"></div><button class="button button-primary button-full">Complete setup <?= viewIcon('arrow') ?></button></form>
+    <?php elseif (!empty($_SESSION['enrollment'])):
+        $enrollment = $_SESSION['enrollment'];
+        $qr = (string) ($enrollment['totp']['qr_code'] ?? '');
+        // Supabase Auth returns an SVG document that can begin with an XML declaration.
+        $qrSrc = str_starts_with(ltrim($qr), '<') ? 'data:image/svg+xml;base64,'.base64_encode($qr) : $qr;
+        $hasQr = str_starts_with($qrSrc, 'data:image/');
+    ?>
+        <?php if ($hasQr): ?>
+            <p class="auth-intro">Scan this code with an authenticator app, then enter the code it generates.</p>
+            <div class="qr-wrap"><img src="<?= e($qrSrc) ?>" width="190" height="190" alt="Authenticator setup QR code"></div>
+        <?php else: ?>
+            <p class="auth-intro">Use the setup key below to add this account to your authenticator app.</p>
+        <?php endif; ?>
+        <details class="setup-key"<?= $hasQr ? '' : ' open' ?>>
+            <summary><?= $hasQr ? 'Can’t scan the code?' : 'Manual setup key' ?></summary>
+            <p>Enter this setup key in your authenticator:</p><code><?= e($enrollment['totp']['secret'] ?? '') ?></code>
+        </details>
+        <form class="stack-form" method="post" action="<?= e(url('mfa')) ?>"><?= viewFields('verify') ?><input type="hidden" name="factor_id" value="<?= e($enrollment['id']) ?>"><div><label for="code">Verification code</label><input class="code-input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required placeholder="000000"></div><button class="button button-primary button-full">Complete setup <?= viewIcon('arrow') ?></button></form>
     <?php else: ?><p class="auth-intro">Add an authenticator app to protect access to customer records and admin actions.</p><div class="info-card"><strong>What you’ll need</strong><p>An authenticator app on your phone. Setup takes about a minute and codes work without a mobile connection.</p></div><form method="post" action="<?= e(url('mfa')) ?>"><?= viewFields('enroll') ?><button class="button button-primary button-full">Set up authenticator <?= viewIcon('arrow') ?></button></form><?php endif; ?>
     <form class="auth-signout" method="post" action="<?= e(url('mfa')) ?>"><?= viewFields('logout') ?><button class="text-button">Sign out and use another account</button></form>
 <?php else: ?><span class="eyebrow">ACCOUNT RECOVERY</span><h1>Recovery link unavailable.</h1><p class="auth-intro">Request a new link and open it in this browser to continue.</p><a class="button button-primary" href="<?= e(url('forgot')) ?>">Request a new link <?= viewIcon('arrow') ?></a><?php endif; ?>

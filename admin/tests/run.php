@@ -590,7 +590,9 @@ try {
         assertThat(str_contains($response['body'],'Set up authenticator'),'New account did not offer enrollment.');
         expectRedirect(request('POST',['page'=>'mfa'],['csrf'=>$csrf,'action'=>'enroll']),'mfa');
         $response=request('GET',['page'=>'mfa']); expectStatus($response,200); $csrf=csrfToken($response);
-        assertThat(str_contains($response['body'],'TEST-SETUP-SECRET') && str_contains($response['body'],'data:image/svg+xml;base64,'),'Enrollment setup secret/QR was not rendered safely.');
+        $expectedQr = 'data:image/svg+xml;base64,'.base64_encode(file_get_contents(__DIR__.'/fixtures/enrollment-qr.svg'));
+        assertThat(str_contains($response['body'], 'src="'.$expectedQr.'"'), 'Enrollment QR image did not preserve the SVG returned by Supabase.');
+        assertThat(str_contains($response['body'], 'JBSWY3DPEHPK3PXP'), 'Manual authenticator setup key is missing.');
         expectRedirect(request('GET',['page'=>'dashboard']),'mfa');
         expectRedirect(request('POST',['page'=>'mfa'],['csrf'=>$csrf,'action'=>'verify','factor_id'=>$factor,'code'=>'123456']),'dashboard');
         $csrf=csrfToken(request('GET',['page'=>'dashboard']));
