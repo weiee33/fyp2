@@ -351,6 +351,14 @@ void main() {
     });
     await t.pumpAndSettle();
     expect(find.byTooltip('Remove photo'), findsOneWidget);
+    final gallery = find.ancestor(
+      of: find.text('Gallery'),
+      matching: find.byWidgetPredicate((w) => w is OutlinedButton),
+    );
+    expect(
+      t.getTopLeft(gallery).dy - t.getBottomLeft(find.byType(Image)).dy,
+      greaterThanOrEqualTo(12),
+    );
     await t.ensureVisible(find.byTooltip('Remove photo'));
     await t.tap(find.byTooltip('Remove photo'));
     await t.pumpAndSettle();

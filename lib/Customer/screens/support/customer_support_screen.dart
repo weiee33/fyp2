@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import '../../../shared/localization/app_language.dart';
+import '../../../shared/photo_remove_button.dart';
 import '../../core/customer_theme.dart';
 import '../../models/booking_model.dart';
 import '../../services/customer_support_service.dart';
@@ -457,11 +458,9 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
                             Positioned(
                               top: 0,
                               right: 0,
-                              child: IconButton.filled(
-                                tooltip: tr('Remove photo'),
+                              child: PhotoRemoveButton(
                                 onPressed: () =>
                                     setState(() => _photos.removeAt(i)),
-                                icon: const Icon(Icons.close, size: 18),
                               ),
                             ),
                         ],
@@ -469,7 +468,8 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
                     ),
                 ],
               ),
-              if (!_locked && _photos.length < 3)
+              if (!_locked && _photos.length < 3) ...[
+                if (_photos.isNotEmpty) const SizedBox(height: 16),
                 IntrinsicHeight(
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -504,6 +504,7 @@ class _ComposeState extends State<CustomerSupportComposeScreen> {
                     ],
                   ),
                 ),
+              ],
               if (_picking) const LinearProgressIndicator(),
               const SizedBox(height: 20),
               Text(

@@ -410,7 +410,8 @@ void main() {
       await t.pumpAndSettle();
       await t.tap(find.text('OK'));
       await t.pumpAndSettle();
-      await t.tap(find.byTooltip('Send message'));
+      expect(find.text('Add a caption'), findsOneWidget);
+      await t.tap(find.byTooltip('Send message').last);
       await t.pumpAndSettle();
       expect(service.requests.toSet().length, 1);
       expect(service.sends, 2);
@@ -419,6 +420,52 @@ void main() {
       expect(t.takeException(), isNull);
     },
   );
+  testWidgets('closing photo review restores the original text-only draft', (
+    t,
+  ) async {
+    capture.pixel(t);
+    final service = PhotoChat();
+    await t.pumpWidget(
+      capture.app(
+        ConversationScreen(
+          conversationId: 'chat',
+          service: service,
+          pickPhoto: (source) async => source == ImageSource.gallery
+              ? XFile.fromData(photo, name: 'fixture.png')
+              : null,
+        ),
+      ),
+    );
+    await t.pumpAndSettle();
+    await t.enterText(find.byType(TextField), 'Unsent message');
+    await t.tap(find.byTooltip('Attach photo'));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Choose from gallery'));
+    await t.pumpAndSettle();
+    final caption = find.descendant(
+      of: find.byType(BottomSheet),
+      matching: find.byType(TextField),
+    );
+    expect(
+      t.getTopLeft(caption).dy -
+          t.getBottomLeft(find.byType(ChatPhotoStrip)).dy,
+      greaterThanOrEqualTo(12),
+    );
+    await t.enterText(caption, 'Photo caption');
+    await t.tap(find.byTooltip('Attach photo').last);
+    await t.pumpAndSettle();
+    await t.tap(find.text('Take a photo'));
+    await t.pumpAndSettle();
+    expect(find.text('Photo caption'), findsOneWidget);
+    expect(find.byTooltip('Remove photo'), findsOneWidget);
+    await t.binding.handlePopRoute();
+    await t.pumpAndSettle();
+    expect(find.byType(ChatPhotoStrip), findsNothing);
+    expect(find.text('Unsent message'), findsOneWidget);
+    expect(find.text('Photo caption'), findsNothing);
+    expect(t.testTextInput.isVisible, isFalse);
+    expect(service.sends, 0);
+  });
   testWidgets('camera source can be cancelled without sending a message', (
     t,
   ) async {

@@ -469,6 +469,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
   }) => TextField(
     controller: controller,
     onTap: _expandSheet,
+    scrollPhysics: const NeverScrollableScrollPhysics(),
     minLines: 1,
     maxLines: label == 'Address Line / Unit No.' ? 3 : 1,
     keyboardType: numeric ? TextInputType.number : TextInputType.streetAddress,
@@ -813,6 +814,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                                   children: ['Home', 'Office', 'Other']
                                       .map(
                                         (label) => ChoiceChip(
+                                          showCheckmark: false,
                                           label: Text(tr(label)),
                                           selected: _selectedLabel == label,
                                           selectedColor:
