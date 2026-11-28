@@ -115,6 +115,7 @@ class CustomerAiService {
     required String message,
     required String mode,
     String? imagePath,
+    List<String> imagePaths = const [],
   }) async {
     final data = await _edge({
       'conversation_id': conversation,
@@ -123,6 +124,7 @@ class CustomerAiService {
       'mode': mode,
       'locale': AppLanguage.instance.code,
       if (imagePath != null) 'image_path': imagePath,
+      if (imagePaths.isNotEmpty) 'image_paths': imagePaths,
     });
     return Map<String, dynamic>.from(data['message'] as Map);
   }

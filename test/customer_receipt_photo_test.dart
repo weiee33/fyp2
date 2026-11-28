@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/chat/chat_attachments.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
@@ -45,6 +46,15 @@ class PhotoChat extends ChatService {
   };
   @override
   Future<void> manage(String id, String action, {int? readThrough}) async {}
+  @override
+  Future<List<Map<String, dynamic>>> sendPhotos(
+    String id,
+    List<ChatAttachment> photos,
+    String caption,
+  ) async => [
+    for (final photo in photos) await sendPhoto(id, photo.bytes, photo.id),
+  ];
+
   @override
   Future<Map<String, dynamic>> sendPhoto(
     String id,
@@ -315,6 +325,57 @@ void main() {
     await t.pumpWidget(const SizedBox());
   });
   testWidgets(
+    'provider preview rejects six gallery picks and keeps a five-photo caption draft',
+    (t) async {
+      capture.pixel(t);
+      final service = PhotoChat();
+      var count = 6;
+      final calls = <ImageSource>[];
+      await t.pumpWidget(
+        capture.app(
+          ConversationScreen(
+            conversationId: 'chat',
+            service: service,
+            pickPhotos: (source) async {
+              calls.add(source);
+              return List.generate(
+                count,
+                (_) => XFile.fromData(photo, name: 'fixture.png'),
+              );
+            },
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      Future<void> gallery() async {
+        await t.tap(find.byTooltip('Attach photo').last);
+        await t.pumpAndSettle();
+        await t.tap(find.text('Choose from gallery'));
+        await t.pumpAndSettle();
+      }
+
+      await gallery();
+      expect(
+        find.text('You can attach up to 5 photos per message.'),
+        findsOneWidget,
+      );
+      await t.tap(find.text('OK'));
+      await t.pumpAndSettle();
+      expect(find.byTooltip('Remove photo'), findsNothing);
+      count = 5;
+      await gallery();
+      expect(find.text('Add a caption'), findsOneWidget);
+      await t.tap(find.byTooltip('Attach photo').last);
+      await t.pumpAndSettle();
+      expect(
+        find.text('You can attach up to 5 photos per message.'),
+        findsOneWidget,
+      );
+      expect(calls.length, 2);
+      expect(service.sends, 0);
+    },
+  );
+  testWidgets(
     'photo source choice preview and failed send retain retry identity',
     (t) async {
       capture.pixel(t);
@@ -343,15 +404,13 @@ void main() {
       await t.tap(find.text('Choose from gallery'));
       await t.pumpAndSettle();
       expect(selected, ImageSource.gallery);
-      expect(find.text('Send photo'), findsOneWidget);
+      expect(find.text('Add a caption'), findsOneWidget);
       expect(service.sends, 0);
-      await t.tap(find.text('Send photo'));
+      await t.tap(find.byTooltip('Send message').last);
       await t.pumpAndSettle();
-      expect(
-        find.text('Photo not sent. Tap Send photo to retry.'),
-        findsOneWidget,
-      );
-      await t.tap(find.text('Send photo'));
+      await t.tap(find.text('OK'));
+      await t.pumpAndSettle();
+      await t.tap(find.byTooltip('Send message'));
       await t.pumpAndSettle();
       expect(service.requests.toSet().length, 1);
       expect(service.sends, 2);

@@ -1,3 +1,4 @@
+import 'package:image_picker/image_picker.dart' show ImageSource;
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/services.dart';
@@ -79,6 +80,7 @@ class FakeAi extends CustomerAiService {
     required String message,
     required String mode,
     String? imagePath,
+    List<String> imagePaths = const [],
   }) async {
     requestIds.add(requestId);
     await pending?.future;
@@ -449,6 +451,48 @@ void main() {
       await t.pumpAndSettle();
       expect(opened, ['booking', 'booking', 'payment']);
       expect(t.takeException(), isNull);
+    },
+  );
+  testWidgets(
+    'gallery and camera share five slots and removing a photo frees one',
+    (t) async {
+      capture.pixel(t);
+      final sources = <ImageSource>[];
+      await t.pumpWidget(
+        capture.app(
+          CustomerAiScreen(
+            service: FakeAi(),
+            speech: FakeSpeech(),
+            pickPhoto: (source) async {
+              sources.add(source);
+              return photo.photo;
+            },
+          ),
+        ),
+      );
+      Future<void> add(String source) async {
+        await t.tap(find.byTooltip('Attach photo'));
+        await t.pumpAndSettle();
+        await t.tap(find.text(source));
+        await t.pumpAndSettle();
+      }
+
+      for (var i = 0; i < 5; i++) {
+        await add(i.isEven ? 'Choose from gallery' : 'Take a photo');
+      }
+      await t.tap(find.byTooltip('Attach photo'));
+      await t.pumpAndSettle();
+      expect(
+        find.text('You can attach up to 5 photos per message.'),
+        findsOneWidget,
+      );
+      expect(sources.length, 5);
+      await t.tap(find.text('OK'));
+      await t.pumpAndSettle();
+      await t.tap(find.byTooltip('Remove photo').first);
+      await t.pumpAndSettle();
+      await add('Take a photo');
+      expect(sources.length, 6);
     },
   );
   testWidgets('gallery photo is attached once across a failed send retry', (

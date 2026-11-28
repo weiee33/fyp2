@@ -114,11 +114,15 @@ export async function handleAssistant(request: Request,deps: Dependencies): Prom
     if(!r.ok)throw new ApiError(503,'Chat removed. Photo cleanup is pending; retry Delete to finish.');
    }return json({deleted:true});
   }
-  if(Object.keys(input).some(k=>!['conversation_id','request_id','message','image_path','mode','locale'].includes(k)))throw new ApiError(400,'Unexpected message fields.');
+  if(Object.keys(input).some(k=>!['conversation_id','request_id','message','image_path','image_paths','mode','locale'].includes(k)))throw new ApiError(400,'Unexpected message fields.');
   if(input.locale!=null&&!['en','zh','ms'].includes(input.locale))throw new ApiError(400,'Unsupported language.');
   id(input.request_id);str(input.message,4000);
-  if(!['chat','assist'].includes(input.mode??'chat')||(!input.message.trim()&&!input.image_path))throw new ApiError(400,'Enter a message or attach a photo.');
-  if(input.image_path!=null && !new RegExp(`^${authId}/${conversation}/[0-9a-f-]{36}\\.(jpg|png)$`).test(str(input.image_path,180)))throw new ApiError(403,'Use a photo from this conversation.');
+  const paths = input.image_paths ?? (input.image_path == null ? [] : [input.image_path]);
+  if (!Array.isArray(paths) || paths.length > 5 || new Set(paths).size !== paths.length ||
+      (input.image_paths != null && input.image_path != null)) throw new ApiError(400,'Choose up to five distinct photos.');
+  if (!['chat','assist'].includes(input.mode??'chat') || (!input.message.trim() && !paths.length)) throw new ApiError(400,'Enter a message or attach a photo.');
+  const ownedPath = new RegExp(`^${authId}/${conversation}/[0-9a-f-]{36}\\.(jpg|png)$`);
+  for (const path of paths) if (!ownedPath.test(str(path,180))) throw new ApiError(403,'Use a photo from this conversation.');
   const key=deps.env('GEMINI_API_KEY');
   if(!key&&!deps.env('OPENROUTER_API_KEY'))throw new ApiError(503,'AI setup is not finished. The project owner needs to save GEMINI_API_KEY in Supabase.');
   const model=deps.env('GEMINI_MODEL')??'gemini-3.1-flash-lite';
@@ -129,16 +133,19 @@ export async function handleAssistant(request: Request,deps: Dependencies): Prom
    ? createModelRouter(deps,model,deadline-15000)
    : geminiClient(deps,key!,model,fallback,deadline-15000);
   stage='begin_turn';
-  turn=await rpc('customer_ai_begin_turn',{p_conversation_id:conversation,p_request_id:input.request_id,p_message:input.message,p_image_path:input.image_path??null,p_mode:input.mode??'chat'});
+  const params = {p_conversation_id:conversation,p_request_id:input.request_id,p_message:input.message,p_mode:input.mode??'chat'};
+  turn = paths.length > 1
+    ? await rpc('customer_ai_begin_photo_turn',{...params,p_image_paths:paths})
+    : await rpc('customer_ai_begin_turn',{...params,p_image_path:paths[0]??null});
   if(turn.replay)return json({message:turn.message});
   const history=Array.isArray(turn.history)?turn.history:[];
-  const recentPhotos=history.filter((m:any)=>m.role==='user'&&m.image_path).slice(-2).map((m:any)=>m.image_path);
+  const messagePhotos = (m:any): string[] => m.role !== 'user' ? [] : (m.image_paths ?? (m.image_path ? [m.image_path] : []));
+  const recentPhotos = history.flatMap((m:any) => messagePhotos(m).map(path => ({message:m,path}))).slice(-Math.max(2, paths.length));
   const contents:any[]=[];
   for(const m of history){
    const parts:any[]=[{text:String(m.content||'Please look at this photo.').slice(0,6000)}];
-   if(m.role==='user'&&recentPhotos.includes(m.image_path)){
-    const path=str(m.image_path,180);
-    if(!path.startsWith(`${authId}/${conversation}/`))throw new ApiError(403,'Photo access denied.');
+   for(const {path} of recentPhotos.filter(photo => photo.message === m)){
+    if(!ownedPath.test(path))throw new ApiError(403,'Photo access denied.');
     const photo=await deps.fetch(`${base}/storage/v1/object/authenticated/customer-ai-images/${path}`,{headers:{apikey:anon,Authorization:authorization},signal:AbortSignal.timeout(12000)});
     if(!photo.ok)throw new ApiError(400,'The photo could not be loaded. Attach it again.');
     const bytes=await bounded(photo,4194304);

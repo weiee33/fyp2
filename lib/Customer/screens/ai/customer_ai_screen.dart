@@ -1,3 +1,4 @@
+import 'package:fyp2/shared/chat/chat_attachments.dart';
 import '../../widgets/customer_dialogs.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
@@ -47,12 +48,12 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
   late final _speech = widget.speech ?? CustomerAiSpeech();
   final _text = TextEditingController(), _scroll = ScrollController();
   List<Map<String, dynamic>> _messages = [];
-  String? _conversation, _error, _imagePath, _requestId, _retryText;
+  String? _conversation, _error, _requestId, _retryText;
   String _createId = CustomerTransactionService.newRequestId(),
       _mode = 'chat',
       _retryMode = 'chat',
       _voicePrefix = '';
-  Uint8List? _photo;
+  final _photos = <ChatAttachment>[];
   String _chatTitle = 'New chat';
   Map<String, dynamic>? _pendingMessage;
   bool _sending = false;
@@ -107,14 +108,14 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
   }
 
   Future<void> _send() async {
-    if (_busy || (_text.text.trim().isEmpty && _photo == null)) return;
+    if (_busy || (_text.text.trim().isEmpty && _photos.isEmpty)) return;
     final message = _text.text.trim();
     if (message.length > 4000) {
       setState(() => _error = 'Keep your message under 4000 characters.');
       return;
     }
     if (_mode == 'assist') {
-      if (_photo != null) {
+      if (_photos.isNotEmpty) {
         setState(() => _error = 'Use AI chat to ask about an attached photo.');
         return;
       }
@@ -132,7 +133,8 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       _pendingMessage = {
         'role': 'user',
         'content': message,
-        if (_photo != null) 'local_photo': _photo,
+        if (_photos.isNotEmpty)
+          'local_photos': _photos.map((p) => p.bytes).toList(),
       };
       _text.clear();
       _error = null;
@@ -143,19 +145,21 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       await _speech.cancel();
       _hold = false;
       _conversation ??= (await _service.create(_createId))['id'].toString();
-      if (_photo != null && _imagePath == null) {
-        _imagePath = await _service.upload(
+      for (final photo in _photos) {
+        photo.uploadedPath ??= await _service.upload(
           _conversation!,
-          _requestId!,
-          _photo!,
+          photo.id,
+          photo.bytes,
         );
       }
+      final paths = _photos.map((p) => p.uploadedPath!).toList();
       final reply = await _service.send(
         conversation: _conversation!,
         requestId: _requestId!,
         message: message,
         mode: _mode,
-        imagePath: _imagePath,
+        imagePath: paths.length == 1 ? paths.single : null,
+        imagePaths: paths.length > 1 ? paths : const [],
       );
       List<Map<String, dynamic>> history;
       try {
@@ -164,10 +168,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
         // A saved reply must remain visible even if the history refresh fails.
         history = [
           ..._messages,
-          {
-            ...?_pendingMessage,
-            if (_imagePath != null) 'image_path': _imagePath,
-          },
+          {...?_pendingMessage, if (paths.isNotEmpty) 'image_paths': paths},
           reply,
         ];
       }
@@ -182,8 +183,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
         }
         _older = history.length == 40;
         _text.clear();
-        _photo = null;
-        _imagePath = null;
+        _photos.clear();
         _requestId = null;
       });
       _bottom();
@@ -261,8 +261,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
         _messages = rows;
         _older = rows.length == 40;
         _text.clear();
-        _photo = null;
-        _imagePath = null;
+        _photos.clear();
         _requestId = null;
         _photoCache.clear();
         _doneActions.clear();
@@ -305,8 +304,7 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
       _chatTitle = 'New chat';
       _pendingMessage = null;
       _messages = [];
-      _photo = null;
-      _imagePath = null;
+      _photos.clear();
       _requestId = null;
       _text.clear();
       _error = null;
@@ -375,6 +373,9 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
   }
 
   Future<void> _attach() async {
+    if (_busy || !await photosFit(context, _photos.length + 1) || !mounted) {
+      return;
+    }
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       showDragHandle: true,
@@ -399,24 +400,32 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     if (source == null || !mounted) return;
     setState(() => _busy = true);
     try {
-      Uint8List? bytes;
-      if (widget.pickPhoto != null) {
-        bytes = await widget.pickPhoto!(source);
-      } else {
-        final file = await ImagePicker().pickImage(
-          source: source,
-          maxWidth: 1600,
-          maxHeight: 1600,
-          imageQuality: 85,
-        );
-        bytes = await file?.readAsBytes();
+      final files = widget.pickPhoto == null
+          ? await pickChatPhotos(source)
+          : [
+              if (await widget.pickPhoto!(source) case final bytes?)
+                XFile.fromData(bytes),
+            ];
+      if (!mounted ||
+          files.isEmpty ||
+          !await photosFit(context, _photos.length + files.length)) {
+        return;
       }
-      if (bytes == null) return;
-      final prepared = await _service.preparePhoto(bytes);
+      final added = <ChatAttachment>[];
+      for (final file in files) {
+        if (await file.length() > 16 * 1024 * 1024) {
+          throw const FormatException('Choose a photo smaller than 16 MB.');
+        }
+        added.add(
+          ChatAttachment(
+            await _service.preparePhoto(await file.readAsBytes()),
+            CustomerTransactionService.newRequestId(),
+          ),
+        );
+      }
       if (mounted) {
         setState(() {
-          _photo = prepared;
-          _imagePath = null;
+          _photos.addAll(added);
           _requestId = null;
           _error = null;
         });
@@ -714,23 +723,23 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: user || row['origin'] == 'agent'
-                    ? CustomerTheme.primaryDark
-                    : const Color(0xFF7454B8),
+                color: CustomerTheme.primaryDark,
               ),
             ),
             const SizedBox(height: 8),
-            if (row['local_photo'] is Uint8List)
+            for (final bytes
+                in (row['local_photos'] as List? ?? const [])
+                    .whereType<Uint8List>())
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.memory(
-                  row['local_photo'] as Uint8List,
-                  height: 130,
-                  fit: BoxFit.cover,
-                ),
+                child: Image.memory(bytes, height: 130, fit: BoxFit.cover),
               ),
-            if (row['image_path'] != null && row['local_photo'] == null)
-              _photoView(row['image_path'].toString()),
+            if (row['local_photos'] == null)
+              for (final path
+                  in (row['image_paths'] as List? ??
+                          [if (row['image_path'] != null) row['image_path']])
+                      .whereType<String>())
+                _photoView(path),
             if ((row['content'] ?? '').toString().isNotEmpty)
               SelectionArea(
                 child: Text.rich(
@@ -857,30 +866,15 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
     child: Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (_photo != null && !_sending)
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.memory(
-                  _photo!,
-                  height: 58,
-                  width: 58,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              IconButton(
-                tooltip: trOrNull('Remove photo'),
-                onPressed: _busy
-                    ? null
-                    : () => setState(() {
-                        _photo = null;
-                        _imagePath = null;
-                        _requestId = null;
-                      }),
-                icon: const Icon(Icons.close, size: 18),
-              ),
-            ],
+        if (_photos.isNotEmpty && !_sending)
+          ChatPhotoStrip(
+            photos: _photos,
+            onRemove: _busy
+                ? null
+                : (photo) => setState(() {
+                    _photos.remove(photo);
+                    _requestId = null;
+                  }),
           ),
         TextField(
           controller: _text,
@@ -1278,7 +1272,7 @@ class _ThinkingBubbleState extends State<_ThinkingBubble>
                 tr('Local Life Service Assistant AI'),
                 style: TextStyle(
                   fontSize: 12,
-                  color: Color(0xFF7454B8),
+                  color: CustomerTheme.primaryDark,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -1307,7 +1301,7 @@ class _ThinkingBubbleState extends State<_ThinkingBubble>
                             height: 6,
                             margin: const EdgeInsets.only(right: 5),
                             decoration: const BoxDecoration(
-                              color: Color(0xFF9C7BC6),
+                              color: CustomerTheme.primary,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -1320,7 +1314,7 @@ class _ThinkingBubbleState extends State<_ThinkingBubble>
                     tr('Thinking…'),
                     style: TextStyle(
                       fontSize: 13,
-                      color: CustomerTheme.textSecondary,
+                      color: CustomerTheme.primaryDark,
                     ),
                   ),
                 ],

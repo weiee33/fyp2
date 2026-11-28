@@ -1,3 +1,4 @@
+import 'chat_attachments.dart';
 import 'dart:typed_data';
 import 'dart:async';
 import 'package:flutter/widgets.dart';
@@ -61,6 +62,41 @@ class ChatService {
     Uint8List bytes,
     String requestId,
   ) async {
+    final path = await _uploadPhoto(id, bytes, requestId);
+    return Map<String, dynamic>.from(
+      await _rpc('chat_send_photo', {
+        'p_conversation_id': id,
+        'p_path': path,
+        'p_request_id': requestId,
+      }),
+    );
+  }
+
+  Future<List<Map<String, dynamic>>> sendPhotos(
+    String id,
+    List<ChatAttachment> photos,
+    String caption,
+  ) async {
+    if (photos.isEmpty || photos.length > maxChatPhotos) {
+      throw const FormatException('You can attach up to 5 photos per message.');
+    }
+    for (final photo in photos) {
+      photo.uploadedPath ??= await _uploadPhoto(id, photo.bytes, photo.id);
+    }
+    return rows(
+      await _rpc('chat_send_photos', {
+        'p_conversation_id': id,
+        'p_paths': photos.map((p) => p.uploadedPath!).toList(),
+        'p_caption': caption,
+      }),
+    );
+  }
+
+  Future<String> _uploadPhoto(
+    String id,
+    Uint8List bytes,
+    String requestId,
+  ) async {
     final mime = photoMime(bytes);
     final extension = mime == 'image/jpeg'
         ? 'jpg'
@@ -82,13 +118,7 @@ class ChatService {
       // Immutable path and retained request ID make retries safe after a lost response.
       if (error.statusCode != '409' && error.error != 'Duplicate') rethrow;
     }
-    return Map<String, dynamic>.from(
-      await _rpc('chat_send_photo', {
-        'p_conversation_id': id,
-        'p_path': path,
-        'p_request_id': requestId,
-      }),
-    );
+    return path;
   }
 
   Future<Uint8List> photo(String path) =>

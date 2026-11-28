@@ -1,3 +1,4 @@
+import 'chat_attachments.dart';
 import 'package:fyp2/Customer/widgets/customer_scaffold.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:flutter/foundation.dart';
@@ -16,6 +17,7 @@ class ConversationScreen extends StatefulWidget {
   final ChatService? service;
   final bool customer;
   final Future<XFile?> Function(ImageSource)? pickPhoto;
+  final Future<List<XFile>> Function(ImageSource)? pickPhotos;
   const ConversationScreen({
     super.key,
     this.conversationId,
@@ -23,6 +25,7 @@ class ConversationScreen extends StatefulWidget {
     this.bookingId,
     this.service,
     this.pickPhoto,
+    this.pickPhotos,
     this.customer = true,
   });
   @override
@@ -36,8 +39,8 @@ class _ConversationState extends State<ConversationScreen> {
   final List<Map<String, dynamic>> _messages = [];
   String? _id, _error, _retryBody, _retryId;
   String _name = 'Chat';
-  Uint8List? _pendingPhoto;
-  String? _photoRequestId, _photoError;
+  final _photos = <ChatAttachment>[];
+  String? _photoError;
   bool _pickingPhoto = false;
   int _clearedThrough = 0;
   bool _loading = true,
@@ -78,7 +81,7 @@ class _ConversationState extends State<ConversationScreen> {
             _service.isLive) {
           final lost = await ImagePicker().retrieveLostData();
           if (lost.files?.isNotEmpty == true) {
-            await _preparePhoto(lost.files!.first);
+            if (mounted) await _preparePhotos(lost.files!, context);
           }
           if (lost.exception != null && mounted) {
             setState(
@@ -214,8 +217,8 @@ class _ConversationState extends State<ConversationScreen> {
 
   Future<void> _send() async {
     final body = _text.text.trim();
-    if (_sending || !_canSend || _id == null) return;
-    if (body.isEmpty || body.length > 2000) {
+    if (_sending || _pickingPhoto || !_canSend || _id == null) return;
+    if ((body.isEmpty && _photos.isEmpty) || body.length > 2000) {
       await CustomerDialogs.show(
         context,
         message: tr('Enter a message of 1–2000 characters.'),
@@ -228,16 +231,19 @@ class _ConversationState extends State<ConversationScreen> {
     }
     setState(() => _sending = true);
     try {
-      final message = await _service.send(_id!, body, _retryId!);
+      final messages = _photos.isEmpty
+          ? [await _service.send(_id!, body, _retryId!)]
+          : await _service.sendPhotos(_id!, List.of(_photos), body);
       if (!mounted) return;
       setState(() {
-        if (!_messages.any((m) => m['message_id'] == message['message_id'])) {
-          _messages.insert(0, message);
+        for (final message in messages) {
+          _recordSent(message);
         }
+        _photos.clear();
         _text.clear();
-        _retryBody = null;
-        _retryId = null;
       });
+      _retryBody = null;
+      _retryId = null;
       if (_scroll.hasClients) {
         _scroll.animateTo(
           0,
@@ -256,8 +262,16 @@ class _ConversationState extends State<ConversationScreen> {
     }
   }
 
-  Future<void> _choosePhoto() async {
+  void _recordSent(Map<String, dynamic> message) {
+    if (!_messages.any((m) => m['message_id'] == message['message_id'])) {
+      _messages.insert(0, message);
+    }
+  }
+
+  Future<void> _choosePhoto({BuildContext? preview}) async {
     if (_sending || _pickingPhoto || !_canSend) return;
+    final owner = preview ?? context;
+    if (!await photosFit(owner, _photos.length + 1) || !owner.mounted) return;
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       showDragHandle: true,
@@ -285,15 +299,15 @@ class _ConversationState extends State<ConversationScreen> {
       _photoError = null;
     });
     try {
-      final file =
-          await (widget.pickPhoto?.call(source) ??
-              ImagePicker().pickImage(
-                source: source,
-                maxWidth: 1600,
-                maxHeight: 1600,
-                imageQuality: 85,
-              ));
-      if (file != null) await _preparePhoto(file);
+      final files = widget.pickPhoto == null
+          ? await (widget.pickPhotos ?? pickChatPhotos)(source)
+          : [if (await widget.pickPhoto!(source) case final file?) file];
+      if (files.isEmpty ||
+          !mounted ||
+          !owner.mounted ||
+          !await _preparePhotos(files, owner)) {
+        return;
+      }
     } catch (_) {
       if (mounted) {
         setState(
@@ -304,68 +318,104 @@ class _ConversationState extends State<ConversationScreen> {
     } finally {
       if (mounted) setState(() => _pickingPhoto = false);
     }
+    if (preview == null && mounted && _photos.isNotEmpty) await _reviewPhotos();
   }
 
-  Future<void> _preparePhoto(XFile file) async {
-    if (await file.length() > 5 * 1024 * 1024) {
-      if (mounted) {
-        setState(() => _photoError = 'Choose a photo smaller than 5 MB.');
-      }
-      return;
-    }
-    final bytes = await file.readAsBytes();
+  Future<bool> _preparePhotos(List<XFile> files, BuildContext owner) async {
+    if (!await photosFit(owner, _photos.length + files.length)) return false;
+    final added = <ChatAttachment>[];
     try {
-      ChatService.photoMime(bytes);
-    } on FormatException catch (error) {
-      if (mounted) setState(() => _photoError = error.message);
-      return;
-    }
-    if (mounted) {
-      setState(() {
-        _pendingPhoto = bytes;
-        _photoRequestId = CustomerTransactionService.newRequestId();
-        _photoError = null;
-      });
-    }
-  }
-
-  Future<void> _sendPhoto() async {
-    if (_sending || _pendingPhoto == null || !_canSend || _id == null) return;
-    setState(() {
-      _sending = true;
-      _photoError = null;
-    });
-    try {
-      final message = await _service.sendPhoto(
-        _id!,
-        _pendingPhoto!,
-        _photoRequestId!,
-      );
-      if (!mounted) return;
-      setState(() {
-        if (!_messages.any((m) => m['message_id'] == message['message_id'])) {
-          _messages.insert(0, message);
+      for (final file in files) {
+        if (await file.length() > 5 * 1024 * 1024) {
+          throw const FormatException('Choose a photo smaller than 5 MB.');
         }
-        _pendingPhoto = null;
-        _photoRequestId = null;
-      });
-      if (_scroll.hasClients) {
-        _scroll.animateTo(
-          0,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeOut,
+        final bytes = await file.readAsBytes();
+        ChatService.photoMime(bytes);
+        added.add(
+          ChatAttachment(bytes, CustomerTransactionService.newRequestId()),
         );
       }
-      await _refresh();
-    } catch (_) {
-      if (mounted) {
-        setState(
-          () => _photoError = 'Photo not sent. Tap Send photo to retry.',
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _sending = false);
+    } on FormatException catch (error) {
+      if (owner.mounted) await CustomerDialogs.error(owner, error);
+      return false;
     }
+    if (!mounted ||
+        !owner.mounted ||
+        !await photosFit(owner, _photos.length + added.length) ||
+        !mounted) {
+      return false;
+    }
+    setState(() => _photos.addAll(added));
+    return true;
+  }
+
+  Future<void> _reviewPhotos() async {
+    final send = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      showDragHandle: true,
+      builder: (sheet) => StatefulBuilder(
+        builder: (sheet, refresh) => Padding(
+          padding: EdgeInsets.fromLTRB(
+            16,
+            0,
+            16,
+            12 + MediaQuery.viewInsetsOf(sheet).bottom,
+          ),
+          child: SafeArea(
+            top: false,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ChatPhotoStrip(
+                  photos: _photos,
+                  onRemove: (photo) {
+                    setState(() => _photos.remove(photo));
+                    if (_photos.isEmpty) {
+                      Navigator.pop(sheet);
+                    } else {
+                      refresh(() {});
+                    }
+                  },
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      tooltip: tr('Attach photo'),
+                      icon: const Icon(Icons.add_circle_outline),
+                      onPressed: () async {
+                        await _choosePhoto(preview: sheet);
+                        if (sheet.mounted) refresh(() {});
+                      },
+                    ),
+                    Expanded(
+                      child: TextField(
+                        controller: _text,
+                        maxLength: 2000,
+                        decoration: InputDecoration(
+                          hintText: tr('Add a caption'),
+                          counterText: '',
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      tooltip: tr('Send message'),
+                      icon: const Icon(
+                        Icons.send,
+                        color: CustomerTheme.primary,
+                      ),
+                      onPressed: () => Navigator.pop(sheet, true),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+    if (send == true && mounted) await _send();
   }
 
   void _openGallery(String path) {
@@ -518,6 +568,9 @@ class _ConversationState extends State<ConversationScreen> {
                                       SelectionArea(
                                         child: Text(m['body'].toString()),
                                       ),
+                                    if (m['photo_caption']
+                                        case final String caption)
+                                      SelectionArea(child: Text(caption)),
                                     const SizedBox(height: 4),
                                     if (date != null)
                                       Text(
@@ -556,45 +609,12 @@ class _ConversationState extends State<ConversationScreen> {
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
-              if (_pendingPhoto != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.memory(
-                          _pendingPhoto!,
-                          width: 64,
-                          height: 64,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) =>
-                              const Icon(Icons.broken_image_outlined),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: FilledButton.icon(
-                          onPressed: _sending ? null : _sendPhoto,
-                          icon: const Icon(Icons.send),
-                          label: Text(
-                            tr(_sending ? 'Sending photo…' : 'Send photo'),
-                          ),
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: trOrNull('Remove selected photo'),
-                        onPressed: _sending
-                            ? null
-                            : () => setState(() {
-                                _pendingPhoto = null;
-                                _photoRequestId = null;
-                                _photoError = null;
-                              }),
-                        icon: const Icon(Icons.close),
-                      ),
-                    ],
-                  ),
+              if (_photos.isNotEmpty)
+                ChatPhotoStrip(
+                  photos: _photos,
+                  onRemove: _sending || _pickingPhoto
+                      ? null
+                      : (photo) => setState(() => _photos.remove(photo)),
                 ),
               Padding(
                 padding: const EdgeInsets.all(12),
@@ -626,7 +646,9 @@ class _ConversationState extends State<ConversationScreen> {
                     ),
                     IconButton(
                       tooltip: trOrNull('Send message'),
-                      onPressed: _canSend && !_sending ? _send : null,
+                      onPressed: _canSend && !_sending && !_pickingPhoto
+                          ? _send
+                          : null,
                       icon: _sending
                           ? const SizedBox(
                               width: 24,
