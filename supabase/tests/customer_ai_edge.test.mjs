@@ -27,7 +27,7 @@ function fixture(options={}){
   calls.push({url,init,body});
   if(url.endsWith('/auth/v1/user'))return response({id:uid},options.authStatus??200);
   if(url.includes('generativelanguage'))return options.gemini?options.gemini(model++,body,url):response({candidates:[{content:{role:'model',parts:[{text:'How can I help you choose?'}]}}]});
-  if(url.endsWith('customer_ai_begin_turn'))return options.begin?options.begin():response({turn_id:rid,lease:rid,history:[{role:'user',content:'Find a cleaner'}]});
+  if(url.endsWith('customer_ai_begin_turn') || url.endsWith('customer_ai_begin_photo_turn'))return options.begin?options.begin():response({turn_id:rid,lease:rid,history:[{role:'user',content:'Find a cleaner'}]});
   if(url.endsWith('ai_finish_turn'))return response({id:2,role:'assistant',content:body.p_content,actions:body.p_actions});
   if(url.endsWith('ai_fail_turn'))return response(null);
   if(url.endsWith('customer_search_services'))return response(options.catalogue??[{service_id:rid,provider_id:rid,business_name:'Local Provider',service_name:'Cleaner',quoted_amount:90}]);
@@ -36,6 +36,7 @@ function fixture(options={}){
   if(url.endsWith('customer_provider_coverage'))return response([{provider_id:rid,covers_selected:false,distance_km:20,service_radius_km:10}]);
   if(url.endsWith('customer_ai_stage_action'))return response({id:rid,kind:'booking',title:'Request booking',summary:'Cleaner RM90',payload:{quote:90},status:'pending'});
   if(url.endsWith('customer_ai_delete_conversation'))return response([`${uid}/${cid}/${rid}.jpg`]);
+  if(url.includes('/storage/v1/object/authenticated/'))return new Response(new Uint8Array([255,216,255,0]));
   if(url.includes('/storage/v1/object/'))return response({deleted:true});
   throw new Error(`Unexpected URL: ${url}`);
  }} };
@@ -308,4 +309,17 @@ test('reply guard replaces an off-topic generated answer before persistence',asy
  const saved=f.calls.find(c=>c.url.endsWith('ai_finish_turn')).body;
  assert.equal(saved.p_content,'I can only help with this app, its services and your bookings.');
  assert.deepEqual(saved.p_actions,[]);
+});
+
+test('one AI turn includes all five photos and rejects a sixth before processing',async()=>{
+ const paths=Array.from({length:6},(_,i)=>`${uid}/${cid}/${rid.slice(0,-1)}${i}.jpg`);
+ const five=paths.slice(0,5);
+ const f=fixture({begin:()=>response({turn_id:rid,lease:rid,history:[{role:'user',content:'Find a plumber',image_paths:five}]})});
+ assert.equal((await handleAssistant(req({image_paths:five}),f.deps)).status,200);
+ assert.deepEqual(f.calls.find(c=>c.url.endsWith('customer_ai_begin_photo_turn')).body.p_image_paths,five);
+ const model=f.calls.find(c=>c.url.includes('generativelanguage'));
+ assert.equal(model.body.contents[0].parts.filter(p=>p.inlineData).length,5);
+ const over=fixture();
+ assert.equal((await handleAssistant(req({image_paths:paths}),over.deps)).status,400);
+ assert.ok(!over.calls.some(c=>c.url.includes('begin_photo_turn')));
 });
