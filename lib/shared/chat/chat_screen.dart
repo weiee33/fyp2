@@ -39,7 +39,6 @@ class _ConversationState extends State<ConversationScreen> {
   final List<Map<String, dynamic>> _messages = [];
   String? _id, _error, _retryBody, _retryId;
   String _name = 'Chat';
-  final _photos = <ChatAttachment>[];
   String? _photoError;
   bool _pickingPhoto = false;
   int _clearedThrough = 0;
@@ -81,7 +80,9 @@ class _ConversationState extends State<ConversationScreen> {
             _service.isLive) {
           final lost = await ImagePicker().retrieveLostData();
           if (lost.files?.isNotEmpty == true) {
-            if (mounted) await _preparePhotos(lost.files!, context);
+            if (!mounted) return;
+            final photos = await _preparePhotos(lost.files!, context, 0);
+            if (mounted && photos.isNotEmpty) await _reviewPhotos(photos);
           }
           if (lost.exception != null && mounted) {
             setState(
@@ -215,15 +216,18 @@ class _ConversationState extends State<ConversationScreen> {
     }
   }
 
-  Future<void> _send() async {
-    final body = _text.text.trim();
-    if (_sending || _pickingPhoto || !_canSend || _id == null) return;
-    if ((body.isEmpty && _photos.isEmpty) || body.length > 2000) {
+  Future<bool> _send({
+    List<ChatAttachment> photos = const [],
+    String? caption,
+  }) async {
+    final body = (caption ?? _text.text).trim();
+    if (_sending || _pickingPhoto || !_canSend || _id == null) return false;
+    if ((body.isEmpty && photos.isEmpty) || body.length > 2000) {
       await CustomerDialogs.show(
         context,
         message: tr('Enter a message of 1–2000 characters.'),
       );
-      return;
+      return false;
     }
     if (_retryBody != body) {
       _retryBody = body;
@@ -231,15 +235,14 @@ class _ConversationState extends State<ConversationScreen> {
     }
     setState(() => _sending = true);
     try {
-      final messages = _photos.isEmpty
+      final messages = photos.isEmpty
           ? [await _service.send(_id!, body, _retryId!)]
-          : await _service.sendPhotos(_id!, List.of(_photos), body);
-      if (!mounted) return;
+          : await _service.sendPhotos(_id!, photos, body);
+      if (!mounted) return false;
       setState(() {
         for (final message in messages) {
           _recordSent(message);
         }
-        _photos.clear();
         _text.clear();
       });
       _retryBody = null;
@@ -252,11 +255,13 @@ class _ConversationState extends State<ConversationScreen> {
         );
       }
       await _refresh();
+      return true;
     } catch (e) {
       if (mounted) {
         setState(() => _sending = false);
         await CustomerDialogs.error(context, e);
       }
+      return false;
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -268,61 +273,71 @@ class _ConversationState extends State<ConversationScreen> {
     }
   }
 
-  Future<void> _choosePhoto({BuildContext? preview}) async {
-    if (_sending || _pickingPhoto || !_canSend) return;
-    final owner = preview ?? context;
-    if (!await photosFit(owner, _photos.length + 1) || !owner.mounted) return;
-    final source = await showModalBottomSheet<ImageSource>(
-      context: context,
-      showDragHandle: true,
-      builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library_outlined),
-              title: Text(tr('Choose from gallery')),
-              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.camera_alt_outlined),
-              title: Text(tr('Take a photo')),
-              onTap: () => Navigator.pop(ctx, ImageSource.camera),
-            ),
-          ],
-        ),
-      ),
-    );
-    if (!mounted || source == null) return;
+  Future<void> _attachPhotos() async {
+    FocusManager.instance.primaryFocus?.unfocus();
+    final photos = await _pickPhotos(context, 0);
+    if (mounted && photos.isNotEmpty) await _reviewPhotos(photos);
+  }
+
+  Future<List<ChatAttachment>> _pickPhotos(
+    BuildContext owner,
+    int count,
+  ) async {
+    if (_sending || _pickingPhoto || !_canSend) return [];
     setState(() {
       _pickingPhoto = true;
       _photoError = null;
     });
     try {
+      if (!await photosFit(owner, count + 1) || !owner.mounted) return [];
+      final source = await showModalBottomSheet<ImageSource>(
+        context: owner,
+        showDragHandle: true,
+        builder: (ctx) => SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: Text(tr('Choose from gallery')),
+                onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: Text(tr('Take a photo')),
+                onTap: () => Navigator.pop(ctx, ImageSource.camera),
+              ),
+            ],
+          ),
+        ),
+      );
+      if (!mounted || !owner.mounted || source == null) return [];
       final files = widget.pickPhoto == null
           ? await (widget.pickPhotos ?? pickChatPhotos)(source)
           : [if (await widget.pickPhoto!(source) case final file?) file];
-      if (files.isEmpty ||
-          !mounted ||
-          !owner.mounted ||
-          !await _preparePhotos(files, owner)) {
-        return;
-      }
+      if (files.isEmpty || !owner.mounted) return [];
+      return await _preparePhotos(files, owner, count);
     } catch (_) {
-      if (mounted) {
-        setState(
-          () => _photoError =
-              'Could not open your photo. Check camera/photo permissions and try again.',
+      if (owner.mounted) {
+        await CustomerDialogs.show(
+          owner,
+          message: tr(
+            'Could not open your photo. Check camera/photo permissions and try again.',
+          ),
         );
       }
+      return [];
     } finally {
       if (mounted) setState(() => _pickingPhoto = false);
     }
-    if (preview == null && mounted && _photos.isNotEmpty) await _reviewPhotos();
   }
 
-  Future<bool> _preparePhotos(List<XFile> files, BuildContext owner) async {
-    if (!await photosFit(owner, _photos.length + files.length)) return false;
+  Future<List<ChatAttachment>> _preparePhotos(
+    List<XFile> files,
+    BuildContext owner,
+    int count,
+  ) async {
+    if (!await photosFit(owner, count + files.length)) return [];
     final added = <ChatAttachment>[];
     try {
       for (final file in files) {
@@ -337,85 +352,86 @@ class _ConversationState extends State<ConversationScreen> {
       }
     } on FormatException catch (error) {
       if (owner.mounted) await CustomerDialogs.error(owner, error);
-      return false;
+      return [];
     }
-    if (!mounted ||
-        !owner.mounted ||
-        !await photosFit(owner, _photos.length + added.length) ||
-        !mounted) {
-      return false;
-    }
-    setState(() => _photos.addAll(added));
-    return true;
+    return added;
   }
 
-  Future<void> _reviewPhotos() async {
-    final send = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      showDragHandle: true,
-      builder: (sheet) => StatefulBuilder(
-        builder: (sheet, refresh) => Padding(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            0,
-            16,
-            12 + MediaQuery.viewInsetsOf(sheet).bottom,
-          ),
-          child: SafeArea(
-            top: false,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                ChatPhotoStrip(
-                  photos: _photos,
-                  onRemove: (photo) {
-                    setState(() => _photos.remove(photo));
-                    if (_photos.isEmpty) {
-                      Navigator.pop(sheet);
-                    } else {
-                      refresh(() {});
-                    }
-                  },
-                ),
-                Row(
-                  children: [
-                    IconButton(
-                      tooltip: tr('Attach photo'),
-                      icon: const Icon(Icons.add_circle_outline),
-                      onPressed: () async {
-                        await _choosePhoto(preview: sheet);
-                        if (sheet.mounted) refresh(() {});
-                      },
-                    ),
-                    Expanded(
-                      child: TextField(
-                        controller: _text,
-                        maxLength: 2000,
-                        decoration: InputDecoration(
-                          hintText: tr('Add a caption'),
-                          counterText: '',
+  Future<void> _reviewPhotos(List<ChatAttachment> photos) async {
+    var caption = _text.text;
+    while (mounted && _canSend && photos.isNotEmpty) {
+      final send = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        useSafeArea: true,
+        showDragHandle: true,
+        builder: (sheet) => StatefulBuilder(
+          builder: (sheet, refresh) => Padding(
+            padding: EdgeInsets.fromLTRB(
+              16,
+              0,
+              16,
+              12 + MediaQuery.viewInsetsOf(sheet).bottom,
+            ),
+            child: SafeArea(
+              top: false,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ChatPhotoStrip(
+                    photos: photos,
+                    onRemove: (photo) {
+                      photos.remove(photo);
+                      if (photos.isEmpty) {
+                        Navigator.pop(sheet);
+                      } else {
+                        refresh(() {});
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      IconButton(
+                        tooltip: tr('Attach photo'),
+                        icon: const Icon(Icons.add_circle_outline),
+                        onPressed: () async {
+                          final added = await _pickPhotos(sheet, photos.length);
+                          if (sheet.mounted && added.isNotEmpty) {
+                            refresh(() => photos.addAll(added));
+                          }
+                        },
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: caption,
+                          onChanged: (value) => caption = value,
+                          maxLength: 2000,
+                          decoration: InputDecoration(
+                            hintText: tr('Add a caption'),
+                            counterText: '',
+                          ),
                         ),
                       ),
-                    ),
-                    IconButton(
-                      tooltip: tr('Send message'),
-                      icon: const Icon(
-                        Icons.send,
-                        color: CustomerTheme.primary,
+                      IconButton(
+                        tooltip: tr('Send message'),
+                        icon: const Icon(
+                          Icons.send,
+                          color: CustomerTheme.primary,
+                        ),
+                        onPressed: () => Navigator.pop(sheet, true),
                       ),
-                      onPressed: () => Navigator.pop(sheet, true),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
-      ),
-    );
-    if (send == true && mounted) await _send();
+      );
+      if (!mounted || send != true) return;
+      if (await _send(photos: photos, caption: caption)) return;
+    }
   }
 
   void _openGallery(String path) {
@@ -609,13 +625,6 @@ class _ConversationState extends State<ConversationScreen> {
                     style: const TextStyle(color: Colors.red),
                   ),
                 ),
-              if (_photos.isNotEmpty)
-                ChatPhotoStrip(
-                  photos: _photos,
-                  onRemove: _sending || _pickingPhoto
-                      ? null
-                      : (photo) => setState(() => _photos.remove(photo)),
-                ),
               Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(
@@ -624,7 +633,7 @@ class _ConversationState extends State<ConversationScreen> {
                     IconButton(
                       tooltip: trOrNull('Attach photo'),
                       onPressed: _canSend && !_sending && !_pickingPhoto
-                          ? _choosePhoto
+                          ? _attachPhotos
                           : null,
                       icon: const Icon(
                         Icons.add_circle_outline,

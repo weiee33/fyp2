@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../Customer/widgets/customer_dialogs.dart';
 import '../localization/app_language.dart';
+import '../photo_remove_button.dart';
 
 class ChatAttachment {
   ChatAttachment(this.bytes, this.id);
@@ -72,16 +73,8 @@ class ChatPhotoStrip extends StatelessWidget {
             Positioned(
               top: 0,
               right: 0,
-              child: IconButton(
-                tooltip: tr('Remove photo'),
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.black54,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(32, 32),
-                  padding: EdgeInsets.zero,
-                ),
+              child: PhotoRemoveButton(
                 onPressed: onRemove == null ? null : () => onRemove!(photo),
-                icon: const Icon(Icons.close, size: 18),
               ),
             ),
           ],

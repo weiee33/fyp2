@@ -155,6 +155,45 @@ void main() {
       expect(t.takeException(), isNull);
     },
   );
+  testWidgets(
+    'address fields give vertical drags to the sheet and stay editable',
+    (t) async {
+      pixel(t);
+      await t.pumpWidget(app(map(Addresses())));
+      await ready(t);
+
+      Finder field(String label) => find.byWidgetPredicate(
+        (w) => w is TextField && w.decoration?.labelText == label,
+      );
+      final address = field('Address Line / Unit No.');
+      final before = t.getTopLeft(find.text('Address Details')).dy;
+      await t.drag(address, const Offset(0, -350));
+      await ready(t);
+      expect(t.getTopLeft(find.text('Address Details')).dy, lessThan(before));
+      for (final label in [
+        'Address Line / Unit No.',
+        'City',
+        'Postcode',
+        'State',
+      ]) {
+        final input = field(label);
+        expect(
+          t.widget<TextField>(input).scrollPhysics,
+          isA<NeverScrollableScrollPhysics>(),
+        );
+      }
+      await t.ensureVisible(find.text('Office'));
+      await t.tap(find.text('Office'));
+      await t.pumpAndSettle();
+      final chip = t.widget<ChoiceChip>(
+        find.widgetWithText(ChoiceChip, 'Office'),
+      );
+      expect(chip.selected, isTrue);
+      expect(chip.showCheckmark, isFalse);
+      await t.enterText(address, 'Unit 12, Jalan Test');
+      expect(find.text('Unit 12, Jalan Test'), findsOneWidget);
+    },
+  );
   testWidgets('new pin clears missing old address fields', (t) async {
     pixel(t);
     final addresses = Addresses();
