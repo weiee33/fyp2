@@ -41,7 +41,7 @@ set local role authenticated;
 select public.admin_prepare_refund(pg_temp.fixture_id('refund_second'));
 reset role;
 update public.bookings set booking_status='Confirmed' where booking_id=pg_temp.fixture_id('booking_paid');
-select public.gateway_record_refund(pg_temp.fixture_id('refund_second'),'re_second','pi_refundfixture',6000,'myr','succeeded');
+select public.gateway_record_refund(pg_temp.fixture_id('refund_second'),'pyr_second','pi_refundfixture',6000,'myr','succeeded');
 select pg_temp.test_assert('full cumulative refund marks payment refunded',(select payment_status='Refunded' from public.payments where payment_id=pg_temp.fixture_id('payment_paid')));
 select pg_temp.test_assert('full refund cancels unfinished booking',(select booking_status='Cancelled' from public.bookings where booking_id=pg_temp.fixture_id('booking_paid')));
 set local role authenticated;
@@ -56,12 +56,20 @@ reset role;
 update public.booking_disputes set opened_by=pg_temp.fixture_id('super_user'),description='SECRET INTERNAL admin description',resolution='SECRET INTERNAL response' where dispute_id=(select dispute_id from public.refund_requests where refund_id=pg_temp.fixture_id('refund_second'));
 set local role authenticated;
 select pg_temp.test_assert('refund-only support view hides internal admin text',position('SECRET INTERNAL' in public.customer_support_requests()::text)=0);
-select pg_temp.test_assert('refund-only support still exposes owned refund',position('re_second' in public.customer_support_requests()::text)>0);
+select pg_temp.test_assert('refund-only support still exposes owned refund',position('pyr_second' in public.customer_support_requests()::text)>0);
 select pg_temp.login_as('provider_auth');
 select pg_temp.test_error('noncustomer cannot read customer refund support','select public.customer_support_requests()','42501');
 reset role;
+select pg_temp.test_assert('refund replay queues one confirmation email per request',
+ (select count(*)=1 from private.delivery_outbox where dedupe_key='refund-receipt:'||pg_temp.fixture_id('refund_second')::text));
+set local role authenticated;
+select pg_temp.login_as('super_auth');
+select pg_temp.test_assert('refunded booking matches the admin filter',
+ exists(select 1 from jsonb_array_elements(public.admin_list('bookings','','Refunded',1)->'items') r
+ where r->>'booking_id'=pg_temp.fixture_id('booking_paid')::text));
+reset role;
 -- Bank returns can change a refund to failed after initial confirmation.
-select public.gateway_record_refund(pg_temp.fixture_id('refund_second'),'re_second','pi_refundfixture',6000,'myr','failed');
+select public.gateway_record_refund(pg_temp.fixture_id('refund_second'),'pyr_second','pi_refundfixture',6000,'myr','failed');
 select pg_temp.test_assert('bank return restores actual collected balance',(select payment_status='Success' from public.payments where payment_id=pg_temp.fixture_id('payment_paid')));
 select pg_temp.test_assert('failed refund has no completion timestamp',(select completed_at is null from public.refund_requests where refund_id=pg_temp.fixture_id('refund_second')));
 set local role authenticated;

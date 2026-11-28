@@ -128,7 +128,7 @@ if (str_starts_with((string)$path,'/rest/v1/rpc/')) {
         };
         respond(['items'=>$items,'total'=>$resource==='bookings'?21:count($items),'page'=>$page,'page_size'=>20]);
     }
-    if ($path === '/rest/v1/rpc/admin_detail') {
+    if (in_array($path,['/rest/v1/rpc/admin_detail','/rest/v1/rpc/admin_operations_detail'],true)) {
         $resource=$body['resource'] ?? '';
         $common=['version'=>$version,'created_at'=>'2026-10-01T00:00:00+00:00','updated_at'=>'2026-10-01T00:00:00+00:00'];
         $detail=$common + match($resource) {

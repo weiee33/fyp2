@@ -80,14 +80,41 @@ export async function sendPush(job: Job, access: { project: string; token: strin
 }
 
 export function receiptMessage(payload: Record<string, any>) {
-  const url = new URL(payload.receipt_url);
-  if (url.protocol !== 'https:' || url.hostname !== 'pay.stripe.com' || url.username || url.password || url.port || !url.pathname.startsWith('/receipts/')) throw new Error('Invalid receipt URL');
   if (!Number.isSafeInteger(payload.amount_sen) || payload.amount_sen <= 0 || payload.test_mode !== true) throw new Error('Invalid receipt');
   const amount = `RM ${(payload.amount_sen / 100).toFixed(2)}`;
+  if (payload.receipt_type === 'refund_returned') {
+    return { subject: 'Local Life Service Assistant — Refund Update (Sandbox)',
+      text: `The previously confirmed sandbox refund of ${amount} could not be completed. Open Help Centre for the latest status and contact support. No real money was moved.` };
+  }
+  if (payload.receipt_type === 'refund') {
+    return { subject: 'Local Life Service Assistant — Refund Receipt (Sandbox)',
+      text: `Stripe confirmed a sandbox refund of ${amount}. No real money was moved. View the refund in Help Centre.` };
+  }
+  if (payload.receipt_url == null) {
+    return { subject: 'Local Life Service Assistant — Payment Receipt (Sandbox)',
+      text: `Your sandbox payment of ${amount} was verified. No real money was collected. Open Local Life Service Assistant to view your receipt.` };
+  }
+  const url = new URL(payload.receipt_url);
+  if (url.protocol !== 'https:' || url.hostname !== 'pay.stripe.com' || url.username || url.password || url.port || !url.pathname.startsWith('/receipts/')) throw new Error('Invalid receipt URL');
   const escaped = url.toString().replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
   return { subject: 'Local Life Service Assistant — Payment Receipt (Sandbox)',
     text: `Local Life Service Assistant\nPayment Receipt\n${amount}\nYour sandbox payment was verified. No real money was collected.\nView your e-receipt: ${url}\nOpen Local Life Service Assistant for your booking status.`,
     html: `<div style="background:#f7f8fa;padding:32px 16px;font-family:Arial,sans-serif;color:#172033"><div style="max-width:480px;margin:auto;background:white;border:1px solid #e5e7eb;border-radius:20px;padding:28px"><p style="color:#ff6b00;font-weight:bold;letter-spacing:1px">Local Life Service Assistant</p><h1 style="font-size:24px">Payment Receipt</h1><p style="font-size:32px;font-weight:bold">${amount}</p><p>Your sandbox payment was verified. No real money was collected.</p><a href="${escaped}" style="display:inline-block;background:#ff6b00;color:#fff;text-decoration:none;padding:14px 24px;border-radius:28px;font-weight:bold">View E-Receipt</a><p style="font-size:13px;color:#64748b;margin-top:24px">Open Local Life Service Assistant for your booking status.</p></div></div>` };
+}
+
+async function originalCheckoutEmail(intent: string, deps: Dependencies): Promise<string | undefined> {
+  if (!/^pi_[a-zA-Z0-9]+$/.test(intent)) return;
+  const key = required(deps, 'STRIPE_SECRET_KEY');
+  if (!key.startsWith('sk_test_')) throw new Error('Sandbox key required');
+  const response = await deps.fetch(`https://api.stripe.com/v1/checkout/sessions?payment_intent=${intent}&limit=2`, {
+    headers: { Authorization: `Bearer ${key}`, 'Stripe-Version': '2025-02-24.acacia' }, signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new Error('Receipt recipient lookup unavailable');
+  const result = await response.json();
+  const session = result.data?.[0];
+  if (result.has_more !== false || result.data?.length !== 1 || session?.payment_intent !== intent ||
+      session.livemode !== false || session.mode !== 'payment' || session.status !== 'complete' || session.payment_status !== 'paid') return;
+  return session.customer_details?.email;
 }
 
 export async function sendReceipt(job: Job, deps: Dependencies): Promise<string> {
@@ -100,11 +127,14 @@ export async function sendReceipt(job: Job, deps: Dependencies): Promise<string>
   if (!/^[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+$/.test(mailbox)) throw new Error('Invalid receipt sender');
   const from = `Local Life Service Assistant <${mailbox}>`;
   if (/@resend\.dev\b/i.test(from) && !testRecipient) throw new Error('Test recipient required');
-  if (testRecipient && job.payload.email?.trim().toLowerCase() !== testRecipient) return 'rejected';
+  const email = job.payload.email ?? (['refund', 'refund_returned'].includes(job.payload.receipt_type)
+    ? await originalCheckoutEmail(job.payload.payment_intent, deps) : undefined);
+  if (typeof email !== 'string' || email.length > 254 || !/^[^\s<>@,;]+@[^\s<>@,;]+\.[^\s<>@,;]+$/.test(email)) return 'rejected';
+  if (testRecipient && email.toLowerCase() !== testRecipient) return 'rejected';
   const message = receiptMessage(job.payload);
   const response = await deps.fetch('https://api.resend.com/emails', { method: 'POST',
     headers: { Authorization: `Bearer ${required(deps, 'RESEND_API_KEY')}`, 'Content-Type': 'application/json', 'Idempotency-Key': `home-serve-receipt-${job.id}` },
-    body: JSON.stringify({ from, to: [job.payload.email], ...message }),
+    body: JSON.stringify({ from, to: [email], ...message }),
     signal: AbortSignal.timeout(15000) });
   return response.ok ? 'sent' : [400, 422].includes(response.status) ? 'rejected' : 'retry';
 }

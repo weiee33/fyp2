@@ -17,7 +17,9 @@ final class Workspace
     public static function resource(SupabaseClient $api, string $page, array $query): array
     {
         $data=$api->rpc('admin_list',['resource'=>$page,'search'=>mb_substr((string)($query['q'] ?? ''),0,100),'status_filter'=>(string)($query['status'] ?? ''),'page_number'=>max(1,(int)($query['p'] ?? 1))]);
-        $detail=empty($query['id'])?null:$api->rpc('admin_detail',['resource'=>$page,'record_id'=>Security::uuid((string)$query['id'])]);
+        $detailResource=$page==='disputes' && ($query['source'] ?? '')==='provider' ? 'provider_support' : $page;
+        $detailRpc=in_array($page,['disputes','bookings'],true)?'admin_operations_detail':'admin_detail';
+        $detail=empty($query['id'])?null:$api->rpc($detailRpc,['resource'=>$detailResource,'record_id'=>Security::uuid((string)$query['id'])]);
         $choices=[];
         if ($page==='categories') {
             for ($i=1;$i<=100;$i++) {

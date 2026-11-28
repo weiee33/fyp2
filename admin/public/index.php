@@ -58,7 +58,7 @@ try {
             $_SESSION['flash']=$result['message'];
             $redirect(url('refunds',['id'=>$_POST['record_id']]));
         }
-        $mutations = ['user_status','provider_verify','certificate_verify','category_save','category_delete','booking_status','review_moderate','dispute_open','dispute_resolve','refund_request'];
+        $mutations = ['user_status','provider_verify','certificate_verify','category_save','category_delete','booking_status','review_moderate','dispute_open','dispute_resolve','provider_support_reply','refund_request'];
         if (!in_array($action, $mutations, true)) { throw new ApiException(400,'Unknown action.'); }
         $recoverResource = in_array($page,$resources,true) && (!empty($_GET['id']) || ($page==='categories' && isset($_GET['new'])));
         $id = trim((string)($_POST['record_id'] ?? ''));
@@ -79,7 +79,9 @@ try {
             $api->upload('/storage/v1/object/category-icons/'.$uploadedIcon,file_get_contents($file['tmp_name']),$mime,$_SESSION['auth']['access_token']);
             $payload['icon_url']=$config->supabaseUrl.'/storage/v1/object/public/category-icons/'.$uploadedIcon;
         }
-        try { $result = $api->rpc('admin_mutate',['action_name'=>$action,'record_id'=>$id === '' ? null : Security::uuid($id),'expected_version'=>$version,'payload'=>$payload]); }
+        try { $result = $action==='provider_support_reply'
+            ? $api->rpc('admin_reply_provider_ticket',['record_id'=>Security::uuid($id),'expected_version'=>$version,'payload'=>$payload])
+            : $api->rpc('admin_mutate',['action_name'=>$action,'record_id'=>$id === '' ? null : Security::uuid($id),'expected_version'=>$version,'payload'=>$payload]); }
         catch (Throwable $failure) {
             if($uploadedIcon!==null) { try { $api->request('DELETE','/storage/v1/object/category-icons',['prefixes'=>[$uploadedIcon]],$_SESSION['auth']['access_token']); } catch(Throwable) { error_log('Unable to remove an unused category icon.'); } }
             throw $failure;
@@ -97,7 +99,7 @@ try {
             $data = $api->rpc('admin_team', ['p_search'=>mb_substr($_GET['q'] ?? '',0,100),'p_page'=>max(1,(int)($_GET['p'] ?? 1))]);
         }
         if ($page === 'support-photo') {
-            $record=$api->rpc('admin_detail',['resource'=>'disputes','record_id'=>Security::uuid((string)($_GET['id'] ?? ''))]);
+            $record=$api->rpc('admin_operations_detail',['resource'=>($_GET['source'] ?? '')==='provider'?'provider_support':'disputes','record_id'=>Security::uuid((string)($_GET['id'] ?? ''))]);
             $slot=(string)($_GET['slot'] ?? '');
             if (!preg_match('/^[0-2]$/',$slot)) { throw new ApiException(400,'Invalid photo.'); }
             $path=$record['attachment_paths'][(int)$slot] ?? null;
@@ -167,7 +169,7 @@ try {
                 foreach($data['selected_filters'] ?? [] as $filter=>$value) { fputcsv($out,[Security::csvCell($filter),Security::csvCell($value)],',','"',''); }
             } else {
                 fputcsv($out,['Booking ID','Customer','Provider','Service','Scheduled','Status','Amount MYR'],',','"','');
-                foreach($reportItems as $item) { fputcsv($out,array_map([Security::class,'csvCell'],[$item['booking_id'],$item['customer_name'],$item['provider_name'],$item['service_name'],$item['scheduled_datetime'],$item['booking_status'],$item['total_amount']]),',','"',''); }
+                foreach($reportItems as $item) { fputcsv($out,array_map([Security::class,'csvCell'],[$item['booking_id'],$item['customer_name'],$item['provider_name'],$item['service_name'],$item['scheduled_datetime'],$item['status'] ?? $item['booking_status'],$item['total_amount']]),',','"',''); }
             }
             header('Content-Type: text/csv; charset=UTF-8'); header('Content-Disposition: attachment; filename="local-life-'.$page.'-'.date('Ymd').'.csv"');
             rewind($out);fpassthru($out);fclose($out); exit;
@@ -184,7 +186,7 @@ try {
         try {
             [$data,$detail,$categoryChoices]=Workspace::resource($api,$page,$_GET);
             $formRecovery=Workspace::recovery($_POST);
-            if ($exception->status===409) { $error='This record changed since you opened it. The latest details are shown below; review your changes before saving again.'; }
+            if ($exception->status===409 && ($_POST['action'] ?? '') !== 'refund_process') { $error='This record changed since you opened it. The latest details are shown below; review your changes before saving again.'; }
             if (!empty($_FILES['icon_file']) && $_FILES['icon_file']['error']!==UPLOAD_ERR_NO_FILE) { $error.=' Select the icon file again before retrying.'; }
         } catch (Throwable) {
             $data=[]; $detail=null;
