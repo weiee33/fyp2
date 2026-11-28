@@ -359,7 +359,8 @@ class _ConversationState extends State<ConversationScreen> {
 
   Future<void> _reviewPhotos(List<ChatAttachment> photos) async {
     var caption = _text.text;
-    while (mounted && _canSend && photos.isNotEmpty) {
+    while (_canSend && photos.isNotEmpty) {
+      if (!mounted) return;
       final send = await showModalBottomSheet<bool>(
         context: context,
         isScrollControlled: true,
