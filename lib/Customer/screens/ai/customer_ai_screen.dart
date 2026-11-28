@@ -373,8 +373,9 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
   }
 
   Future<void> _attach() async {
-    if (_busy || !await photosFit(context, _photos.length + 1) || !mounted)
+    if (_busy || !await photosFit(context, _photos.length + 1) || !mounted) {
       return;
+    }
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       showDragHandle: true,
@@ -407,12 +408,14 @@ class _CustomerAiScreenState extends State<CustomerAiScreen>
             ];
       if (!mounted ||
           files.isEmpty ||
-          !await photosFit(context, _photos.length + files.length))
+          !await photosFit(context, _photos.length + files.length)) {
         return;
+      }
       final added = <ChatAttachment>[];
       for (final file in files) {
-        if (await file.length() > 16 * 1024 * 1024)
+        if (await file.length() > 16 * 1024 * 1024) {
           throw const FormatException('Choose a photo smaller than 16 MB.');
+        }
         added.add(
           ChatAttachment(
             await _service.preparePhoto(await file.readAsBytes()),

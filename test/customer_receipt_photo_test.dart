@@ -325,6 +325,57 @@ void main() {
     await t.pumpWidget(const SizedBox());
   });
   testWidgets(
+    'provider preview rejects six gallery picks and keeps a five-photo caption draft',
+    (t) async {
+      capture.pixel(t);
+      final service = PhotoChat();
+      var count = 6;
+      final calls = <ImageSource>[];
+      await t.pumpWidget(
+        capture.app(
+          ConversationScreen(
+            conversationId: 'chat',
+            service: service,
+            pickPhotos: (source) async {
+              calls.add(source);
+              return List.generate(
+                count,
+                (_) => XFile.fromData(photo, name: 'fixture.png'),
+              );
+            },
+          ),
+        ),
+      );
+      await t.pumpAndSettle();
+      Future<void> gallery() async {
+        await t.tap(find.byTooltip('Attach photo').last);
+        await t.pumpAndSettle();
+        await t.tap(find.text('Choose from gallery'));
+        await t.pumpAndSettle();
+      }
+
+      await gallery();
+      expect(
+        find.text('You can attach up to 5 photos per message.'),
+        findsOneWidget,
+      );
+      await t.tap(find.text('OK'));
+      await t.pumpAndSettle();
+      expect(find.byTooltip('Remove photo'), findsNothing);
+      count = 5;
+      await gallery();
+      expect(find.text('Add a caption'), findsOneWidget);
+      await t.tap(find.byTooltip('Attach photo').last);
+      await t.pumpAndSettle();
+      expect(
+        find.text('You can attach up to 5 photos per message.'),
+        findsOneWidget,
+      );
+      expect(calls.length, 2);
+      expect(service.sends, 0);
+    },
+  );
+  testWidgets(
     'photo source choice preview and failed send retain retry identity',
     (t) async {
       capture.pixel(t);

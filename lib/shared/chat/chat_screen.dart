@@ -17,6 +17,7 @@ class ConversationScreen extends StatefulWidget {
   final ChatService? service;
   final bool customer;
   final Future<XFile?> Function(ImageSource)? pickPhoto;
+  final Future<List<XFile>> Function(ImageSource)? pickPhotos;
   const ConversationScreen({
     super.key,
     this.conversationId,
@@ -24,6 +25,7 @@ class ConversationScreen extends StatefulWidget {
     this.bookingId,
     this.service,
     this.pickPhoto,
+    this.pickPhotos,
     this.customer = true,
   });
   @override
@@ -79,7 +81,7 @@ class _ConversationState extends State<ConversationScreen> {
             _service.isLive) {
           final lost = await ImagePicker().retrieveLostData();
           if (lost.files?.isNotEmpty == true) {
-            await _preparePhotos(lost.files!);
+            if (mounted) await _preparePhotos(lost.files!, context);
           }
           if (lost.exception != null && mounted) {
             setState(
@@ -261,13 +263,15 @@ class _ConversationState extends State<ConversationScreen> {
   }
 
   void _recordSent(Map<String, dynamic> message) {
-    if (!_messages.any((m) => m['message_id'] == message['message_id']))
+    if (!_messages.any((m) => m['message_id'] == message['message_id'])) {
       _messages.insert(0, message);
+    }
   }
 
-  Future<void> _choosePhoto({bool review = true}) async {
+  Future<void> _choosePhoto({BuildContext? preview}) async {
     if (_sending || _pickingPhoto || !_canSend) return;
-    if (!await photosFit(context, _photos.length + 1) || !mounted) return;
+    final owner = preview ?? context;
+    if (!await photosFit(owner, _photos.length + 1) || !owner.mounted) return;
     final source = await showModalBottomSheet<ImageSource>(
       context: context,
       showDragHandle: true,
@@ -296,9 +300,14 @@ class _ConversationState extends State<ConversationScreen> {
     });
     try {
       final files = widget.pickPhoto == null
-          ? await pickChatPhotos(source)
+          ? await (widget.pickPhotos ?? pickChatPhotos)(source)
           : [if (await widget.pickPhoto!(source) case final file?) file];
-      if (files.isEmpty || !mounted || !await _preparePhotos(files)) return;
+      if (files.isEmpty ||
+          !mounted ||
+          !owner.mounted ||
+          !await _preparePhotos(files, owner)) {
+        return;
+      }
     } catch (_) {
       if (mounted) {
         setState(
@@ -309,16 +318,17 @@ class _ConversationState extends State<ConversationScreen> {
     } finally {
       if (mounted) setState(() => _pickingPhoto = false);
     }
-    if (review && mounted && _photos.isNotEmpty) await _reviewPhotos();
+    if (preview == null && mounted && _photos.isNotEmpty) await _reviewPhotos();
   }
 
-  Future<bool> _preparePhotos(List<XFile> files) async {
-    if (!await photosFit(context, _photos.length + files.length)) return false;
+  Future<bool> _preparePhotos(List<XFile> files, BuildContext owner) async {
+    if (!await photosFit(owner, _photos.length + files.length)) return false;
     final added = <ChatAttachment>[];
     try {
       for (final file in files) {
-        if (await file.length() > 5 * 1024 * 1024)
+        if (await file.length() > 5 * 1024 * 1024) {
           throw const FormatException('Choose a photo smaller than 5 MB.');
+        }
         final bytes = await file.readAsBytes();
         ChatService.photoMime(bytes);
         added.add(
@@ -326,13 +336,15 @@ class _ConversationState extends State<ConversationScreen> {
         );
       }
     } on FormatException catch (error) {
-      if (mounted) await CustomerDialogs.error(context, error);
+      if (owner.mounted) await CustomerDialogs.error(owner, error);
       return false;
     }
     if (!mounted ||
-        !await photosFit(context, _photos.length + added.length) ||
-        !mounted)
+        !owner.mounted ||
+        !await photosFit(owner, _photos.length + added.length) ||
+        !mounted) {
       return false;
+    }
     setState(() => _photos.addAll(added));
     return true;
   }
@@ -373,7 +385,7 @@ class _ConversationState extends State<ConversationScreen> {
                       tooltip: tr('Attach photo'),
                       icon: const Icon(Icons.add_circle_outline),
                       onPressed: () async {
-                        await _choosePhoto(review: false);
+                        await _choosePhoto(preview: sheet);
                         if (sheet.mounted) refresh(() {});
                       },
                     ),

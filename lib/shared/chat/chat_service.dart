@@ -77,8 +77,9 @@ class ChatService {
     List<ChatAttachment> photos,
     String caption,
   ) async {
-    if (photos.isEmpty || photos.length > maxChatPhotos)
+    if (photos.isEmpty || photos.length > maxChatPhotos) {
       throw const FormatException('You can attach up to 5 photos per message.');
+    }
     for (final photo in photos) {
       photo.uploadedPath ??= await _uploadPhoto(id, photo.bytes, photo.id);
     }
