@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:fyp2/shared/localization/app_language.dart';
 import 'package:fyp2/shared/localization/language_screen.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../shared/chat/chat_inbox_screen.dart';
 import 'package:fyp2/Provider/services/profile_service.dart';
@@ -14,8 +15,8 @@ import 'working_hours_screen.dart';
 import 'privacy_screen.dart';
 import 'about_app_screen.dart';
 import 'help_centre.dart';
-// 假设你有一个修改密码的页面，如果没有请替换为你自己的页面
-// import 'change_password_screen.dart';
+import 'package:fyp2/Customer/screens/auth/customer_forgot_password_screen.dart';
+
 
 import 'package:fyp2/Provider/screens/services/my_services_screen.dart';
 import 'package:fyp2/Provider/screens/bookings/my_bookings_screen.dart';
@@ -583,12 +584,18 @@ class _MyProfileScreenState extends State<MyProfileScreen> {
                   title: isZh ? '修改密码' : (isMs ? 'Tukar Kata Laluan' : 'Change Password'),
                   icon: Icons.lock_outline,
                   onTap: () {
-                    // 如果你有修改密码的页面，请在这里跳转
-                    // Navigator.push(context, MaterialPageRoute(builder: (_) => const ChangePasswordScreen()));
-                    _showAppDialog(
-                      title: isZh ? '提示' : (isMs ? 'Info' : 'Info'),
-                      message: isZh ? '修改密码功能即将推出' : (isMs ? 'Ciri tukar kata laluan akan datang' : 'Change password feature coming soon'),
-                      isError: false,
+                    // 1. 获取当前登录账号的邮箱
+                    final currentEmail = Supabase.instance.client.auth.currentUser?.email ?? '';
+
+                    // 2. 跳转到修改密码页面，开启 requireCurrentPassword 模式
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CustomerForgotPasswordScreen(
+                          initialEmail: currentEmail,
+                          requireCurrentPassword: true,
+                        ),
+                      ),
                     );
                   },
                 ),

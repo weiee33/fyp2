@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:fyp2/shared/chat/chat_inbox_screen.dart';
+import 'package:fyp2/shared/chat/chat_service.dart'; // 👈 引入了你的 ChatService
 import 'package:fyp2/Provider/screens/notifications/notification_screen.dart';
 import 'package:fyp2/Provider/services/notification_service.dart';
 import 'package:fyp2/Provider/screens/earnings/earnings_screen.dart';
@@ -24,6 +25,7 @@ class ProviderHomeScreen extends StatefulWidget {
 class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
   final _client = Supabase.instance.client;
   final _notificationService = NotificationService();
+  final _chatService = ChatService(); // 👈 实例化 ChatService
 
   bool _loading = true;
   String? _error;
@@ -135,6 +137,22 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
     }
   }
 
+  // 👈 新增：获取真实的聊天未读数总和
+  Future<int> _getTotalUnreadChats() async {
+    try {
+      final inboxList = await _chatService.inbox();
+      int totalUnread = 0;
+      for (var chat in inboxList) {
+        // 注意：这里假设你的数据中未读数字段名叫 'unread_count'
+        // 如果在你的 Supabase RPC 里叫别的名字（比如 'unread' 或 'total_unread'），请替换这里！
+        totalUnread += (chat['unread_count'] as num? ?? 0).toInt();
+      }
+      return totalUnread;
+    } catch (e) {
+      return 0; // 出错时返回 0
+    }
+  }
+
   Future<void> _openNotifications() async {
     await Navigator.push(
         context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
@@ -202,7 +220,6 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
         onRefresh: _loadData,
         color: _primaryOrange,
         child: SingleChildScrollView(
-          // 👇 添加了 BouncingScrollPhysics 实现拉到底部有弹性的感觉
           physics: const AlwaysScrollableScrollPhysics(
             parent: BouncingScrollPhysics(),
           ),
@@ -244,13 +261,47 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                         ),
                         Row(
                           children: [
-                            IconButton(
-                              icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
-                              onPressed: _openChats,
-                              padding: EdgeInsets.zero,
-                              constraints: const BoxConstraints(),
+                            // ===== Chat 图标 =====
+                            FutureBuilder<int>(
+                              future: _getTotalUnreadChats(),
+                              builder: (context, snapshot) {
+                                final unreadChat = snapshot.data ?? 0;
+                                return Stack(
+                                  clipBehavior: Clip.none,
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 24),
+                                      onPressed: _openChats,
+                                      padding: EdgeInsets.zero,
+                                      constraints: const BoxConstraints(),
+                                    ),
+                                    if (unreadChat > 0)
+                                      Positioned(
+                                        right: -2,
+                                        top: -2,
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                                          decoration: const BoxDecoration(
+                                              color: Colors.red, shape: BoxShape.circle),
+                                          constraints: const BoxConstraints(
+                                              minWidth: 16, minHeight: 16),
+                                          child: Text(
+                                            unreadChat > 99 ? '99+' : '$unreadChat',
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold),
+                                            textAlign: TextAlign.center,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                );
+                              },
                             ),
                             const SizedBox(width: 16),
+
+                            // ===== Notification 图标 =====
                             FutureBuilder<List<Map<String, dynamic>>>(
                               future: _notificationService.getMyNotifications(),
                               builder: (context, snapshot) {
@@ -271,13 +322,13 @@ class _ProviderHomeScreenState extends State<ProviderHomeScreen> {
                                         right: -2,
                                         top: -2,
                                         child: Container(
-                                          padding: const EdgeInsets.all(3),
+                                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                                           decoration: const BoxDecoration(
                                               color: Colors.red, shape: BoxShape.circle),
                                           constraints: const BoxConstraints(
                                               minWidth: 16, minHeight: 16),
                                           child: Text(
-                                            unread > 9 ? '9+' : '$unread',
+                                            unread > 99 ? '99+' : '$unread',
                                             style: const TextStyle(
                                                 color: Colors.white,
                                                 fontSize: 9,

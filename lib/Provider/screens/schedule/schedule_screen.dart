@@ -178,7 +178,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }).length;
   }
 
-  // ============= Pop-up Box 弹窗 =============
   void _showAppDialog({required String title, required String message, required bool isError}) {
     showDialog(
       context: context,
@@ -256,7 +255,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           isZh ? '日程' : (isMs ? 'Jadual' : 'Schedule'),
           style: const TextStyle(
             fontWeight: FontWeight.w600,
-            color: Colors.white, // 👈 明确指定白色
+            color: Colors.white,
           ),
         ),
         backgroundColor: _primaryOrange,
@@ -282,7 +281,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _errorState(bool isZh, bool isMs) {
     return ListView(
-      // 👇 添加弹性效果
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
@@ -352,7 +350,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _emptyState(bool isZh, bool isMs) {
     return ListView(
-      // 👇 添加弹性效果
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
@@ -411,7 +408,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     final upcomingKeys = upcomingGrouped.keys.toList()..sort();
 
     return ListView(
-      // 👇 添加弹性效果
       physics: const AlwaysScrollableScrollPhysics(
         parent: BouncingScrollPhysics(),
       ),
@@ -836,6 +832,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
           ),
+          // 👇 改成 X 按钮放在右上角
+          titlePadding: const EdgeInsets.fromLTRB(20, 20, 12, 0),
           title: Row(
             children: [
               Container(
@@ -859,6 +857,12 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
+              ),
+              IconButton(
+                onPressed: () => Navigator.pop(ctx),
+                icon: const Icon(Icons.close, color: Colors.grey),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),
@@ -935,13 +939,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              style: TextButton.styleFrom(foregroundColor: _primaryOrange),
-              child: Text(isZh ? '关闭' : (isMs ? 'Tutup' : 'Close')),
-            ),
-          ],
+          // 去掉原来的 actions 配置
+          actions: null,
         ),
       ),
     );
@@ -1149,8 +1148,9 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
       buttons.add(
         _actionButton(
           label: isZh ? '开始服务' : (isMs ? 'Mula Kerja' : 'Start Job'),
-          icon: Icons.play_arrow,
-          color: const Color(0xFF3B82F6),
+          // 👇 Icon 设为 null，改成橙色
+          icon: null,
+          color: _primaryOrange,
           onTap: () async {
             await _updateStatus(bookingId, 'In-Progress', isZh, isMs);
             if (ctx.mounted) Navigator.pop(ctx);
@@ -1214,7 +1214,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
 
   Widget _actionButton({
     required String label,
-    required IconData icon,
+    IconData? icon, // 允许为 null
     required Color color,
     required VoidCallback onTap,
     bool outlined = false,
@@ -1225,7 +1225,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
         height: 44,
         child: OutlinedButton.icon(
           onPressed: onTap,
-          icon: Icon(icon, size: 18),
+          icon: icon != null ? Icon(icon, size: 18) : const SizedBox.shrink(),
           label: Text(
             label,
             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
@@ -1236,6 +1236,29 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
+          ),
+        ),
+      );
+    }
+
+    // 如果没有 icon，就用普通按钮或者去掉 icon 属性的按钮
+    if (icon == null) {
+      return SizedBox(
+        width: double.infinity,
+        height: 44,
+        child: ElevatedButton(
+          onPressed: onTap,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: color,
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            elevation: 2,
+          ),
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
           ),
         ),
       );
