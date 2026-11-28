@@ -6,7 +6,7 @@ import {handleWebhook} from '../functions/_shared/fpx.ts';
 const id='11111111-2222-4333-8444-555555555555';
 const now=Date.parse('2026-10-25T08:00:00Z');
 const env={SUPABASE_URL:'https://project.invalid',SUPABASE_ANON_KEY:'anon',SUPABASE_SERVICE_ROLE_KEY:'service',STRIPE_SECRET_KEY:'sk_test_fixture',STRIPE_WEBHOOK_SECRET:'whsec_fixture'};
-const refund={id:'re_fixture',payment_intent:'pi_fixture',amount:1000,currency:'myr',status:'succeeded',livemode:false,metadata:{refund_id:id}};
+const refund={object:'refund',id:'re_fixture',payment_intent:'pi_fixture',amount:1000,currency:'myr',status:'succeeded',metadata:{refund_id:id}};
 const quote={refund_id:id,payment_intent:'pi_fixture',amount_sen:1000,submitted_at:new Date(now).toISOString(),gateway_reference:null,status:'Processing'};
 const json=(v,status=200)=>new Response(JSON.stringify(v),{status});
 const request=(body={refund_id:id},token='Bearer admin')=>new Request('https://project.invalid/refund',{method:'POST',headers:{Authorization:token},body:JSON.stringify(body)});
@@ -50,6 +50,15 @@ test('recovery finds existing refund instead of making another',async()=>{
  const {deps,calls}=fixture({list:{data:[refund],has_more:false}});
  assert.equal((await handleRefund(request(),deps)).status,200);
  assert.equal(calls.filter(c=>c.url.endsWith('/refunds')).length,0);
+});
+test('FPX refund recovers after the retry window without creating or rejecting a refund', async () => {
+ const recovered = {...refund, id:'pyr_fixture'};
+ const {deps,calls} = fixture({list:{data:[recovered],has_more:false},quote:{submitted_at:'2026-10-22T08:00:00Z'}});
+ const result = await handleRefund(request(),deps);
+ assert.equal(result.status,200);
+ assert.equal((await result.json()).status,'Succeeded');
+ assert.equal(JSON.parse(calls.find(c=>c.url.endsWith('/gateway_record_refund')).init.body).p_reference,recovered.id);
+ assert.ok(!calls.some(c=>c.url.endsWith('/refunds') || c.url.endsWith('/gateway_reject_refund')));
 });
 test('known reference refresh never creates another refund',async()=>{
  const {deps,calls}=fixture({quote:{gateway_reference:'re_fixture'}});

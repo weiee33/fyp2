@@ -65,3 +65,11 @@ Customers, including suspended customers, see the amount, status and reference i
 Analytics reads current database state for each applied filter snapshot and refreshes while idle every 30 seconds. Gross uses payment receipt dates; confirmed refunds use confirmation dates; net collected is their difference and can be negative. Pending refund amounts span all dates within service filters. Status counts use request creation dates. CSV and PDF use the same applied filters. Platform fees are historical recorded earnings, not refund-adjusted profit.
 
 Regression: run `admin_regression.sql` then `refund_regression.sql` in one transaction ending with `ROLLBACK`; run `node --experimental-strip-types --test supabase/tests/refund_edge.test.mjs`. No existing customer payment should be used for an automated refund test.
+
+## Refreshing a sandbox FPX refund
+
+After applying the admin booking/support, FPX refund reference, and refund receipt migrations, deploy the updated `admin-refund`, `fpx-webhook`, and `customer-delivery` functions with the project's existing JWT settings. Deploy the PHP admin code alongside the migrations.
+
+For a refund that Stripe has already issued, open the existing request and select **Refresh refund status**. The handler searches the original payment for the matching refund request ID and records the Stripe result. A confirmed full refund appears as **Refunded** in Bookings & orders. Partial refunds remain itemized in payment details. The customer can see the confirmed amount in Help Centre.
+
+The delivery worker sends payment and refund emails to the Checkout recipient. Sandbox sending restrictions and verified-domain setup are described in [Customer alerts and receipts](customer-alerts-and-receipts.md).

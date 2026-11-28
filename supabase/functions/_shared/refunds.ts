@@ -1,5 +1,7 @@
 type Dependencies = { env: (name: string) => string | undefined; fetch: typeof fetch; now: () => number };
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Stripe uses pyr_ for payment-method refunds such as FPX and re_ for card refunds.
+const refundReference = /^(?:pyr|re)_[a-zA-Z0-9]+$/;
 const response = (body: unknown, status = 200) => new Response(JSON.stringify(body), {status, headers: {'Content-Type':'application/json','Cache-Control':'no-store'}});
 function setting(d: Dependencies, name: string): string {
   const value = d.env(name); if (!value) throw new Error('Refund service configuration is missing'); return value;
@@ -25,14 +27,14 @@ async function stripe(d: Dependencies, path: string, body?: URLSearchParams, id?
   return res.json();
 }
 async function record(d: Dependencies, refund: any, id: string): Promise<any> {
-  if (refund?.livemode !== false || !/^re_[a-zA-Z0-9]+$/.test(refund.id ?? '') || refund.metadata?.refund_id !== id || !uuid.test(id) || !Number.isSafeInteger(refund.amount) || refund.amount<=0 || refund.currency!=='myr' || !['pending','requires_action','succeeded','failed','canceled'].includes(refund.status)) throw new Error('Invalid Stripe refund');
+  if (refund?.object !== 'refund' || refund.livemode === true || !refundReference.test(refund.id ?? '') || refund.metadata?.refund_id !== id || !uuid.test(id) || !Number.isSafeInteger(refund.amount) || refund.amount<=0 || refund.currency!=='myr' || !['pending','requires_action','succeeded','failed','canceled'].includes(refund.status)) throw new Error('Invalid Stripe refund');
   return rpc(d,'gateway_record_refund',{p_refund_id:id,p_reference:refund.id,p_payment_intent:refund.payment_intent,p_amount_sen:refund.amount,p_currency:refund.currency,p_status:refund.status});
 }
 // Called only AFTER HMAC verification by the shared payment webhook. Retrieve
 // current gateway state so delayed or duplicate events cannot reverse progress.
 export async function reconcileRefundEvent(d: Dependencies, object: any): Promise<any> {
   if (!object?.metadata?.refund_id) return {ignored:true};
-  if (!/^re_[a-zA-Z0-9]+$/.test(object.id ?? '') || !uuid.test(object.metadata.refund_id)) throw new Error('Invalid refund event');
+  if (!refundReference.test(object.id ?? '') || !uuid.test(object.metadata.refund_id)) throw new Error('Invalid refund event');
   return record(d,await stripe(d,`refunds/${object.id}`),object.metadata.refund_id);
 }
 export async function handleRefund(request: Request, d: Dependencies): Promise<Response> {
@@ -55,7 +57,7 @@ export async function handleRefund(request: Request, d: Dependencies): Promise<R
     if(!/^pi_[a-zA-Z0-9]+$/.test(quote.payment_intent ?? '') || !Number.isSafeInteger(Number(quote.amount_sen)) || Number(quote.amount_sen)<=0) throw new Error('Invalid payment');
     let refund;
     if(quote.gateway_reference) {
-      if(!/^re_[a-zA-Z0-9]+$/.test(quote.gateway_reference))throw new Error('Invalid reference');
+      if(!refundReference.test(quote.gateway_reference))throw new Error('Invalid reference');
       refund=await stripe(d,`refunds/${quote.gateway_reference}`);
     } else {
       // Recover a successful Stripe call whose database write/HTTP response was

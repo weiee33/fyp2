@@ -24,6 +24,28 @@ test('receipt retries use the same provider idempotency key and stored checkout 
  const keys=[];const d=deps(async(url,options)=>{assert.equal(url,'https://api.resend.com/emails');keys.push(options.headers['Idempotency-Key']);assert.deepEqual(JSON.parse(options.body).to,['receipt@example.invalid']);return json({id:'email-1'});});
  assert.equal(await sendReceipt(job,d),'sent');await sendReceipt(job,d);assert.equal(keys[0],keys[1]);
 });
+test('refund receipt reports the amount confirmed and uses the original Checkout mailbox', async () => {
+  const refund = {...job, payload: {receipt_type: 'refund', test_mode: true, amount_sen: 250, payment_intent: 'pi_fixture'}};
+  const session = {payment_intent: 'pi_fixture', mode: 'payment', status: 'complete', payment_status: 'paid', livemode: false,
+    customer_details: {email: 'checkout@example.invalid'}};
+  const sends = [];
+  const worker = deps(async (url, options) => {
+    if (url === 'https://api.stripe.com/v1/checkout/sessions?payment_intent=pi_fixture&limit=2') return json({data: [session], has_more: false});
+    assert.equal(url, 'https://api.resend.com/emails');
+    sends.push(JSON.parse(options.body));
+    return json({});
+  }, {STRIPE_SECRET_KEY: 'sk_test_fixture'});
+  assert.equal(await sendReceipt(refund, worker), 'sent');
+  assert.deepEqual(sends[0].to, ['checkout@example.invalid']);
+  assert.match(sends[0].subject, /Refund Receipt/);
+  assert.match(sends[0].text, /refund of RM 2.50/);
+  assert.doesNotMatch(sends[0].text, /payment was verified/);
+  session.payment_intent = 'pi_other';
+  assert.equal(await sendReceipt(refund, worker), 'rejected');
+  assert.equal(sends.length, 1);
+  assert.match(receiptMessage({...refund.payload, receipt_type: 'refund_returned'}).text, /could not be completed/);
+  assert.match(receiptMessage({...job.payload, receipt_url: null}).text, /payment of RM 100.00 was verified/);
+});
 test('successful email is acknowledged with the exact lease; transient email failure stays retryable',async()=>{
  for(const status of [200,429,503]){
   let finish;

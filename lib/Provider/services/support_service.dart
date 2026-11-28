@@ -49,6 +49,7 @@ class ProviderSupportService {
 
     final insertRes = await client.from('provider_support_tickets').insert({
       'provider_id': authId,
+      if (bookingId != null) 'booking_id': bookingId,
       'subject': subject.trim(),
       'description': description.trim(),
       'status': 'Pending',

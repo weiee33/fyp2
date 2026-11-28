@@ -19,7 +19,11 @@ Delivery is retried with backoff, a five-minute lease and a maximum of eight att
 
 ## Receipt email activation
 
-The verified Stripe webhook records payment and queues a receipt atomically. The recipient is the email collected by Stripe Checkout. Only validated Stripe receipt links are included; retries use a stable Resend idempotency key. Duplicate Stripe events do not create duplicate receipt jobs. Sandbox receipts explicitly state that no real money was collected.
+The verified Stripe webhook records payment and queues a receipt atomically. The recipient is the email collected by Stripe Checkout. Only validated Stripe receipt links are included; retries use a stable Resend idempotency key. Duplicate Stripe events do not create duplicate receipt jobs. A verified payment without a hosted receipt link still produces an email with the amount and a reference to the in-app receipt. Sandbox emails identify simulated transactions.
+
+A Stripe-confirmed refund queues one **Refund Receipt (Sandbox)** per refund, showing the confirmed amount, including partial refunds. Approval or a pending Stripe result does not send a success email. If Stripe later reports that a confirmed refund failed or was cancelled, the worker sends a **Refund Update (Sandbox)** and the queue retires any outstanding success email. Refunds use the original Checkout email. After payment outbox data expires, the worker retrieves the paid Checkout Session for the payment intent using the sandbox Stripe key. The same sender-domain and test-recipient restrictions apply to payment and refund emails.
+
+Deploy the updated `customer-delivery` worker before applying the refund receipt migration. The migration enables email for subsequent refund confirmations, including requests reconciled after deployment. It does not mail historical refunds in bulk.
 
 ### Finding a receipt email
 
