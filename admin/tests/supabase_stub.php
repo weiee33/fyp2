@@ -63,7 +63,13 @@ if ($path === '/auth/v1/logout' && $method === 'POST') { respond([]); }
 if ($path === '/auth/v1/user' && $method === 'GET') {
     respond(['id'=>'40000000-0000-4000-8000-000000000001','email'=>'admin@example.test','factors'=>!empty($fixtureState['factor_unverified'])?[]:[['id'=>$factor,'factor_type'=>'totp','status'=>'verified','friendly_name'=>'Test authenticator']]]);
 }
-if ($path === '/auth/v1/factors' && $method === 'POST') { respond(['id'=>$factor,'factor_type'=>'totp','totp'=>['secret'=>'TEST-SETUP-SECRET','qr_code'=>'<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100"/></svg>','uri'=>'otpauth://totp/fixture']]); }
+if ($path === '/auth/v1/factors' && $method === 'POST') {
+    respond(['id'=>$factor, 'factor_type'=>'totp', 'totp'=>[
+        'secret'=>'JBSWY3DPEHPK3PXP',
+        'qr_code'=>file_get_contents(__DIR__.'/fixtures/enrollment-qr.svg'),
+        'uri'=>'otpauth://totp/Fixture?secret=JBSWY3DPEHPK3PXP',
+    ]]);
+}
 if ($path === '/auth/v1/user' && $method === 'PUT') {
     if (!$verified) { respond(['msg'=>'MFA required'],403); }
     respond(['id'=>'40000000-0000-4000-8000-000000000001']);

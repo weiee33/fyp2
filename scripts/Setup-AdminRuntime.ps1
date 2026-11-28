@@ -33,6 +33,9 @@ log_errors=On
 '@ | Set-Content -LiteralPath (Join-Path $runtimePath 'php.ini') -Encoding utf8
 & $runtimeExe -v
 if ($LASTEXITCODE -ne 0) { throw 'PHP could not start. Check the runtime and Windows Visual C++ dependencies.' }
-& $runtimeExe -d "extension_dir=$runtimePath/ext" -r 'foreach (["curl", "openssl", "mbstring", "fileinfo"] as $extension) { if (!extension_loaded($extension)) { fwrite(STDERR, "Missing PHP extension: ".$extension.PHP_EOL); exit(1); } }'
-if ($LASTEXITCODE -ne 0) { throw 'Required PHP extensions could not load. Check the runtime installation.' }
+$loadedExtensions = & $runtimeExe -d "extension_dir=$runtimePath/ext" -m
+if ($LASTEXITCODE -ne 0) { throw 'PHP could not list its loaded extensions.' }
+foreach ($extension in 'curl', 'openssl', 'mbstring', 'fileinfo') {
+    if ($loadedExtensions -notcontains $extension) { throw "Missing PHP extension: $extension. Check the runtime installation." }
+}
 Write-Host 'PHP runtime is ready. It is local to this repository.'
