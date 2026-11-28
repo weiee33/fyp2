@@ -106,6 +106,18 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
     final visibilityLabel = _showCoverage
         ? tr('Hide service areas')
         : tr('Show service areas');
+    final visibilityButton = IconButton(
+      tooltip: visibilityLabel,
+      color: CustomerTheme.primaryDark,
+      onPressed: _toggleCoverage,
+      icon: Icon(
+        _showCoverage
+            ? Icons.visibility_off_outlined
+            : Icons.visibility_outlined,
+      ),
+    );
+    final hasProviderHeader =
+        _showCoverage && _coverageError == null && _selectedProvider != null;
     Widget summary;
     if (!_showCoverage) {
       summary = InkWell(
@@ -125,6 +137,25 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
         key: ValueKey(provider.id),
         tilePadding: const EdgeInsetsDirectional.only(start: 12),
         childrenPadding: const EdgeInsetsDirectional.only(start: 12, bottom: 8),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Builder(
+              builder: (context) {
+                final controller = ExpansibleController.of(context);
+                return ListenableBuilder(
+                  listenable: controller,
+                  builder: (_, _) => Icon(
+                    controller.isExpanded
+                        ? Icons.expand_less
+                        : Icons.expand_more,
+                  ),
+                );
+              },
+            ),
+            visibilityButton,
+          ],
+        ),
         dense: true,
         shape: const Border(),
         collapsedShape: const Border(),
@@ -208,16 +239,7 @@ class _AddAddressMapScreenState extends State<AddAddressMapScreen> {
                       ),
                     ),
                   ),
-                  IconButton(
-                    tooltip: visibilityLabel,
-                    color: CustomerTheme.primaryDark,
-                    onPressed: _toggleCoverage,
-                    icon: Icon(
-                      _showCoverage
-                          ? Icons.visibility_off_outlined
-                          : Icons.visibility_outlined,
-                    ),
-                  ),
+                  if (!hasProviderHeader) visibilityButton,
                 ],
               ),
               if (_showCoverage && _coverageLoading)

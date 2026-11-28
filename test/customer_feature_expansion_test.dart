@@ -200,9 +200,25 @@ void main() {
     expect(t.getTopLeft(card).dy - t.getTopLeft(find.byType(FlutterMap)).dy, 6);
     await capture.proof(t, 'map-coverage-compact');
     expect(find.text('Plumbing'), findsNothing);
+    expect(
+      t.getCenter(find.byIcon(Icons.visibility_off_outlined)).dy,
+      t
+          .getCenter(
+            find.descendant(of: card, matching: find.byIcon(Icons.expand_more)),
+          )
+          .dy,
+    );
     await t.tap(find.text('In range'));
     await t.pumpAndSettle();
     expect(find.text('Plumbing'), findsOneWidget);
+    expect(
+      t.getCenter(find.byIcon(Icons.visibility_off_outlined)).dy,
+      t
+          .getCenter(
+            find.descendant(of: card, matching: find.byIcon(Icons.expand_less)),
+          )
+          .dy,
+    );
     await t.tap(find.text('In range'));
     await t.pumpAndSettle();
     expect(find.text('Plumbing'), findsNothing);
