@@ -60,6 +60,14 @@ select pg_temp.test_assert('refund-only support still exposes owned refund',posi
 select pg_temp.login_as('provider_auth');
 select pg_temp.test_error('noncustomer cannot read customer refund support','select public.customer_support_requests()','42501');
 reset role;
+select pg_temp.test_assert('refund replay queues one confirmation email per request',
+ (select count(*)=1 from private.delivery_outbox where dedupe_key='refund-receipt:'||pg_temp.fixture_id('refund_second')::text));
+set local role authenticated;
+select pg_temp.login_as('super_auth');
+select pg_temp.test_assert('refunded booking matches the admin filter',
+ exists(select 1 from jsonb_array_elements(public.admin_list('bookings','','Refunded',1)->'items') r
+ where r->>'booking_id'=pg_temp.fixture_id('booking_paid')::text));
+reset role;
 -- Bank returns can change a refund to failed after initial confirmation.
 select public.gateway_record_refund(pg_temp.fixture_id('refund_second'),'pyr_second','pi_refundfixture',6000,'myr','failed');
 select pg_temp.test_assert('bank return restores actual collected balance',(select payment_status='Success' from public.payments where payment_id=pg_temp.fixture_id('payment_paid')));

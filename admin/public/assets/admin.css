@@ -259,7 +259,7 @@ select { padding-right: 30px; }
 .search-field input { padding-left: 37px; font-size: 12px; min-height: 41px; }
 .filter-bar > select { width: 160px; font-size: 12px; min-height: 41px; }
 .filter-bar > .button { min-height: 44px; }
-.table-wrap { overflow-x: auto; }
+.table-wrap { position: relative; overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
 thead { background: #fafbfc; }
 th { font-weight: 650; font-size: 12px; color: #8995a6; padding: 13px 23px; white-space: nowrap; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }

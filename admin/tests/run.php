@@ -266,6 +266,8 @@ try {
         assertThat(str_contains($response['body'],'Submit refund to Stripe'),'Missing process action.');
         $result=request('POST',['page'=>'refunds','id'=>$record],['csrf'=>csrfToken($response),'action'=>'refund_process','record_id'=>$record,'amount'=>'1']);
         expectStatus($result,303);
+        $detail=request('GET',['page'=>'refunds','id'=>$record]);
+        assertThat(preg_match('~<dialog[^>]*id="record-detail"[^>]*>.*?role="status"[^>]*>Stripe confirmed the refund\.~s',$detail['body'])===1,'Refund result must be visible inside the open dialog.');
         $calls=logs('/functions/v1/admin-refund'); $last=end($calls);
         assertThat($last['body']===['refund_id'=>$record] && $last['token']==='fixture-access-aal2','Untrusted amount or wrong token forwarded.');
     });
